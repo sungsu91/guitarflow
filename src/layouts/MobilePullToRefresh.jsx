@@ -1,3 +1,5 @@
+import { t as translateUi } from "./../i18n/core.js";
+import { useLanguage } from "./../i18n/react.jsx";
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { RotateCw } from 'lucide-react';
@@ -7,6 +9,7 @@ const THRESHOLD = 130;
 const EXCLUDED = 'button,a,input,select,textarea,[role="slider"],[role="dialog"],[contenteditable="true"],.guitarPlayer,.shooterPetCompanion,.utilityMenuLayer,.helpGuideLayer';
 
 export default function MobilePullToRefresh({ enabled }) {
+  useLanguage();
   const [distance, setDistance] = useState(0);
   useEffect(() => {
     if (!enabled) { setDistance(0); return; }
@@ -71,6 +74,6 @@ export default function MobilePullToRefresh({ enabled }) {
   if (!enabled || !distance) return null;
   return createPortal(<div className="mobilePullRefresh" role="status">
     <RotateCw size={20} style={{ transform: `rotate(${distance * 2}deg)` }} aria-hidden="true" />
-    <span>{distance >= THRESHOLD ? '놓으면 새로고침' : '아래로 당겨 새로고침'}</span>
+    <span>{distance >= THRESHOLD ? translateUi("layouts.releaseToRefresh") : translateUi("layouts.pullDownToRefresh")}</span>
   </div>, document.body);
 }

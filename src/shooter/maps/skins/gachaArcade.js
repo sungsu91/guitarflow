@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { GACHA_ARCADE_RESOLVED_SLOTS } from "./gachaArcadeLayout.js";
 
 const GACHA_ARCADE_ROOT = "/assets/maps/gacha-arcade";
@@ -114,10 +115,10 @@ const preloadSources = Object.freeze([...new Set([
 export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
   id: "gacha-arcade",
   kind: "layered",
-  label: "인형뽑기방",
-  nameKo: "인형뽑기방",
+  label: ko["shooter.clawArcade"],
+  nameKo: ko["shooter.clawArcade"],
   nameEn: "Gacha Arcade",
-  description: "벽면에 밀착된 전용 단상 위 좌측 네 대와 우측 세 대의 독립 인형뽑기 기계",
+  description: ko["shooter.independentClawMachinesOnDedicatedWallSidePlatformsFourOnTheLeft"],
   mobileOnly: false,
   portraitOnly: true,
   previewImage: GACHA_ARCADE_RUNTIME_BACKGROUND,

@@ -1,16 +1,17 @@
+import ko from "../i18n/locales/ko.js";
 import { ETUDES, LEVELS } from './catalog.js';
 import { TYPES } from './tracks.js';
 
-export const DEFAULT_FILTERS = Object.freeze({type:'스케일', level:'초급', style:'전체'});
+export const DEFAULT_FILTERS = Object.freeze({type:ko["app.scales"], level:ko["etudes.beginner"], style:ko["app.all"]});
 
 // Type and difficulty define the course. A style is only a refinement inside it.
-export const filterEtudes = filters => ETUDES.filter(e => e.type===filters.type && e.level===filters.level && (filters.style==='전체' || e.style===filters.style));
+export const filterEtudes = filters => ETUDES.filter(e => e.type===filters.type && e.level===filters.level && (filters.style===ko["app.all"] || e.style===filters.style));
 
-export const availableStyles = filters => ['전체', ...new Set(ETUDES.filter(e =>
+export const availableStyles = filters => [ko["app.all"], ...new Set(ETUDES.filter(e =>
   e.type===filters.type && e.level===filters.level).map(e=>e.style))];
 
 export const lessonCourse = (selected, filters) => selected ? filterEtudes({
-  type:selected.type, level:selected.level, style:filters?.style ?? '전체',
+  type:selected.type, level:selected.level, style:filters?.style ?? ko["app.all"],
 }) : [];
 
 export const canOpenLesson = (selected, lesson, filters) => Boolean(selected && lesson &&
@@ -23,6 +24,6 @@ export function changeEtudeFilter(filters, key, value) {
   if (!TYPES.includes(next.type)) next.type=DEFAULT_FILTERS.type;
   if (!LEVELS.includes(next.level)) next.level=DEFAULT_FILTERS.level;
   // Never jump to another technique or difficulty to satisfy a genre selection.
-  if (!availableStyles(next).includes(next.style)) next.style='전체';
+  if (!availableStyles(next).includes(next.style)) next.style=ko["app.all"];
   return next;
 }

@@ -1,3 +1,7 @@
+import ko from "../../../i18n/locales/ko.js";
+import { localizeUi } from "./../../../i18n/core.js";
+import { t as translateUi } from "./../../../i18n/core.js";
+import { Translation, useLanguage } from "./../../../i18n/react.jsx";
 import { useMemo } from "react";
 import { isEditableShooterMap } from "../registry.js";
 
@@ -15,34 +19,34 @@ import { DEFAULT_PERSPECTIVE_CORNERS } from "../freeTransform.js";
 import { FROG_MOVEMENT_MODES, MAP_EDIT_ANIMATION_TYPES } from "./editorState.js";
 
 const SAVE_STATUS_LABELS = {
-  dirty: "적용되지 않은 변경사항이 있습니다",
-  error: "저장에 실패했습니다. 변경사항은 유지됩니다",
-  idle: "편집 시작 상태",
-  saved: "맵 배치를 적용했습니다",
-  saving: "맵 배치를 적용하는 중…",
+  dirty: ko["shooter.youHaveUnappliedChanges"],
+  error: ko["shooter.couldNotSaveYourChangesArePreserved"],
+  idle: ko["shooter.initialEditingState"],
+  saved: ko["shooter.mapLayoutApplied"],
+  saving: ko["shooter.applyingMapLayout"],
 };
 
 const AMBIENT_CREATURE_COLOR_PRESETS = Object.freeze([
-  Object.freeze({ id: "jade", label: "비취", bodyColor: "#56b870", bubbleColor: "#a9edf0", bodySaturation: 1.05, bodyBrightness: 0.97 }),
-  Object.freeze({ id: "deep-jade", label: "딥 제이드", bodyColor: "#2f7d66", bubbleColor: "#9fe7d8", bodySaturation: 0.95, bodyBrightness: 0.88 }),
-  Object.freeze({ id: "sapphire", label: "사파이어", bodyColor: "#5278c9", bubbleColor: "#b9e8ff", bodySaturation: 0.92, bodyBrightness: 0.94 }),
-  Object.freeze({ id: "amethyst", label: "자수정", bodyColor: "#8a68b8", bubbleColor: "#e1ccff", bodySaturation: 0.82, bodyBrightness: 0.96 }),
-  Object.freeze({ id: "rose-bronze", label: "로즈 브론즈", bodyColor: "#b86f70", bubbleColor: "#ffd1dc", bodySaturation: 0.78, bodyBrightness: 0.95 }),
-  Object.freeze({ id: "champagne", label: "샴페인 골드", bodyColor: "#ad9a56", bubbleColor: "#fff0bd", bodySaturation: 0.72, bodyBrightness: 1.02 }),
+  Object.freeze({ id: "jade", label: ko["shooter.jade"], bodyColor: "#56b870", bubbleColor: "#a9edf0", bodySaturation: 1.05, bodyBrightness: 0.97 }),
+  Object.freeze({ id: "deep-jade", label: ko["shooter.deepJade"], bodyColor: "#2f7d66", bubbleColor: "#9fe7d8", bodySaturation: 0.95, bodyBrightness: 0.88 }),
+  Object.freeze({ id: "sapphire", label: ko["shooter.sapphire"], bodyColor: "#5278c9", bubbleColor: "#b9e8ff", bodySaturation: 0.92, bodyBrightness: 0.94 }),
+  Object.freeze({ id: "amethyst", label: ko["shooter.amethyst"], bodyColor: "#8a68b8", bubbleColor: "#e1ccff", bodySaturation: 0.82, bodyBrightness: 0.96 }),
+  Object.freeze({ id: "rose-bronze", label: ko["shooter.roseBronze"], bodyColor: "#b86f70", bubbleColor: "#ffd1dc", bodySaturation: 0.78, bodyBrightness: 0.95 }),
+  Object.freeze({ id: "champagne", label: ko["shooter.champagneGold"], bodyColor: "#ad9a56", bubbleColor: "#fff0bd", bodySaturation: 0.72, bodyBrightness: 1.02 }),
 ]);
 
 const SLEEPING_FROG_PREVIEW_MODES = Object.freeze([
-  Object.freeze({ id: "idle", label: "앉아 졸기" }),
-  Object.freeze({ id: "open-mouth", label: "입 벌리고 자기" }),
-  Object.freeze({ id: "flat", label: "철푸덕 자기" }),
-  Object.freeze({ id: "cycle", label: "전체 동작" }),
+  Object.freeze({ id: "idle", label: ko["shooter.dozingWhileSeated"] }),
+  Object.freeze({ id: "open-mouth", label: ko["shooter.sleepingWithMouthOpen"] }),
+  Object.freeze({ id: "flat", label: ko["shooter.sprawledSleeping"] }),
+  Object.freeze({ id: "cycle", label: ko["shooter.allAnimations"] }),
 ]);
 
 const BABY_DRAGON_PREVIEW_MODES = Object.freeze([
-  Object.freeze({ id: "idle", label: "편하게 쉬기" }),
-  Object.freeze({ id: "sleep", label: "엎드려 자기" }),
-  Object.freeze({ id: "breath", label: "화염 브레스" }),
-  Object.freeze({ id: "cycle", label: "전체 동작" }),
+  Object.freeze({ id: "idle", label: ko["shooter.relaxing"] }),
+  Object.freeze({ id: "sleep", label: ko["shooter.sleepingOnBelly"] }),
+  Object.freeze({ id: "breath", label: ko["shooter.fireBreath"] }),
+  Object.freeze({ id: "cycle", label: ko["shooter.allAnimations"] }),
 ]);
 
 function getReferenceViewport(editor) {
@@ -85,6 +89,7 @@ function AssetPreview({ asset }) {
 }
 
 function SelectedObjectSummary({ editor }) {
+  useLanguage();
   const selected = editor.selectedPlacement;
   const asset = editor.selectedAsset;
 
@@ -93,9 +98,9 @@ function SelectedObjectSummary({ editor }) {
       <div className="mapEditSelectedCard mapEditSelectedCard--empty">
         <span className="mapEditSelectedPlaceholder" aria-hidden="true">◇</span>
         <span>
-          <small>SELECTED OBJECT</small>
-          <strong>조정할 오브젝트를 선택하세요</strong>
-          <em>Preview 또는 아래 배치 목록에서 선택</em>
+          <small><Translation id="originalUi.selectedObject" /></small>
+          <strong><Translation id="shooter.chooseAnObjectToAdjust" /></strong>
+          <em><Translation id="shooter.selectInPreviewOrThePlacementListBelow" /></em>
         </span>
       </div>
     );
@@ -108,11 +113,11 @@ function SelectedObjectSummary({ editor }) {
         <AssetPreview asset={asset} />
       </span>
       <span>
-        <small>SELECTED OBJECT</small>
-        <strong>{asset.label}</strong>
-        <em>X {Math.round(selected.x * viewport.width)}px · Y {Math.round(selected.y * viewport.height)}px · 크기 {Math.round(selected.scale * 100)}%</em>
+        <small><Translation id="originalUi.selectedObject" /></small>
+        <strong>{localizeUi(asset.label)}</strong>
+        <em><Translation id="originalUi.xMapeditpanel" />{Math.round(selected.x * viewport.width)}<Translation id="originalUi.pxY" />{Math.round(selected.y * viewport.height)}<Translation id="shooter.pxScale" />{Math.round(selected.scale * 100)}%</em>
       </span>
-      <i>조정 중</i>
+      <i><Translation id="shooter.adjusting" /></i>
     </div>
   );
 }
@@ -121,7 +126,7 @@ function EditorSection({ children, title, value }) {
   return (
     <section className="mapEditControlSection">
       <header>
-        <strong>{title}</strong>
+        <strong>{localizeUi(title)}</strong>
         {value ? <small>{value}</small> : null}
       </header>
       {children}
@@ -134,7 +139,7 @@ function CollapsibleEditorSection({ children, title, value, variant = "effects" 
     return (
       <details className="mapEditAdvancedSection mapEditAdvancedSection--effects">
         <summary>
-          <span>{title}</span>
+          <span>{localizeUi(title)}</span>
           <small>{value}</small>
         </summary>
         <div className="mapEditAdvancedSectionBody">{children}</div>
@@ -144,7 +149,7 @@ function CollapsibleEditorSection({ children, title, value, variant = "effects" 
   return (
     <details className={`mapEditAdvancedSection mapEditAdvancedSection--${variant}`}>
       <summary>
-        <span>{title}</span>
+        <span>{localizeUi(title)}</span>
         <small>{value}</small>
       </summary>
       <div className="mapEditAdvancedSectionBody">{children}</div>
@@ -153,6 +158,7 @@ function CollapsibleEditorSection({ children, title, value, variant = "effects" 
 }
 
 function MonsterTuningControls({ monsterEditor }) {
+  useLanguage();
   if (!monsterEditor) return null;
 
   const noteName = `${monsterEditor.activeRoot}#4`;
@@ -185,24 +191,24 @@ function MonsterTuningControls({ monsterEditor }) {
 
   return (
     <CollapsibleEditorSection
-      title="몹 스킨·텍스트 보정"
+      title={translateUi("shooter.targetSkinAndTextAlignment")}
       value={`${monsterEditor.activeSkin.label} · ${monsterEditor.activeRoot}`}
       variant="monster"
     >
       <div className="mapEditMonsterSkinSummary">
         <span>
-          <small>현재 몹 스킨</small>
-          <strong>{monsterEditor.activeSkin.label}</strong>
+          <small><Translation id="shooter.currentTargetSkin" /></small>
+          <strong>{localizeUi(monsterEditor.activeSkin.label)}</strong>
         </span>
-        <em>음별 저장</em>
+        <em><Translation id="shooter.savePerNote" /></em>
       </div>
 
-      <div aria-label="보정할 몹 음 선택" className="mapEditMonsterRootTabs">
+      <div aria-label={translateUi("shooter.chooseTargetNoteToAdjust")} className="mapEditMonsterRootTabs">
         {monsterEditor.roots.map((noteRoot) => {
           const isSelected = monsterEditor.activeRoot === noteRoot;
           return (
             <button
-              aria-label={`${noteRoot} 몹 보정`}
+              aria-label={translateUi("shooter.adjustValue1Target", { value1: noteRoot })}
               aria-pressed={isSelected}
               className={isSelected ? "is-selected" : ""}
               key={noteRoot}
@@ -216,7 +222,7 @@ function MonsterTuningControls({ monsterEditor }) {
         })}
       </div>
 
-      <div className="mapEditMonsterPreview" aria-label={`${noteName} 몹 실시간 미리보기`}>
+      <div className="mapEditMonsterPreview" aria-label={translateUi("shooter.value1TargetLivePreview", { value1: noteName })}>
         <div
           className="mapEditMonsterPreviewTarget"
           style={{
@@ -236,96 +242,97 @@ function MonsterTuningControls({ monsterEditor }) {
             <b>{noteName}</b>
           </span>
         </div>
-        <span><b>{noteName}</b><small>실제 게임 위치·크기 미리보기</small></span>
+        <span><b>{noteName}</b><small><Translation id="shooter.previewActualGamePositionAndSize" /></small></span>
       </div>
 
       <div className="mapEditPrecisionLayout mapEditPrecisionLayout--monster">
-        <div className="mapEditNudgePad" aria-label="몹 텍스트 1픽셀 위치 조정">
+        <div className="mapEditNudgePad" aria-label={translateUi("shooter.targetTextMoveBy1Pixel")}>
           <span />
-          <button aria-label="몹 텍스트 위로 1픽셀" onClick={() => monsterEditor.nudgeLabel(0, -1)} type="button">↑</button>
+          <button aria-label={translateUi("shooter.targetTextUp1Pixel")} onClick={() => monsterEditor.nudgeLabel(0, -1)} type="button">↑</button>
           <span />
-          <button aria-label="몹 텍스트 왼쪽으로 1픽셀" onClick={() => monsterEditor.nudgeLabel(-1, 0)} type="button">←</button>
-          <i>글자</i>
-          <button aria-label="몹 텍스트 오른쪽으로 1픽셀" onClick={() => monsterEditor.nudgeLabel(1, 0)} type="button">→</button>
+          <button aria-label={translateUi("shooter.targetTextLeft1Pixel")} onClick={() => monsterEditor.nudgeLabel(-1, 0)} type="button">←</button>
+          <i><Translation id="shooter.text" /></i>
+          <button aria-label={translateUi("shooter.targetTextRight1Pixel")} onClick={() => monsterEditor.nudgeLabel(1, 0)} type="button">→</button>
           <span />
-          <button aria-label="몹 텍스트 아래로 1픽셀" onClick={() => monsterEditor.nudgeLabel(0, 1)} type="button">↓</button>
+          <button aria-label={translateUi("shooter.targetTextDown1Pixel")} onClick={() => monsterEditor.nudgeLabel(0, 1)} type="button">↓</button>
           <span />
         </div>
         <div className="mapEditPixelFields">
           <label className="mapEditField">
-            <span>텍스트 좌·우 (기준 px)</span>
-            <input aria-label="몹 텍스트 좌우 보정값" max="80" min="-80" onChange={(event) => updateNumber("labelOffsetX", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetX)} />
+            <span><Translation id="shooter.textHorizontalOffsetReferencePx" /></span>
+            <input aria-label={translateUi("shooter.targetTextHorizontalOffset")} max="80" min="-80" onChange={(event) => updateNumber("labelOffsetX", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetX)} />
           </label>
           <label className="mapEditField">
-            <span>텍스트 위·아래 (기준 px)</span>
-            <input aria-label="몹 텍스트 상하 보정값" max="80" min="-80" onChange={(event) => updateNumber("labelOffsetY", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetY)} />
+            <span><Translation id="shooter.textVerticalOffsetReferencePx" /></span>
+            <input aria-label={translateUi("shooter.targetTextVerticalOffset")} max="80" min="-80" onChange={(event) => updateNumber("labelOffsetY", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetY)} />
           </label>
         </div>
       </div>
 
       <div className="mapEditMonsterColorEditor">
         <header>
-          <span><b>텍스트 색감</b><small>구체 밝기에 맞춰 직접 선택</small></span>
-          <button onClick={monsterEditor.resetActiveColors} type="button">자동색</button>
+          <span><b><Translation id="shooter.textColor" /></b><small><Translation id="shooter.chooseAColorToMatchOrbBrightness" /></small></span>
+          <button onClick={monsterEditor.resetActiveColors} type="button"><Translation id="shooter.autoColor" /></button>
         </header>
         <div>
           <label>
-            <span>글자색</span>
+            <span><Translation id="shooter.textColorMapEditPanel" /></span>
             <span className="mapEditMonsterColorField">
-              <input aria-label="몹 텍스트 글자색" onChange={(event) => monsterEditor.updateActiveTuning({ labelColor: event.target.value })} type="color" value={labelColor} />
-              <input aria-label="몹 텍스트 글자색 HEX" className="mapEditMonsterColorHex" maxLength="7" onChange={(event) => monsterEditor.updateActiveTuning({ labelColor: event.target.value })} spellCheck="false" type="text" value={labelColor.toUpperCase()} />
+              <input aria-label={translateUi("shooter.targetTextColor")} onChange={(event) => monsterEditor.updateActiveTuning({ labelColor: event.target.value })} type="color" value={labelColor} />
+              <input aria-label={translateUi("shooter.targetTextColorHex")} className="mapEditMonsterColorHex" maxLength="7" onChange={(event) => monsterEditor.updateActiveTuning({ labelColor: event.target.value })} spellCheck="false" type="text" value={labelColor.toUpperCase()} />
             </span>
           </label>
           <label>
-            <span>테두리색</span>
+            <span><Translation id="shooter.outlineColor" /></span>
             <span className="mapEditMonsterColorField">
-              <input aria-label="몹 텍스트 테두리색" onChange={(event) => monsterEditor.updateActiveTuning({ labelOutline: event.target.value })} type="color" value={labelOutline} />
-              <input aria-label="몹 텍스트 테두리색 HEX" className="mapEditMonsterColorHex" maxLength="7" onChange={(event) => monsterEditor.updateActiveTuning({ labelOutline: event.target.value })} spellCheck="false" type="text" value={labelOutline.toUpperCase()} />
+              <input aria-label={translateUi("shooter.targetTextOutlineColor")} onChange={(event) => monsterEditor.updateActiveTuning({ labelOutline: event.target.value })} type="color" value={labelOutline} />
+              <input aria-label={translateUi("shooter.targetTextOutlineColorHex")} className="mapEditMonsterColorHex" maxLength="7" onChange={(event) => monsterEditor.updateActiveTuning({ labelOutline: event.target.value })} spellCheck="false" type="text" value={labelOutline.toUpperCase()} />
             </span>
           </label>
         </div>
       </div>
 
       <div className="mapEditScaleEditor mapEditScaleEditor--monsterLabel">
-        <span><b>텍스트 크기</b><strong>{labelScalePercent}%</strong></span>
+        <span><b><Translation id="shooter.textSize" /></b><strong>{labelScalePercent}%</strong></span>
         <div className="mapEditScaleQuickButtons">
-          <button aria-label="몹 텍스트 크기 5퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveLabel(-0.05)} type="button">−5</button>
-          <button aria-label="몹 텍스트 크기 1퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveLabel(-0.01)} type="button">−1</button>
-          <input aria-label="몹 텍스트 크기" max="200" min="50" onChange={(event) => monsterEditor.setActiveLabelScale(Number(event.target.value) / 100)} step="1" type="range" value={labelScalePercent} />
-          <button aria-label="몹 텍스트 크기 1퍼센트 키우기" onClick={() => monsterEditor.resizeActiveLabel(0.01)} type="button">+1</button>
-          <button aria-label="몹 텍스트 크기 5퍼센트 키우기" onClick={() => monsterEditor.resizeActiveLabel(0.05)} type="button">+5</button>
+          <button aria-label={translateUi("shooter.reduceTargetTextSizeBy5")} onClick={() => monsterEditor.resizeActiveLabel(-0.05)} type="button">−5</button>
+          <button aria-label={translateUi("shooter.reduceTargetTextSizeBy1")} onClick={() => monsterEditor.resizeActiveLabel(-0.01)} type="button">−1</button>
+          <input aria-label={translateUi("shooter.targetTextSize")} max="200" min="50" onChange={(event) => monsterEditor.setActiveLabelScale(Number(event.target.value) / 100)} step="1" type="range" value={labelScalePercent} />
+          <button aria-label={translateUi("shooter.increaseTargetTextSizeBy1")} onClick={() => monsterEditor.resizeActiveLabel(0.01)} type="button">+1</button>
+          <button aria-label={translateUi("shooter.increaseTargetTextSizeBy5")} onClick={() => monsterEditor.resizeActiveLabel(0.05)} type="button">+5</button>
         </div>
       </div>
 
       <div className="mapEditScaleEditor mapEditScaleEditor--monster">
-        <span><b>몹 스킨 크기</b><strong>{scalePercent}%</strong></span>
+        <span><b><Translation id="shooter.targetSkinSize" /></b><strong>{scalePercent}%</strong></span>
         <div className="mapEditScaleQuickButtons">
-          <button aria-label="몹 크기 5퍼센트 줄이기" onClick={() => monsterEditor.resizeActive(-0.05)} type="button">−5</button>
-          <button aria-label="몹 크기 1퍼센트 줄이기" onClick={() => monsterEditor.resizeActive(-0.01)} type="button">−1</button>
-          <input aria-label="몹 스킨 크기" max="250" min="50" onChange={(event) => updateNumber("scale", event.target.value, 100)} step="1" type="range" value={scalePercent} />
-          <button aria-label="몹 크기 1퍼센트 키우기" onClick={() => monsterEditor.resizeActive(0.01)} type="button">+1</button>
-          <button aria-label="몹 크기 5퍼센트 키우기" onClick={() => monsterEditor.resizeActive(0.05)} type="button">+5</button>
+          <button aria-label={translateUi("shooter.reduceTargetSizeBy5")} onClick={() => monsterEditor.resizeActive(-0.05)} type="button">−5</button>
+          <button aria-label={translateUi("shooter.reduceTargetSizeBy1")} onClick={() => monsterEditor.resizeActive(-0.01)} type="button">−1</button>
+          <input aria-label={translateUi("shooter.targetSkinSize")} max="250" min="50" onChange={(event) => updateNumber("scale", event.target.value, 100)} step="1" type="range" value={scalePercent} />
+          <button aria-label={translateUi("shooter.increaseTargetSizeBy1")} onClick={() => monsterEditor.resizeActive(0.01)} type="button">+1</button>
+          <button aria-label={translateUi("shooter.increaseTargetSizeBy5")} onClick={() => monsterEditor.resizeActive(0.05)} type="button">+5</button>
         </div>
       </div>
 
       <div className="mapEditScaleEditor mapEditScaleEditor--monsterJoint">
-        <span><b>텍스트·몹 공동 조절</b><strong>{jointScalePercent}%</strong></span>
+        <span><b><Translation id="shooter.scaleTextAndTargetTogether" /></b><strong>{jointScalePercent}%</strong></span>
         <div className="mapEditScaleQuickButtons">
-          <button aria-label="텍스트 몹 공동 크기 5퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveJoint(-0.05)} type="button">−5</button>
-          <button aria-label="텍스트 몹 공동 크기 1퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveJoint(-0.01)} type="button">−1</button>
-          <input aria-label="텍스트 몹 공동 크기" max="200" min="50" onChange={(event) => monsterEditor.setActiveJointScale(Number(event.target.value) / 100)} step="1" type="range" value={jointScalePercent} />
-          <button aria-label="텍스트 몹 공동 크기 1퍼센트 키우기" onClick={() => monsterEditor.resizeActiveJoint(0.01)} type="button">+1</button>
-          <button aria-label="텍스트 몹 공동 크기 5퍼센트 키우기" onClick={() => monsterEditor.resizeActiveJoint(0.05)} type="button">+5</button>
+          <button aria-label={translateUi("shooter.reduceTextAndTargetSizeBy5")} onClick={() => monsterEditor.resizeActiveJoint(-0.05)} type="button">−5</button>
+          <button aria-label={translateUi("shooter.reduceTextAndTargetSizeBy1")} onClick={() => monsterEditor.resizeActiveJoint(-0.01)} type="button">−1</button>
+          <input aria-label={translateUi("shooter.textAndTargetSize")} max="200" min="50" onChange={(event) => monsterEditor.setActiveJointScale(Number(event.target.value) / 100)} step="1" type="range" value={jointScalePercent} />
+          <button aria-label={translateUi("shooter.increaseTextAndTargetSizeBy1")} onClick={() => monsterEditor.resizeActiveJoint(0.01)} type="button">+1</button>
+          <button aria-label={translateUi("shooter.increaseTextAndTargetSizeBy5")} onClick={() => monsterEditor.resizeActiveJoint(0.05)} type="button">+5</button>
         </div>
       </div>
 
-      <p className="mapEditMonsterTuningHelp">텍스트는 몹과 동일한 크기의 고정 레이어에서 움직입니다. 이 브라우저에만 남은 보정값이 있으면 변경 상태로 표시되며, 적용하면 배포 공용값으로 저장됩니다.</p>
-      <button className="mapEditRestoreButton" onClick={monsterEditor.resetActive} type="button">이 음의 몹 보정값만 기본으로</button>
+      <p className="mapEditMonsterTuningHelp"><Translation id="shooter.textMovesOnAFixedLayerMatchingTheTargetSSizeBrowser" /></p>
+      <button className="mapEditRestoreButton" onClick={monsterEditor.resetActive} type="button"><Translation id="shooter.resetThisNoteSTargetAdjustments" /></button>
     </CollapsibleEditorSection>
   );
 }
 
 function EffectTuningControls({ effectEditor }) {
+  useLanguage();
   if (!effectEditor) return null;
 
   const activeEffect = effectEditor.activeEffect;
@@ -339,8 +346,8 @@ function EffectTuningControls({ effectEditor }) {
   };
 
   return (
-    <CollapsibleEditorSection title="기타 이펙트 보정" value="FLOOR · AURA · 필요할 때만">
-      <div aria-label="보정할 기타 이펙트 종류" className="mapEditEffectSlotTabs">
+    <CollapsibleEditorSection title={translateUi("shooter.guitarEffectAlignment")} value={ko["shooter.floorAuraAsNeeded"]}>
+      <div aria-label={translateUi("shooter.guitarEffectTypeToAdjust")} className="mapEditEffectSlotTabs">
         {["floor", "aura"].map((slot) => (
           <button
             aria-pressed={effectEditor.activeSlot === slot}
@@ -350,18 +357,18 @@ function EffectTuningControls({ effectEditor }) {
             type="button"
           >
             <b>{slot === "floor" ? "FLOOR" : "AURA"}</b>
-            <small>{slot === "floor" ? "기타 받침·바닥" : "기타 주변 효과"}</small>
-            <em>{effectEditor.activeSlot === slot ? "✓ 선택됨" : ""}</em>
+            <small>{slot === "floor" ? translateUi("shooter.guitarStandFloor") : translateUi("shooter.guitarAura")}</small>
+            <em>{effectEditor.activeSlot === slot ? translateUi("shooter.selected") : ""}</em>
           </button>
         ))}
       </div>
 
-      <div aria-label={`${effectEditor.activeSlot === "floor" ? "FLOOR" : "AURA"} 스킨 선택`} className="mapEditEffectLibrary">
+      <div aria-label={translateUi("shooter.chooseValue1Skin", { value1: effectEditor.activeSlot === "floor" ? "FLOOR" : "AURA" })} className="mapEditEffectLibrary">
         {effectEditor.activeOptions.map((effect) => {
           const isSelected = activeEffect?.id === effect.id;
           return (
             <button
-              aria-label={`${effect.label} ${isSelected ? "선택됨" : "선택"}`}
+              aria-label={localizeUi(`${effect.label} ${isSelected ? translateUi("app.selected") : translateUi("app.select")}`)}
               aria-pressed={isSelected}
               className={isSelected ? "is-selected" : ""}
               key={effect.id}
@@ -371,7 +378,7 @@ function EffectTuningControls({ effectEditor }) {
               <span aria-hidden="true">
                 {effect.asset ? <img alt="" decoding="async" draggable="false" src={effect.asset} /> : <i>—</i>}
               </span>
-              <b>{effect.label}</b>
+              <b>{localizeUi(effect.label)}</b>
               <em>{isSelected ? "✓" : ""}</em>
             </button>
           );
@@ -382,61 +389,62 @@ function EffectTuningControls({ effectEditor }) {
         <span aria-hidden="true">
           {activeEffect?.asset ? <img alt="" decoding="async" draggable="false" src={activeEffect.asset} /> : <i>—</i>}
         </span>
-        <span><small>선택된 이펙트</small><strong>{activeEffect?.label ?? "없음"}</strong></span>
-        <em>{isEnabled ? "실시간 보정" : "사용 안 함"}</em>
+        <span><small><Translation id="shooter.selectedEffect" /></small><strong>{localizeUi(activeEffect?.label ?? translateUi("app.none"))}</strong></span>
+        <em>{isEnabled ? translateUi("shooter.liveAdjustment") : translateUi("shooter.disabled")}</em>
       </div>
 
       {isEnabled ? (
         <>
           <div className="mapEditPrecisionLayout mapEditPrecisionLayout--effect">
-            <div className="mapEditNudgePad" aria-label="이펙트 1픽셀 위치 조정">
+            <div className="mapEditNudgePad" aria-label={translateUi("shooter.effectMoveBy1Pixel")}>
               <span />
-              <button aria-label="이펙트 위로 1픽셀" onClick={() => effectEditor.nudgeActive(0, -1)} type="button">↑</button>
+              <button aria-label={translateUi("shooter.effectUp1Pixel")} onClick={() => effectEditor.nudgeActive(0, -1)} type="button">↑</button>
               <span />
-              <button aria-label="이펙트 왼쪽으로 1픽셀" onClick={() => effectEditor.nudgeActive(-1, 0)} type="button">←</button>
-              <i>1px</i>
-              <button aria-label="이펙트 오른쪽으로 1픽셀" onClick={() => effectEditor.nudgeActive(1, 0)} type="button">→</button>
+              <button aria-label={translateUi("shooter.effectLeft1Pixel")} onClick={() => effectEditor.nudgeActive(-1, 0)} type="button">←</button>
+              <i><Translation id="originalUi.1px" /></i>
+              <button aria-label={translateUi("shooter.effectRight1Pixel")} onClick={() => effectEditor.nudgeActive(1, 0)} type="button">→</button>
               <span />
-              <button aria-label="이펙트 아래로 1픽셀" onClick={() => effectEditor.nudgeActive(0, 1)} type="button">↓</button>
+              <button aria-label={translateUi("shooter.effectDown1Pixel")} onClick={() => effectEditor.nudgeActive(0, 1)} type="button">↓</button>
               <span />
             </div>
             <div className="mapEditPixelFields">
               <label className="mapEditField">
-                <span>X 보정 (px)</span>
-                <input aria-label="이펙트 X 보정값" max="160" min="-160" onChange={(event) => updateNumber("offsetX", event.target.value)} step="1" type="number" value={Math.round(activeTuning.offsetX)} />
+                <span><Translation id="shooter.xOffsetPx" /></span>
+                <input aria-label={translateUi("shooter.effectXOffset")} max="160" min="-160" onChange={(event) => updateNumber("offsetX", event.target.value)} step="1" type="number" value={Math.round(activeTuning.offsetX)} />
               </label>
               <label className="mapEditField">
-                <span>Y 보정 (px)</span>
-                <input aria-label="이펙트 Y 보정값" max="220" min="-180" onChange={(event) => updateNumber("offsetY", event.target.value)} step="1" type="number" value={Math.round(activeTuning.offsetY)} />
+                <span><Translation id="shooter.yOffsetPx" /></span>
+                <input aria-label={translateUi("shooter.effectYOffset")} max="220" min="-180" onChange={(event) => updateNumber("offsetY", event.target.value)} step="1" type="number" value={Math.round(activeTuning.offsetY)} />
               </label>
             </div>
           </div>
 
           <div className="mapEditScaleEditor">
-            <span><b>크기</b><strong>{scalePercent}%</strong></span>
+            <span><b><Translation id="pdf.size" /></b><strong>{scalePercent}%</strong></span>
             <div className="mapEditScaleQuickButtons">
-              <button aria-label="이펙트 크기 5퍼센트 줄이기" onClick={() => effectEditor.resizeActive(-0.05)} type="button">−5</button>
-              <button aria-label="이펙트 크기 1퍼센트 줄이기" onClick={() => effectEditor.resizeActive(-0.01)} type="button">−1</button>
-              <input aria-label="이펙트 크기" max="250" min="25" onChange={(event) => updateNumber("scale", event.target.value, 100)} step="1" type="range" value={scalePercent} />
-              <button aria-label="이펙트 크기 1퍼센트 키우기" onClick={() => effectEditor.resizeActive(0.01)} type="button">+1</button>
-              <button aria-label="이펙트 크기 5퍼센트 키우기" onClick={() => effectEditor.resizeActive(0.05)} type="button">+5</button>
+              <button aria-label={translateUi("shooter.reduceEffectSizeBy5")} onClick={() => effectEditor.resizeActive(-0.05)} type="button">−5</button>
+              <button aria-label={translateUi("shooter.reduceEffectSizeBy1")} onClick={() => effectEditor.resizeActive(-0.01)} type="button">−1</button>
+              <input aria-label={translateUi("shooter.effectSize")} max="250" min="25" onChange={(event) => updateNumber("scale", event.target.value, 100)} step="1" type="range" value={scalePercent} />
+              <button aria-label={translateUi("shooter.increaseEffectSizeBy1")} onClick={() => effectEditor.resizeActive(0.01)} type="button">+1</button>
+              <button aria-label={translateUi("shooter.increaseEffectSizeBy5")} onClick={() => effectEditor.resizeActive(0.05)} type="button">+5</button>
             </div>
           </div>
 
           <label className="mapEditRangeField mapEditEffectOpacity">
-            <span><b>투명도</b><strong>{opacityPercent}%</strong></span>
-            <input aria-label="이펙트 투명도" max="100" min="10" onChange={(event) => updateNumber("opacity", event.target.value, 100)} step="1" type="range" value={opacityPercent} />
+            <span><b><Translation id="shooter.opacity" /></b><strong>{opacityPercent}%</strong></span>
+            <input aria-label={translateUi("shooter.effectOpacity")} max="100" min="10" onChange={(event) => updateNumber("opacity", event.target.value, 100)} step="1" type="range" value={opacityPercent} />
           </label>
-          <button className="mapEditRestoreButton" onClick={effectEditor.resetActive} type="button">이 이펙트 보정값만 기본으로</button>
+          <button className="mapEditRestoreButton" onClick={effectEditor.resetActive} type="button"><Translation id="shooter.resetThisEffectSAdjustments" /></button>
         </>
       ) : (
-        <p className="mapEditEffectEmpty">스킨변경에서 이 슬롯의 이펙트를 고르면 위치·크기·투명도를 조절할 수 있습니다.</p>
+        <p className="mapEditEffectEmpty"><Translation id="shooter.chooseAnEffectForThisSlotInChangeSkinToAdjustIts" /></p>
       )}
     </CollapsibleEditorSection>
   );
 }
 
 function InstalledObjectSelector({ editor }) {
+  useLanguage();
   const instanceOptions = useMemo(() => editor.placements.map((placement, index) => {
     const asset = editor.assetCatalog.find((candidate) => candidate.id === placement.assetId);
     return {
@@ -451,28 +459,28 @@ function InstalledObjectSelector({ editor }) {
   return (
     <details className="mapEditAdvancedSection mapEditAdvancedSection--installed">
       <summary>
-        <span>배치된 오브젝트</span>
-        <small>{editor.placements.length} OBJECTS · 눌러서 열기</small>
+        <span><Translation id="shooter.placedObjects" /></span>
+        <small>{editor.placements.length}<Translation id="shooter.objectsTapToOpen" /></small>
       </summary>
       <div className="mapEditAdvancedSectionBody">
-        <p className="mapEditPlacedHelp">이미 설치된 오브젝트를 고른 뒤 위치와 크기만 다듬으세요.</p>
+        <p className="mapEditPlacedHelp"><Translation id="shooter.selectAnExistingObjectAndAdjustItsPositionAndSize" /></p>
         <label className="mapEditField mapEditField--wide">
-          <span>빠른 선택</span>
+          <span><Translation id="shooter.quickSelect" /></span>
           <select
-            aria-label="편집할 배치 오브젝트"
+            aria-label={translateUi("shooter.placedObjectToEdit")}
             onChange={(event) => editor.selectInstance(event.target.value)}
             value={editor.selectedInstanceId}
           >
-            <option value="">오브젝트를 선택하세요</option>
+            <option value=""><Translation id="shooter.chooseAnObject" /></option>
             {instanceOptions.map((option) => (
-              <option key={option.id} value={option.id}>{option.index + 1}. {option.label}</option>
+              <option key={option.id} value={option.id}>{option.index + 1}. {localizeUi(option.label)}</option>
             ))}
           </select>
         </label>
-        <div aria-label="배치된 오브젝트 목록" className="mapEditPlacedObjectGrid">
+        <div aria-label={translateUi("shooter.placedObjectList")} className="mapEditPlacedObjectGrid">
           {instanceOptions.map((option) => (
             <button
-              aria-label={`${option.label} 선택`}
+              aria-label={localizeUi(translateUi("components.selectValue1", { value1: option.label }))}
               aria-pressed={editor.selectedInstanceId === option.id}
               className={editor.selectedInstanceId === option.id ? "is-selected" : ""}
               key={option.id}
@@ -482,7 +490,7 @@ function InstalledObjectSelector({ editor }) {
               <span aria-hidden="true">
                 <AssetPreview asset={option.asset} />
               </span>
-              <b>{option.label}</b>
+              <b>{localizeUi(option.label)}</b>
               <small>#{String(option.index + 1).padStart(2, "0")} · {Math.round(option.scale * 100)}%</small>
             </button>
           ))}
@@ -493,6 +501,7 @@ function InstalledObjectSelector({ editor }) {
 }
 
 function PrecisionControls({ editor }) {
+  useLanguage();
   const selected = editor.selectedPlacement;
   if (!selected) return null;
 
@@ -510,49 +519,50 @@ function PrecisionControls({ editor }) {
   };
 
   return (
-    <EditorSection title="위치·크기 미세 조정" value="QUICK TUNE">
+    <EditorSection title={translateUi("shooter.fineTunePositionAndSize")} value="QUICK TUNE">
       <div className="mapEditPrecisionLayout">
-        <div className="mapEditNudgePad" aria-label="1픽셀 위치 조정">
+        <div className="mapEditNudgePad" aria-label={translateUi("shooter.moveBy1Pixel")}>
           <span />
-          <button aria-label="위로 1픽셀" onClick={() => editor.nudgeSelected(0, -1)} title="위로 1px" type="button">↑</button>
+          <button aria-label={translateUi("shooter.up1Pixel")} onClick={() => editor.nudgeSelected(0, -1)} title={translateUi("shooter.up1Px")} type="button">↑</button>
           <span />
-          <button aria-label="왼쪽으로 1픽셀" onClick={() => editor.nudgeSelected(-1, 0)} title="왼쪽으로 1px" type="button">←</button>
-          <i>1px</i>
-          <button aria-label="오른쪽으로 1픽셀" onClick={() => editor.nudgeSelected(1, 0)} title="오른쪽으로 1px" type="button">→</button>
+          <button aria-label={translateUi("shooter.left1Pixel")} onClick={() => editor.nudgeSelected(-1, 0)} title={translateUi("shooter.left1Px")} type="button">←</button>
+          <i><Translation id="originalUi.1px" /></i>
+          <button aria-label={translateUi("shooter.right1Pixel")} onClick={() => editor.nudgeSelected(1, 0)} title={translateUi("shooter.right1Px")} type="button">→</button>
           <span />
-          <button aria-label="아래로 1픽셀" onClick={() => editor.nudgeSelected(0, 1)} title="아래로 1px" type="button">↓</button>
+          <button aria-label={translateUi("shooter.down1Pixel")} onClick={() => editor.nudgeSelected(0, 1)} title={translateUi("shooter.down1Px")} type="button">↓</button>
           <span />
         </div>
         <div className="mapEditPixelFields">
           <label className="mapEditField">
-            <span>X 위치 (px)</span>
-            <input aria-label="오브젝트 X 픽셀 좌표" onChange={(event) => updatePixel("x", event.target.value, viewport.width)} step="1" type="number" value={xPixels} />
+            <span><Translation id="shooter.xPositionPx" /></span>
+            <input aria-label={translateUi("shooter.objectXCoordinateInPixels")} onChange={(event) => updatePixel("x", event.target.value, viewport.width)} step="1" type="number" value={xPixels} />
           </label>
           <label className="mapEditField">
-            <span>Y 위치 (px)</span>
-            <input aria-label="오브젝트 Y 픽셀 좌표" onChange={(event) => updatePixel("y", event.target.value, viewport.height)} step="1" type="number" value={yPixels} />
+            <span><Translation id="shooter.yPositionPx" /></span>
+            <input aria-label={translateUi("shooter.objectYCoordinateInPixels")} onChange={(event) => updatePixel("y", event.target.value, viewport.height)} step="1" type="number" value={yPixels} />
           </label>
         </div>
       </div>
-      <p className="mapEditKeyboardHint"><kbd>방향키</kbd> 1px 이동 · <kbd>Shift</kbd> + <kbd>방향키</kbd> 5px 이동</p>
+      <p className="mapEditKeyboardHint"><kbd><Translation id="shooter.arrowKeys" /></kbd><Translation id="shooter.move1Px" /><kbd><Translation id="originalUi.shift" /></kbd> + <kbd><Translation id="shooter.arrowKeys" /></kbd><Translation id="shooter.move5Px" /></p>
 
       <div className="mapEditScaleEditor">
-        <span><b>크기</b><strong>{scalePercent}%</strong></span>
+        <span><b><Translation id="pdf.size" /></b><strong>{scalePercent}%</strong></span>
         <div className="mapEditScaleQuickButtons">
-          <button aria-label="크기 5퍼센트 줄이기" onClick={() => editor.resizeSelected(-0.05)} type="button">−5</button>
-          <button aria-label="크기 1퍼센트 줄이기" onClick={() => editor.resizeSelected(-0.01)} type="button">−1</button>
-          <input aria-label="오브젝트 크기" max="300" min="10" onChange={(event) => updateScalePercent(event.target.value)} step="1" type="range" value={scalePercent} />
-          <button aria-label="크기 1퍼센트 키우기" onClick={() => editor.resizeSelected(0.01)} type="button">+1</button>
-          <button aria-label="크기 5퍼센트 키우기" onClick={() => editor.resizeSelected(0.05)} type="button">+5</button>
+          <button aria-label={translateUi("shooter.reduceSizeBy5")} onClick={() => editor.resizeSelected(-0.05)} type="button">−5</button>
+          <button aria-label={translateUi("shooter.reduceSizeBy1")} onClick={() => editor.resizeSelected(-0.01)} type="button">−1</button>
+          <input aria-label={translateUi("shooter.objectSize")} max="300" min="10" onChange={(event) => updateScalePercent(event.target.value)} step="1" type="range" value={scalePercent} />
+          <button aria-label={translateUi("shooter.increaseSizeBy1")} onClick={() => editor.resizeSelected(0.01)} type="button">+1</button>
+          <button aria-label={translateUi("shooter.increaseSizeBy5")} onClick={() => editor.resizeSelected(0.05)} type="button">+5</button>
         </div>
       </div>
 
-      <button className="mapEditRestoreButton" onClick={editor.restoreSelected} type="button">선택 오브젝트를 편집 전 상태로</button>
+      <button className="mapEditRestoreButton" onClick={editor.restoreSelected} type="button"><Translation id="shooter.restoreSelectedObjectToPreEditState" /></button>
     </EditorSection>
   );
 }
 
 function SleepingFrogControls({ creature, editor }) {
+  useLanguage();
   const viewport = getReferenceViewport(editor);
   const anchor = creature.anchors[0];
   const updateNumber = (key, value) => {
@@ -584,11 +594,11 @@ function SleepingFrogControls({ creature, editor }) {
   };
 
   return (
-    <EditorSection title="졸고 있는 개구리" value="AMBIENT CREATURE">
+    <EditorSection title={translateUi("shooter.sleepyFrog")} value="AMBIENT CREATURE">
       <label className="mapEditCreatureToggle">
-        <span><strong>졸음 애니메이션</strong><small>호흡·꾸벅임·철푸덕·기상을 자연스럽게 반복합니다</small></span>
+        <span><strong><Translation id="shooter.dozingAnimation" /></strong><small><Translation id="shooter.cyclesThroughBreathingNoddingFloppingAndWaking" /></small></span>
         <input
-          aria-label="졸고 있는 개구리 애니메이션"
+          aria-label={translateUi("shooter.sleepyFrogAnimation")}
           checked={creature.enabled}
           onChange={(event) => editor.updateSelectedCreature({ enabled: event.target.checked })}
           type="checkbox"
@@ -597,29 +607,29 @@ function SleepingFrogControls({ creature, editor }) {
 
       <div className="mapEditCoordinateGrid">
         <label className="mapEditField">
-          <span>평균 졸음 간격 (초)</span>
-          <input aria-label="개구리 졸음 간격" max="30" min="3" onChange={(event) => updateNumber("sleepInterval", event.target.value)} step="0.1" type="number" value={creature.sleepInterval} />
+          <span><Translation id="shooter.averageDozeIntervalS" /></span>
+          <input aria-label={translateUi("shooter.frogDozeInterval")} max="30" min="3" onChange={(event) => updateNumber("sleepInterval", event.target.value)} step="0.1" type="number" value={creature.sleepInterval} />
         </label>
         <label className="mapEditField">
-          <span>엎드림 유지 (초)</span>
-          <input aria-label="개구리 엎드림 유지 시간" max="30" min="2" onChange={(event) => updateNumber("flatDuration", event.target.value)} step="0.1" type="number" value={creature.flatDuration} />
+          <span><Translation id="shooter.lyingDurationS" /></span>
+          <input aria-label={translateUi("shooter.frogLyingDuration")} max="30" min="2" onChange={(event) => updateNumber("flatDuration", event.target.value)} step="0.1" type="number" value={creature.flatDuration} />
         </label>
       </div>
       <label className="mapEditRangeField">
-        <span><b>철푸덕 확률</b><strong>{Math.round(creature.fallChance * 100)}%</strong></span>
-        <input aria-label="개구리 철푸덕 확률" max="0.75" min="0" onChange={(event) => updateNumber("fallChance", event.target.value)} step="0.01" type="range" value={creature.fallChance} />
+        <span><b><Translation id="shooter.flopProbability" /></b><strong>{Math.round(creature.fallChance * 100)}%</strong></span>
+        <input aria-label={translateUi("shooter.frogFlopProbability")} max="0.75" min="0" onChange={(event) => updateNumber("fallChance", event.target.value)} step="0.01" type="range" value={creature.fallChance} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>동작 속도</b><strong>{creature.animationSpeed.toFixed(2)}×</strong></span>
-        <input aria-label="졸고 있는 개구리 동작 속도" max="2.5" min="0.35" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.05" type="range" value={creature.animationSpeed} />
+        <span><b><Translation id="shooter.animationSpeed" /></b><strong>{creature.animationSpeed.toFixed(2)}×</strong></span>
+        <input aria-label={translateUi("shooter.sleepyFrogAnimationSpeed")} max="2.5" min="0.35" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.05" type="range" value={creature.animationSpeed} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>입 벌리고 자기 유지</b><strong>{creature.openMouthDuration.toFixed(1)}초</strong></span>
-        <input aria-label="개구리 입 벌리고 자기 유지 시간" max="8" min="0.3" onChange={(event) => updateNumber("openMouthDuration", event.target.value)} step="0.1" type="range" value={creature.openMouthDuration} />
+        <span><b><Translation id="shooter.openMouthSleepDuration" /></b><strong>{creature.openMouthDuration.toFixed(1)}<Translation id="shooter.s" /></strong></span>
+        <input aria-label={translateUi("shooter.frogOpenMouthSleepDuration")} max="8" min="0.3" onChange={(event) => updateNumber("openMouthDuration", event.target.value)} step="0.1" type="range" value={creature.openMouthDuration} />
       </label>
 
-      <div className="mapEditCreaturePreview" aria-label="졸고 있는 개구리 동작 미리보기">
-        <span><strong>동작·코방울 미리보기</strong><small>저장값은 바꾸지 않고 Preview에서만 재생합니다</small></span>
+      <div className="mapEditCreaturePreview" aria-label={translateUi("shooter.previewSleepyFrogAnimation")}>
+        <span><strong><Translation id="shooter.previewAnimationAndBubble" /></strong><small><Translation id="shooter.playsInPreviewOnlySavedValuesStayUnchanged" /></small></span>
         <div>
           {SLEEPING_FROG_PREVIEW_MODES.map((mode) => (
             <button
@@ -628,34 +638,34 @@ function SleepingFrogControls({ creature, editor }) {
               key={mode.id}
               onClick={() => editor.previewSelectedCreature(mode.id)}
               type="button"
-            >{mode.label}</button>
+            >{localizeUi(mode.label)}</button>
           ))}
           <button
-            aria-label="개구리 동작 미리보기 끄기"
+            aria-label={translateUi("shooter.stopFrogAnimationPreview")}
             className="mapEditCreaturePreviewStop"
             disabled={!editor.creaturePreviewMode}
             onClick={() => editor.previewSelectedCreature("")}
             type="button"
-          >정지</button>
+          ><Translation id="app.stopApp" /></button>
         </div>
       </div>
 
       <div className="mapEditColorGrid">
         <label className="mapEditColorField">
-          <span><b>개구리 색상</b><small>원본 디테일을 유지하며 색조를 바꿉니다</small></span>
-          <input aria-label="졸고 있는 개구리 몸 색상" onChange={(event) => editor.updateSelectedCreature({ bodyColor: event.target.value })} type="color" value={creature.bodyColor} />
+          <span><b><Translation id="shooter.frogColor" /></b><small><Translation id="shooter.changesHueWhileKeepingOriginalDetails" /></small></span>
+          <input aria-label={translateUi("shooter.sleepyFrogBodyColor")} onChange={(event) => editor.updateSelectedCreature({ bodyColor: event.target.value })} type="color" value={creature.bodyColor} />
         </label>
         <label className="mapEditColorField">
-          <span><b>코방울 색상</b><small>방울 레이어에만 적용됩니다</small></span>
-          <input aria-label="개구리 코방울 색상" onChange={(event) => editor.updateSelectedCreature({ bubbleColor: event.target.value })} type="color" value={creature.bubbleColor} />
+          <span><b><Translation id="shooter.sleepBubbleColor" /></b><small><Translation id="shooter.appliesToTheBubbleLayerOnly" /></small></span>
+          <input aria-label={translateUi("shooter.frogSleepBubbleColor")} onChange={(event) => editor.updateSelectedCreature({ bubbleColor: event.target.value })} type="color" value={creature.bubbleColor} />
         </label>
       </div>
-      <div className="mapEditColorPresets" aria-label="개구리 고급 색상 빠른 선택">
-        <span><strong>Curated Color</strong><small>톤·채도·밝기·코방울 조합을 한 번에 적용합니다</small></span>
+      <div className="mapEditColorPresets" aria-label={translateUi("shooter.frogColorPresets")}>
+        <span><strong><Translation id="originalUi.curatedColor" /></strong><small><Translation id="shooter.applyHueSaturationBrightnessAndBubbleColorTogether" /></small></span>
         <div>
           {AMBIENT_CREATURE_COLOR_PRESETS.map((preset) => (
             <button
-              aria-label={`${preset.label} 색상 적용`}
+              aria-label={localizeUi(translateUi("shooter.applyValue1Colors", { value1: preset.label }))}
               className={creature.bodyColor === preset.bodyColor ? "active" : ""}
               key={preset.id}
               onClick={() => applyColorPreset(preset)}
@@ -663,94 +673,95 @@ function SleepingFrogControls({ creature, editor }) {
               type="button"
             >
               <i aria-hidden="true" />
-              <span>{preset.label}</span>
+              <span>{localizeUi(preset.label)}</span>
             </button>
           ))}
         </div>
       </div>
       <label className="mapEditRangeField">
-        <span><b>몸 색상 강도</b><strong>{Math.round(creature.bodySaturation * 100)}%</strong></span>
-        <input aria-label="졸고 있는 개구리 색상 강도" max="1.8" min="0.45" onChange={(event) => updateNumber("bodySaturation", event.target.value)} step="0.05" type="range" value={creature.bodySaturation} />
+        <span><b><Translation id="shooter.bodyTintStrength" /></b><strong>{Math.round(creature.bodySaturation * 100)}%</strong></span>
+        <input aria-label={translateUi("shooter.sleepyFrogTintStrength")} max="1.8" min="0.45" onChange={(event) => updateNumber("bodySaturation", event.target.value)} step="0.05" type="range" value={creature.bodySaturation} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>몸 밝기</b><strong>{Math.round(creature.bodyBrightness * 100)}%</strong></span>
-        <input aria-label="졸고 있는 개구리 밝기" max="1.45" min="0.55" onChange={(event) => updateNumber("bodyBrightness", event.target.value)} step="0.05" type="range" value={creature.bodyBrightness} />
+        <span><b><Translation id="shooter.bodyBrightness" /></b><strong>{Math.round(creature.bodyBrightness * 100)}%</strong></span>
+        <input aria-label={translateUi("shooter.sleepyFrogBrightness")} max="1.45" min="0.55" onChange={(event) => updateNumber("bodyBrightness", event.target.value)} step="0.05" type="range" value={creature.bodyBrightness} />
       </label>
 
       <div className="mapEditAnchorHeader">
-        <span><strong>Sleeping Spot</strong><small>돌·연잎·돌다리·하단 선착장 위의 바닥 접점을 저장합니다</small></span>
+        <span><strong><Translation id="originalUi.sleepingSpot" /></strong><small><Translation id="shooter.saveTheGroundContactPointOnRocksLilyPadsBridgesOrThe" /></small></span>
       </div>
       {anchor ? (
         <div className="mapEditAnchorList">
           <div className="mapEditAnchorRow">
-            <i>A</i>
+            <i><Translation id="originalUi.a" /></i>
             <label className="mapEditAnchorSurface">
-              <span>착지</span>
+              <span><Translation id="shooter.landing" /></span>
               <select
-                aria-label="졸고 있는 개구리 착지 오브젝트"
+                aria-label={translateUi("shooter.sleepyFrogLandingObject")}
                 onChange={(event) => editor.attachSelectedCreatureAnchor(anchor.id, event.target.value)}
                 value={anchor.surfaceInstanceId ?? ""}
               >
-                <option disabled value="">돌·연잎·돌다리·선착장 선택</option>
+                <option disabled value=""><Translation id="shooter.chooseRockLilyPadBridgeOrDock" /></option>
                 {editor.landingSurfaces.map((surface) => (
-                  <option key={surface.instanceId} value={surface.instanceId}>{surface.label}</option>
+                  <option key={surface.instanceId} value={surface.instanceId}>{localizeUi(surface.label)}</option>
                 ))}
               </select>
             </label>
-            <label><span>X</span><input aria-label="졸고 있는 개구리 X 좌표" onChange={(event) => updateAnchorPixel("x", event.target.value)} step="1" type="number" value={Math.round(anchor.x * viewport.width)} /></label>
-            <label><span>Y</span><input aria-label="졸고 있는 개구리 Y 좌표" onChange={(event) => updateAnchorPixel("y", event.target.value)} step="1" type="number" value={Math.round(anchor.y * viewport.height)} /></label>
-            <span className="mapEditAnchorNudges" aria-label="졸고 있는 개구리 위치 미세 이동">
-              <small>A 포인트 1px 이동</small>
-              <button aria-label="졸고 있는 개구리 왼쪽으로 1픽셀" onClick={() => nudgeAnchor(-1, 0)} type="button">←</button>
-              <button aria-label="졸고 있는 개구리 위로 1픽셀" onClick={() => nudgeAnchor(0, -1)} type="button">↑</button>
-              <button aria-label="졸고 있는 개구리 아래로 1픽셀" onClick={() => nudgeAnchor(0, 1)} type="button">↓</button>
-              <button aria-label="졸고 있는 개구리 오른쪽으로 1픽셀" onClick={() => nudgeAnchor(1, 0)} type="button">→</button>
+            <label><span><Translation id="originalUi.xMapeditpanelSpaced" /></span><input aria-label={translateUi("shooter.sleepyFrogXCoordinate")} onChange={(event) => updateAnchorPixel("x", event.target.value)} step="1" type="number" value={Math.round(anchor.x * viewport.width)} /></label>
+            <label><span><Translation id="originalUi.y" /></span><input aria-label={translateUi("shooter.sleepyFrogYCoordinate")} onChange={(event) => updateAnchorPixel("y", event.target.value)} step="1" type="number" value={Math.round(anchor.y * viewport.height)} /></label>
+            <span className="mapEditAnchorNudges" aria-label={translateUi("shooter.nudgeSleepyFrogPosition")}>
+              <small><Translation id="shooter.movePointABy1Px" /></small>
+              <button aria-label={translateUi("shooter.sleepyFrogLeft1Pixel")} onClick={() => nudgeAnchor(-1, 0)} type="button">←</button>
+              <button aria-label={translateUi("shooter.sleepyFrogUp1Pixel")} onClick={() => nudgeAnchor(0, -1)} type="button">↑</button>
+              <button aria-label={translateUi("shooter.sleepyFrogDown1Pixel")} onClick={() => nudgeAnchor(0, 1)} type="button">↓</button>
+              <button aria-label={translateUi("shooter.sleepyFrogRight1Pixel")} onClick={() => nudgeAnchor(1, 0)} type="button">→</button>
             </span>
           </div>
         </div>
       ) : null}
 
       <label className="mapEditCreatureToggle">
-        <span><strong>코방울</strong><small>개구리와 분리된 독립 레이어입니다</small></span>
+        <span><strong><Translation id="shooter.sleepBubble" /></strong><small><Translation id="shooter.anIndependentLayerSeparateFromTheFrog" /></small></span>
         <input
-          aria-label="개구리 코방울 표시"
+          aria-label={translateUi("shooter.showFrogSleepBubble")}
           checked={creature.bubbleEnabled}
           onChange={(event) => editor.updateSelectedCreature({ bubbleEnabled: event.target.checked })}
           type="checkbox"
         />
       </label>
       <label className="mapEditRangeField">
-        <span><b>코방울 기본 크기</b><strong>{creature.bubbleBaseScale.toFixed(2)}×</strong></span>
-        <input aria-label="개구리 코방울 기본 크기" max="1.5" min="0.45" onChange={(event) => updateNumber("bubbleBaseScale", event.target.value)} step="0.05" type="range" value={creature.bubbleBaseScale} />
+        <span><b><Translation id="shooter.bubbleBaseSize" /></b><strong>{creature.bubbleBaseScale.toFixed(2)}×</strong></span>
+        <input aria-label={translateUi("shooter.frogBubbleBaseSize")} max="1.5" min="0.45" onChange={(event) => updateNumber("bubbleBaseScale", event.target.value)} step="0.05" type="range" value={creature.bubbleBaseScale} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>코방울 최대 크기</b><strong>{creature.bubbleMaxScale.toFixed(2)}×</strong></span>
-        <input aria-label="개구리 코방울 최대 크기" max="3" min="1.2" onChange={(event) => updateNumber("bubbleMaxScale", event.target.value)} step="0.05" type="range" value={creature.bubbleMaxScale} />
+        <span><b><Translation id="shooter.bubbleMaximumSize" /></b><strong>{creature.bubbleMaxScale.toFixed(2)}×</strong></span>
+        <input aria-label={translateUi("shooter.frogBubbleMaximumSize")} max="3" min="1.2" onChange={(event) => updateNumber("bubbleMaxScale", event.target.value)} step="0.05" type="range" value={creature.bubbleMaxScale} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>코방울 호흡 속도</b><strong>{creature.bubbleSpeed.toFixed(2)}×</strong></span>
-        <input aria-label="개구리 코방울 호흡 속도" max="2" min="0.4" onChange={(event) => updateNumber("bubbleSpeed", event.target.value)} step="0.05" type="range" value={creature.bubbleSpeed} />
+        <span><b><Translation id="shooter.bubbleBreathingSpeed" /></b><strong>{creature.bubbleSpeed.toFixed(2)}×</strong></span>
+        <input aria-label={translateUi("shooter.frogBubbleBreathingSpeed")} max="2" min="0.4" onChange={(event) => updateNumber("bubbleSpeed", event.target.value)} step="0.05" type="range" value={creature.bubbleSpeed} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>코방울 투명도</b><strong>{Math.round(creature.bubbleOpacity * 100)}%</strong></span>
-        <input aria-label="개구리 코방울 투명도" max="1" min="0.2" onChange={(event) => updateNumber("bubbleOpacity", event.target.value)} step="0.02" type="range" value={creature.bubbleOpacity} />
+        <span><b><Translation id="shooter.bubbleOpacity" /></b><strong>{Math.round(creature.bubbleOpacity * 100)}%</strong></span>
+        <input aria-label={translateUi("shooter.frogBubbleOpacity")} max="1" min="0.2" onChange={(event) => updateNumber("bubbleOpacity", event.target.value)} step="0.02" type="range" value={creature.bubbleOpacity} />
       </label>
     </EditorSection>
   );
 }
 
 function BabyDragonControls({ creature, editor }) {
+  useLanguage();
   const updateNumber = (key, value) => {
     const number = Number(value);
     if (Number.isFinite(number)) editor.updateSelectedCreature({ [key]: number });
   };
 
   return (
-    <EditorSection title="용암계곡 아기 용" value="AMBIENT CREATURE">
+    <EditorSection title={translateUi("shooter.lavaCanyonBabyDragon")} value="AMBIENT CREATURE">
       <label className="mapEditCreatureToggle">
-        <span><strong>환경 행동</strong><small>휴식·졸기·수면과 가끔 발생하는 화염 브레스를 재생합니다</small></span>
+        <span><strong><Translation id="shooter.ambientBehavior" /></strong><small><Translation id="shooter.playsRestingDozingSleepingAndOccasionalFireBreath" /></small></span>
         <input
-          aria-label="아기 용 환경 행동"
+          aria-label={translateUi("shooter.babyDragonAmbientBehavior")}
           checked={creature.enabled}
           onChange={(event) => editor.updateSelectedCreature({ enabled: event.target.checked })}
           type="checkbox"
@@ -759,30 +770,30 @@ function BabyDragonControls({ creature, editor }) {
 
       <div className="mapEditCoordinateGrid">
         <label className="mapEditField">
-          <span>평균 행동 간격 (초)</span>
-          <input aria-label="아기 용 행동 간격" max="20" min="3" onChange={(event) => updateNumber("idleInterval", event.target.value)} step="0.1" type="number" value={creature.idleInterval} />
+          <span><Translation id="shooter.averageBehaviorIntervalS" /></span>
+          <input aria-label={translateUi("shooter.babyDragonBehaviorInterval")} max="20" min="3" onChange={(event) => updateNumber("idleInterval", event.target.value)} step="0.1" type="number" value={creature.idleInterval} />
         </label>
         <label className="mapEditField">
-          <span>수면 유지 (초)</span>
-          <input aria-label="아기 용 수면 유지 시간" max="24" min="2" onChange={(event) => updateNumber("sleepDuration", event.target.value)} step="0.1" type="number" value={creature.sleepDuration} />
+          <span><Translation id="shooter.sleepDurationS" /></span>
+          <input aria-label={translateUi("shooter.babyDragonSleepDuration")} max="24" min="2" onChange={(event) => updateNumber("sleepDuration", event.target.value)} step="0.1" type="number" value={creature.sleepDuration} />
         </label>
       </div>
 
       <label className="mapEditRangeField">
-        <span><b>브레스 발생 확률</b><strong>{Math.round(creature.breathChance * 100)}%</strong></span>
-        <input aria-label="아기 용 브레스 발생 확률" max="0.5" min="0.03" onChange={(event) => updateNumber("breathChance", event.target.value)} step="0.01" type="range" value={creature.breathChance} />
+        <span><b><Translation id="shooter.fireBreathProbability" /></b><strong>{Math.round(creature.breathChance * 100)}%</strong></span>
+        <input aria-label={translateUi("shooter.babyDragonFireBreathProbability")} max="0.5" min="0.03" onChange={(event) => updateNumber("breathChance", event.target.value)} step="0.01" type="range" value={creature.breathChance} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>엎드려 잘 확률</b><strong>{Math.round(creature.sleepChance * 100)}%</strong></span>
-        <input aria-label="아기 용 수면 발생 확률" max="0.75" min="0" onChange={(event) => updateNumber("sleepChance", event.target.value)} step="0.01" type="range" value={creature.sleepChance} />
+        <span><b><Translation id="shooter.lyingSleepProbability" /></b><strong>{Math.round(creature.sleepChance * 100)}%</strong></span>
+        <input aria-label={translateUi("shooter.babyDragonSleepProbability")} max="0.75" min="0" onChange={(event) => updateNumber("sleepChance", event.target.value)} step="0.01" type="range" value={creature.sleepChance} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>동작 속도</b><strong>{creature.animationSpeed.toFixed(2)}×</strong></span>
-        <input aria-label="아기 용 동작 속도" max="2.5" min="0.4" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.05" type="range" value={creature.animationSpeed} />
+        <span><b><Translation id="shooter.animationSpeed" /></b><strong>{creature.animationSpeed.toFixed(2)}×</strong></span>
+        <input aria-label={translateUi("shooter.babyDragonAnimationSpeed")} max="2.5" min="0.4" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.05" type="range" value={creature.animationSpeed} />
       </label>
 
-      <div className="mapEditCreaturePreview" aria-label="아기 용 동작 미리보기">
-        <span><strong>동작 미리보기</strong><small>저장값을 바꾸지 않고 Preview에서만 재생합니다</small></span>
+      <div className="mapEditCreaturePreview" aria-label={translateUi("shooter.previewBabyDragonAnimation")}>
+        <span><strong><Translation id="shooter.previewAnimation" /></strong><small><Translation id="shooter.playsInPreviewOnlySavedValuesStayUnchangedMapEditPanel" /></small></span>
         <div>
           {BABY_DRAGON_PREVIEW_MODES.map((mode) => (
             <button
@@ -791,15 +802,15 @@ function BabyDragonControls({ creature, editor }) {
               key={mode.id}
               onClick={() => editor.previewSelectedCreature(mode.id)}
               type="button"
-            >{mode.label}</button>
+            >{localizeUi(mode.label)}</button>
           ))}
           <button
-            aria-label="아기 용 동작 미리보기 끄기"
+            aria-label={translateUi("shooter.stopBabyDragonAnimationPreview")}
             className="mapEditCreaturePreviewStop"
             disabled={!editor.creaturePreviewMode}
             onClick={() => editor.previewSelectedCreature("")}
             type="button"
-          >정지</button>
+          ><Translation id="app.stopApp" /></button>
         </div>
       </div>
     </EditorSection>
@@ -807,6 +818,7 @@ function BabyDragonControls({ creature, editor }) {
 }
 
 function FrogCreatureControls({ editor }) {
+  useLanguage();
   const creature = editor.selectedPlacement?.creature;
   if (!creature || !editor.selectedAsset?.creature) return null;
   if (editor.selectedAsset.creature.type === "baby-dragon") {
@@ -837,11 +849,11 @@ function FrogCreatureControls({ editor }) {
   };
 
   return (
-    <EditorSection title={isDivingFrog ? "다이빙 개구리 설정" : "개구리 이동 설정"} value="AMBIENT CREATURE">
+    <EditorSection title={isDivingFrog ? translateUi("shooter.divingFrogSettings") : translateUi("shooter.frogMovementSettings")} value="AMBIENT CREATURE">
       <label className="mapEditCreatureToggle">
-        <span><strong>{isDivingFrog ? "다이빙 반복" : "폴짝 이동"}</strong><small>OFF일 때는 기본 위치에서 대기합니다</small></span>
+        <span><strong>{isDivingFrog ? translateUi("shooter.repeatDives") : translateUi("shooter.hopping")}</strong><small><Translation id="shooter.whenOffStaysAtTheDefaultPosition" /></small></span>
         <input
-          aria-label="개구리 이동 기능"
+          aria-label={translateUi("shooter.frogMovement")}
           checked={creature.enabled}
           onChange={(event) => editor.updateSelectedCreature({ enabled: event.target.checked })}
           type="checkbox"
@@ -851,36 +863,36 @@ function FrogCreatureControls({ editor }) {
       <div className="mapEditCoordinateGrid">
         {!isDivingFrog ? (
           <label className="mapEditField">
-            <span>이동 순서</span>
-            <select aria-label="개구리 점프 순서" onChange={(event) => editor.updateSelectedCreature({ mode: event.target.value })} value={creature.mode}>
-              {FROG_MOVEMENT_MODES.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+            <span><Translation id="shooter.movementOrder" /></span>
+            <select aria-label={translateUi("shooter.frogJumpOrder")} onChange={(event) => editor.updateSelectedCreature({ mode: event.target.value })} value={creature.mode}>
+              {FROG_MOVEMENT_MODES.map((option) => <option key={option.id} value={option.id}>{localizeUi(option.label)}</option>)}
             </select>
           </label>
         ) : null}
         <label className="mapEditField">
-          <span>{isDivingFrog ? "다이빙 간격 (초)" : "점프 간격 (초)"}</span>
-          <input aria-label={isDivingFrog ? "개구리 다이빙 간격" : "개구리 점프 간격"} max="20" min="1" onChange={(event) => updateNumber("jumpInterval", event.target.value)} step="0.1" type="number" value={creature.jumpInterval} />
+          <span>{isDivingFrog ? translateUi("shooter.diveIntervalS") : translateUi("shooter.jumpIntervalS")}</span>
+          <input aria-label={isDivingFrog ? translateUi("shooter.frogDiveInterval") : translateUi("shooter.frogJumpInterval")} max="20" min="1" onChange={(event) => updateNumber("jumpInterval", event.target.value)} step="0.1" type="number" value={creature.jumpInterval} />
         </label>
       </div>
 
       {!isDivingFrog ? (
         <label className="mapEditRangeField">
-          <span><b>최대 이동 거리</b><strong>{Math.round(creature.jumpDistance * viewport.width)}px</strong></span>
-          <input aria-label="개구리 점프 거리" max="1.5" min="0.04" onChange={(event) => updateNumber("jumpDistance", event.target.value)} step="0.01" type="range" value={creature.jumpDistance} />
+          <span><b><Translation id="shooter.maximumTravelDistance" /></b><strong>{Math.round(creature.jumpDistance * viewport.width)}<Translation id="originalUi.px" /></strong></span>
+          <input aria-label={translateUi("shooter.frogJumpDistance")} max="1.5" min="0.04" onChange={(event) => updateNumber("jumpDistance", event.target.value)} step="0.01" type="range" value={creature.jumpDistance} />
         </label>
       ) : null}
       <label className="mapEditRangeField">
-        <span><b>점프 높이</b><strong>{Math.round(creature.jumpHeight * viewport.height)}px</strong></span>
-        <input aria-label="개구리 점프 높이" max="0.3" min="0.02" onChange={(event) => updateNumber("jumpHeight", event.target.value)} step="0.01" type="range" value={creature.jumpHeight} />
+        <span><b><Translation id="shooter.jumpHeight" /></b><strong>{Math.round(creature.jumpHeight * viewport.height)}<Translation id="originalUi.px" /></strong></span>
+        <input aria-label={translateUi("shooter.frogJumpHeight")} max="0.3" min="0.02" onChange={(event) => updateNumber("jumpHeight", event.target.value)} step="0.01" type="range" value={creature.jumpHeight} />
       </label>
       <label className="mapEditRangeField">
-        <span><b>동작 속도</b><strong>{creature.animationSpeed.toFixed(2)}×</strong></span>
-        <input aria-label="개구리 애니메이션 속도" max="3" min="0.25" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.05" type="range" value={creature.animationSpeed} />
+        <span><b><Translation id="shooter.animationSpeed" /></b><strong>{creature.animationSpeed.toFixed(2)}×</strong></span>
+        <input aria-label={translateUi("shooter.frogAnimationSpeed")} max="3" min="0.25" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.05" type="range" value={creature.animationSpeed} />
       </label>
 
       <div className="mapEditAnchorHeader">
-        <span><strong>{isDivingFrog ? "Dive Route Points" : "Frog Anchor Points"}</strong><small>Preview의 포인트를 직접 드래그할 수 있습니다</small></span>
-        {!isDivingFrog ? <button disabled={creature.anchors.length >= 20} onClick={editor.addSelectedCreatureAnchor} type="button">+ 포인트</button> : null}
+        <span><strong>{isDivingFrog ? "Dive Route Points" : "Frog Anchor Points"}</strong><small><Translation id="shooter.dragPointsDirectlyInPreview" /></small></span>
+        {!isDivingFrog ? <button disabled={creature.anchors.length >= 20} onClick={editor.addSelectedCreatureAnchor} type="button"><Translation id="shooter.point" /></button> : null}
       </div>
       <div className="mapEditAnchorList">
         {creature.anchors.map((anchor, index) => {
@@ -889,31 +901,31 @@ function FrogCreatureControls({ editor }) {
           <div className={`mapEditAnchorRow ${isWaterPoint ? "mapEditAnchorRow--water" : ""}`} key={anchor.id}>
             <i>{String.fromCharCode(65 + index)}</i>
             {isWaterPoint ? (
-              <span className="mapEditAnchorSurface mapEditAnchorSurface--water"><span>입수</span><b>물 위 자유 좌표</b></span>
+              <span className="mapEditAnchorSurface mapEditAnchorSurface--water"><span><Translation id="shooter.waterEntry" /></span><b><Translation id="shooter.freePositionOnWater" /></b></span>
             ) : (
               <label className="mapEditAnchorSurface">
-                <span>{isDivingFrog ? "출발" : "착지"}</span>
+                <span>{isDivingFrog ? translateUi("shooter.start") : translateUi("shooter.landing")}</span>
                 <select
-                  aria-label={`개구리 포인트 ${index + 1} 착지 오브젝트`}
+                  aria-label={translateUi("shooter.frogPointValue1LandingObject", { value1: index + 1 })}
                   onChange={(event) => editor.attachSelectedCreatureAnchor(anchor.id, event.target.value)}
                   value={anchor.surfaceInstanceId ?? ""}
                 >
-                  <option disabled value="">돌·연잎·돌다리 선택</option>
+                  <option disabled value=""><Translation id="shooter.chooseRockLilyPadOrBridge" /></option>
                   {editor.landingSurfaces.map((surface) => (
-                    <option key={surface.instanceId} value={surface.instanceId}>{surface.label}</option>
+                    <option key={surface.instanceId} value={surface.instanceId}>{localizeUi(surface.label)}</option>
                   ))}
                 </select>
               </label>
             )}
-            <label><span>X</span><input aria-label={`개구리 포인트 ${index + 1} X 좌표`} onChange={(event) => updateAnchorPixel(anchor, "x", event.target.value)} step="1" type="number" value={Math.round(anchor.x * viewport.width)} /></label>
-            <label><span>Y</span><input aria-label={`개구리 포인트 ${index + 1} Y 좌표`} onChange={(event) => updateAnchorPixel(anchor, "y", event.target.value)} step="1" type="number" value={Math.round(anchor.y * viewport.height)} /></label>
-            <button aria-label={`개구리 포인트 ${index + 1} 삭제`} disabled={isDivingFrog || creature.anchors.length <= 1} onClick={() => editor.removeSelectedCreatureAnchor(anchor.id)} type="button">×</button>
-            <span className="mapEditAnchorNudges" aria-label={`개구리 포인트 ${index + 1} 미세 이동`}>
-              <small>{String.fromCharCode(65 + index)} 포인트 1px 이동</small>
-              <button aria-label={`${String.fromCharCode(65 + index)} 포인트 왼쪽으로 1픽셀`} onClick={() => nudgeAnchor(anchor, -1, 0)} type="button">←</button>
-              <button aria-label={`${String.fromCharCode(65 + index)} 포인트 위로 1픽셀`} onClick={() => nudgeAnchor(anchor, 0, -1)} type="button">↑</button>
-              <button aria-label={`${String.fromCharCode(65 + index)} 포인트 아래로 1픽셀`} onClick={() => nudgeAnchor(anchor, 0, 1)} type="button">↓</button>
-              <button aria-label={`${String.fromCharCode(65 + index)} 포인트 오른쪽으로 1픽셀`} onClick={() => nudgeAnchor(anchor, 1, 0)} type="button">→</button>
+            <label><span><Translation id="originalUi.xMapeditpanelSpaced" /></span><input aria-label={translateUi("shooter.frogPointValue1XCoordinate", { value1: index + 1 })} onChange={(event) => updateAnchorPixel(anchor, "x", event.target.value)} step="1" type="number" value={Math.round(anchor.x * viewport.width)} /></label>
+            <label><span><Translation id="originalUi.y" /></span><input aria-label={translateUi("shooter.frogPointValue1YCoordinate", { value1: index + 1 })} onChange={(event) => updateAnchorPixel(anchor, "y", event.target.value)} step="1" type="number" value={Math.round(anchor.y * viewport.height)} /></label>
+            <button aria-label={translateUi("shooter.deleteFrogPointValue1", { value1: index + 1 })} disabled={isDivingFrog || creature.anchors.length <= 1} onClick={() => editor.removeSelectedCreatureAnchor(anchor.id)} type="button">×</button>
+            <span className="mapEditAnchorNudges" aria-label={translateUi("shooter.nudgeFrogPointValue1", { value1: index + 1 })}>
+              <small>{String.fromCharCode(65 + index)}<Translation id="shooter.pointMove1Px" /></small>
+              <button aria-label={translateUi("shooter.pointValue1Left1Pixel", { value1: String.fromCharCode(65 + index) })} onClick={() => nudgeAnchor(anchor, -1, 0)} type="button">←</button>
+              <button aria-label={translateUi("shooter.pointValue1Up1Pixel", { value1: String.fromCharCode(65 + index) })} onClick={() => nudgeAnchor(anchor, 0, -1)} type="button">↑</button>
+              <button aria-label={translateUi("shooter.pointValue1Down1Pixel", { value1: String.fromCharCode(65 + index) })} onClick={() => nudgeAnchor(anchor, 0, 1)} type="button">↓</button>
+              <button aria-label={translateUi("shooter.pointValue1Right1Pixel", { value1: String.fromCharCode(65 + index) })} onClick={() => nudgeAnchor(anchor, 1, 0)} type="button">→</button>
             </span>
           </div>
         );})}
@@ -923,20 +935,22 @@ function FrogCreatureControls({ editor }) {
 }
 
 function ObjectActionBar({ editor }) {
+  useLanguage();
   return (
-    <EditorSection title="선택 오브젝트 작업" value="OBJECT ACTIONS">
+    <EditorSection title={translateUi("shooter.selectedObjectActions")} value="OBJECT ACTIONS">
       <div className="mapEditObjectActionBar">
-        <button onClick={() => editor.moveSelectedLayer("front")} type="button"><span aria-hidden="true">↑</span><b>앞으로</b></button>
-        <button onClick={() => editor.moveSelectedLayer("back")} type="button"><span aria-hidden="true">↓</span><b>뒤로</b></button>
-        <button disabled={!editor.canDuplicateSelected} onClick={editor.duplicateSelected} type="button"><span aria-hidden="true">⧉</span><b>복제</b></button>
-        <button aria-label="선택 오브젝트 삭제" className="danger" onClick={editor.deleteSelected} type="button"><span aria-hidden="true">×</span><b>삭제</b></button>
+        <button onClick={() => editor.moveSelectedLayer("front")} type="button"><span aria-hidden="true">↑</span><b><Translation id="shooter.bringForward" /></b></button>
+        <button onClick={() => editor.moveSelectedLayer("back")} type="button"><span aria-hidden="true">↓</span><b><Translation id="shooter.sendBackward" /></b></button>
+        <button disabled={!editor.canDuplicateSelected} onClick={editor.duplicateSelected} type="button"><span aria-hidden="true">⧉</span><b><Translation id="app.duplicate" /></b></button>
+        <button aria-label={translateUi("shooter.deleteSelectedObject")} className="danger" onClick={editor.deleteSelected} type="button"><span aria-hidden="true">×</span><b><Translation id="common.delete" /></b></button>
       </div>
-      <p className="mapEditDeleteHint"><kbd>Delete</kbd> 키로도 삭제할 수 있으며 <kbd>Ctrl</kbd>+<kbd>Z</kbd>로 복구됩니다.</p>
+      <p className="mapEditDeleteHint"><kbd><Translation id="originalUi.delete" /></kbd><Translation id="shooter.alsoDeletesRestoreWith" /><kbd><Translation id="originalUi.ctrl" /></kbd>+<kbd><Translation id="originalUi.z" /></kbd><Translation id="shooter.label" /></p>
     </EditorSection>
   );
 }
 
 function AdvancedObjectTools({ editor }) {
+  useLanguage();
   const selected = editor.selectedPlacement;
   if (!selected) return null;
 
@@ -954,75 +968,75 @@ function AdvancedObjectTools({ editor }) {
 
   return (
     <details className="mapEditAdvancedSection" open>
-      <summary><span>평면·원근 자유 변형</span><small>FREE TRANSFORM</small></summary>
+      <summary><span><Translation id="shooter.freePlanarAndPerspectiveTransform" /></span><small><Translation id="originalUi.freeTransform" /></small></summary>
       <div className="mapEditAdvancedSectionBody">
-        <p className="mapEditPerspectiveHelp">왼쪽 Preview의 청록색 네 모서리를 드래그하면 PNG의 투명 영역을 유지한 채 바닥 평면에 맞게 자유 변형됩니다.</p>
+        <p className="mapEditPerspectiveHelp"><Translation id="shooter.dragTheFourTealCornersInPreviewToFitTheGroundPlane" /></p>
         <label className="mapEditRangeField">
-          <span><b>Rotation · 평면 회전</b><strong>{Math.round(selected.rotation)}°</strong></span>
+          <span><b><Translation id="shooter.rotationInPlane" /></b><strong>{Math.round(selected.rotation)}°</strong></span>
           <span className="mapEditRangeControl">
-            <input aria-label="오브젝트 회전" max="180" min="-180" onChange={(event) => updateNumber("rotation", event.target.value)} step="1" type="range" value={selected.rotation} />
-            <input aria-label="오브젝트 회전 각도" max="180" min="-180" onChange={(event) => updateNumber("rotation", event.target.value)} step="1" type="number" value={selected.rotation} />
+            <input aria-label={translateUi("shooter.objectRotation")} max="180" min="-180" onChange={(event) => updateNumber("rotation", event.target.value)} step="1" type="range" value={selected.rotation} />
+            <input aria-label={translateUi("shooter.objectRotationAngle")} max="180" min="-180" onChange={(event) => updateNumber("rotation", event.target.value)} step="1" type="number" value={selected.rotation} />
           </span>
         </label>
         <div className="mapEditTransformGrid">
           <label className="mapEditField">
-            <span>Scale X · 가로</span>
-            <input aria-label="오브젝트 가로 비율" max="300" min="-300" onChange={(event) => updatePercent("scaleX", event.target.value)} step="1" type="number" value={Math.round(selected.scaleX * 100)} />
+            <span><Translation id="shooter.scaleXHorizontal" /></span>
+            <input aria-label={translateUi("shooter.objectHorizontalScale")} max="300" min="-300" onChange={(event) => updatePercent("scaleX", event.target.value)} step="1" type="number" value={Math.round(selected.scaleX * 100)} />
           </label>
           <label className="mapEditField">
-            <span>Scale Y · 세로</span>
-            <input aria-label="오브젝트 세로 비율" max="300" min="-300" onChange={(event) => updatePercent("scaleY", event.target.value)} step="1" type="number" value={Math.round(selected.scaleY * 100)} />
+            <span><Translation id="shooter.scaleYVertical" /></span>
+            <input aria-label={translateUi("shooter.objectVerticalScale")} max="300" min="-300" onChange={(event) => updatePercent("scaleY", event.target.value)} step="1" type="number" value={Math.round(selected.scaleY * 100)} />
           </label>
           <label className="mapEditField">
-            <span>Skew X</span>
-            <input aria-label="오브젝트 X 사선 기울기" max="60" min="-60" onChange={(event) => updateNumber("skewX", event.target.value)} step="1" type="number" value={selected.skewX} />
+            <span><Translation id="originalUi.skewX" /></span>
+            <input aria-label={translateUi("shooter.objectXSkew")} max="60" min="-60" onChange={(event) => updateNumber("skewX", event.target.value)} step="1" type="number" value={selected.skewX} />
           </label>
           <label className="mapEditField">
-            <span>Skew Y</span>
-            <input aria-label="오브젝트 Y 사선 기울기" max="60" min="-60" onChange={(event) => updateNumber("skewY", event.target.value)} step="1" type="number" value={selected.skewY} />
+            <span><Translation id="originalUi.skewY" /></span>
+            <input aria-label={translateUi("shooter.objectYSkew")} max="60" min="-60" onChange={(event) => updateNumber("skewY", event.target.value)} step="1" type="number" value={selected.skewY} />
           </label>
         </div>
         <div className="mapEditMirrorGrid">
-          <button onClick={() => editor.updateSelected({ scaleX: selected.scaleX * -1 })} type="button">↔ 좌우 반전</button>
-          <button onClick={() => editor.updateSelected({ scaleY: selected.scaleY * -1 })} type="button">↕ 상하 반전</button>
+          <button onClick={() => editor.updateSelected({ scaleX: selected.scaleX * -1 })} type="button"><Translation id="shooter.flipHorizontal" /></button>
+          <button onClick={() => editor.updateSelected({ scaleY: selected.scaleY * -1 })} type="button"><Translation id="shooter.flipVertical" /></button>
         </div>
         <label className="mapEditRangeField">
-          <span><b>Tilt X · 앞뒤 눕힘</b><strong>{Math.round(selected.tiltX)}°</strong></span>
+          <span><b><Translation id="shooter.tiltXFrontBack" /></b><strong>{Math.round(selected.tiltX)}°</strong></span>
           <span className="mapEditRangeControl">
-            <input aria-label="오브젝트 앞뒤 원근 기울기" max="88" min="-88" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="range" value={selected.tiltX} />
-            <input aria-label="오브젝트 앞뒤 원근 각도" max="88" min="-88" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="number" value={selected.tiltX} />
+            <input aria-label={translateUi("shooter.objectFrontBackPerspectiveTilt")} max="88" min="-88" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="range" value={selected.tiltX} />
+            <input aria-label={translateUi("shooter.objectFrontBackPerspectiveAngle")} max="88" min="-88" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="number" value={selected.tiltX} />
           </span>
         </label>
         <label className="mapEditRangeField">
-          <span><b>Tilt Y · 좌우 원근</b><strong>{Math.round(selected.tiltY)}°</strong></span>
+          <span><b><Translation id="shooter.tiltYLeftRight" /></b><strong>{Math.round(selected.tiltY)}°</strong></span>
           <span className="mapEditRangeControl">
-            <input aria-label="오브젝트 좌우 원근 기울기" max="88" min="-88" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="range" value={selected.tiltY} />
-            <input aria-label="오브젝트 좌우 원근 각도" max="88" min="-88" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="number" value={selected.tiltY} />
+            <input aria-label={translateUi("shooter.objectLeftRightPerspectiveTilt")} max="88" min="-88" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="range" value={selected.tiltY} />
+            <input aria-label={translateUi("shooter.objectLeftRightPerspectiveAngle")} max="88" min="-88" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="number" value={selected.tiltY} />
           </span>
         </label>
         <label className="mapEditRangeField">
-          <span><b>Perspective · 원근 거리</b><strong>{Math.round(selected.perspective)}px</strong></span>
+          <span><b><Translation id="shooter.perspectiveDistance" /></b><strong>{Math.round(selected.perspective)}<Translation id="originalUi.px" /></strong></span>
           <span className="mapEditRangeControl">
-            <input aria-label="오브젝트 원근 거리" max="3000" min="80" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="range" value={selected.perspective} />
-            <input aria-label="오브젝트 원근 거리 수치" max="3000" min="80" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="number" value={selected.perspective} />
+            <input aria-label={translateUi("shooter.objectPerspectiveDistance")} max="3000" min="80" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="range" value={selected.perspective} />
+            <input aria-label={translateUi("shooter.objectPerspectiveDistanceValue")} max="3000" min="80" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="number" value={selected.perspective} />
           </span>
         </label>
         <div className="mapEditCornerSummary">
-          <span><b>4-Corner Distort</b><small>TL · TR · BR · BL 개별 드래그</small></span>
-          <button onClick={resetCorners} type="button">코너 초기화</button>
+          <span><b><Translation id="originalUi.4CornerDistort" /></b><small><Translation id="shooter.dragTlTrBrBlIndependently" /></small></span>
+          <button onClick={resetCorners} type="button"><Translation id="shooter.resetCorners" /></button>
         </div>
         <div className="mapEditCoordinateGrid">
           <label className="mapEditField">
-            <span>ANIMATION</span>
-            <select aria-label="환경 애니메이션" onChange={(event) => editor.updateSelected({ animation: event.target.value })} value={selected.animation}>
+            <span><Translation id="originalUi.animation" /></span>
+            <select aria-label={translateUi("shooter.ambientAnimation")} onChange={(event) => editor.updateSelected({ animation: event.target.value })} value={selected.animation}>
               {MAP_EDIT_ANIMATION_TYPES.map((option) => (
-                <option key={option.id} value={option.id}>{option.label}</option>
+                <option key={option.id} value={option.id}>{localizeUi(option.label)}</option>
               ))}
             </select>
           </label>
           <label className="mapEditField">
-            <span>SPEED</span>
-            <input aria-label="환경 애니메이션 속도" max="5" min="0.1" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.1" type="number" value={selected.animationSpeed} />
+            <span><Translation id="originalUi.speed" /></span>
+            <input aria-label={translateUi("shooter.ambientAnimationSpeed")} max="5" min="0.1" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.1" type="number" value={selected.animationSpeed} />
           </label>
         </div>
       </div>
@@ -1031,6 +1045,7 @@ function AdvancedObjectTools({ editor }) {
 }
 
 function AdvancedAssetLibrary({ editor }) {
+  useLanguage();
   const instanceCounts = useMemo(() => editor.placements.reduce((counts, placement) => {
     counts.set(placement.assetId, (counts.get(placement.assetId) ?? 0) + 1);
     return counts;
@@ -1038,16 +1053,16 @@ function AdvancedAssetLibrary({ editor }) {
 
   return (
     <details className="mapEditAdvancedSection mapEditAdvancedSection--library">
-      <summary><span>새 오브젝트 추가</span><small>필요할 때만</small></summary>
+      <summary><span><Translation id="shooter.addNewObject" /></span><small><Translation id="shooter.onlyWhenNeeded" /></small></summary>
       <div className="mapEditAdvancedSectionBody">
-        <p className="mapEditInlineLibraryHelp">기본 배치에 없는 오브젝트가 필요할 때만 사용하세요.</p>
+        <p className="mapEditInlineLibraryHelp"><Translation id="shooter.useWhenYouNeedObjectsBeyondTheDefaultLayout" /></p>
         <div className="mapEditInlineLibraryGrid">
           {editor.assetCatalog.map((asset) => {
             const instanceCount = instanceCounts.get(asset.id) ?? 0;
             const reachedLimit = Number.isFinite(asset.maxInstances) && instanceCount >= asset.maxInstances;
             return (
               <button
-                aria-label={reachedLimit ? `${asset.label} 배치 위치 선택` : `${asset.label} 오브젝트 추가`}
+                aria-label={localizeUi(reachedLimit ? translateUi("shooter.chooseValue1Placement", { value1: asset.label }) : translateUi("shooter.addValue1Object", { value1: asset.label }))}
                 className="mapEditInlineAssetCard"
                 key={asset.id}
                 onClick={() => editor.addAsset(asset.id)}
@@ -1055,9 +1070,9 @@ function AdvancedAssetLibrary({ editor }) {
               >
                 <span>
                   <AssetPreview asset={asset} />
-                  <i>{reachedLimit ? "배치됨" : instanceCount}</i>
+                  <i>{reachedLimit ? translateUi("shooter.placed") : instanceCount}</i>
                 </span>
-                <strong>{asset.label}</strong>
+                <strong>{localizeUi(asset.label)}</strong>
               </button>
             );
           })}
@@ -1068,15 +1083,16 @@ function AdvancedAssetLibrary({ editor }) {
 }
 
 function MapEditControls({ editor, effectEditor, monsterEditor }) {
+  useLanguage();
   return (
     <div className="mapEditControls mapEditControls--desktop">
       <MonsterTuningControls monsterEditor={monsterEditor} />
       <EffectTuningControls effectEditor={effectEditor} />
       <InstalledObjectSelector editor={editor} />
-      <div className="mapEditHistoryToolbar" aria-label="편집 이력">
-        <span><strong>편집 이력</strong><small><kbd>Ctrl</kbd>+<kbd>Z</kbd> 실행 취소 · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> 다시 실행</small></span>
-        <button disabled={!editor.canUndo} onClick={editor.undoEditing} type="button">↶ 뒤로</button>
-        <button disabled={!editor.canRedo} onClick={editor.redoEditing} type="button">↷ 앞으로</button>
+      <div className="mapEditHistoryToolbar" aria-label={translateUi("shooter.editHistory")}>
+        <span><strong><Translation id="shooter.editHistory" /></strong><small><kbd><Translation id="originalUi.ctrl" /></kbd>+<kbd><Translation id="originalUi.z" /></kbd><Translation id="shooter.undo" /><kbd><Translation id="originalUi.ctrl" /></kbd>+<kbd><Translation id="originalUi.shift" /></kbd>+<kbd><Translation id="originalUi.z" /></kbd><Translation id="shooter.redo" /></small></span>
+        <button disabled={!editor.canUndo} onClick={editor.undoEditing} type="button"><Translation id="shooter.undoMapEditPanel" /></button>
+        <button disabled={!editor.canRedo} onClick={editor.redoEditing} type="button"><Translation id="shooter.redoMapEditPanel" /></button>
       </div>
       <SelectedObjectSummary editor={editor} />
       {editor.selectedPlacement ? (
@@ -1087,7 +1103,7 @@ function MapEditControls({ editor, effectEditor, monsterEditor }) {
           <AdvancedObjectTools editor={editor} />
         </>
       ) : (
-        <p className="mapEditEmptyState">왼쪽 Preview의 오브젝트를 클릭하거나 배치 목록에서 선택하세요.</p>
+        <p className="mapEditEmptyState"><Translation id="shooter.clickAnObjectInPreviewOrChooseItFromThePlacementList" /></p>
       )}
       <AdvancedAssetLibrary editor={editor} />
     </div>
@@ -1095,14 +1111,15 @@ function MapEditControls({ editor, effectEditor, monsterEditor }) {
 }
 
 function MapEditSessionActions({ editor, effectEditor, monsterEditor }) {
+  useLanguage();
   const hasChanges = editor.hasChanges || Boolean(effectEditor?.hasChanges) || Boolean(monsterEditor?.hasChanges);
   const statusLabel = editor.saveStatus === "error" && editor.saveError
     ? editor.saveError
     : monsterEditor?.hasUnsharedTunings
-      ? "이 브라우저의 몹 보정값이 배포에 아직 반영되지 않았습니다"
+      ? ko["shooter.thisBrowserSEnemyAdjustmentsHaveNotYetBeenIncludedInThe"]
       : hasChanges
-        ? editor.saveStatus === "saving" ? SAVE_STATUS_LABELS.saving : "적용하지 않은 변경사항이 있습니다"
-        : "적용된 배치와 동일합니다";
+        ? editor.saveStatus === "saving" ? SAVE_STATUS_LABELS.saving : ko["shooter.youHaveUnappliedChangesMapeditpanel"]
+        : ko["shooter.matchesTheAppliedLayout"];
   const closeEditing = () => {
     effectEditor?.cancelEditing();
     monsterEditor?.cancelEditing();
@@ -1118,14 +1135,14 @@ function MapEditSessionActions({ editor, effectEditor, monsterEditor }) {
       <span>
         <i className={hasChanges ? "dirty" : "clean"} aria-hidden="true" />
         <small className={`mapEditSaveStatus mapEditSaveStatus--${editor.saveStatus}`}>
-          {statusLabel}
+          {localizeUi(statusLabel)}
         </small>
       </span>
       <div>
-        <button className="mapEditSelectionCancelButton" disabled={!editor.selectedPlacement || editor.saveStatus === "saving"} onClick={() => editor.selectInstance("")} type="button">선택 취소</button>
-        <button aria-label="저장하지 않고 맵 편집기 닫기" className="mapEditCloseButton" disabled={editor.saveStatus === "saving"} onClick={closeEditing} type="button">닫기</button>
+        <button className="mapEditSelectionCancelButton" disabled={!editor.selectedPlacement || editor.saveStatus === "saving"} onClick={() => editor.selectInstance("")} type="button"><Translation id="shooter.deselect" /></button>
+        <button aria-label={translateUi("shooter.closeMapEditorWithoutSaving")} className="mapEditCloseButton" disabled={editor.saveStatus === "saving"} onClick={closeEditing} type="button"><Translation id="common.close" /></button>
         <button className="mapEditApplyButton" disabled={editor.saveStatus === "saving"} onClick={applyEditing} type="button">
-          {editor.saveStatus === "saving" ? "적용 중…" : "적용"}
+          {editor.saveStatus === "saving" ? translateUi("shooter.applying") : translateUi("app.apply")}
         </button>
       </div>
     </footer>
@@ -1133,6 +1150,7 @@ function MapEditSessionActions({ editor, effectEditor, monsterEditor }) {
 }
 
 function MapEditMapSwitcher({ editor, mapOptions, onMapChange }) {
+  useLanguage();
   const options = Array.isArray(mapOptions) ? mapOptions.filter(isEditableShooterMap) : [];
   const selectedIndex = Math.max(0, options.findIndex((map) => map.id === editor.skin.id));
   const switchBy = (offset) => {
@@ -1142,32 +1160,33 @@ function MapEditMapSwitcher({ editor, mapOptions, onMapChange }) {
   };
 
   return (
-    <section className="mapEditMapSwitcher" aria-label="편집할 맵 변경">
-      <span><small>EDITING MAP</small><strong>맵 비교 전환</strong><em>왕복해도 현재 세션의 임시 배치를 유지합니다.</em></span>
+    <section className="mapEditMapSwitcher" aria-label={translateUi("shooter.changeMapToEdit")}>
+      <span><small><Translation id="originalUi.editingMap" /></small><strong><Translation id="shooter.compareMaps" /></strong><em><Translation id="shooter.temporaryLayoutsAreKeptForThisSessionWhenSwitchingMaps" /></em></span>
       <div>
-        <button aria-label="이전 맵 편집" disabled={options.length < 2 || editor.saveStatus === "saving"} onClick={() => switchBy(-1)} type="button">‹</button>
+        <button aria-label={translateUi("shooter.editPreviousMap")} disabled={options.length < 2 || editor.saveStatus === "saving"} onClick={() => switchBy(-1)} type="button">‹</button>
         <select
-          aria-label="편집할 슈팅 맵"
+          aria-label={translateUi("shooter.gameMapToEdit")}
           disabled={editor.saveStatus === "saving"}
           onChange={(event) => onMapChange?.(event.target.value)}
           value={editor.skin.id}
         >
-          {options.map((map) => <option key={map.id} value={map.id}>{map.label}</option>)}
+          {options.map((map) => <option key={map.id} value={map.id}>{localizeUi(map.label)}</option>)}
         </select>
-        <button aria-label="다음 맵 편집" disabled={options.length < 2 || editor.saveStatus === "saving"} onClick={() => switchBy(1)} type="button">›</button>
+        <button aria-label={translateUi("shooter.editNextMap")} disabled={options.length < 2 || editor.saveStatus === "saving"} onClick={() => switchBy(1)} type="button">›</button>
       </div>
     </section>
   );
 }
 
 function DesktopMapEditPanel({ editor, effectEditor, mapOptions, monsterEditor, onMapChange }) {
+  useLanguage();
   const viewport = getReferenceViewport(editor);
   return (
     <aside className="mapEditPanel mapEditPanel--desktop" onClick={(event) => event.stopPropagation()}>
       <header className="mapEditPanelHeader">
-        <span className="mapEditPanelBrand" aria-hidden="true">JP</span>
-        <span className="mapEditPanelHeading"><span>FRETIVA LAB · MAP STUDIO</span><strong>{editor.skin.label}</strong><small>{viewport.width} × {viewport.height} LIVE PREVIEW</small></span>
-        <i className="mapEditDevBadge">TUNE</i>
+        <span className="mapEditPanelBrand" aria-hidden="true"><Translation id="originalUi.jp" /></span>
+        <span className="mapEditPanelHeading"><span><Translation id="originalUi.fretivaLabMapStudio" /></span><strong>{localizeUi(editor.skin.label)}</strong><small>{viewport.width} × {viewport.height}<Translation id="originalUi.livePreview" /></small></span>
+        <i className="mapEditDevBadge"><Translation id="originalUi.tune" /></i>
       </header>
       <MapEditMapSwitcher editor={editor} mapOptions={mapOptions} onMapChange={onMapChange} />
       <div className="mapEditPanelScroll"><MapEditControls effectEditor={effectEditor} editor={editor} monsterEditor={monsterEditor} /></div>

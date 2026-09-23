@@ -1,28 +1,33 @@
+import ko from "../i18n/locales/ko.js";
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { useLanguage } from "./../i18n/react.jsx";
 const MENU_STATUS_META = Object.freeze({
-  HOT: Object.freeze({ label: "인기·추천 기능" }),
-  NEW: Object.freeze({ label: "새로 추가된 기능" }),
-  BETA: Object.freeze({ label: "시험 운영 중인 기능" }),
-  PRO: Object.freeze({ label: "멤버십 전용 기능" }),
-  DEV: Object.freeze({ label: "개발 중인 기능" }),
-  BEGINNER: Object.freeze({ label: "초보자 추천 기능", text: "초보" }),
-  SOLO: Object.freeze({ label: "솔로 연습 기능", text: "SOLO" }),
+  HOT: Object.freeze({ label: ko["components.popularOrRecommendedFeature"] }),
+  NEW: Object.freeze({ label: ko["components.newFeature"] }),
+  BETA: Object.freeze({ label: ko["components.featureInBeta"] }),
+  PRO: Object.freeze({ label: ko["components.membersOnlyFeature"] }),
+  DEV: Object.freeze({ label: ko["components.featureInDevelopment"] }),
+  BEGINNER: Object.freeze({ label: ko["components.recommendedForBeginners"], text: ko["components.beginner"] }),
+  SOLO: Object.freeze({ label: ko["components.soloPracticeFeature"], text: "SOLO" }),
 });
 
 export const MENU_STATUS_TYPES = Object.freeze(Object.keys(MENU_STATUS_META));
 
 export function MenuStatusBadge({ status }) {
+  useLanguage();
   const normalizedStatus = typeof status === "string" ? status.trim().toUpperCase() : "";
   const meta = MENU_STATUS_META[normalizedStatus];
   if (!meta) return null;
 
   return (
     <span
-      aria-label={`기능 상태: ${meta.label}`}
+      aria-label={localizeUi(translateUi("components.featureStatusValue1", { value1: localizeUi(meta.label) }))}
       className={`utilityMenuStatusBadge utilityMenuStatusBadge--${normalizedStatus.toLowerCase()}`}
       data-menu-status={normalizedStatus}
-      title={meta.label}
+      title={localizeUi(meta.label)}
     >
-      {meta.text ?? normalizedStatus}
+      {localizeUi(meta.text ?? normalizedStatus)}
     </span>
   );
 }

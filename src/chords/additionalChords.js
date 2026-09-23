@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 // Additive vocabulary only. Existing App.jsx templates and ranking stay intact.
 // strings: [string number, root-relative fret, finger]. Standard tuning, 6 -> 1.
 const grip = (id, rootString, strings, options = {}) => {
@@ -61,10 +62,10 @@ export function isPermittedChordOmission(quality, extension, omitted) {
 // "full" below means six sounding strings; completeness is recorded separately.
 const thirteenth = (id, seventhOffset, thirdOffset) => [
   grip(`full-${id}`, 6, [[6, 0, "1"], [5, 2, "3"], [4, seventhOffset, seventhOffset === 0 ? "1" : "2"], [3, thirdOffset, thirdOffset === 0 ? "1" : "2"], [2, 2, "4"], [1, 2, "4"]], {
-    omittedIntervals: [17], omissionReason: "6현 정석 13 보이싱 · 11도 생략 · 1·3·5·7·9·13 보존",
+    omittedIntervals: [17], omissionReason: ko["chords.standardSixString13VoicingOmitThe11thRetain135"],
   }),
   grip(`shell-${id}`, 6, [[6, 0, "1"], [4, seventhOffset, seventhOffset === 0 ? "1" : "2"], [3, thirdOffset, thirdOffset === 0 ? "1" : "2"], [2, 2, "3"], [1, 2, "3"]], {
-    priority: 10, omittedIntervals: [7, 17], omissionReason: "정석 13 보이싱 · 5·11도 생략 · 1·3·7·9·13 보존",
+    priority: 10, omittedIntervals: [7, 17], omissionReason: ko["chords.standard13VoicingOmitThe5thAnd11thRetain137"],
   }),
 ];
 
@@ -86,7 +87,7 @@ export const ADDITIONAL_CHORD_SHAPES = {
     "11": [grip("full-e11", 6, [[6, 0, "1"], [5, 0, "1"], [4, 0, "1"], [3, 1, "2"], [2, 0, "1"], [1, 2, "3"]])],
     "13": [
       grip("a13", 5, [[5, 0, "2"], [4, -1, "1"], [3, 0, "3"], [2, 0, "3"], [1, 2, "4"]], {
-        minBaseFret: 1, omittedIntervals: [7, 17], omissionReason: "정석 13 보이싱 · 5·11도 생략 · 1·3·7·9·13 보존",
+        minBaseFret: 1, omittedIntervals: [7, 17], omissionReason: ko["chords.standard13VoicingOmitThe5thAnd11thRetain137"],
       }),
       ...thirteenth("e13", 0, 1),
     ],
@@ -117,7 +118,7 @@ export const ADDITIONAL_CHORD_SHAPES = {
     m11: [grip("full-em11", 6, [[6, 0, "1"], [5, 0, "1"], [4, 0, "1"], [3, 0, "1"], [2, 0, "1"], [1, 2, "3"]])],
     m13: [
       grip("am13", 5, [[5, 0, "2"], [4, -2, "1"], [3, 0, "3"], [2, 0, "3"], [1, 2, "4"]], {
-        minBaseFret: 2, omittedIntervals: [7, 17], omissionReason: "정석 m13 보이싱 · 5·11도 생략 · 1·♭3·♭7·9·13 보존",
+        minBaseFret: 2, omittedIntervals: [7, 17], omissionReason: ko["chords.standardM13VoicingOmitThe5thAnd11thRetain137"],
       }),
       ...thirteenth("em13", 0, 0),
     ],

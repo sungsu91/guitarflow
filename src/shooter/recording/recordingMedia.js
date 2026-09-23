@@ -1,3 +1,4 @@
+import ko from "../../i18n/locales/ko.js";
 import { beautyFrame } from "./cameraBeauty.js";
 import { mediaPermissionGuide } from "../../audio/mediaPermissionGuide.js";
 
@@ -5,10 +6,10 @@ export const RECORDING_WIDTH = 1080;
 export const MOBILE_CAMERA_ZOOM = 1.6;
 export const MOBILE_CAMERA_HEIGHT = .35 * .9;
 export const CAMERA_FILTERS = [
-  { id: 'original', label: '원본', color: null, blend: 'source-over' },
-  { id: 'warm', label: '따뜻하게', color: 'rgba(255, 166, 72, 0.16)', blend: 'source-over' },
-  { id: 'cool', label: '차갑게', color: 'rgba(68, 155, 255, 0.16)', blend: 'source-over' },
-  { id: 'mono', label: '흑백', color: '#808080', blend: 'saturation' },
+  { id: 'original', label: ko["shooter.original"], color: null, blend: 'source-over' },
+  { id: 'warm', label: ko["shooter.warm"], color: 'rgba(255, 166, 72, 0.16)', blend: 'source-over' },
+  { id: 'cool', label: ko["shooter.cool"], color: 'rgba(68, 155, 255, 0.16)', blend: 'source-over' },
+  { id: 'mono', label: ko["shooter.blackWhite"], color: '#808080', blend: 'saturation' },
 ];
 
 export function paintCameraFilter(context, rect, id) {
@@ -67,7 +68,7 @@ export function frontCameraConstraints(mobile, supported = {}) {
 }
 
 export function recorderOptions(Recorder = globalThis.MediaRecorder) {
-  if (!Recorder) throw new Error("현재 실행 환경에서 영상 녹화 기능을 지원하지 않습니다. Safari에서 같은 주소를 직접 열어 확인해주세요. [RECORDER_API]");
+  if (!Recorder) throw new Error(ko["shooter.videoRecordingIsNotSupportedInThisEnvironmentOpenTheSameAddress"]);
   // Let the MP4 encoder select a level appropriate for tall 1080px recordings.
   const mimeType = ["video/mp4", "video/webm;codecs=vp8,opus", "video/webm"]
     .find((type) => Recorder.isTypeSupported?.(type));
@@ -132,8 +133,8 @@ export function stopTracks(stream) {
 
 export function recordingError(error, { mobile = false, resource = "camera" } = {}) {
   if (["NotAllowedError", "PermissionDeniedError"].includes(error?.name)) return mediaPermissionGuide({ mobile, resource });
-  if (["NotFoundError", "NotReadableError", "OverconstrainedError"].includes(error?.name)) return "카메라를 사용할 수 없습니다. 다른 앱에서 사용 중인지 확인해주세요.";
-  return error?.message || "촬영을 완료하지 못했습니다. 다시 시도해주세요.";
+  if (["NotFoundError", "NotReadableError", "OverconstrainedError"].includes(error?.name)) return ko["shooter.cameraUnavailableCheckWhetherAnotherAppIsUsingIt"];
+  return error?.message || ko["shooter.couldNotFinishRecordingTryAgain"];
 }
 
 export function recordingFile(blob) {
@@ -145,7 +146,7 @@ export async function saveRecording(blob, url, nav = navigator, doc = document) 
   const file = recordingFile(blob);
   if (nav.canShare?.({ files: [file] })) {
     try {
-      await nav.share({ files: [file], title: "FRETIVA LAB 기타 연주" });
+      await nav.share({ files: [file], title: ko["shooter.fretivaLabGuitarPerformance"] });
       return "shared";
     } catch (error) {
       if (error?.name === "AbortError") throw error;

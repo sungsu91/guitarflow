@@ -1,0 +1,640 @@
+0	Minor
+1	Major
+2	Beginner lick
+3	A minor pentatonic
+4	Blues lick
+5	A minor blues
+6	Rock lick
+7	Jazz lick
+8	A7 chord tones
+9	Country lick
+10	A major pentatonic
+11	{value1} ({value2}) = string {value3}, {value4}
+12	{value1} {value2} note {value3} = string {value4}, {value5}
+13	Play the open 6th string
+14	Play the open 5th string
+15	Play the open 4th string
+16	Play the open 3rd string
+17	Play the open 2nd string
+18	Play the open 1st string
+61	{value1} chord fingering
+62	Shows the selected chord fingering
+63	Fingering coming soon
+64	Position 1
+65	My progression
+66	Bass
+67	Piano
+68	4-beat
+69	8-beat
+70	16-beat
+71	Custom
+72	Sustain
+73	3rd
+74	5th
+75	Octave
+76	Flat 7th
+77	7th
+78	Flat 5th
+79	Approach tone to next chord
+80	Next chord root
+81	Auto rest
+82	Female
+83	Male
+84	Voice OFF
+85	First beat
+86	Other beats
+111	White
+112	Gold Dark
+113	A header design using the initial R as a nameplate anchor
+155	Logo
+156	App Icon
+157	Archive
+368	Random
+439	Delete “{value1}”?
+440	Delete {value1} selected progressions?
+441	DRUM pattern
+442	BASS pattern
+443	PIANO pattern
+444	Hat hi-hat · Shaker percussion · Drag to fill
+445	R root · 3/5/8 intervals · - rest
+446	Chord together · Stab short · Arp ↑/↓ broken
+447	Metronome playback and tap tempo
+448	Start metronome
+449	Stop metronome
+450	Tap to set BPM
+451	Experimental
+452	Close guitar cabinet glass door
+453	Open guitar cabinet glass door
+454	Headstock
+455	Tuning peg
+456	Nut
+457	Fretboard
+458	Pickup
+459	Soundhole
+460	Bridge
+461	Saddle
+462	String
+463	Body
+464	Current beat
+465	One note per beat
+466	Continuous 1 & 2 &
+467	Continuous fast picking
+468	2 notes/beat
+469	Two notes per beat
+470	Swing rhythm
+471	Pitch Match mode
+472	Pitch Match
+473	Any matching pitch counts.
+474	Position Practice mode
+475	Position Practice
+476	Practice on the displayed string and fret.
+477	The same pitch can appear elsewhere. In this mode, use the displayed position.
+478	Learn the controls
+479	Explore open strings and fretboard markers
+480	Learn notes on frets 0–3
+481	Scales · Pentatonics · Licks
+482	Practice scales, pentatonics, and short guitar phrases
+483	Chord-change practice
+484	Practice your own chord changes.
+485	Core rhythms
+486	Stage 3
+487	More practice modes coming soon
+488	Not implemented
+489	👋 Welcome to FRETIVA LAB
+490	The essentials for your first practice session
+491	🧭 Navigation and shared features
+492	Find your tools and practice courses here
+493	🎯 ① Single Notes
+494	Learn open position with the reference fretboard
+495	🎸 ② Scales · Pentatonics
+496	Choose key, type, and box, then follow the fretboard
+497	🔥 ③ Rhythm & Chords
+498	Combine chords, beat lengths, and rests to practice changes
+499	🎼 Score Practice
+500	Choose a piece and practice with staff notation and TAB
+501	📚 Score Library · My Scores
+502	Store PDFs, create scores, save, load, and back up
+503	🎼 Mini Backing
+504	Enter chords into bars for drum, bass, and piano backing
+505	BPM, tempo automation, practice tracking, and backing together
+506	Essential
+507	🎛️ Audio Studio
+508	Import, record, loop, edit, and save audio
+509	Play target notes on your guitar to hit them
+510	Choose instrument, tuning, and AUTO or a locked string
+511	Quickly find notes, chords, and scales
+512	Popular
+513	🎛️ Sound & Rhythm
+514	Manage backing instruments and shared rhythms
+515	ℹ️ About
+516	Accounts, privacy, local storage, and contact information
+517	Quick start
+518	Main tools
+519	Settings and information
+520	Position 2
+521	Position 3
+522	Position 4
+523	Position 5
+524	My progression {value1}
+525	Bar {value1} 
+526	Coda {value1} marker required
+527	{value1}Required symbol: {value2}
+528	Start low and ascend
+529	Up and down
+530	Ascend, then return
+531	Start high and descend
+532	Level 1
+533	Level 2
+534	Level 3
+535	Level 4
+536	Level 5
+537	Frets 0–3 · Basic sequence
+538	Easy Random
+539	Normal
+540	Frets 5–10 · Ascending/descending
+541	Normal Random
+542	Hard
+543	E2–E5 · E major up/down
+544	Hard Random
+545	Perfect
+546	Good
+547	Listen and play
+548	Play the target note
+549	Success!
+550	Play
+551	Restart practice
+552	Microphone off
+553	Choose a practice card
+554	Microphone permission denied
+555	Microphone connected
+556	MIDI connected
+557	MIDI disconnected
+558	Audio device disconnected
+559	Audio input connection failed
+560	Detecting
+561	No signal
+562	Practice contents
+563	Practice Trainer
+564	Practicing
+565	The selected SVG logo cannot be deleted.
+566	Guitars currently in use or saved in game slots cannot be deleted.
+567	Delete this design?\nIt will move to the archive (trash).
+568	Delete the selected design?\nIt will move to the archive (trash).
+569	Delete all designs?\nActive designs and those saved in game slots will be kept.
+570	Delete permanently?\nThis cannot be undone.
+571	Empty trash and delete permanently?\nThis cannot be undone.
+572	Archive ({value1})
+573	The live design cannot be deleted.
+574	Locked designs cannot be deleted. Unlock first.
+575	Delete {value1} from Design Lab?
+576	The live app icon cannot be deleted.
+577	Locked app icons cannot be deleted. Unlock first.
+578	Delete {value1} from App Icon Lab?
+579	Reference the selected position only
+580	Guitar fretboard information
+581	No progression
+582	{value1} copy
+583	Position-based fretboard practice
+584	Practice the selected box
+585	{value1} · String {value2}, {value3}
+586	Next note
+587	Microphone permission required
+588	Input device disconnected
+589	Input connection failed
+590	Couldn't start the microphone.\n\nRefresh and try again.
+591	Press Resume when you return.
+592	Audio setup required
+593	Backing setup required
+594	Connect a MIDI device
+595	Audio input required
+596	Unlock screen rotation and turn your phone to landscape.
+597	Progress OFF
+598	Current exercise
+599	Current note
+600	Next exercise
+601	Next note
+602	{value1} h {value2} min
+603	Bars {value1}–{value2}
+604	From bar {value1}
+605	No range
+606	Choose a new start bar for {value1} · Rhythm kept
+607	Section to duplicate
+608	Choose section {value1} start · Keep {value2} existing sections
+609	Choose the first section's start bar
+610	Choose the arrangement's start and end bars
+611	Starts at bar {value1} · Choose the end bar
+612	Check bars {value1}–{value2}
+613	{value1} · Apply arrangement to bars {value2}–{value3}
+614	Bars {value1}–{value2} use the default backing settings
+615	Section duplication canceled
+616	Section deleted · {value1} sections kept
+617	Section deleted
+618	Section {value1} deleted · {value2} sections kept
+619	Section {value1} deleted
+620	Changing key
+621	Returning to original key
+622	Split the 2-beat cell into two editable 1-beat cells
+623	Merged two 1-beat cells into 2 beats, keeping the selected chord
+624	Edit freely · Saving adds your own copy and keeps the original
+625	Saved a new copy to My Backing
+626	Redone
+627	Restored previous edit
+628	Cleared chords in all bars
+629	Cleared repeat, ending, and navigation symbols
+630	Cleared chords and structure/symbols
+631	Bar {value1} is not in the current playback path
+632	Couldn't start audio
+633	No bars to play
+634	Couldn't prepare the backing track
+635	Loading
+636	Quickly find notes and chord positions
+637	Chord timeline with up to {value1} bars
+638	A standalone reference for tempo and meter
+639	Practice rhythm response through play
+640	Rhythm · Chord changes
+641	Practice box patterns and short guitar phrases
+642	Open-position basics
+643	Learn open-string and lower-position notes
+644	Rhythm & Chords
+645	Metronome-based guitar rhythm training
+646	Applied {value1} section rhythm
+647	Saved {value1} {value2} pattern
+648	Stop the main backing track before using Preview
+649	Stop the main backing track before previewing
+650	Restored {value1} default rhythm
+651	Restored all FRETIVA LAB default rhythms
+652	Camera
+653	Close this message, then pull down and release to refresh.
+654	Close this message, then refresh your browser.
+655	{value1} access was denied.\n\n{value2}\nTurn on {value3} again and choose Allow.\n\nIf no prompt appears, allow {value4} access in your browser settings.
+656	Couldn't load audio.
+657	Couldn't load drum audio: 
+658	Couldn't load piano audio.
+659	Trim
+660	Copy
+661	Trim start
+662	Trim end
+663	Copy
+664	Track
+665	Unsolo
+666	Up
+667	Down
+668	Waveform range
+669	Clip
+670	{value1} clips
+671	Volume/Fades
+672	Practice
+673	Ready to restore the original range and speed. Press Apply.
+674	Couldn't reliably detect this track's BPM. Enter the original BPM manually.
+675	Loaded the import estimate: {value1} BPM.
+676	{value1} and {value2} more
+677	Finished mixes saved with MIX SAVE appear here.
+678	Couldn't open the finished audio library. Check browser storage permissions.
+679	IMPORT an audio file first.
+680	This browser cannot decode or play audio.
+681	This browser cannot play the finished audio.
+682	Couldn't play the finished audio file.
+683	Couldn't load the finished audio.
+684	Download started: “{value1}”.
+685	Couldn't download the finished audio to your device.
+686	Renamed finished audio to “{value1}”.
+687	Couldn't rename the finished audio.
+688	Delete “{value1}”? It will also be removed from Backing Loop playlists that use it.
+689	Selected audio
+690	Finished audio deleted.
+691	Couldn't delete the finished audio.
+692	Recording setup canceled.
+693	This browser does not support microphone recording.
+694	Checking microphone permission.
+695	Recording failed. Existing tracks are kept.
+696	The recording is too short. Existing tracks are kept.
+697	Analyzing recorded waveform and BPM.
+698	Added “{value1}” recording and waveform.
+699	Couldn't decode the recording. Check this browser's recording format support.
+700	Use headphones when recording alongside existing backing tracks.
+701	Allow microphone access to record.
+702	Split clips at the selection boundaries.
+703	Trimmed clips to the selected range.
+704	Removed the selected range without changing original files.
+705	Placed a copy of the selection at the end of the same track.
+706	Set the selection as the loop range.
+707	Copied {value1} clips to the Audio Studio clipboard.
+708	Cut {value1} clips.
+709	Choose files from + Add Audio. Each is placed on its own track.
+710	Finishing the recording. Press Back again when complete.
+711	Mixing all tracks into one WAV file.
+712	“{value1}” is ready in the Audio Studio library and Backing Loop.
+713	MIX SAVE failed. Check audio length, browser memory, and available storage.
+714	Enter both original and target BPM.
+715	STRETCH supports ratios from 0.75× to 1.50×.
+716	{value1} → {value2} BPM · Processing with pitch preserved.
+717	{value1} · Converted {value2} → {value3} BPM. The original is kept.
+718	Signalsmith WASM AudioWorklet is unavailable in this browser. Try an up-to-date browser.
+719	Time Stretch failed. Check device memory and audio length.
+720	Deleted “{value1}”.
+721	Analyzing duration and waveforms for {value1} files.
+722	Generating waveform {value1}/{value2}...
+723	No supported audio to import. Check your MP3, WAV, M4A, or AAC files.
+724	Imported {value1} files · The browser couldn't decode {value2} files.
+725	Added {value1} files as separate tracks. Position them on the timeline.
+726	Couldn't start the audio decoder. Check browser audio support.
+727	Playlist {value1}
+728	Couldn't start the preview.
+729	Paused · Press PLAY to resume
+730	Storage is unavailable, but recording and playback still work.
+731	Groove pack updated. Restart playback to hear the latest pattern and BPM.
+732	The original groove pack was deleted.
+733	Paused after navigation · Press PLAY to resume
+734	Recording stopped safely after navigation.
+735	Finishing recording.
+736	Couldn't stop recording. Try again.
+737	This browser does not support microphone recording.
+738	Recording failed. The previous backing track is kept.
+739	Operation canceled. Saved backing tracks are kept.
+740	No sound was recorded. The previous backing track is kept.
+741	Refining guitar tone and loop boundaries.
+742	Recorded · This browser will use the original range directly.
+743	Trim the lead-in and tail, or use the original recording.
+744	Input ready · Release to start recording.
+745	Recording guitar progression
+746	Allow microphone access and try again. The previous backing is kept.
+747	Check for an available microphone. The previous backing is kept.
+748	Recording setup canceled. The previous backing is kept.
+749	Current backing cleared. Press REC to start a new recording.
+750	Playlist playing
+751	Looping
+752	Backing playing
+753	Couldn't play this backing. Record again or LOAD another track.
+754	Playhead returned to the start.
+755	“{value1}” added to the shared library
+756	Checking {value1} files.
+757	Checking backing file {value1}/{value2}...
+758	Added {value1} files to “{value2}”, but couldn't store {value3} permanently.
+759	Added {value1} files to “{value2}” · Excluded {value3} files
+760	Added {value1} files to “{value2}”.
+761	Check that this browser can decode the audio files.
+762	Selected “{value1}” · Excluded {value2} files.
+763	Preparing waveform for editing.
+764	You can trim again from the full original range.
+765	Couldn't load the current backing waveform.
+766	Using the original recording. Trim it anytime in EDIT.
+767	Canceled this trim; the previous backing state is kept.
+768	Preparing the selected range as a loop.
+769	Selection applied · Press PLAY or SAVE.
+770	Full original range applied · Press PLAY or SAVE.
+771	Couldn't apply the range. The original is kept.
+772	Couldn't preview the selection.
+773	Enter a title.
+774	Select tracks to remove.
+775	Removed {value2} selected tracks from “{value1}”. Audio files are kept.
+776	Groove pack linked. Its original pattern and BPM are shared.
+777	Add tracks to the current playlist before saving.
+778	Enter a playlist name.
+779	Select tracks to save as a playlist.
+780	Updated “{value2}” with {value1} selected tracks.
+781	Saved {value1} selected tracks as “{value2}”.
+782	Loaded “{value1}” into the current playlist.
+783	Deleted saved playlist “{value1}” only. Audio files are kept.
+784	Saved “{value1}”
+785	Storage is unavailable.
+786	Loaded “{value1}”
+787	Couldn't load the saved backing track.
+788	“{value1}” ready to play
+789	Choose a track to play.
+790	No tracks to play.
+791	Playing the current backing from the start.
+792	Deleted {value1} saved backing tracks.
+793	Saved backing deleted.
+794	Couldn't delete saved backing.
+795	Backing playback finished
+796	Couldn't continue looping. Press PLAY again.
+797	“{value1}” playlist finished
+798	Preparing next backing in “{value1}”
+861	Blues
+865	Jazz
+1049	Crash
+1052	Ride
+1053	Snare
+1054	Kick
+1394	Ukulele
+1397	Electric snare
+1402	High tom
+1404	Pedal hi-hat
+1406	Ride bell
+1643	Waiting for input
+1644	Connecting
+1645	Connected
+1646	Permission denied · Allow microphone access in site settings.
+1647	Device disconnected · Reconnect or select another input.
+1648	Couldn't open input. Check whether another app is using the device.
+1649	Disconnected
+1650	No device · Connect or choose an input device.
+1651	Connected · {value1}
+1652	Couldn't open device: {value1}
+1653	Permission denied: allow MIDI in site settings and retry. Refresh if permission cannot be checked.
+1654	Permission denied: allow MIDI in site settings and retry.
+1655	Connection failed: {value1}
+1658	Mid tom
+1659	Low tom
+1660	Clap
+1661	Click
+1662	Brush
+1663	Rim
+1664	Stick
+1665	Shaker
+1666	Open hi-hat
+1667	Tambourine
+1668	Cowbell
+1669	Conga
+1670	Cabasa
+1671	Agogo
+1672	Triangle
+1673	Medium
+1674	Ghost
+1675	Expand tracker
+1676	Collapse tracker
+1677	Basic grid practice.
+1678	Storage is unavailable. Try again.
+1679	Latin
+1680	Jazz Ride Swing
+1681	Light swing practice led by the ride cymbal.
+1682	Blues Shuffle
+1683	A basic shuffle using the first and third triplet notes.
+1684	Blues Drive
+1685	Blues-rock practice with a driving kick.
+1686	Half-Time Shuffle
+1687	A strong snare on beat 3 contrasts with subtle ghost notes.
+1688	Pop Backbeat
+1689	A basic pop rhythm for chord changes and strumming.
+1690	Funk Syncopation
+1691	Practice tight rhythm playing with offbeat kicks and ghost notes.
+1692	Disco Offbeat
+1693	Four-on-the-floor kick with offbeat hi-hats.
+1694	Soft Ballad
+1695	Spacious backing for arpeggios.
+1696	Jazz Lounge Ensemble
+1697	Ride-led lounge arrangement with brushes and shaker behind it.
+1698	Blues Club Band
+1699	Club blues with light tambourine and claps over the backbeat.
+1700	Latin Pop Percussion
+1701	Interlocking percussion in a Latin-inspired pop arrangement.
+1702	Disco Funk Full Percussion
+1703	Rich hi-hat, tambourine, and cowbell interplay over a quarter-note kick.
+1704	Quarter notes — 1 per beat
+1705	Eighth notes — 2 per beat
+1706	Eighth-note triplets — 3 per beat
+1707	Sixteenth notes — 4 per beat
+1708	Sixteenth-note triplets — 6 per beat
+1709	Couldn't load preview audio. Try again.
+1786	Most recent
+1787	Date added
+1788	Recently added
+1789	Title
+1790	BPM
+1793	Right
+1796	Left
+1797	Import a PDF with its password removed.
+1798	Couldn't open PDF: {value1}
+1799	Couldn't read page size: {value1}
+1800	IndexedDB is unavailable in this browser.
+1801	Another window is using the score library. Close it and try again.
+1802	Couldn't save the score.
+1803	This PDF was deleted or does not exist.
+1804	Storage is full. Export originals, delete unneeded scores, and save again.
+1805	This PDF is already in the library.
+1806	Storage error: {value1}. Unsaved changes remain on this screen.
+1807	Choose a PDF of 100 MB or less.
+1808	This is not a valid PDF file.
+1809	A score's original file is missing.
+1810	Invalid backup format.
+1811	Unsupported backup.
+1812	Check the original file size in the backup.
+1813	Invalid backup file length.
+1814	Editable score
+1815	Read error
+1816	This PDF is password-protected. Import an unlocked copy from your device.
+1817	Couldn't display page: {value1}
+1818	Saved
+1819	Saved to device
+1820	Save failed
+1821	Each page can store up to 200 text notes.
+1822	Save or cancel the note before switching tools.
+1823	Save or cancel the note before finishing your edits.
+1824	Save or cancel the note before changing pages.
+1825	Added bars {value1}–{value2}
+1826	Save or cancel the note before starting practice.
+1827	You have unsaved settings. Save again or discard changes before leaving.
+1828	Save or cancel the note before using the menu.
+1829	PDF page {value1}
+1830	Editable score storage is unavailable.
+1831	New PDF score
+1832	No original PDF is stored. Import a backup or the original again.
+1833	Checking PDF and preparing the first page…
+1834	This PDF is already saved.
+1835	Review the details, then save.
+1836	Choose an unlocked PDF copy.
+1837	PDF score saved to device.
+1838	Restored {value1} · Kept {value2} existing matching PDFs
+1839	Stopped after restoring {value1}. {value2}
+1840	Move selected scores
+1841	Rename folder
+1842	Added to favorites.
+1843	Removed from favorites.
+1844	Couldn't save: {value1}
+1845	Moved {value1} scores.
+1846	Folder deleted. Scores are kept in the default location.
+1847	Folder saved.
+1848	Couldn't read folder information. Existing saved data is kept.
+1849	Check the folder information format.
+1850	Check score-to-folder links.
+1851	Check favorites information.
+1852	Enter a folder name of 1–100 characters.
+1853	A folder with this name already exists.
+1854	This folder already exists.
+1855	Folder not found.
+1856	Destination folder not found.
+1857	Invalid score identifier.
+1858	Unsupported folder operation.
+2092	Open strings–fret 3 · Random, no sharps
+2093	Open strings–fret 3 · Random, including sharps
+2329	Input signal is weak
+2330	Finding the pitch
+2331	Pitch is unstable
+2332	Different from the target note
+2333	Waiting for the next target
+2334	Pluck again
+2335	Hit · Waiting for the next note
+2336	Checking the note
+2337	Hit
+2338	Last detected note
+2339	Checking your note
+2341	Connect a MIDI device
+2342	Audio device disconnected
+2343	Connecting microphone
+2340	Waiting for sound
+2344	Gold guitar
+2345	Black guitar
+2346	Classical guitar
+2347	Red violin
+2348	Gold violin
+2349	Wood violin
+2350	Standard ukulele
+2351	Dark gold ukulele
+2352	Floral ukulele
+2353	Standard 4-string bass
+2354	Pink 4-string bass
+2355	Standard 5-string bass
+2356	Pink 5-string bass
+2357	Standard 6-string bass
+2358	Pink 6-string bass
+2359	Almost in tune
+2360	Very flat
+2361	Slightly flat
+2362	Very sharp
+2363	Slightly sharp
+2364	Signal fading. Pluck again
+2365	Waiting for a new note; the last note was not marked complete
+2366	Pluck a string
+2367	I'll follow as soon as I hear it
+2368	In tune! ✓
+2369	The detected note is stable
+2370	Note detected
+2371	Showing the cents offset for the detected note
+2372	Detecting the current note
+2373	The note name follows your input
+2374	⚠ Too sharp!
+2375	Don't tighten further
+2376	In tune! ✓
+2377	Stable and in tune
+2378	Almost there!
+2379	Hold it steady
+2380	Flat — tune up ↑
+2381	Tighten slowly toward the target note
+2382	A little higher ↑
+2383	Getting closer to center
+2384	Tune up just a little
+2385	Sharp — tune down ↓
+2386	Loosen slowly toward the target note
+2387	A little sharp ↓
+2388	Lower it toward center
+2389	Tune down just a little
+2390	Deep Sea
+2391	Clear Sky
+2392	Starry Night
+2393	Moonlit Clouds
+2394	Rose Twilight
+2395	Violin
+2396	Standard violin tuning
+2397	4-string standard
+2398	Standard 4-string tuning
+2399	5-string standard
+2400	Standard 5-string tuning
+2401	6-string standard
+2402	Standard 6-string tuning
+2403	4-string Drop D
+2404	4 strings · Lower string 4 to D
+2405	Standard tuning
+2406	Lower string 6 to D
+2407	All strings down a semitone
+2408	High G on string 4
+2409	Low G on string 4

@@ -1,3 +1,5 @@
+import { useLanguage } from "./../i18n/react.jsx";
+import { localizeUi } from "./../i18n/core.js";
 import { useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import './settings-popover.css';
@@ -6,6 +8,7 @@ let activeSettings = null;
 
 // Shared anchoring and dismissal; each setting keeps its own platform UI.
 export default function ShooterSettingsPopover({ anchor, mobile, label, className = '', compact = false, panelWidth, onClose, children }) {
+  useLanguage();
   const panel = useRef(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -70,7 +73,7 @@ export default function ShooterSettingsPopover({ anchor, mobile, label, classNam
       if (node.contains(document.activeElement) || document.activeElement === document.body) previous?.focus?.({ preventScroll: true });
     };
   }, [anchor, mobile, compact, panelWidth]);
-  return createPortal(<section ref={panel} className={`shooterSettingsPopover ${mobile ? 'shooterSettingsPopover--mobile' : 'shooterSettingsPopover--desktop'} ${className}`} role="dialog" aria-label={label}>
+  return createPortal(<section ref={panel} className={`shooterSettingsPopover ${mobile ? 'shooterSettingsPopover--mobile' : 'shooterSettingsPopover--desktop'} ${className}`} role="dialog" aria-label={localizeUi(label)}>
     <span className="shooterSettingsConnection" aria-hidden="true" />
     <div className="shooterSettingsPopoverContent">{children}</div>
   </section>, document.body);

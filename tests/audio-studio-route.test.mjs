@@ -1,6 +1,7 @@
+import { readFile } from "./helpers/i18n-source.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+
 
 test("Audio Studio is a public route and keeps its DEV maturity badge", async () => {
   const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");

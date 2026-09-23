@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
+import { t as translateUi } from '../i18n/core.js';
 
 // Keep the same page renderer mounted. Popover supplies a top-layer fallback
 // on browsers without element fullscreen, without remounting the page renderer.
@@ -27,7 +28,7 @@ export default function usePdfFullscreen() {
   const rootBefore={overflow:root.style.overflow,scrollbarGutter:root.style.scrollbarGutter};
   document.body.style.overflow='hidden';root.style.overflow='hidden';root.style.scrollbarGutter='auto';
   const node=ref.current,previous=document.activeElement;
-  node.querySelector('[aria-label="악보 전체화면 닫기"]')?.focus({preventScroll:true});
+  node.querySelector(`[aria-label="${translateUi('pdf.closeFullscreenScore')}"]`)?.focus({preventScroll:true});
   const key=e=>{if(e.key==='Escape'){e.preventDefault();void exit();}};
   document.addEventListener('keydown',key);
   return()=>{document.body.style.overflow=before;root.style.overflow=rootBefore.overflow;root.style.scrollbarGutter=rootBefore.scrollbarGutter;document.removeEventListener('keydown',key);if(previous?.isConnected)previous.focus({preventScroll:true});};

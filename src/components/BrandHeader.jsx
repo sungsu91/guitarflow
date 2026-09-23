@@ -1,8 +1,9 @@
+import { Translation } from "../i18n/react.jsx";
 export default function BrandHeader({ brand = "FRETIVA LAB", icon, logo, variant = "v1" }) {
   const splitWordmark = (
     <div className="riffBrandWordmark" aria-label={brand}>
-      <span className="riffBrandWordmark__ri">JUST</span>
-      <span className="riffBrandWordmark__lab">PLAY</span>
+      <span className="riffBrandWordmark__ri"><Translation id="originalUi.just" /></span>
+      <span className="riffBrandWordmark__lab"><Translation id="originalUi.play" /></span>
     </div>
   );
 
@@ -48,12 +49,12 @@ export default function BrandHeader({ brand = "FRETIVA LAB", icon, logo, variant
         {v11DerivativeIndex > 0 ? <span className="riffBrandDerivativeLight riffBrandDerivativeLight--right" aria-hidden="true" /> : null}
         {v11DerivativeIndex > 0 ? <span className="riffBrandDerivativeRail" aria-hidden="true" /> : null}
         {variant === "v5" || variant === "v19" || variant === "v36" || variant === "v46" ? <span className="riffBrandLogoWave" aria-hidden="true" /> : null}
-        {variant === "v6" || variant === "v12" || variant === "v40" ? <span className="riffBrandLogoBox" aria-hidden="true">J</span> : null}
+        {variant === "v6" || variant === "v12" || variant === "v40" ? <span className="riffBrandLogoBox" aria-hidden="true"><Translation id="originalUi.j" /></span> : null}
         {variant === "v15" || variant === "v31" || variant === "v32" || variant === "v43" ? <span className="riffBrandDataGrid" aria-hidden="true" /> : null}
         {variant === "v16" || variant === "v23" || variant === "v34" || variant === "v44" ? <span className="riffBrandLaserLine" aria-hidden="true" /> : null}
         <div className="riffBrandLogoBody">
-          {variant === "v7" || variant === "v9" || variant === "v20" ? <span className="riffBrandBrushR" aria-hidden="true">J</span> : null}
-          {[5, 10, 15].includes(v11FamilyIndex) ? <span className="riffBrandMiniSymbol" aria-hidden="true">J</span> : null}
+          {variant === "v7" || variant === "v9" || variant === "v20" ? <span className="riffBrandBrushR" aria-hidden="true"><Translation id="originalUi.j" /></span> : null}
+          {[5, 10, 15].includes(v11FamilyIndex) ? <span className="riffBrandMiniSymbol" aria-hidden="true"><Translation id="originalUi.j" /></span> : null}
           {isNumberedLogoLabVariant || isDerivedLogoLabVariant ? (
             <div className="riffBrandLogoText" aria-label={brand}>
               {[...brand.replace(/\s+/g, "")].map((letter, index) => (
@@ -61,7 +62,7 @@ export default function BrandHeader({ brand = "FRETIVA LAB", icon, logo, variant
               ))}
             </div>
           ) : null}
-          <span className="riffBrandSlogan">Repeat. Refine. Master.</span>
+          <span className="riffBrandSlogan"><Translation id="originalUi.repeatRefineMaster" /></span>
         </div>
       </header>
     );
@@ -71,11 +72,11 @@ export default function BrandHeader({ brand = "FRETIVA LAB", icon, logo, variant
     return (
       <header className="riffBrandHeader riffBrandHeader--v3" aria-label={`${brand} brand header V3`}>
         <span className="riffBrandSymbol riffBrandSymbol--abstract" aria-hidden="true">
-          <span>J</span>
+          <span><Translation id="originalUi.j" /></span>
         </span>
         <div className="riffBrandStack">
           {splitWordmark}
-          <span className="riffBrandSlogan">Repeat. Refine. Master.</span>
+          <span className="riffBrandSlogan"><Translation id="originalUi.repeatRefineMaster" /></span>
         </div>
       </header>
     );
@@ -85,7 +86,7 @@ export default function BrandHeader({ brand = "FRETIVA LAB", icon, logo, variant
     return (
       <header className="riffBrandHeader riffBrandHeader--v2" aria-label={`${brand} brand header V2`}>
         {splitWordmark}
-        <span className="riffBrandSlogan">Repeat. Refine. Master.</span>
+        <span className="riffBrandSlogan"><Translation id="originalUi.repeatRefineMaster" /></span>
       </header>
     );
   }

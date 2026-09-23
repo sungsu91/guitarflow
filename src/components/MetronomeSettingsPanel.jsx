@@ -1,9 +1,14 @@
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { useLanguage } from "./../i18n/react.jsx";
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Play } from 'lucide-react';
 import { previewMetronomeTone, stopMetronomePreview } from '../audio/metronomePreview.js';
 
 export default function MetronomeSettingsPanel({ fields, renderOption }) {
+  useLanguage();
   const [active, setActive] = useState(null);
   const [placement, setPlacement] = useState(null);
   const [error, setError] = useState('');
@@ -66,21 +71,21 @@ export default function MetronomeSettingsPanel({ fields, renderOption }) {
     {fields.map(item => {
       const option = item.options.find(o => String(o.id) === String(item.value));
       return <div className={`rhythmSetting rhythmSetting--${item.id}`} key={item.id}>
-        <span className="rhythmSettingLabel">{item.dot && <i className={`metronomeSelectLabelDot metronomeSelectLabelDot--${item.dot}`} aria-hidden="true" />}{item.label}</span>
-        <button ref={el => triggers.current[item.id] = el} className="rhythmSettingTrigger" type="button" disabled={item.disabled} aria-label={item.ariaLabel || item.label} aria-haspopup="dialog" aria-expanded={active === item.id} aria-controls={active === item.id ? id : undefined} onClick={() => { setError(''); if (active === item.id) close(); else { window.dispatchEvent(new CustomEvent('riffDropdownOpen',{detail:id})); setPlacement(null); setActive(item.id); } }}>
+        <span className="rhythmSettingLabel">{item.dot && <i className={`metronomeSelectLabelDot metronomeSelectLabelDot--${item.dot}`} aria-hidden="true" />}{localizeUi(item.label)}</span>
+        <button ref={el => triggers.current[item.id] = el} className="rhythmSettingTrigger" type="button" disabled={item.disabled} aria-label={localizeUi(item.ariaLabel || item.label)} aria-haspopup="dialog" aria-expanded={active === item.id} aria-controls={active === item.id ? id : undefined} onClick={() => { setError(''); if (active === item.id) close(); else { window.dispatchEvent(new CustomEvent('riffDropdownOpen',{detail:id})); setPlacement(null); setActive(item.id); } }}>
           <span>{renderOption(option, item.value)}</span><ChevronDown size={14} aria-hidden="true" />
         </button>
       </div>;
     })}
-    {field && placement && createPortal(<div ref={popup} id={id} className={`rhythmSettingsPopup theme-${placement.theme} ${placement.up ? 'opens-up' : 'opens-down'}`} style={Object.fromEntries(Object.entries(placement).filter(([key]) => key !== 'up' && key !== 'theme'))} role="dialog" aria-label={`${field.label} 선택`} onKeyDown={onKeys}>
+    {field && placement && createPortal(<div ref={popup} id={id} className={`rhythmSettingsPopup theme-${placement.theme} ${placement.up ? 'opens-up' : 'opens-down'}`} style={Object.fromEntries(Object.entries(placement).filter(([key]) => key !== 'up' && key !== 'theme'))} role="dialog" aria-label={localizeUi(translateUi("components.selectValue1", { value1: field.label }))} onKeyDown={onKeys}>
       <svg className="rhythmSettingsTail" width="24" height="10" viewBox="0 0 24 10" aria-hidden="true"><path d="M0 0 L12 9 L24 0" /></svg>
       <div className={`rhythmSettingsChoices ${field.tone ? 'tone-choices' : 'tile-choices'}`}>
         {field.options.map(option => { const selected = String(option.id) === String(field.value); return <div className={`rhythmSettingsChoice ${selected ? 'selected' : ''}`} key={option.id}>
-          <button className="rhythmSettingsChoose" type="button" aria-pressed={selected} disabled={option.disabled} aria-label={option.longLabel || option.label} onClick={() => { field.onChange(option.id); if (!field.tone) close(true); }}><span>{renderOption(option,option.label)}</span><Check size={14} aria-hidden="true" style={{visibility:selected?'visible':'hidden'}} /></button>
-          {field.tone && <button className="rhythmSettingsPreview" type="button" disabled={option.disabled} aria-label={`${option.label} 미리듣기`} onClick={() => { setError(''); previewMetronomeTone(option,field.dot !== 'weak').catch(() => setError('미리듣기 음원을 불러오지 못했습니다. 다시 눌러주세요.')); }}><Play size={14} fill="currentColor" aria-hidden="true" /></button>}
+          <button className="rhythmSettingsChoose" type="button" aria-pressed={selected} disabled={option.disabled} aria-label={localizeUi(option.longLabel || option.label)} onClick={() => { field.onChange(option.id); if (!field.tone) close(true); }}><span>{localizeUi(renderOption(option,option.label))}</span><Check size={14} aria-hidden="true" style={{visibility:selected?'visible':'hidden'}} /></button>
+          {field.tone && <button className="rhythmSettingsPreview" type="button" disabled={option.disabled} aria-label={localizeUi(translateUi("components.previewValue1", { value1: option.label }))} onClick={() => { setError(''); previewMetronomeTone(option,field.dot !== 'weak').catch(() => setError(ko["components.couldnTLoadThePreviewAudioTapToTryAgain"])); }}><Play size={14} fill="currentColor" aria-hidden="true" /></button>}
         </div>; })}
       </div>
-      {error && <span role="status">{error}</span>}
+      {error && <span role="status">{localizeUi(error)}</span>}
     </div>, document.body)}
   </div>;
 }

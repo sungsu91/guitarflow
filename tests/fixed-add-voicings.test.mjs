@@ -1,6 +1,7 @@
+import { readFile } from "./helpers/i18n-source.mjs";
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+
 import vm from 'node:vm';
 import {loadChordRuntime,snapshotChordRuntime} from './helpers/chord-runtime.mjs';
 import {FIXED_ADD_VOICINGS} from '../src/chords/fixedAddVoicings.js';

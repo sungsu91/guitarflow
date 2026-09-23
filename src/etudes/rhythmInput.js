@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import {isBlankEvent,patchEvent} from './scoreModel.js';
 import {setEventDuration,setDotted,enterFretWithDuration,enterMutedTone,setRestWithDuration} from './editorCommands.js';
 import {ensureTriplet} from './tuplets.js';
@@ -10,7 +12,7 @@ export function tripletProgress(document,session){
 // A new rhythm consumes a modifier; chord strings and fret digits retain timing.
 export function inputRhythm(document,cursor,{selectedDuration,dottedMode='off',tupletMode='off',session=null},kind,value){
  const original=document.measures[cursor.bar].events[cursor.event],fresh=isBlankEvent(original);
- if(tupletMode==='active'&&session&&original.tuplet?.groupId!==session.groupId)throw Error('진행 중인 셋잇단음표의 다음 빈 음을 선택하세요.');
+ if(tupletMode==='active'&&session&&original.tuplet?.groupId!==session.groupId)throw Error(ko["etudes.selectTheNextEmptyNoteInTheTripletCurrentlyBeingEntered"]);
  let next=document;
  if(!fresh&&tupletMode==='active'&&!session&&!original.tuplet)next=ensureTriplet(next,cursor,selectedDuration);
  if(fresh){
@@ -28,6 +30,6 @@ export function inputRhythm(document,cursor,{selectedDuration,dottedMode='off',t
  return {document:next,session:nextSession,dottedMode:fresh&&dottedMode==='one-shot'?'off':dottedMode,tupletMode:progress.count===3?'off':tupletMode,completed:tupletMode==='active'&&progress.count===3};
 }
 export function rhythmInputLabel(duration,dottedMode,tupletMode,count){
- if(tupletMode==='active')return count?`셋잇단 ${count}/3`:'셋잇단 입력 · 첫 음';
- return `${dottedMode!=='off'?'점':''}${duration==='1'?'온':duration+'분'}음표${dottedMode==='locked'?' · 고정':''}`;
+ if(tupletMode==='active')return count?formatMessage(ko["etudes.tripletValue3"], { value1: count }):ko["etudes.tripletEntryFirstNote"];
+ return formatMessage(ko["etudes.valueValueNoteValue"], { value1: dottedMode!=='off'?ko["etudes.dotted"]:'', value2: duration==='1'?ko["etudes.whole"]:duration+ko["etudes.fractionSuffix"], value3: dottedMode==='locked'?ko["etudes.fixed"]:'' });
 }

@@ -1,35 +1,36 @@
+import ko from "../../../i18n/locales/ko.js";
 import {
   DEFAULT_PERSPECTIVE_CORNERS,
   normalizePerspectiveCorners,
 } from "../freeTransform.js";
 
 export const MAP_EDIT_ANIMATION_TYPES = Object.freeze([
-  Object.freeze({ id: "none", label: "없음" }),
-  Object.freeze({ id: "float", label: "미세 부유" }),
-  Object.freeze({ id: "sway", label: "미세 흔들림" }),
-  Object.freeze({ id: "rotate", label: "지속 회전" }),
-  Object.freeze({ id: "rotate-reverse", label: "지속 역회전" }),
-  Object.freeze({ id: "pulse", label: "빛 변화" }),
-  Object.freeze({ id: "clockwork-gatekeeper-idle", label: "문지기 미세 대기" }),
-  Object.freeze({ id: "clockwork-pendulum", label: "진자 왕복" }),
-  Object.freeze({ id: "abyssal-whale-figure8-v8", label: "수평 8자 원근 고래 V8" }),
-  Object.freeze({ id: "abyssal-fish-school", label: "후방 물고기 떼 횡단" }),
-  Object.freeze({ id: "abyssal-bell-body", label: "종 몸체 왕복" }),
-  Object.freeze({ id: "abyssal-bell-clapper", label: "종 추 반대 위상" }),
-  Object.freeze({ id: "abyssal-orrery-outer", label: "천구의 외곽 링" }),
-  Object.freeze({ id: "abyssal-orrery-middle", label: "천구의 중간 역회전" }),
-  Object.freeze({ id: "abyssal-orrery-inner", label: "천구의 내부 링" }),
-  Object.freeze({ id: "abyssal-kelp", label: "뿌리 고정 해초" }),
-  Object.freeze({ id: "abyssal-banner", label: "상단 고정 배너" }),
-  Object.freeze({ id: "abyssal-guardian", label: "수호상 간헐 반응" }),
-  Object.freeze({ id: "torch-flame", label: "횃불 타오름" }),
-  Object.freeze({ id: "lava-geyser", label: "용암 대분출" }),
-  Object.freeze({ id: "lava-boil", label: "용암 보글거림" }),
+  Object.freeze({ id: "none", label: ko["app.none"] }),
+  Object.freeze({ id: "float", label: ko["shooter.subtleFloating"] }),
+  Object.freeze({ id: "sway", label: ko["shooter.subtleSwaying"] }),
+  Object.freeze({ id: "rotate", label: ko["shooter.continuousRotation"] }),
+  Object.freeze({ id: "rotate-reverse", label: ko["shooter.continuousReverseRotation"] }),
+  Object.freeze({ id: "pulse", label: ko["shooter.lightVariation"] }),
+  Object.freeze({ id: "clockwork-gatekeeper-idle", label: ko["shooter.subtleGatekeeperIdle"] }),
+  Object.freeze({ id: "clockwork-pendulum", label: ko["shooter.pendulumSwing"] }),
+  Object.freeze({ id: "abyssal-whale-figure8-v8", label: ko["shooter.horizontalFigureEightPerspectiveWhaleV8"] }),
+  Object.freeze({ id: "abyssal-fish-school", label: ko["shooter.backgroundFishSchoolCrossing"] }),
+  Object.freeze({ id: "abyssal-bell-body", label: ko["shooter.bellBodySwing"] }),
+  Object.freeze({ id: "abyssal-bell-clapper", label: ko["shooter.oppositePhaseBellClapper"] }),
+  Object.freeze({ id: "abyssal-orrery-outer", label: ko["shooter.armillarySphereOuterRing"] }),
+  Object.freeze({ id: "abyssal-orrery-middle", label: ko["shooter.armillarySphereMiddleRingReverseRotation"] }),
+  Object.freeze({ id: "abyssal-orrery-inner", label: ko["shooter.armillarySphereInnerRing"] }),
+  Object.freeze({ id: "abyssal-kelp", label: ko["shooter.rootAnchoredSeaweed"] }),
+  Object.freeze({ id: "abyssal-banner", label: ko["shooter.topAnchoredBanner"] }),
+  Object.freeze({ id: "abyssal-guardian", label: ko["shooter.occasionalGuardianResponse"] }),
+  Object.freeze({ id: "torch-flame", label: ko["shooter.torchBurning"] }),
+  Object.freeze({ id: "lava-geyser", label: ko["shooter.lavaEruption"] }),
+  Object.freeze({ id: "lava-boil", label: ko["shooter.lavaBubbling"] }),
 ]);
 
 export const FROG_MOVEMENT_MODES = Object.freeze([
-  Object.freeze({ id: "sequence", label: "순차 이동" }),
-  Object.freeze({ id: "random", label: "랜덤 이동" }),
+  Object.freeze({ id: "sequence", label: ko["shooter.sequentialMovement"] }),
+  Object.freeze({ id: "random", label: ko["shooter.randomMovement"] }),
 ]);
 
 function clamp(value, min, max) {

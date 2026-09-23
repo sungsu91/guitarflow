@@ -1,3 +1,7 @@
+import { formatMessage } from "../../../i18n/format.js";
+import ko from "../../../i18n/locales/ko.js";
+import { useLanguage } from "./../../../i18n/react.jsx";
+import { localizeUi } from "./../../../i18n/core.js";
 import { memo, useEffect, useReducer } from "react";
 
 import {
@@ -13,15 +17,16 @@ import {
 } from "./coastalChestState.js";
 
 function getActorLabel(state) {
-  if (state.phase === "opened") return "열린 보물상자";
+  if (state.phase === "opened") return ko["shooter.openTreasureChest"];
   if (["active", "hit-reacting"].includes(state.phase)) {
-    return `미믹 공격 ${state.hitCount}/${COASTAL_MIMIC_HITS_TO_DEFEAT}`;
+    return formatMessage(ko["shooter.mimicAttackValueValue"], { value1: state.hitCount, value2: COASTAL_MIMIC_HITS_TO_DEFEAT });
   }
-  if (state.phase === "defeating") return "처치된 미믹이 사라지는 중";
-  return "닫힌 보물상자 열기";
+  if (state.phase === "defeating") return ko["shooter.defeatedMimicDisappearing"];
+  return ko["shooter.openClosedTreasureChest"];
 }
 
 function CoastalChestActor({ editMode = false, eventActor, instanceId, onSound }) {
+  useLanguage();
   const variant = eventActor?.variant === "mimic" ? "mimic" : "treasure";
   const frames = Array.isArray(eventActor?.frames) ? eventActor.frames : [];
   const idleFrames = Array.isArray(eventActor?.idleFrames) ? eventActor.idleFrames : [];
@@ -109,7 +114,7 @@ function CoastalChestActor({ editMode = false, eventActor, instanceId, onSound }
   return (
     <button
       aria-busy={animating || state.phase === "defeating"}
-      aria-label={getActorLabel(state)}
+      aria-label={localizeUi(getActorLabel(state))}
       className="shooterMapChestActor"
       data-animation={animationKind}
       data-frame-index={displayFrameIndex}

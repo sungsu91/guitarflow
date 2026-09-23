@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { ABYSSAL_MOON_CATHEDRAL_ASSETS } from "../assets/abyssalMoonCathedralAssets.js";
 import abyssalLayout from "./abyssal-moon-cathedral-layout.json" with { type: "json" };
 
@@ -6,10 +7,10 @@ const ABYSSAL_ROOT = "/assets/maps/abyssal-moon-cathedral";
 export const ABYSSAL_MOON_CATHEDRAL_MAP_SKIN = Object.freeze({
   id: "abyssalMoonCathedral",
   kind: "layered",
-  label: "심해 월광 대성당",
-  nameKo: "심해 월광 대성당",
+  label: ko["shooter.abyssalMoonCathedral"],
+  nameKo: ko["shooter.abyssalMoonCathedral"],
   nameEn: "Abyssal Moon Cathedral",
-  description: "달빛이 내려오는 침몰한 심해 대성당",
+  description: ko["shooter.aSunkenDeepSeaCathedralLitByMoonlight"],
   mobileOnly: false,
   previewImage: `${ABYSSAL_ROOT}/00_master_reference.png`,
   pickerPreviewImage: "/assets/maps/previews/abyssal-moon-cathedral-current.jpg",

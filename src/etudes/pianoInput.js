@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {blankEvent,blankMeasure,newId,patchEvent,ticksOf} from './scoreModel.js';
 import {measureMeters} from './scoreMeters.js';
 import {inputRhythm} from './rhythmInput.js';
@@ -34,7 +35,7 @@ export function pianoVoiceEdit(document,cursor,operation){
  const d=ensurePianoVoices(document),selected=d.measures[cursor.bar].events[cursor.event],hand=cursor.hand??selected.voice??'right';
  const projected={...d,meter:measureMeters(d)[cursor.bar],measures:d.measures.map(m=>({...m,events:m.events.filter(e=>e.voice===hand)}))};
  const at={...cursor,event:projected.measures[cursor.bar].events.findIndex(e=>e.id===selected.id)};
- if(at.event<0)throw Error('입력할 손의 보표를 선택하세요.');
+ if(at.event<0)throw Error(ko["etudes.selectTheStaffForTheHandYouWantToEnter"]);
  const result=operation(projected,at),changed=result.document??result;
  const merged={...changed,meter:d.meter,measures:changed.measures.map((m,b)=>({...m,events:sortPianoEvents([
   ...(d.measures[b]?.events.filter(e=>e.voice!==hand)??blankMeasure(measureMeters(changed)[b]).events.map(e=>({...e,voice:hand==='right'?'left':'right'}))),
@@ -46,7 +47,7 @@ export function pianoVoiceEdit(document,cursor,operation){
 export function enterPiano(document,cursor,pitches,rhythm,{chord=false,rest=false,advance=true,editing=false}={}){
  return pianoVoiceEdit(document,cursor,(d,c)=>{
   const original=d.measures[c.bar].events[c.event];
-  if(!original.blank&&!editing&&!chord)throw Error('이미 작성된 위치입니다. 악보에서 해당 음을 선택해 수정하세요.');
+  if(!original.blank&&!editing&&!chord)throw Error(ko["etudes.thisPositionAlreadyContainsMusicSelectTheNoteInTheScoreTo"]);
   // Explicit edits replace one selected tone; chord entry only adds distinct pitches.
   let base=d;
   if(!rest&&!chord&&!original.blank){const kept=cursor.noteId?original.notes.filter(n=>n.id!==cursor.noteId):[];base=patchEvent(d,c.bar,c.event,{notes:kept,rest:!kept.length});}
@@ -61,16 +62,16 @@ export function stepPiano(d,c,delta=1){return pianoVoiceEdit(d,c,(voice,at)=>del
 // Explicit score-note editing; switching the input-hand button never calls this.
 export function movePianoHand(document,cursor,hand){
  const d=ensurePianoVoices(document),m=d.measures[cursor.bar],source=m.events[cursor.event],tone=source.notes.find(n=>n.id===cursor.noteId);
- if(!tone)throw Error('악보에서 옮길 음을 선택하세요.');
+ if(!tone)throw Error(ko["etudes.selectTheNoteToMoveInTheScore"]);
  if(source.voice===hand)return {document:d,cursor};
- if(source.tieTo||d.measures.some(m=>m.events.some(e=>e.tieTo===source.id)))throw Error('붙임줄로 연결된 음은 연결을 해제한 뒤 보표를 옮기세요.');
+ if(source.tieTo||d.measures.some(m=>m.events.some(e=>e.tieTo===source.id)))throw Error(ko["etudes.removeTiesBeforeMovingNotesToAnotherStaff"]);
  const end=source.onset+ticksOf(source),target=m.events.filter(e=>e.voice===hand),overlap=target.filter(e=>e.onset<end&&e.onset+ticksOf(e)>source.onset);
  const same=overlap.length===1&&overlap[0].onset===source.onset&&ticksOf(overlap[0])===ticksOf(source);
- if(overlap.some(e=>!e.blank)&&!same)throw Error('다른 손의 기존 리듬과 겹칩니다. 대상 보표에 같은 길이의 자리를 확보하세요.');
- if(source.tuplet&&!same)throw Error('대상 보표에 같은 셋잇단 리듬을 입력한 뒤 옮기세요.');
- if(!same&&overlap.some(e=>e.tuplet))throw Error('대상 보표의 셋잇단음표와 겹칩니다.');
- if(same&&overlap[0].notes.some(n=>n.midi===tone.midi))throw Error('대상 보표의 같은 위치에 이미 같은 음이 있습니다.');
- const silence=(start,end)=>{const result=[];for(const duration of ['1','2','4','8','16','32'])while(start+ticksOf({duration})<=end){result.push({...blankEvent(start,duration),voice:hand});start+=ticksOf({duration});}if(start!==end)throw Error('대상 보표의 리듬 경계를 확인하세요.');return result;};
+ if(overlap.some(e=>!e.blank)&&!same)throw Error(ko["etudes.thisOverlapsTheOtherHandSRhythmMakeASpaceOfThe"]);
+ if(source.tuplet&&!same)throw Error(ko["etudes.enterAMatchingTripletRhythmOnTheDestinationStaffBeforeMovingThe"]);
+ if(!same&&overlap.some(e=>e.tuplet))throw Error(ko["etudes.thisOverlapsATripletOnTheDestinationStaff"]);
+ if(same&&overlap[0].notes.some(n=>n.midi===tone.midi))throw Error(ko["etudes.theSamePitchAlreadyExistsAtThisPositionOnTheDestinationStaff"]);
+ const silence=(start,end)=>{const result=[];for(const duration of ['1','2','4','8','16','32'])while(start+ticksOf({duration})<=end){result.push({...blankEvent(start,duration),voice:hand});start+=ticksOf({duration});}if(start!==end)throw Error(ko["etudes.checkTheRhythmicBoundariesOnTheDestinationStaff"]);return result;};
  const targetEvent=same?{...overlap[0],rest:false,blank:false,notes:[...overlap[0].notes,{...tone,hand}]}:{...blankEvent(source.onset,source.duration),voice:hand,dotted:source.dotted,rest:false,blank:false,notes:[{...tone,hand}]};
  const replaced=same?[targetEvent]:[...silence(overlap[0].onset,source.onset),targetEvent,...silence(end,overlap.at(-1).onset+ticksOf(overlap.at(-1)))];
  const notes=source.notes.filter(n=>n.id!==tone.id),events=sortPianoEvents([...m.events.filter(e=>!overlap.includes(e)).map(e=>e.id===source.id?{...e,notes,rest:!notes.length,blank:!notes.length}:e),...replaced]);

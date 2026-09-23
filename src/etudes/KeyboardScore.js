@@ -1,3 +1,5 @@
+import { localizeUi } from "../i18n/core.js";
+import ko from "../i18n/locales/ko.js";
 import {drumVoiceEvents} from './drumVoices.js';
 import {drawDrumTechniques} from './drawDrumTechniques.js';
 import {drawScoreNavigation,alignNavigationEndings} from './drawScoreNavigation.js';
@@ -73,7 +75,7 @@ export function drawKeyboardScore(element,score,{mobile=false,editor=false,edito
   const geometry=document.createElementNS(ns,'g');svg.append(geometry);Object.assign(geometry.dataset,{playbackBar:String(b),row:String(Math.floor(b/perRow)+1),rowTop:String(Math.floor(b/perRow)*rowHeight),rowBottom:String((Math.floor(b/perRow)+1)*rowHeight),measure:String(b+barOffset),top:String(y),bottom:String((Math.floor(b/perRow)+1)*rowHeight-15),points:JSON.stringify(points)});
  });
  alignNavigationEndings([...svg.querySelectorAll('[data-ending-bar]')].map(node=>({index:Number(node.dataset.endingBar),row:Number(node.dataset.endingRow),number:Number(node.dataset.endingNumber),node})));
- svg.setAttribute('aria-label',drums?'드럼 타악기 보표':single?'피아노 단일 보표 · '+(layout==='bass'?'낮은음자리':'높은음자리'):'피아노 양손 큰보표');return svg;
+ svg.setAttribute('aria-label',localizeUi(drums?ko["etudes.drumPercussionStaff"]:single?ko["etudes.singlePianoStaff"]+(layout==='bass'?ko["etudes.bassClef"]:ko["etudes.trebleClef"]):ko["etudes.twoHandPianoGrandStaff"]));return svg;
 }
 
 

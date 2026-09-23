@@ -1,4 +1,6 @@
+import { Translation } from "./i18n/react.jsx";
 import React from "react";
+import { syncDocumentLanguage } from './i18n/core.js';
 import { createRoot } from "react-dom/client";
 import SplashIntro from "./launch/SplashIntro.jsx";
 import { createAppLaunchController } from "./launch/appLaunch.js";
@@ -6,6 +8,7 @@ import "./launch/splash-intro.css";
 import { keepScreenAwake } from "./ui/screenWakeLock.js";
 
 const launchController = createAppLaunchController();
+syncDocumentLanguage();
 const DeferredAppRuntime = React.lazy(() => import("./AppRuntime.jsx"));
 
 const AppRuntime = React.memo(function AppRuntime() {
@@ -32,9 +35,9 @@ class AppLoadBoundary extends React.Component {
     if (this.state.failed) {
       return (
         <section className="appLoadFallback" role="alert">
-          <strong>FRETIVA LAB</strong>
-          <p>앱을 준비하지 못했습니다.</p>
-          <button onClick={() => window.location.reload()} type="button">다시 시도</button>
+          <strong><Translation id="originalUi.fretivaLab" /></strong>
+          <p><Translation id="main.couldnTLoadTheApp" /></p>
+          <button onClick={() => window.location.reload()} type="button"><Translation id="main.tryAgain" /></button>
         </section>
       );
     }

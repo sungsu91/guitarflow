@@ -1,8 +1,9 @@
+import ko from "../i18n/locales/ko.js";
 import {patchEvent} from './scoreModel.js';
 
 export const DRUM_TECHNIQUES=[
- ['accent','악센트 >'],['ghost','고스트 노트 (음)'],['flam','플램'],['drag','드래그'],
- ['roll-1','롤 · 빗금 1개'],['roll-2','롤 · 빗금 2개'],['roll-3','롤 · 빗금 3개'],['buzz','버즈 롤'],['clear','주법 지우기'],
+ ['accent',ko["etudes.accent"]],['ghost',ko["etudes.ghostNoteNote"]],['flam',ko["etudes.flam"]],['drag',ko["etudes.drag"]],
+ ['roll-1',ko["etudes.rollOneSlash"]],['roll-2',ko["etudes.rollTwoSlashes"]],['roll-3',ko["etudes.rollThreeSlashes"]],['buzz',ko["etudes.buzzRoll"]],['clear',ko["etudes.clearTechnique"]],
 ].map(([value,label])=>({value,label}));
 
 // A selected tone ID is mandatory, even when the slot contains only one hit.

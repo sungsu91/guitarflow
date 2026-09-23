@@ -60,8 +60,8 @@ html body main.app.app.app .pdfStudio .etudeCompactTools:not(.is-focus) .etudeVi
 html body main.app.app.app .pdfStudio .etudeCompactTools .etudeViewTools>*,html body main.app.app.app .pdfStudio .etudeCompactTools .etudeBackingToggle{width:100%;min-width:0}
 html body main.app.app.app .pdfStudio .etudeCompactTools .etudePracticeToolbar button{border-radius:4px!important;box-shadow:none!important;background:transparent!important;border:1px solid transparent!important;padding:5px!important;font-size:12px;gap:4px;white-space:nowrap;font-weight:500}
 html body main.app.app.app .pdfStudio .etudeCompactTools .etudePracticeToolbar button:is([aria-expanded=true],[aria-pressed=true]){background:color-mix(in srgb,var(--theme-accent) 12%,var(--theme-surface))!important;border-color:var(--theme-border-control)!important}
-html body main.app.app.app .pdfStudio .etudeCompactTools .etudePracticeToolbar button:is([aria-label="메트로놈"],[aria-label="백킹루프"]){font-size:0;gap:0}
-.etudeCompactTools .etudePracticeToolbar button:is([aria-label="메트로놈"],[aria-label="백킹루프"]) svg{width:21px;height:21px}
+html body main.app.app.app .pdfStudio .etudeCompactTools .etudePracticeToolbar button:is([data-ui="metronome"],[data-ui="backing-loop"]){font-size:0;gap:0}
+.etudeCompactTools .etudePracticeToolbar button:is([data-ui="metronome"],[data-ui="backing-loop"]) svg{width:21px;height:21px}
 html body main.app.app.app .pdfStudio .etudeCompactTools.is-focus .etudeViewTools>*{width:auto}
 html body main.app.app.app .pdfStudio .etudeQuickBrowse .etudeQuickPages>button,html body main.app.app.app .pdfStudio .etudeQuickBrowse .etudeSelect select{border-radius:4px!important;box-shadow:none!important;background:transparent!important}
 html body main.app.app.app .etudeFloatingTheme .etudeRemote{border-radius:8px;box-shadow:0 2px 10px color-mix(in srgb,var(--theme-text) 12%,transparent);width:420px}
@@ -70,7 +70,7 @@ html body main.app.app.app .etudeRemotePopover{border-radius:8px;box-shadow:0 4p
 html body main.app.app.app .etudeRemotePopover :is(button,input,select){box-shadow:none!important;background:var(--theme-surface)!important;border-radius:4px!important}
 .etudeCompactTools .savedScorePlayhead{stroke:var(--riff-danger);stroke-width:12px;stroke-opacity:.22;filter:none;mix-blend-mode:multiply}
 @media(max-width:600px) and (orientation:portrait){html body main.app.app.app .etudeFloatingTheme .etudeRemote{left:max(8px,env(safe-area-inset-left))!important;width:calc(100dvw - 16px);max-width:calc(100dvw - 16px);box-sizing:border-box}.etudeRemoteBeats{grid-template-columns:36px minmax(0,1fr) auto 32px}}
-@media(max-width:340px){html body main.app.app.app .pdfStudio .etudeCompactTools:not(.is-focus) .etudeViewTools{grid-template-columns:minmax(86px,1fr) 44px 44px 44px 44px}.etudeCompactTools .etudePracticeToolbar button[aria-label="악보 편집"]{font-size:0!important}.etudeCompactTools .etudePracticeToolbar button[aria-label="가로 전환"]{font-size:0!important}}
+@media(max-width:340px){html body main.app.app.app .pdfStudio .etudeCompactTools:not(.is-focus) .etudeViewTools{grid-template-columns:minmax(86px,1fr) 44px 44px 44px 44px}.etudeCompactTools .etudePracticeToolbar button[data-ui="score-editor"]{font-size:0!important}.etudeCompactTools .etudePracticeToolbar button[data-ui="landscape"]{font-size:0!important}}
 /* Reference palette stays local to the etude reader and its floating surfaces. */
 .app.theme-light :is(.etudeCompactTools,.etudeRemote,.etudeRemotePopover){--remote-paper:#faf7f1;--remote-ink:#302820;--remote-brown:#65513b;--remote-line:#dfd5c7;--remote-rose:#ed6384;--theme-surface:var(--remote-paper);--theme-text:var(--remote-ink);--theme-accent:var(--remote-brown);--theme-border-control:var(--remote-line)}
 .app.theme-brand :is(.etudeCompactTools,.etudeRemote,.etudeRemotePopover){--remote-paper:var(--theme-surface);--remote-ink:var(--theme-text);--remote-brown:var(--theme-accent);--remote-line:var(--theme-border-control);--remote-rose:#ed809c}
@@ -208,7 +208,7 @@ html body main.app.app.app .etudeFloatingTheme .etudeRemote--mobileBottom .etude
  html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeDesktopBarCount{order:1;flex-basis:100%!important;margin-left:0}
 }
 /* Desktop has room for quiet text labels beside the utility icons. */
-html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop.etudeCompactTools .etudePracticeToolbar button:is([aria-label="메트로놈"],[aria-label="백킹루프"],.etudeFavoriteToggle){width:auto;min-width:0;font-size:12px!important;font-weight:400;gap:5px;padding-inline:7px!important;white-space:nowrap}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop.etudeCompactTools .etudePracticeToolbar button:is([data-ui="metronome"],[data-ui="backing-loop"],.etudeFavoriteToggle){width:auto;min-width:0;font-size:12px!important;font-weight:400;gap:5px;padding-inline:7px!important;white-space:nowrap}
 html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeBackingToggleMount{width:auto!important}
 html body #root main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeViewTools .etudeFavoriteToggle{flex:0 0 auto!important;width:auto!important;min-width:0!important;padding-inline:7px!important;gap:5px}
 

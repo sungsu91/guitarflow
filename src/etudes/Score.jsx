@@ -1,3 +1,8 @@
+import { formatMessage } from "../i18n/format.js";
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {applyAnnotationOffsets} from './scoreAnnotations.js';
 import {harmonyLabelLines} from './harmonyLabelLayout.js';
 import {LocateFixed} from 'lucide-react';
@@ -331,7 +336,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       const group=context.openGroup('etudeHarmonyLabel');
       group.dataset.scoreBar=String(index);group.dataset.scoreAnnotation='harmony';group.dataset.annotationBar=String(index+barOffset);
       const top=(view==='tab'?tab:stave).getYForLine(0);
-      const label=etude.harmony?.[index]||'코드명',lines=etude.harmony?.[index]?harmonyLines[index]:[label];
+      const label=etude.harmony?.[index]||ko["etudes.chordNames"],lines=etude.harmony?.[index]?harmonyLines[index]:[label];
       group.dataset.harmonyText=label;
       const text=document.createElementNS('http://www.w3.org/2000/svg','text');
       text.style.cssText='font:bold 14px Arial;fill:#111;stroke:none';
@@ -570,7 +575,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   svg.style.aspectRatio=`${width} / ${paperBottom-trimTop}`;
   if(compactTab)svg.setAttribute('height',String(paperBottom-trimTop));
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', `${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?'오선보':view==='tab'?'TAB':'오선보와 TAB'}`);
+  svg.setAttribute('aria-label', localizeUi(`${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?ko["etudes.staff"]:view==='tab'?'TAB':ko["etudes.notationAndTab"]}`));
   svg.style.width = '100%'; svg.style.height = 'auto'; svg.style.display = 'block';
   return metrics;
 }
@@ -593,6 +598,7 @@ export function renderCachedScore(element, etude, options = {}) {
 }
 
 function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false }) {
+  const language=useLanguage();
   const rhythmStates=useMemo(()=>rhythmTimeline(practiceRange?{...etude,practiceRange}:etude),[etude,practiceRange]);
   const ref = useRef(null);
   const positionRef=useRef(playPosition);positionRef.current=playPosition;
@@ -645,14 +651,14 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
       }
       setError('');
     }
-    catch (e) { ref.current?.replaceChildren(); setError('악보를 표시하지 못했습니다. 다른 연습곡을 선택해 주세요.'); console.error(e); }
+    catch (e) { ref.current?.replaceChildren(); setError(ko["etudes.couldNotDisplayTheScoreChooseAnotherExercise"]); console.error(e); }
     finally {setRendering(false);setRenderRevision(v=>v+1);}
     },0);});});
     return()=>{cancelAnimationFrame(firstFrame);cancelAnimationFrame(secondFrame);clearTimeout(timer);};
   }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth,availableHeight, zoom, measuresPerRow,focusLayout,followMode]);
   useEffect(() => {
-    ref.current?.querySelector('svg')?.setAttribute('aria-label', `${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?'오선보':view==='tab'?'TAB':'오선보와 TAB'}`);
-  }, [renderRevision,etude, mobile, enlarged, landscape, bpm, view]);
+    ref.current?.querySelector('svg')?.setAttribute('aria-label', localizeUi(`${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?ko["etudes.staff"]:view==='tab'?'TAB':ko["etudes.notationAndTab"]}`));
+  }, [renderRevision,etude, mobile, enlarged, landscape, bpm, view,language]);
   useEffect(()=>{
     const root=ref.current,svg=root?.querySelector('svg');if(!svg||!hasPosition)return;
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
@@ -686,9 +692,9 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   useEffect(()=>{
    const svg=ref.current?.querySelector('svg');if(!svg||!canSelectBar)return;
    const position=positionRef.current,highlightedBar=position?(position.getCurrentSlot?.()??position).bar:selectedBar;
-   const nodes=[];for(const bar of svg.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':`${index+1}마디에서 시작`,'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>selectBarRef.current?.(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectBarRef.current?.(index);}};svg.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
+   const nodes=[];for(const bar of svg.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':formatMessage(ko["etudes.startAtBarValue"], { value1: index+1 }),'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>selectBarRef.current?.(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectBarRef.current?.(index);}};svg.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
   },[renderRevision,etude,canSelectBar,selectedBar,hasPosition,mobile,enlarged,landscape,view,responsive,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
-  return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title="현재 재생 위치로 이동하고 자동 스크롤 재개"><LocateFixed size={14} aria-hidden="true"/><span>현재 위치로</span></button>}{error && <p role="alert">{error}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/>악보 준비 중…</span></div><div className="etudeNotation" ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
+  return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title={translateUi("etudes.goToPlayheadAndResumeAutoScroll")}><LocateFixed size={14} aria-hidden="true"/><span><Translation id="etudes.goToPlayhead" /></span></button>}{error && <p role="alert">{localizeUi(error)}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/><Translation id="etudes.preparingScore" /></span></div><div className="etudeNotation" ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
 }
 export default memo(Score);
 

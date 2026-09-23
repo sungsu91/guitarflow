@@ -1,3 +1,8 @@
+import ko from "./../i18n/locales/ko.js";
+import { formatMessage } from "./../i18n/core.js";
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import PdfAnnotationLayer from './PdfAnnotationLayer.jsx';
 import PdfBarCount from './PdfBarCount.jsx';
 import useScorePinch from '../hooks/useScorePinch.js';
@@ -24,6 +29,7 @@ function BarPlayhead({bar,playing,getBarPosition}) {
  return <div ref={line} hidden className="pdfPlayhead" aria-hidden="true" style={{top:`${bar.y*100}%`,height:`${bar.height*100}%`}}/>;
 }
 export default memo(function PdfPage({mobile=false,onZoomChange,zoomController,blob,documentId,thumbnail,pageEdits,pageCount,onPageReady,pageNumber,zoom,barMap,rowMap,onUpdateRow,activeBar,selectedBar,emphasize=false,mapping,onAdd,onSelect,onRemove,onDeselect,playing,getBarPosition,snapRows,draftRow,rowCount,onCountPreview,onCommitRow,onCancelRow,pageEdit,editTool,cropDraft,onCrop,onTextPoint,onSelectNote,editing=false,annotation,sharedPdf=null,embedded=false}) {
+  useLanguage();
  const boundsRef=useRef(null),viewportRef=useRef(null),paperRef=useRef(null),canvasRef=useRef(null),deleteRef=useRef(null),pickerRef=useRef(null),anchor=useRef(null),press=useRef(null),suppressClick=useRef(false),rowDrag=useRef(null);
  const [pdf,setPdf]=useState(null),[width,setWidth]=useState(0),[viewportHeight,setViewportHeight]=useState(600),[size,setSize]=useState({width:600,height:800}),[error,setError]=useState(''),[busy,setBusy]=useState(true),[preview,setPreview]=useState(null),[firstPoint,setFirstPoint]=useState(null);
  const [showLoading,setShowLoading]=useState(false),[hasCanvas,setHasCanvas]=useState(false);
@@ -40,7 +46,7 @@ export default memo(function PdfPage({mobile=false,onZoomChange,zoomController,b
  },[busy,pageNumber,zoom,width,crop]);
  useEffect(()=>{if(sharedPdf){setPdf(sharedPdf);return;}let live=true;setError('');
   const lease=pdfPageCache.acquire(documentKey,blob);
-  lease.promise.then(doc=>{if(live)setPdf(doc);}).catch(e=>{if(live){setError(e.name==='PasswordException'?'암호가 걸린 PDF입니다. 기기에서 암호를 해제한 사본을 불러오세요.':`PDF를 열지 못했습니다: ${e.message}`);setBusy(false);}});
+  lease.promise.then(doc=>{if(live)setPdf(doc);}).catch(e=>{if(live){setError(e.name==='PasswordException'?ko["pdf.thisPdfIsPasswordProtectedImportAnUnlockedCopyFromYourDevice"]:formatMessage(ko["pdf.couldnTOpenPdfValue1"], { value1: e.message }));setBusy(false);}});
   return()=>{live=false;lease.release();};
  },[documentKey,blob,sharedPdf]);
  useLayoutEffect(()=>{const node=viewportRef.current;const observer=new ResizeObserver(entries=>{setWidth(Math.max(160,entries[0].contentRect.width));setViewportHeight(entries[0].contentRect.height);});observer.observe(node);return()=>observer.disconnect();},[]);
@@ -64,7 +70,7 @@ export default memo(function PdfPage({mobile=false,onZoomChange,zoomController,b
      try{const result=await renderPdfPage(pdf,documentKey,n,{...options,crop:pageCrop(pageEdits?.[n])},controller.signal);if(!result.cacheHit)pdfPageCache.stats.prefetched++;}catch(e){if(controller.signal.aborted)return;/* Optional prefetch failure never obscures the current page. */}
     }
    });
-  }catch(e){if(live&&e.name!=='RenderingCancelledException'&&e.name!=='AbortError'){setError(`페이지 표시 실패: ${e.message}`);setBusy(false);}}})();
+  }catch(e){if(live&&e.name!=='RenderingCancelledException'&&e.name!=='AbortError'){setError(formatMessage(ko["pdf.couldnTDisplayPageValue1"], { value1: e.message }));setBusy(false);}}})();
   return()=>{live=false;cancelIdle();controller.abort();if(!finished)pdfRenderStats.cancelled++;};
  },[pdf,documentKey,pageNumber,zoom,width,zoom==='page'?viewportHeight:0,crop,mobile,embedded,pageCount]);
  useEffect(()=>{viewportRef.current.scrollTop=0;viewportRef.current.scrollLeft=0;},[pageNumber]);
@@ -132,27 +138,27 @@ export default memo(function PdfPage({mobile=false,onZoomChange,zoomController,b
   return()=>{cancelAnimationFrame(frame);viewport.removeEventListener('scroll',scroll);window.removeEventListener('resize',scroll);};
  },[selected,size,busy]);
  return <div className={`pdfViewport ${embedded?'pdfEmbeddedPage':''}`} ref={viewportRef} data-document-pinch={mobile&&!embedded} aria-busy={busy}>
-  {busy&&showLoading&&<p className="pdfPageStatus" role="status">불러오는 중…</p>}{error&&<p role="alert">{error}</p>}
-  <div ref={boundsRef} className="pdfZoomBounds" style={size}><div ref={paperRef} data-pinch-anchor className={`pdfPaper ${interactive?'is-mapping':''} ${cropping?'is-cropping':''}`} style={size} tabIndex={0} onClickCapture={e=>{if(suppressClick.current){suppressClick.current=false;e.preventDefault();e.stopPropagation();}}} aria-label={mapping?"PDF 마디 영역 지정":"PDF 악보 페이지"} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();cancel();}else if(draftRow&&/^[1-4]$/.test(e.key)&&!e.target.matches('input,select,textarea')){e.preventDefault();onCountPreview(Number(e.key));}}} data-pointer-interaction-scope={interactive?'pdf-mapping':undefined} onPointerDown={down} onPointerUp={up} onPointerCancel={()=>{press.current=null;}}>
-   {!hasCanvas&&thumbnail&&<div className="pdfThumbnailPreview" aria-label="저장된 첫 페이지 미리보기"><img src={thumbnail} alt="" style={{width:`${100/crop.width}%`,height:`${100/crop.height}%`,left:`${-crop.x/crop.width*100}%`,top:`${-crop.y/crop.height*100}%`}}/></div>}
+  {busy&&showLoading&&<p className="pdfPageStatus" role="status"><Translation id="pdf.loading" /></p>}{error&&<p role="alert">{localizeUi(error)}</p>}
+  <div ref={boundsRef} className="pdfZoomBounds" style={size}><div ref={paperRef} data-pinch-anchor className={`pdfPaper ${interactive?'is-mapping':''} ${cropping?'is-cropping':''}`} style={size} tabIndex={0} onClickCapture={e=>{if(suppressClick.current){suppressClick.current=false;e.preventDefault();e.stopPropagation();}}} aria-label={mapping?translateUi("pdf.markPdfBars"):translateUi("pdf.pdfScorePage")} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();cancel();}else if(draftRow&&/^[1-4]$/.test(e.key)&&!e.target.matches('input,select,textarea')){e.preventDefault();onCountPreview(Number(e.key));}}} data-pointer-interaction-scope={interactive?'pdf-mapping':undefined} onPointerDown={down} onPointerUp={up} onPointerCancel={()=>{press.current=null;}}>
+   {!hasCanvas&&thumbnail&&<div className="pdfThumbnailPreview" aria-label={translateUi("pdf.savedFirstPagePreview")}><img src={thumbnail} alt="" style={{width:`${100/crop.width}%`,height:`${100/crop.height}%`,left:`${-crop.x/crop.width*100}%`,top:`${-crop.y/crop.height*100}%`}}/></div>}
    <div className="pdfCanvas" ref={canvasRef}/>
-   {!busy&&!cropping&&rows.filter(r=>r.page===pageNumber).map(row=>{const r=project(row),active=row.bars.some(b=>b.number===activeBar),selected=row.bars.some(b=>b.number===selectedBar);return <button type="button" key={row.number} data-pdf-row={row.number} data-row-count={row.count} className={`pdfBarRow ${active?'is-active':''} ${active&&emphasize?'is-emphasized':''} ${selected&&editing?'is-selected':''}`} style={{left:`${r.x*100}%`,top:`${r.y*100}%`,width:`${r.width*100}%`,height:`${r.height*100}%`,pointerEvents:texting||inking?'none':undefined,touchAction:mapping&&selected?'none':undefined}} aria-label={`${row.number}마디부터 ${row.count}마디 줄 선택`} onPointerDown={e=>startRowDrag(e,row,selected)} onPointerMove={moveRowDrag} onPointerUp={e=>finishRowDrag(e)} onPointerCancel={e=>finishRowDrag(e,true)} onClick={e=>{e.stopPropagation();resetPoints();onCancelRow?.();const p=point(e),bar=row.bars.find(b=>p.x>=b.x&&p.x<b.x+b.width)??row.bars.at(-1);onSelect(bar.number,editing?0:Math.max(0,Math.min(.999,(p.x-bar.x)/bar.width)));}}>
-    {r.x>.035&&<small className="pdfRowStartNumber" aria-hidden="true">{row.number}~{row.number+row.count-1}마디</small>}
-    {mapping&&selected&&<i data-row-resize className="pdfRowResize" aria-label="줄 영역 크기 조절"/>}
+   {!busy&&!cropping&&rows.filter(r=>r.page===pageNumber).map(row=>{const r=project(row),active=row.bars.some(b=>b.number===activeBar),selected=row.bars.some(b=>b.number===selectedBar);return <button type="button" key={row.number} data-pdf-row={row.number} data-row-count={row.count} className={`pdfBarRow ${active?'is-active':''} ${active&&emphasize?'is-emphasized':''} ${selected&&editing?'is-selected':''}`} style={{left:`${r.x*100}%`,top:`${r.y*100}%`,width:`${r.width*100}%`,height:`${r.height*100}%`,pointerEvents:texting||inking?'none':undefined,touchAction:mapping&&selected?'none':undefined}} aria-label={translateUi("pdf.selectLineBarsValue1Value2", { value1: row.number, value2: row.count })} onPointerDown={e=>startRowDrag(e,row,selected)} onPointerMove={moveRowDrag} onPointerUp={e=>finishRowDrag(e)} onPointerCancel={e=>finishRowDrag(e,true)} onClick={e=>{e.stopPropagation();resetPoints();onCancelRow?.();const p=point(e),bar=row.bars.find(b=>p.x>=b.x&&p.x<b.x+b.width)??row.bars.at(-1);onSelect(bar.number,editing?0:Math.max(0,Math.min(.999,(p.x-bar.x)/bar.width)));}}>
+    {r.x>.035&&<small className="pdfRowStartNumber" aria-hidden="true">{row.number}~{row.number+row.count-1}<Translation id="app.bar" /></small>}
+    {mapping&&selected&&<i data-row-resize className="pdfRowResize" aria-label={translateUi("pdf.resizeLineRegion")}/>}
     {mapping&&row.bars.slice(1).map(b=><i key={b.number} className="pdfRowGuide" style={{left:`${(b.x-row.x)/row.width*100}%`}}/>)}
    </button>;})}
    {!busy&&selected&&<div ref={deleteRef} className="pdfBarActions" style={{left:Math.max(0,Math.min(size.width-48,(selected.x+selected.width)*size.width+4)),top:Math.max(0,selected.y*size.height)}} onPointerDown={e=>e.stopPropagation()}>
 
-    <button type="button" className="pdfBarDelete" aria-label={`${selected.number}마디부터 줄 영역 삭제`} onClick={e=>{e.stopPropagation();onRemove(selected.number);}}>삭제</button>
+    <button type="button" className="pdfBarDelete" aria-label={translateUi("pdf.deleteLineRegionFromBarValue1", { value1: selected.number })} onClick={e=>{e.stopPropagation();onRemove(selected.number);}}><Translation id="common.delete" /></button>
    </div>}
    {!busy&&currentBar&&<div className="pdfCurrentMeasure" aria-hidden="true" style={{left:`${currentBar.x*100}%`,top:`${currentBar.y*100}%`,width:`${currentBar.width*100}%`,height:`${currentBar.height*100}%`}}/>}
    {!busy&&currentBar&&<BarPlayhead bar={currentBar} playing={playing} getBarPosition={getBarPosition}/>}
    {!busy&&draftRow?.page===pageNumber&&<div className="pdfRowDraft pdfUnifiedRowDraft" style={{left:`${project(draftRow).x*100}%`,top:`${project(draftRow).y*100}%`,width:`${project(draftRow).width*100}%`,height:`${project(draftRow).height*100}%`}}/>}
-   {!mobile&&!busy&&draftRow?.page===pageNumber&&<div className="pdfQuickCount" ref={pickerRef} role="group" aria-label="마디 수 선택" onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
+   {!mobile&&!busy&&draftRow?.page===pageNumber&&<div className="pdfQuickCount" ref={pickerRef} role="group" aria-label={translateUi("app.chooseTheBarCount")} onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
     <PdfBarCount startNumber={Math.max(0,...barMap.map(b=>b.number))+1} value={rowCount} onChange={onCountPreview} onApply={commit} onCancel={cancel}/>
    </div>}
    {!busy&&annotation&&<PdfAnnotationLayer {...annotation} {...{paperRef,size,crop,pageEdit,editing}} page={pageNumber} tool={editTool} cropDraft={cropDraft} onTextPoint={onTextPoint} onSelectNote={onSelectNote}/>}
-   {firstPoint&&<div className="pdfFirstPoint" style={{left:`${project({...firstPoint,width:0,height:0}).x*100}%`,top:`${project({...firstPoint,width:0,height:0}).y*100}%`}}><span>오른쪽 아래를 누르세요</span></div>}
+   {firstPoint&&<div className="pdfFirstPoint" style={{left:`${project({...firstPoint,width:0,height:0}).x*100}%`,top:`${project({...firstPoint,width:0,height:0}).y*100}%`}}><span><Translation id="pdf.tapTheLowerRightCorner" /></span></div>}
    {preview&&<div className="pdfBarPreview" style={{left:`${preview.x*100}%`,top:`${preview.y*100}%`,width:`${preview.width*100}%`,height:`${preview.height*100}%`}}/>}
   </div></div>
  </div>;

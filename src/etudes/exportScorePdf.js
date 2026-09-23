@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 // Capture the same paginated A4 sheets used by print preview at 2x resolution.
 export async function exportScorePdf(sheets,title){
  const [{default:html2canvas},{jsPDF}]=await Promise.all([import('html2canvas'),import('jspdf')]);
@@ -11,6 +12,6 @@ export async function exportScorePdf(sheets,title){
   });
   if(i)pdf.addPage();pdf.addImage(canvas,'PNG',0,0,210,297,undefined,'FAST');canvas.width=canvas.height=0;
  }
- const blob=pdf.output('blob'),name=(title||'악보').replace(/[\\/:*?"<>|]/g,'_')+'.pdf';
+ const blob=pdf.output('blob'),name=(title||ko["components.scores"]).replace(/[\\/:*?"<>|]/g,'_')+'.pdf';
  return {blob,name};
 }

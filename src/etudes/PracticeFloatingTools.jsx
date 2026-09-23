@@ -1,3 +1,7 @@
+import ko from "./../i18n/locales/ko.js";
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {BackingLoopDragContext,BackingLoopFoldContext} from '../components/BackingLoopDragContext.js';
 import PracticePopover from './PracticePopover.jsx';
 import {createPortal} from 'react-dom';
@@ -62,85 +66,91 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
 }
 
 function FloatingMetronome({model,panelOpen,onHeight}) {
+  useLanguage();
   const {bpm,setBpm,metro,meter}=model;
   const floating=useFloatingPosition('riff-etude-metronome-position',false,panelOpen);
   useLayoutEffect(()=>{const measure=()=>onHeight(innerHeight-floating.ref.current.getBoundingClientRect().top);measure();const observer=new ResizeObserver(measure);observer.observe(floating.ref.current);return()=>observer.disconnect();},[onHeight,floating.style.top]);
   const [settings,setSettings]=useState(false),[tempo,setTempo]=useState(false),[draft,setDraft]=useState(String(bpm));
   useEffect(()=>setDraft(String(bpm)),[bpm]);
   const commit=()=>{if(draft.trim()&&Number.isFinite(Number(draft)))setBpm(draft);else setDraft(String(bpm));setTempo(false);};
-  return <section className="etudeFloatingMetro" aria-label="악보 메트로놈" ref={floating.ref} style={floating.style}>
-    <header><button type="button" className="etudeDragHandle" aria-label="메트로놈 이동 (방향키로 이동)" {...floating.handle}><GripHorizontal aria-hidden="true"/>메트로놈</button><button type="button" aria-label="메트로놈 상세 설정" aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><Settings2 aria-hidden="true"/></button></header>
+  return <section className="etudeFloatingMetro" aria-label={translateUi("etudes.scoreMetronome")} ref={floating.ref} style={floating.style}>
+    <header><button type="button" className="etudeDragHandle" aria-label={translateUi("etudes.moveMetronomeArrowKeysSupported")} {...floating.handle}><GripHorizontal aria-hidden="true"/><Translation id="menu.metronome" /></button><button type="button" aria-label={translateUi("etudes.detailedMetronomeSettings")} aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><Settings2 aria-hidden="true"/></button></header>
     <PracticeBeatDots meter={meter} beat={metro.beat}/>
-    <div className="etudeFloatingTransport">{tempo?<input autoFocus aria-label="연습 BPM" type="number" min="30" max="240" value={draft} onChange={e=>setDraft(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==='Enter')commit();if(e.key==='Escape'){setDraft(String(bpm));setTempo(false);}}}/>:<button type="button" aria-label={`BPM ${bpm} 조절`} onClick={()=>setTempo(true)}><strong>{bpm}</strong> BPM</button>}<button type="button" aria-pressed={metro.playing} onClick={()=>metro.toggle()}>{metro.playing?'■ 메트로놈 정지':'▶ 메트로놈 시작'}</button></div>
+    <div className="etudeFloatingTransport">{tempo?<input autoFocus aria-label={translateUi("etudes.practiceBpm")} type="number" min="30" max="240" value={draft} onChange={e=>setDraft(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==='Enter')commit();if(e.key==='Escape'){setDraft(String(bpm));setTempo(false);}}}/>:<button type="button" aria-label={translateUi("etudes.adjustBpmValue1", { value1: bpm })} onClick={()=>setTempo(true)}><strong>{bpm}</strong><Translation id="originalUi.bpmApp" /></button>}<button type="button" aria-pressed={metro.playing} onClick={()=>metro.toggle()}>{metro.playing?translateUi("etudes.stopMetronome"):translateUi("etudes.startMetronome")}</button></div>
     {settings&&<div className="etudeFloatingSettings"><MetronomeSettingsPanel renderOption={o=>o?.label??o?.longLabel??''} fields={[
-      {id:'meter',label:'박자',value:meter.join('/'),options:TIME_SIGNATURE_OPTIONS,onChange:v=>model.setMeterOverride(v.split('/').map(Number))},
-      {id:'subdivision',label:'세분',value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
-      {id:'tone',label:'음색',tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
+      {id:'meter',label:ko["app.meter"],value:meter.join('/'),options:TIME_SIGNATURE_OPTIONS,onChange:v=>model.setMeterOverride(v.split('/').map(Number))},
+      {id:'subdivision',label:ko["app.subdivision"],value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
+      {id:'tone',label:ko["app.sound"],tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
     ]}/><MetronomeVolumeControl/></div>}
-    {metro.error&&<p role="alert">{metro.error}</p>}
+    {metro.error&&<p role="alert">{localizeUi(metro.error)}</p>}
   </section>;
 }
 
 function EtudeRemote({controls:c,model,mobile,onHeight}){
+  useLanguage();
  const dock=Boolean(model.layout.focus&&model.layout.viewport.width>model.layout.viewport.height&&model.hudTarget);
  const floating=useFloatingPosition(mobile?'riff-etude-remote-mobile-position':'riff-etude-remote-position',false,false,dock,mobile&&!dock,null,null,mobile);
  const settingsButton=useRef(null),bpmButton=useRef(null),volumeButton=useRef(null),[popup,setPopup]=useState(null);
  const close=useCallback(focus=>{setPopup(null);if(focus)(popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton).current?.focus({preventScroll:true});},[popup]);
  useLayoutEffect(()=>{const el=floating.ref.current;const measure=()=>onHeight(el.getBoundingClientRect().height+24);measure();const observer=new ResizeObserver(measure);observer.observe(el);return()=>observer.disconnect();},[onHeight]);
  const panelDrag=!dock?{...floating.handle,onPointerDown:undefined,onKeyDown:undefined,onPointerDownCapture:e=>{if(e.currentTarget.contains(e.target))floating.handle.onPointerDown(e);}}:{};
- const remote=<section {...panelDrag} ref={floating.ref} style={dock?undefined:floating.style} className={"etudeFloatingMetro etudeSessionWidget etudeRemote"+(dock?" etudeHudRemote":mobile?" etudeRemote--mobileBottom":"")} aria-label="악보 메트로놈">
- <div className="etudeRemoteBeats" {...(!dock?{onKeyDown:floating.handle.onKeyDown,tabIndex:0,role:"group","aria-label":"메트로놈 이동 (드래그 또는 방향키)"}:{})}><PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/>{model.followMode!=='off'&&<span className="practiceCurrentBar" aria-label="진행 마디">{(model.playPosition?.bar??model.startBar??0)+1}/{model.selected?.measures.length??1}마디</span>}<span>{c.meter.join('/')}</span><button type="button" aria-label="메트로놈 닫기" onClick={model.minimizeMetro}><X aria-hidden="true"/></button></div>
- <div className="etudeRemoteControls"><button type="button" ref={bpmButton} className="etudeRemoteBpm" aria-label={'BPM '+c.bpm+' 조절'} aria-expanded={popup==='bpm'} onClick={()=>setPopup(p=>p==='bpm'?null:'bpm')}><strong>{c.bpm}</strong><small>BPM</small></button><button type="button" className="etudePracticeStart" aria-label={c.playing?'일시정지':c.paused?'연습 재개':'연습 시작'} disabled={c.disabled} onClick={c.playing?c.onPause:c.paused?c.onResume:c.onStart}>{c.playing?<Pause/>:<Play/>}</button><button type="button" className="etudePracticeStop" aria-label="정지" disabled={!c.playing&&!c.paused} onClick={c.onStop}><Square/></button><button type="button" ref={volumeButton} aria-label="메트로놈 볼륨" aria-expanded={popup==='volume'} onClick={()=>setPopup(p=>p==='volume'?null:'volume')}>{c.click?<Volume2/>:<VolumeX/>}</button><button type="button" ref={settingsButton} aria-label="메트로놈 상세 설정" aria-expanded={popup==='settings'} onClick={()=>setPopup(p=>p==='settings'?null:'settings')}><Settings2/></button></div>
- {popup&&<PracticePopover anchor={popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton} onClose={close} width={popup==='volume'?94:330} label={popup==='settings'?'메트로놈 설정':popup==='volume'?'메트로놈 볼륨':'BPM 조절'}>{popup==='volume'?<div className="etudeVerticalVolume"><MetronomeVolumeControl className="etudeVerticalVolumeControl" label="볼륨"/><button type="button" aria-label="클릭 음소거" aria-pressed={!c.click} onClick={c.onClickSound}>{c.click?<Volume2 aria-hidden="true"/>:<VolumeX aria-hidden="true"/>}</button></div>:popup==='bpm'?<><label>연습 BPM<input type="number" aria-label="연습 BPM" min="30" max="240" value={c.bpm} onChange={e=>c.onBpm(e.target.value)}/></label><div className="etudeTempoQuick">{[-10,-1,1,10].map(d=><button type="button" key={d} onClick={()=>c.onBpm(c.bpm+d)}>{d>0?'+':''}{d}</button>)}</div></>:<><MetronomeSettingsPanel renderOption={o=>o?.label??o?.longLabel??''} fields={[
- {id:'meter',label:'박자',value:c.meter.join('/'),disabled:true,options:TIME_SIGNATURE_OPTIONS,onChange:()=>{}},
- {id:'subdivision',label:'세분',value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
- {id:'tone',label:'음색',tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
- ]}/><PracticeRepeatControls model={model}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><label className="etudeOptionalSoundToggle"><input type="checkbox" checked={Boolean(c.sound&&model.followMode!=='off')} disabled={model.followMode==='off'} onChange={c.onSound}/><span>악보 소리</span></label></> }</PracticePopover>}{c.error&&<p role="alert">{c.error}</p>}
+ const remote=<section {...panelDrag} ref={floating.ref} style={dock?undefined:floating.style} className={"etudeFloatingMetro etudeSessionWidget etudeRemote"+(dock?" etudeHudRemote":mobile?" etudeRemote--mobileBottom":"")} aria-label={translateUi("etudes.scoreMetronome")}>
+ <div className="etudeRemoteBeats" {...(!dock?{onKeyDown:floating.handle.onKeyDown,tabIndex:0,role:"group","aria-label":ko["etudes.moveMetronomeDragOrUseArrowKeys"]}:{})}><PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/>{model.followMode!=='off'&&<span className="practiceCurrentBar" aria-label={translateUi("etudes.elapsedBars")}>{(model.playPosition?.bar??model.startBar??0)+1}/{model.selected?.measures.length??1}<Translation id="app.bar" /></span>}<span>{c.meter.join('/')}</span><button type="button" aria-label={translateUi("etudes.closeMetronome")} onClick={model.minimizeMetro}><X aria-hidden="true"/></button></div>
+ <div className="etudeRemoteControls"><button type="button" ref={bpmButton} className="etudeRemoteBpm" aria-label={'BPM '+c.bpm+translateUi("etudes.adjustment")} aria-expanded={popup==='bpm'} onClick={()=>setPopup(p=>p==='bpm'?null:'bpm')}><strong>{c.bpm}</strong><small><Translation id="originalUi.bpm" /></small></button><button type="button" className="etudePracticeStart" aria-label={c.playing?translateUi("app.pause"):c.paused?translateUi("etudes.resumePractice"):translateUi("app.startPractice")} disabled={c.disabled} onClick={c.playing?c.onPause:c.paused?c.onResume:c.onStart}>{c.playing?<Pause/>:<Play/>}</button><button type="button" className="etudePracticeStop" aria-label={translateUi("app.stopApp")} disabled={!c.playing&&!c.paused} onClick={c.onStop}><Square/></button><button type="button" ref={volumeButton} aria-label={translateUi("components.metronomeVolume")} aria-expanded={popup==='volume'} onClick={()=>setPopup(p=>p==='volume'?null:'volume')}>{c.click?<Volume2/>:<VolumeX/>}</button><button type="button" ref={settingsButton} aria-label={translateUi("etudes.detailedMetronomeSettings")} aria-expanded={popup==='settings'} onClick={()=>setPopup(p=>p==='settings'?null:'settings')}><Settings2/></button></div>
+ {popup&&<PracticePopover anchor={popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton} onClose={close} width={popup==='volume'?94:330} label={popup==='settings'?translateUi("etudes.metronomeSettings"):popup==='volume'?translateUi("components.metronomeVolume"):translateUi("etudes.adjustBpm")}>{popup==='volume'?<div className="etudeVerticalVolume"><MetronomeVolumeControl className="etudeVerticalVolumeControl" label={translateUi("audioStudio.volume")}/><button type="button" aria-label={translateUi("etudes.muteClick")} aria-pressed={!c.click} onClick={c.onClickSound}>{c.click?<Volume2 aria-hidden="true"/>:<VolumeX aria-hidden="true"/>}</button></div>:popup==='bpm'?<><label><Translation id="etudes.practiceBpm" /><input type="number" aria-label={translateUi("etudes.practiceBpm")} min="30" max="240" value={c.bpm} onChange={e=>c.onBpm(e.target.value)}/></label><div className="etudeTempoQuick">{[-10,-1,1,10].map(d=><button type="button" key={d} onClick={()=>c.onBpm(c.bpm+d)}>{d>0?'+':''}{d}</button>)}</div></>:<><MetronomeSettingsPanel renderOption={o=>o?.label??o?.longLabel??''} fields={[
+ {id:'meter',label:ko["app.meter"],value:c.meter.join('/'),disabled:true,options:TIME_SIGNATURE_OPTIONS,onChange:()=>{}},
+ {id:'subdivision',label:ko["app.subdivision"],value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
+ {id:'tone',label:ko["app.sound"],tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
+ ]}/><PracticeRepeatControls model={model}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><label className="etudeOptionalSoundToggle"><input type="checkbox" checked={Boolean(c.sound&&model.followMode!=='off')} disabled={model.followMode==='off'} onChange={c.onSound}/><span><Translation id="etudes.scoreSound" /></span></label></> }</PracticePopover>}{c.error&&<p role="alert">{localizeUi(c.error)}</p>}
  </section>;
  return dock?createPortal(remote,model.hudTarget):remote;
 }
 
 function FloatingPractice({controls:c,model,panelOpen,onHeight}) {
+  useLanguage();
  const dock=model.layout.focus;
  const floating=useFloatingPosition('riff-'+(model.scope??'etude')+'-metronome-position',false,panelOpen,dock);
  const [settings,setSettings]=useState(false),[tempo,setTempo]=useState(false),[draft,setDraft]=useState(String(c.bpm));
  useEffect(()=>setDraft(String(c.bpm)),[c.bpm]);
  useLayoutEffect(()=>{const measure=()=>onHeight(innerHeight-floating.ref.current.getBoundingClientRect().top);measure();const observer=new ResizeObserver(measure);observer.observe(floating.ref.current);return()=>observer.disconnect();},[onHeight,floating.style.top]);
  const commit=()=>{c.onBpm(draft);setTempo(false);};
- return <section className={"etudeFloatingMetro etudeSessionWidget"+(dock?" is-docked":"")+(settings?" settings-open":"")} aria-label="악보 메트로놈" onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();model.minimizeMetro();}}} ref={floating.ref} style={dock?{right:12+model.layout.viewport.left,top:8+model.layout.viewport.top}:floating.style}>
- <header><button type="button" className="etudeDragHandle" aria-label="메트로놈 이동 (방향키로 이동)" {...(dock?{}:floating.handle)} disabled={dock}><GripHorizontal aria-hidden="true"/><span>메트로놈</span></button><span className="etudeWidgetMeter">{c.meter.join("/")}</span><button type="button" aria-label="메트로놈 상세 설정" aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><Settings2 aria-hidden="true"/></button><button type="button" className="etudePanelClose" aria-label="메트로놈 닫기" onClick={model.minimizeMetro}><X aria-hidden="true"/></button></header>
+ return <section className={"etudeFloatingMetro etudeSessionWidget"+(dock?" is-docked":"")+(settings?" settings-open":"")} aria-label={translateUi("etudes.scoreMetronome")} onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();model.minimizeMetro();}}} ref={floating.ref} style={dock?{right:12+model.layout.viewport.left,top:8+model.layout.viewport.top}:floating.style}>
+ <header><button type="button" className="etudeDragHandle" aria-label={translateUi("etudes.moveMetronomeArrowKeysSupported")} {...(dock?{}:floating.handle)} disabled={dock}><GripHorizontal aria-hidden="true"/><span><Translation id="menu.metronome" /></span></button><span className="etudeWidgetMeter">{c.meter.join("/")}</span><button type="button" aria-label={translateUi("etudes.detailedMetronomeSettings")} aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><Settings2 aria-hidden="true"/></button><button type="button" className="etudePanelClose" aria-label={translateUi("etudes.closeMetronome")} onClick={model.minimizeMetro}><X aria-hidden="true"/></button></header>
  <PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/>
- <div className="etudeFloatingTransport">{tempo?<input autoFocus type="number" aria-label="연습 BPM" min="30" max="240" value={draft} onChange={e=>setDraft(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();}}/>:<button type="button" aria-expanded={tempo} aria-label={'BPM '+c.bpm+' 조절'} onClick={()=>setTempo(true)}>{c.bpm} BPM</button>}
- <button type="button" className="etudePracticeStart" disabled={c.disabled} onClick={c.playing?c.onPause:c.paused?c.onResume:c.onStart}>{c.playing?<Pause aria-hidden="true"/>:<Play aria-hidden="true"/>}<span>{c.playing?'일시정지':c.paused?'연습 재개':'연습 시작'}</span></button><button className="etudePracticeStop" aria-label="정지" type="button" disabled={!c.playing&&!c.paused} onClick={c.onStop}><Square aria-hidden="true"/></button></div>
- {tempo&&<div className="etudeTempoQuick" role="group" aria-label="BPM 빠른 조절">{[-10,-1,1,10].map(delta=><button key={delta} type="button" onPointerDown={e=>e.preventDefault()} onClick={()=>{const next=Math.max(30,Math.min(240,c.bpm+delta));c.onBpm(next);setDraft(String(next));}}>{delta>0?"+":""}{delta}</button>)}</div>}
- {settings&&<div className="etudeFloatingSettings"><button type="button" aria-pressed={c.click} onClick={c.onClickSound}>메트로놈 클릭 {c.click?'켜짐':'음소거'}</button>
+ <div className="etudeFloatingTransport">{tempo?<input autoFocus type="number" aria-label={translateUi("etudes.practiceBpm")} min="30" max="240" value={draft} onChange={e=>setDraft(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();}}/>:<button type="button" aria-expanded={tempo} aria-label={'BPM '+c.bpm+translateUi("etudes.adjustment")} onClick={()=>setTempo(true)}>{c.bpm}<Translation id="originalUi.bpmApp" /></button>}
+ <button type="button" className="etudePracticeStart" disabled={c.disabled} onClick={c.playing?c.onPause:c.paused?c.onResume:c.onStart}>{c.playing?<Pause aria-hidden="true"/>:<Play aria-hidden="true"/>}<span>{c.playing?translateUi("app.pause"):c.paused?translateUi("etudes.resumePractice"):translateUi("app.startPractice")}</span></button><button className="etudePracticeStop" aria-label={translateUi("app.stopApp")} type="button" disabled={!c.playing&&!c.paused} onClick={c.onStop}><Square aria-hidden="true"/></button></div>
+ {tempo&&<div className="etudeTempoQuick" role="group" aria-label={translateUi("etudes.quickBpmAdjustment")}>{[-10,-1,1,10].map(delta=><button key={delta} type="button" onPointerDown={e=>e.preventDefault()} onClick={()=>{const next=Math.max(30,Math.min(240,c.bpm+delta));c.onBpm(next);setDraft(String(next));}}>{delta>0?"+":""}{delta}</button>)}</div>}
+ {settings&&<div className="etudeFloatingSettings"><button type="button" aria-pressed={c.click} onClick={c.onClickSound}><Translation id="etudes.metronomeClick" />{c.click?translateUi("etudes.onPracticeFloatingTools"):translateUi("audioStudio.muteAudioStudio")}</button>
  <MetronomeSettingsPanel renderOption={o=>o?.label??o?.longLabel??''} fields={[
- {id:'meter',label:'박자',value:c.meter.join('/'),disabled:true,options:TIME_SIGNATURE_OPTIONS,onChange:()=>{}},
- {id:'subdivision',label:'세분',value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
- {id:'tone',label:'음색',tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
- ]}/><PracticeRepeatControls model={model}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><MetronomeVolumeControl/><label className="etudeOptionalSoundToggle"><input type="checkbox" checked={Boolean(c.sound&&model.followMode!=='off')} disabled={model.followMode==='off'} onChange={c.onSound}/><span>악보 소리</span></label></div>}{c.error&&<p role="alert">{c.error}</p>}
+ {id:'meter',label:ko["app.meter"],value:c.meter.join('/'),disabled:true,options:TIME_SIGNATURE_OPTIONS,onChange:()=>{}},
+ {id:'subdivision',label:ko["app.subdivision"],value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
+ {id:'tone',label:ko["app.sound"],tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
+ ]}/><PracticeRepeatControls model={model}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><MetronomeVolumeControl/><label className="etudeOptionalSoundToggle"><input type="checkbox" checked={Boolean(c.sound&&model.followMode!=='off')} disabled={model.followMode==='off'} onChange={c.onSound}/><span><Translation id="etudes.scoreSound" /></span></label></div>}{c.error&&<p role="alert">{localizeUi(c.error)}</p>}
  </section>;
 }
 
 function MovableBackingPanel({scope,close,children,origin,mobile}){
+  useLanguage();
  const position=useFloatingPosition('riff-'+scope+'-backing-panel-position',false,false,false,false,origin,!mobile?{x:innerWidth-464,y:100}:null);
  const fold=()=>{const el=position.ref.current;if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches){close();return;}const distance=innerWidth-el.getBoundingClientRect().left;el.animate([{transform:'translateX(0)',opacity:1},{transform:'translateX('+distance+'px)',opacity:0}],{duration:180,easing:'ease-in',fill:'forwards'}).finished.then(close,()=>{});};
- return <aside {...position.handle} onPointerDown={undefined} onPointerDownCapture={e=>{if(!e.currentTarget.contains(e.target)||e.target.closest('input,select,textarea,[role="slider"],[role="dialog"],.backingLoopPlaylist'))return;position.handle.onPointerDown(e);}} id="etude-backing-panel" className={"etudeBackingDrawer etudeBackingDrawer--movable"+(!mobile?" etudeBackingDrawer--desktop":"")} ref={position.ref} style={position.style} aria-label="백킹루프" onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();close();}}}>
+ return <aside {...position.handle} onPointerDown={undefined} onPointerDownCapture={e=>{if(!e.currentTarget.contains(e.target)||e.target.closest('input,select,textarea,[role="slider"],[role="dialog"],.backingLoopPlaylist'))return;position.handle.onPointerDown(e);}} id="etude-backing-panel" className={"etudeBackingDrawer etudeBackingDrawer--movable"+(!mobile?" etudeBackingDrawer--desktop":"")} ref={position.ref} style={position.style} data-ui="backing-loop" aria-label={translateUi("etudes.backingLoop")} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();close();}}}>
  <BackingLoopFoldContext.Provider value={fold}><BackingLoopDragContext.Provider value={position.handle}>{children}</BackingLoopDragContext.Provider></BackingLoopFoldContext.Provider></aside>;
 }
 
 function MovableEdgeTab({scope,kind,onOpen,playing}){
+  useLanguage();
  const floating=useFloatingPosition('riff-'+scope+'-'+kind+'-edge',true);
- return <button ref={floating.ref} style={floating.style} type="button" className="practiceEdgeTab practiceEdgeTab--movable" aria-label={(kind==='metro'?'메트로놈':'백킹루프')+' 패널 펼치기'} title="눌러 열기 · 위아래로 끌어 이동" {...floating.handle} onClick={onOpen}>{kind==='metro'?<Timer aria-hidden="true"/>:<AudioLines aria-hidden="true"/>}<ChevronLeft aria-hidden="true"/>{playing&&<i aria-label="재생 중"/>}</button>;
+ return <button ref={floating.ref} style={floating.style} type="button" className="practiceEdgeTab practiceEdgeTab--movable" aria-label={(kind==='metro'?translateUi("menu.metronome"):translateUi("etudes.backingLoop"))+translateUi("etudes.expandPanel")} title={translateUi("etudes.tapToOpenDragVerticallyToMove")} {...floating.handle} onClick={onOpen}>{kind==='metro'?<Timer aria-hidden="true"/>:<AudioLines aria-hidden="true"/>}<ChevronLeft aria-hidden="true"/>{playing&&<i aria-label={translateUi("etudes.playing")}/>}</button>;
 }
 function BackingSurface({controller,children,open,setOpen,scope,triggerTarget,mobile}) {
+  useLanguage();
   const trigger=useRef(null),panel=useRef(null);
   const [minimized,setMinimized]=useState(false),[openOrigin,setOpenOrigin]=useState(null);
   const floating=useFloatingPosition(`riff-${scope}-backing-position`,true);
   const close=()=>{setOpen(false);setMinimized(true);controller.closeDialog();trigger.current?.focus({preventScroll:true});};
   useEffect(()=>{if(open)panel.current?.querySelector('button')?.focus({preventScroll:true});else controller.closeDialog();},[open]);
   return <>
-    {triggerTarget?createPortal(<span ref={floating.ref} className="etudeBackingToggle"><button ref={trigger} type="button" aria-label="백킹루프" aria-pressed={open||minimized} aria-expanded={open} aria-controls="etude-backing-panel" onClick={()=>{if(open||minimized){controller.pausePlayback();controller.resetPlayback();controller.closeDialog();setOpen(false);setMinimized(false);}else{setOpen(true);}}}><AudioLines aria-hidden="true"/>백킹루프{controller.isPlaying&&<i role="status" aria-label="백킹루프 재생 중"> ·</i>}</button></span>,triggerTarget):(<div ref={floating.ref} className="etudeBackingHandle" style={floating.style}><button ref={trigger} type="button" aria-label={open?'백킹루프 패널 접기':'백킹루프 패널 펼치기'} aria-expanded={open} aria-controls="etude-backing-panel" {...floating.handle} onClick={e=>{if(open)close();else{const r=e.currentTarget.getBoundingClientRect();setOpenOrigin({x:r.left,y:r.top});setOpen(true);}}}><span aria-hidden="true">{open?'›':'‹'}</span>{controller.isPlaying&&<i role="status" aria-label="백킹루프 재생 중"/>}</button></div>)}
+    {triggerTarget?createPortal(<span ref={floating.ref} className="etudeBackingToggle"><button ref={trigger} type="button" data-ui="backing-loop" aria-label={translateUi("etudes.backingLoop")} aria-pressed={open||minimized} aria-expanded={open} aria-controls="etude-backing-panel" onClick={()=>{if(open||minimized){controller.pausePlayback();controller.resetPlayback();controller.closeDialog();setOpen(false);setMinimized(false);}else{setOpen(true);}}}><AudioLines aria-hidden="true"/><Translation id="score.backingLoopCompact" />{controller.isPlaying&&<i role="status" aria-label={translateUi("etudes.backingLoopPlaying")}> ·</i>}</button></span>,triggerTarget):(<div ref={floating.ref} className="etudeBackingHandle" style={floating.style}><button ref={trigger} type="button" aria-label={open?translateUi("etudes.collapseBackingLoopPanel"):translateUi("etudes.expandBackingLoopPanel")} aria-expanded={open} aria-controls="etude-backing-panel" {...floating.handle} onClick={e=>{if(open)close();else{const r=e.currentTarget.getBoundingClientRect();setOpenOrigin({x:r.left,y:r.top});setOpen(true);}}}><span aria-hidden="true">{open?'›':'‹'}</span>{controller.isPlaying&&<i role="status" aria-label={translateUi("etudes.backingLoopPlaying")}/>}</button></div>)}
     {triggerTarget&&minimized&&!open&&<MovableEdgeTab scope={scope} kind="backing" playing={controller.isPlaying} onOpen={e=>{const r=e.currentTarget.getBoundingClientRect();setOpenOrigin({x:r.left,y:r.top});setMinimized(false);setOpen(true);}}/>}
     {open&&<MovableBackingPanel scope={scope} close={close} origin={openOrigin} mobile={mobile}>{children}</MovableBackingPanel>}
   </>;
@@ -164,17 +174,18 @@ import './practiceDesign.css';
 import './etudeRemote.css';
 
 function PracticeRepeatControls({model}){
+  useLanguage();
  const count=Math.max(1,model.selected?.measures.length??1);
  const range=model.loopRange??{start:0,end:count-1};
  const setRange=(start,end)=>model.setLoopRange(start===0&&end===count-1?null:{start,end});
  return <fieldset className="practiceRepeatControls">
-  <legend>반복</legend>
-  <select aria-label="반복 횟수" value={model.repeatCount??0} onChange={e=>model.setRepeatCount(Number(e.target.value))}><option value="0">계속 반복</option>{Array.from({length:16},(_,i)=><option key={i} value={i+1}>{i+1}회</option>)}</select>
+  <legend><Translation id="app.repeat" /></legend>
+  <select aria-label={translateUi("etudes.repeatCount")} value={model.repeatCount??0} onChange={e=>model.setRepeatCount(Number(e.target.value))}><option value="0"><Translation id="etudes.repeatContinuously" /></option>{Array.from({length:16},(_,i)=><option key={i} value={i+1}>{i+1}<Translation id="app.times" /></option>)}</select>
   <div className="practiceRepeatRangeRow">
-   <span>구간:</span>
-   <select aria-label="반복 시작 마디" value={range.start} onChange={e=>{const start=Number(e.target.value);setRange(start,Math.max(start,range.end));}}>{Array.from({length:count},(_,i)=><option key={i} value={i}>{i+1}마디</option>)}</select>
+   <span><Translation id="etudes.range" /></span>
+   <select aria-label={translateUi("etudes.loopStartBar")} value={range.start} onChange={e=>{const start=Number(e.target.value);setRange(start,Math.max(start,range.end));}}>{Array.from({length:count},(_,i)=><option key={i} value={i}>{i+1}<Translation id="app.bar" /></option>)}</select>
    <span aria-hidden="true">~</span>
-   <select aria-label="반복 끝 마디" value={range.end} onChange={e=>setRange(range.start,Number(e.target.value))}>{Array.from({length:count-range.start},(_,n)=>{const i=n+range.start;return <option key={i} value={i}>{i+1}마디</option>;})}</select>
+   <select aria-label={translateUi("etudes.loopEndBar")} value={range.end} onChange={e=>setRange(range.start,Number(e.target.value))}>{Array.from({length:count-range.start},(_,n)=>{const i=n+range.start;return <option key={i} value={i}>{i+1}<Translation id="app.bar" /></option>;})}</select>
   </div>
  </fieldset>;
 }

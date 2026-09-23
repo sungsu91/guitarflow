@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync } from './helpers/i18n-source.mjs';
 import vm from 'node:vm';
 
 // Execute the production callbacks with deferred permission and recorder events.

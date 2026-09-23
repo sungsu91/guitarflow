@@ -1,3 +1,5 @@
+import { localizeUi } from "../i18n/core.js";
+import { Translation } from "./../i18n/react.jsx";
 import {useLayoutEffect,useRef} from 'react';
 import {scoreInstrument} from './scoreInstruments.js';
 
@@ -16,14 +18,14 @@ export default function InstrumentChangeDialog({request,anchor,onCancel,onSave,o
   return()=>{window.removeEventListener('resize',position);window.visualViewport?.removeEventListener('resize',position);dialog.close();};
  },[anchor]);
  return <dialog ref={ref} className="instrumentChangeDialog" aria-labelledby="instrument-change-title" aria-describedby="instrument-change-reason" onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();onCancel();}}>
-  <h2 id="instrument-change-title">{target}로 변경할까요?</h2>
-  <p>현재 악보를 그대로 변환할 수 없습니다.</p>
-  <p id="instrument-change-reason" className="instrumentChangeReason">{request.reason}</p>
-  <p>계속하려면 현재 악보를 저장하거나 버린 뒤, <strong>빈 {target} 악보</strong>로 시작하세요. 이미 저장된 악보는 삭제되지 않습니다.</p>
+  <h2 id="instrument-change-title">{target}<Translation id="etudes.switchToThisInstrument" /></h2>
+  <p><Translation id="etudes.thisScoreCannotBeConvertedDirectly" /></p>
+  <p id="instrument-change-reason" className="instrumentChangeReason">{localizeUi(request.reason)}</p>
+  <p><Translation id="etudes.saveOrDiscardTheCurrentScoreThenStartWithA" /><strong><Translation id="etudes.blank" />{target}<Translation id="etudes.score" /></strong><Translation id="etudes.previouslySavedScoresWillNotBeDeleted" /></p>
   <div className="instrumentChangeActions">
-   <button type="button" className="instrumentChangeSave" onClick={onSave}>저장하고 변경</button>
-   <button type="button" onClick={onDiscard}>저장하지 않고 변경</button>
-   <button type="button" autoFocus onClick={onCancel}>취소 · 현재 악보 유지</button>
+   <button type="button" className="instrumentChangeSave" onClick={onSave}><Translation id="etudes.saveAndSwitch" /></button>
+   <button type="button" onClick={onDiscard}><Translation id="etudes.switchWithoutSaving" /></button>
+   <button type="button" autoFocus onClick={onCancel}><Translation id="etudes.cancelKeepCurrentScore" /></button>
   </div>
  </dialog>;
 }

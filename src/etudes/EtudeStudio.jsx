@@ -1,3 +1,8 @@
+import { formatMessage } from "../i18n/format.js";
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import EtudePicker from './EtudePicker.jsx';
 import {loadScoreFolders,updateScoreFolders,SCORE_FOLDERS_KEY} from '../pdf/scoreFolders.js';
 import PracticeSheet from './PracticeSheet.jsx';
@@ -14,44 +19,47 @@ import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
 const ScoreEditor = lazy(() => import('./ScoreEditor.jsx'));
-function loadEdits(){try{return {...loadLibrary(window.localStorage,ETUDES),scores:{}};}catch{return {records:{},scores:{},errors:['이 브라우저에서는 수정본 저장소를 사용할 수 없습니다.']};}}
+function loadEdits(){try{return {...loadLibrary(window.localStorage,ETUDES),scores:{}};}catch{return {records:{},scores:{},errors:[ko["etudes.editedScoreStorageIsUnavailableInThisBrowser"]]};}}
 const DEFAULT_ETUDE_ID = 'G-triad-start';
 const DEFAULT_ETUDE_BPM = ETUDES.find(etude => etude.id === DEFAULT_ETUDE_ID)?.bpm ?? 60;
 
 function SongPicker({ model, mobile }) {
+  useLanguage();
  const {list,selected,select,savedScores,savedId,selectSaved}=model;
  const types=[...new Set(list.map(e=>e.type))],course=list.filter(e=>e.type===selected?.type),index=course.findIndex(e=>e.id===selected?.id);
  return <div className="etudeSongPicker etudeQuickBrowse">
   <EtudePicker model={model} mobile={mobile}/>
-  {!savedId&&<nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<0||course.length<2} onClick={()=>select(course[(index-1+course.length)%course.length].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>}
+  {!savedId&&<nav className="etudeQuickPages" aria-label={translateUi("etudes.browseETudes")}><button type="button" aria-label={translateUi("etudes.previousETude")} disabled={index<0||course.length<2} onClick={()=>select(course[(index-1+course.length)%course.length].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label={translateUi("etudes.nextETude")} disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>}
  </div>;
 }
 
 function LessonTips({ model }) {
+  useLanguage();
   const { selected } = model;
   if (!selected) return null;
   const course = lessonCourse(selected, model.filters);
   const index = course.findIndex(e => e.id === selected.id);
   const commonTips = selected.accompaniment ? FINGERSTYLE_PRACTICE_TIPS : COMMON_PRACTICE_TIPS;
   const examples = selected.accompaniment ? FINGERSTYLE_EXAMPLES : PICKING_EXAMPLES;
-  return <section className="etudeLesson" aria-label="연습 커리큘럼">
-    <div className="etudeLessonNav"><button type="button" disabled={index <= 0} onClick={() => model.openLesson(course[index - 1])}>‹ 이전</button><span><span>{selected.type} · {selected.level}</span><strong>{index + 1} / {course.length}</strong></span><button type="button" disabled={index < 0 || index === course.length - 1} onClick={() => model.openLesson(course[index + 1])}>다음 ›</button></div>
-    <details key={selected.id} className="etudeTips"><summary><strong>TIP · 연습 방법</strong><ChevronDown size={24} aria-hidden="true" /></summary>
-      <p><strong>학습목표</strong> · {selected.pedagogy.objective}</p><p className="etudePrerequisite">{selected.pedagogy.preparation}</p>
-      {selected.pedagogy.prerequisites.length>0&&<p>선행 연습: {selected.pedagogy.prerequisites.map(id=>ETUDES.find(e=>e.templateId===id)?.title??id).join(' → ')}</p>}
-      <p>{selected.pedagogy.instructions}</p><ul>{selected.tips.map((tip,i)=><li key={i}>{tip}</li>)}</ul><ul>{selected.pedagogy.keyBars.map(k=><li key={k.bar}><strong>{k.bar}마디 {k.event}음</strong> · {k.text}</li>)}</ul>
-      <p>준비 {selected.pedagogy.tempo.start} BPM → 기준 {selected.pedagogy.tempo.target} BPM</p><strong>완료 점검</strong><ul>{selected.pedagogy.checks.map(c=><li key={c}>{c}</li>)}</ul><p>{selected.pedagogy.review}</p>
-      <p>{selected.accompaniment?'표기: 세로 TAB은 동시 뜯기 · let ring은 잔향 유지':'표기: H 해머온 · P 풀오프 · SL 슬라이드'}</p></details>
-    <details className="etudeTips etudeCommonTips"><summary><strong>공통 TIP · {selected.accompaniment ? '핑거스타일 반주' : '피킹과 연습 기본'}</strong><ChevronDown size={24} aria-hidden="true" /></summary>
-      <ul>{commonTips.map(tip=><li key={tip.title}><strong>{tip.title}</strong><div>{tip.text}</div></li>)}</ul>
-      <div className="etudePickingExamples"><table><caption>{selected.accompaniment ? '오른손 예시 · p 엄지 / i 검지 / m 중지 / a 약지 · +는 동시에' : '일정한 박에 맞추는 피킹 예시 · D 다운 / U 업'}</caption><thead><tr><th>리듬</th><th>세는 법</th><th>{selected.accompaniment?'오른손':'피킹'}</th></tr></thead><tbody>{examples.map(row=><tr key={row.rhythm}><th scope="row">{row.rhythm}</th><td>{row.count}</td><td>{row.strokes}</td></tr>)}</tbody></table></div>
-      <p>공통 연습 예시이며 모든 음의 피킹 방향을 지정한 악보는 아닙니다.</p>
+  return <section className="etudeLesson" aria-label={translateUi("etudes.practiceCurriculum")}>
+    <div className="etudeLessonNav"><button type="button" disabled={index <= 0} onClick={() => model.openLesson(course[index - 1])}><Translation id="etudes.previousEtudeStudio" /></button><span><span>{localizeUi(selected.type)} · {localizeUi(selected.level)}</span><strong>{index + 1} / {course.length}</strong></span><button type="button" disabled={index < 0 || index === course.length - 1} onClick={() => model.openLesson(course[index + 1])}><Translation id="etudes.nextEtudeStudio" /></button></div>
+    <details key={selected.id} className="etudeTips"><summary><strong><Translation id="app.tipPracticeGuide" /></strong><ChevronDown size={24} aria-hidden="true" /></summary>
+      <p><strong><Translation id="etudes.learningGoal" /></strong> · {localizeUi(selected.pedagogy.objective)}</p><p className="etudePrerequisite">{localizeUi(selected.pedagogy.preparation)}</p>
+      {selected.pedagogy.prerequisites.length>0&&<p><Translation id="etudes.prerequisite" />{selected.pedagogy.prerequisites.map(id=>localizeUi(ETUDES.find(e=>e.templateId===id)?.title??id)).join(' → ')}</p>}
+      <p>{localizeUi(selected.pedagogy.instructions)}</p><ul>{selected.tips.map((tip,i)=><li key={i}>{localizeUi(tip)}</li>)}</ul><ul>{selected.pedagogy.keyBars.map(k=><li key={k.bar}><strong>{k.bar}<Translation id="etudes.bar" />{k.event}<Translation id="etudes.note" /></strong> · {localizeUi(k.text)}</li>)}</ul>
+      <p><Translation id="etudes.warmUp" />{selected.pedagogy.tempo.start}<Translation id="etudes.bpmTarget" />{selected.pedagogy.tempo.target}<Translation id="originalUi.bpmApp" /></p><strong><Translation id="etudes.completionChecklist" /></strong><ul>{selected.pedagogy.checks.map(c=><li key={c}>{localizeUi(c)}</li>)}</ul><p>{localizeUi(selected.pedagogy.review)}</p>
+      <p>{selected.accompaniment?translateUi("etudes.notationVerticallyAlignedTabNotesArePluckedTogetherLetRingSustainsNotes"):translateUi("etudes.notationHHammerOnPPullOffSlSlide")}</p></details>
+    <details className="etudeTips etudeCommonTips"><summary><strong><Translation id="etudes.generalTip" />{selected.accompaniment ? translateUi("etudes.fingerstyleBacking") : translateUi("etudes.pickingAndPracticeBasics")}</strong><ChevronDown size={24} aria-hidden="true" /></summary>
+      <ul>{commonTips.map(tip=><li key={tip.title}><strong>{localizeUi(tip.title)}</strong><div>{localizeUi(tip.text)}</div></li>)}</ul>
+      <div className="etudePickingExamples"><table><caption>{selected.accompaniment ? translateUi("etudes.rightHandExamplePThumbIIndexMMiddleARingMeans") : translateUi("etudes.steadyBeatPickingExampleDDownUUp")}</caption><thead><tr><th><Translation id="etudes.rhythm" /></th><th><Translation id="etudes.counting" /></th><th>{selected.accompaniment?translateUi("etudes.rightHand"):translateUi("etudes.picking")}</th></tr></thead><tbody>{examples.map(row=><tr key={row.rhythm}><th scope="row">{localizeUi(row.rhythm)}</th><td>{row.count}</td><td>{localizeUi(row.strokes)}</td></tr>)}</tbody></table></div>
+      <p><Translation id="etudes.theseAreGeneralPracticeExamplesNotPrescribedPickingDirectionsForEveryNote" /></p>
     </details>
   </section>;
 }
 
 
 export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, initialId=DEFAULT_ETUDE_ID, initialSavedId='' }) {
+  useLanguage();
   const [edits,setEdits]=useState(loadEdits);
   const readFavorites=()=>{try{return {values:loadScoreFolders(localStorage).favorites,error:''};}catch(e){return {values:{},error:e.message};}};
   const [favoriteStore,setFavoriteStore]=useState(readFavorites);
@@ -67,23 +75,23 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, i
   const selected = compiled?.score ?? list.find(e => e.id === selectedId) ?? list[0];
   const session=usePracticeSession(selected,bpm,updateBpm);
   const {controller,layout}=session;
-  const filters=selected?{type:selected.type,level:selected.level,style:'전체'}:undefined;
+  const filters=selected?{type:selected.type,level:selected.level,style:ko["app.all"]}:undefined;
   const select = id => { controller.current?.stop(); setSavedId(''); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
   const selectSaved=id=>{controller.current?.stop();setSavedId(id);updateBpm(savedScores.find(r=>r.document.id===id)?.document.bpm??list.find(e=>e.id===selectedId)?.bpm??60);};
-  const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:['이 브라우저에서는 저장할 수 없습니다. 파일로 내보내세요.']};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
+  const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:[ko["etudes.thisBrowserCannotSaveLocallyExportAFileInstead"]]};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
   const canEdit=Boolean(savedRecord)||import.meta.env.DEV;
   const editScore=score=>{if(!canEdit)return;controller.current?.stop();setEditing(savedRecord?structuredClone(savedRecord.document):copyDocument(toScoreDocument(score)));};
   const favoriteKey=savedId?`score:${savedId}`:`score:etude:${selected.id}`;
-  const toggleFavorite=()=>{try{const data=loadScoreFolders(localStorage);const next=updateScoreFolders(localStorage,{type:'favorite',keys:[favoriteKey],value:!data.favorites[favoriteKey]});setFavoriteStore({values:next.favorites,error:''});}catch(e){setFavoriteStore(current=>({...current,error:`즐겨찾기를 저장하지 못했습니다: ${e.message}`}));}};
+  const toggleFavorite=()=>{try{const data=loadScoreFolders(localStorage);const next=updateScoreFolders(localStorage,{type:'favorite',keys:[favoriteKey],value:!data.favorites[favoriteKey]});setFavoriteStore({values:next.favorites,error:''});}catch(e){setFavoriteStore(current=>({...current,error:formatMessage(ko["etudes.couldNotSaveFavoritesValue"], { value1: e.message })}));}};
   const model = { ...session, favorites:favoriteStore.values,isFavorite:Boolean(favoriteStore.values[favoriteKey]),toggleFavorite, createScore:()=>{controller.current?.stop();setEditing(createBlankDocument());},canEdit, savedScores,savedId,selectSaved,editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
  };
-  return <>{favoriteStore.error&&<p role="alert">{favoriteStore.error}</p>}{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.join(' ')}</p>}
+  return <>{favoriteStore.error&&<p role="alert">{localizeUi(favoriteStore.error)}</p>}{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.map(localizeUi).join(' ')}</p>}
 
     <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{!layout.focus&&<SongPicker model={model} mobile={mobile}/>}<PracticeSheet model={model} mobile={mobile} title={savedRecord?.document.title} heading={savedRecord?<header className="etudeSheetHeader"><h2>{savedRecord.document.title}</h2><div className="etudeSheetMeta"><span>{savedRecord.document.keySignature}</span><span>♩ = {bpm}</span></div></header>:undefined} lessonTips={savedRecord?undefined:<LessonTips model={model}/>}/></section>
     <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)||Boolean(compiled?.issues?.length)}/>
-    {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
+    {editing&&<Suspense fallback={<p role="status"><Translation id="etudes.preparingTheEditor" /></p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
   </>;
 }
 

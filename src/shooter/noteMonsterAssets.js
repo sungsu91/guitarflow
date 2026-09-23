@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 export const SHOOTER_NOTE_MONSTER_ROOTS = Object.freeze(["C", "D", "E", "F", "G", "A", "B"]);
 export const SHOOTER_NOTE_MONSTER_FRAME_COUNT = 6;
 export const SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT = SHOOTER_NOTE_MONSTER_FRAME_COUNT - 1;
@@ -135,19 +136,19 @@ export const SHOOTER_NOTE_MONSTER_SKINS = Object.freeze([
   Object.freeze({
     id: CUTE_OBJECT_SHOOTER_NOTE_MONSTER_SKIN_ID,
     label: "Cute Object Set",
-    description: "귀여운 오브젝트형 기본 몹",
+    description: ko["shooter.cuteObjectStyleStandardEnemies"],
     assets: createShooterNoteMonsterAssets(`${ASSET_ROOT}/cute-object`),
   }),
   Object.freeze({
     id: "elemental",
     label: "Elemental Set",
-    description: "불·대지·물·바람·빛·보라·얼음 원소 구체",
+    description: ko["shooter.elementalOrbsFireEarthWaterWindLightPurpleAndIce"],
     assets: createShooterNoteMonsterAssets(ASSET_ROOT),
   }),
   Object.freeze({
     id: BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID,
     label: "Backline Resonance Set",
-    description: "앰프·메트로놈·바이닐·테이프·페달·마이크·스피커 공명 코어",
+    description: ko["shooter.resonanceCoresAmpMetronomeVinylTapePedalMicAndSpeaker"],
     assets: createStaticShooterNoteMonsterAssets(
       BACKLINE_RESONANCE_ASSET_ROOT,
       BACKLINE_RESONANCE_FILES,

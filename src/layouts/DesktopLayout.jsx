@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n/core.js";
 import { createContext, useContext, useLayoutEffect, useState } from "react";
 import { isLikelyMobileDevice } from "./mobileLayout.js";
 import { getViewportProfile } from "./viewportProfile.js";
@@ -65,7 +66,7 @@ export default function DesktopLayout({ children }) {
       <div className={isDesktopLayout ? "desktopLayout" : "mobileLayoutShell"}>
         <section
           className={isDesktopLayout ? "desktopWorkspace" : "mobileLayoutWorkspace"}
-          aria-label="FRETIVA LAB workspace"
+          aria-label={translateUi("originalUi.fretivaLabWorkspace")}
         >
           <div className={isDesktopLayout ? "desktopWorkspaceContent" : "mobileLayoutContent"}>
             {children}

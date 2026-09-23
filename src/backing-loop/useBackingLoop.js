@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   buildWaveformPeaks,
@@ -353,7 +355,7 @@ export default function useBackingLoop(ownerMode = "") {
       });
     }
     clearPlaybackTimer();
-    setNotice("일시정지 · PLAY로 이어서 재생");
+    setNotice(ko["backingLoop.pausedPressPlayToResume"]);
     setPhaseImmediate("paused");
   }, [clearPlaybackTimer, fadeThen, setPhaseImmediate]);
 
@@ -380,7 +382,7 @@ export default function useBackingLoop(ownerMode = "") {
       })
       .catch(() => {
         if (!cancelled && showStorageNotice) {
-          setNotice("저장 공간을 사용할 수 없지만 녹음과 재생은 가능합니다.");
+          setNotice(ko["backingLoop.storageIsUnavailableButRecordingAndPlaybackStillWork"]);
         }
       });
     const unsubscribeBacking = subscribeBackingLoopLibrary(() => applyLibrary(false));
@@ -425,7 +427,7 @@ export default function useBackingLoop(ownerMode = "") {
     playlistPlaybackRef.current = {itemId: '', playlistId: ''};
     setPlaylistPlaybackActive(false);
     setPhaseImmediate('idle');
-    setNotice(source ? '그루브팩이 변경됐어요. 다시 재생하면 최신 패턴과 BPM으로 재생됩니다.' : '원본 그루브팩이 삭제됐어요.');
+    setNotice(source ? ko["backingLoop.groovePackUpdatedRestartPlaybackToHearTheLatestPatternAndBpm"] : ko["backingLoop.theOriginalGroovePackWasDeleted"]);
   }, [library, libraryHydrated, phase, recording, resetAudioPosition, setPhaseImmediate]);
 
   useEffect(() => {
@@ -530,10 +532,10 @@ export default function useBackingLoop(ownerMode = "") {
     releaseMicrophone();
     if (phaseBeforeDeactivate === "playing") {
       if (playbackPositionMs != null) setCurrentTimeMs(playbackPositionMs);
-      setNotice("화면 이동으로 일시정지 · PLAY로 이어서 재생");
+      setNotice(ko["backingLoop.pausedAfterNavigationPressPlayToResume"]);
       setPhaseImmediate("paused");
     } else if (["armed", "recording", "requesting"].includes(phaseBeforeDeactivate)) {
-      setNotice("화면 이동으로 녹음을 안전하게 정지했어요.");
+      setNotice(ko["backingLoop.recordingStoppedSafelyAfterNavigation"]);
       setPhaseImmediate("idle");
     }
   }, [clearArmTimer, clearPlaybackTimer, clearRecordingTimer, clearTransportFadeTimer, clearTrimPreviewTimer, releaseMicrophone, setPhaseImmediate]);
@@ -562,12 +564,12 @@ export default function useBackingLoop(ownerMode = "") {
     recordingStoppedElapsedRef.current = getRecordingElapsedMs();
     setCurrentTimeMs(recordingStoppedElapsedRef.current);
     setRecordingPaused(false);
-    setNotice("녹음을 마무리하고 있어요.");
+    setNotice(ko["backingLoop.finishingRecording"]);
     setPhaseImmediate("processing");
     try {
       mediaRecorder.stop();
     } catch {
-      setNotice("녹음을 종료하지 못했어요. 다시 시도해주세요.");
+      setNotice(ko["backingLoop.couldnTStopRecordingTryAgain"]);
       setPhaseImmediate("error");
     }
   }, [getRecordingElapsedMs, setPhaseImmediate]);
@@ -578,7 +580,7 @@ export default function useBackingLoop(ownerMode = "") {
     playlistPlaybackRef.current = { itemId: "", playlistId: "" };
     setPlaylistPlaybackActive(false);
     if (!navigator.mediaDevices?.getUserMedia || typeof window.MediaRecorder !== "function") {
-      setNotice("이 브라우저에서는 마이크 녹음을 지원하지 않아요.");
+      setNotice(ko["backingLoop.thisBrowserDoesNotSupportMicrophoneRecording"]);
       setPhaseImmediate("error");
       return;
     }
@@ -630,7 +632,7 @@ export default function useBackingLoop(ownerMode = "") {
         setRecordingPaused(false);
         releaseMicrophone();
         if (!mountedRef.current || requestVersion !== recordingRequestVersionRef.current) return;
-        setNotice("녹음 중 문제가 발생했어요. 이전 백킹은 그대로 유지됩니다.");
+        setNotice(ko["backingLoop.recordingFailedThePreviousBackingTrackIsKept"]);
         setPhaseImmediate("error");
       };
       mediaRecorder.onstop = async () => {
@@ -662,19 +664,19 @@ export default function useBackingLoop(ownerMode = "") {
           setEditSourceAudioData(null);
           setAppliedTrimRange(null);
           setCurrentTimeMs(0);
-          setNotice("현재 작업을 취소했어요. 저장된 백킹은 그대로 유지됩니다.");
+          setNotice(ko["backingLoop.operationCanceledSavedBackingTracksAreKept"]);
           setPhaseImmediate("idle");
           return;
         }
 
         if (blob.size === 0) {
-          setNotice("녹음된 소리가 없어요. 이전 백킹은 그대로 유지됩니다.");
+          setNotice(ko["backingLoop.noSoundWasRecordedThePreviousBackingTrackIsKept"]);
           setPhaseImmediate("error");
           return;
         }
 
         setPhaseImmediate("processing");
-        setNotice("기타 톤과 루프 경계를 정돈하고 있어요.");
+        setNotice(ko["backingLoop.refiningGuitarToneAndLoopBoundaries"]);
         const processed = await processLoopRecording(blob, durationMs);
         if (!mountedRef.current || requestVersion !== recordingRequestVersionRef.current) return;
         const nextRecording = {
@@ -698,7 +700,7 @@ export default function useBackingLoop(ownerMode = "") {
           setRecordingAudioData(null);
           setEditSourceAudioData(null);
           setCurrentTimeMs(0);
-          setNotice("녹음 완료 · 이 브라우저에서는 원본 구간으로 바로 사용합니다.");
+          setNotice(ko["backingLoop.recordedThisBrowserWillUseTheOriginalRangeDirectly"]);
           setPhaseImmediate("idle");
           return;
         }
@@ -716,14 +718,14 @@ export default function useBackingLoop(ownerMode = "") {
         setTrimPreviewPositionMs(0);
         setTrimPreviewPlaying(false);
         setCurrentTimeMs(0);
-        setNotice("앞뒤 준비 구간을 다듬거나 원본 그대로 사용할 수 있어요.");
+        setNotice(ko["backingLoop.trimTheLeadInAndTailOrUseTheOriginalRecording"]);
         setDialog("trim");
         setPhaseImmediate("trimming");
       };
 
       setCurrentTimeMs(0);
       setPhaseImmediate("armed");
-      setNotice("입력 준비 · 손을 뗀 뒤 녹음이 시작됩니다.");
+      setNotice(ko["backingLoop.inputReadyReleaseToStartRecording"]);
       armTimerRef.current = window.setTimeout(() => {
         armTimerRef.current = null;
         if (!mountedRef.current || mediaRecorderRef.current !== mediaRecorder) return;
@@ -734,7 +736,7 @@ export default function useBackingLoop(ownerMode = "") {
         setRecordingPaused(false);
         setCurrentTimeMs(0);
         setPhaseImmediate("recording");
-        setNotice("기타 코드 진행 녹음 중");
+        setNotice(ko["backingLoop.recordingGuitarProgression"]);
         mediaRecorder.start(250);
         startRecordingTimer(mediaRecorder);
       }, RECORDING_PRESET.armDelayMs);
@@ -743,8 +745,8 @@ export default function useBackingLoop(ownerMode = "") {
       if (!mountedRef.current || requestVersion !== recordingRequestVersionRef.current) return;
       const denied = error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError";
       setNotice(denied
-        ? "마이크 권한을 허용한 뒤 다시 눌러주세요. 이전 백킹은 유지됩니다."
-        : "사용 가능한 마이크를 확인해주세요. 이전 백킹은 유지됩니다.");
+        ? ko["backingLoop.allowMicrophoneAccessAndTryAgainThePreviousBackingIsKept"]
+        : ko["backingLoop.checkForAnAvailableMicrophoneThePreviousBackingIsKept"]);
       setPhaseImmediate("error");
     }
   }, [clearArmTimer, clearRecordingTimer, getRecordingElapsedMs, releaseMicrophone, resetAudioPosition, setPhaseImmediate, startRecordingTimer]);
@@ -764,7 +766,7 @@ export default function useBackingLoop(ownerMode = "") {
       recordingStoppedElapsedRef.current = 0;
       setRecordingPaused(false);
       releaseMicrophone();
-      setNotice("녹음 준비를 취소했어요. 이전 백킹은 그대로 유지됩니다.");
+      setNotice(ko["backingLoop.recordingSetupCanceledThePreviousBackingIsKept"]);
       setPhaseImmediate("idle");
       return;
     }
@@ -792,7 +794,7 @@ export default function useBackingLoop(ownerMode = "") {
     setTrimDraft(null);
     setCurrentTimeMs(0);
     setDialog("");
-    setNotice("현재 백킹을 비웠어요. REC를 누르면 새 녹음이 시작됩니다.");
+    setNotice(ko["backingLoop.currentBackingClearedPressRecToStartANewRecording"]);
     setPhaseImmediate("idle");
   }, [recording?.blob, resetAudioPosition, setPhaseImmediate]);
 
@@ -830,7 +832,7 @@ export default function useBackingLoop(ownerMode = "") {
     setEditSourceAudioData(null);
     setAppliedTrimRange(null);
     setCurrentTimeMs(0);
-    setNotice("현재 작업을 취소했어요. 저장된 백킹은 그대로 유지됩니다.");
+    setNotice(ko["backingLoop.operationCanceledSavedBackingTracksAreKept"]);
     setPhaseImmediate("idle");
   }, [clearArmTimer, clearRecordingTimer, releaseMicrophone, resetAudioPosition, setPhaseImmediate, stopTrimPreview]);
 
@@ -864,11 +866,11 @@ export default function useBackingLoop(ownerMode = "") {
         return;
       }
       graph?.setTransportLevel(1, { timeConstant: 0.006 });
-      setNotice(playlistPlaybackRef.current.playlistId ? "PLAYLIST 재생 중" : audio.loop ? "반복 재생 중" : "백킹 재생 중");
+      setNotice(playlistPlaybackRef.current.playlistId ? ko["backingLoop.playlistPlaying"] : audio.loop ? ko["backingLoop.looping"] : ko["backingLoop.backingPlaying"]);
       setPhaseImmediate("playing");
     } catch {
       if (!mountedRef.current || !modeActiveRef.current) return;
-      setNotice("백킹을 재생할 수 없어요. 다시 녹음하거나 다른 백킹을 LOAD해주세요.");
+      setNotice(ko["backingLoop.couldnTPlayThisBackingRecordAgainOrLoadAnotherTrack"]);
       setPhaseImmediate("error");
     } finally {
       playbackRequestRef.current = false;
@@ -886,7 +888,7 @@ export default function useBackingLoop(ownerMode = "") {
   const resetPlayback = useCallback(() => {
     if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
     resetAudioPosition();
-    setNotice("재생 위치를 처음으로 되돌렸어요.");
+    setNotice(ko["backingLoop.playheadReturnedToTheStart"]);
     setPhaseImmediate("idle");
   }, [recording?.blob, resetAudioPosition, setPhaseImmediate]);
 
@@ -947,7 +949,7 @@ export default function useBackingLoop(ownerMode = "") {
     setImportRejectedCount(0);
     setCurrentTimeMs(0);
     setDialog("");
-    setNotice(nextNotice || `“${importedRecording.fileName}” 공용 라이브러리 등록 완료`);
+    setNotice(nextNotice || formatMessage(ko["backingLoop.value1AddedToTheSharedLibrary"], { value1: importedRecording.fileName }));
     setPhaseImmediate("idle");
   }, [resetAudioPosition, setPhaseImmediate]);
 
@@ -971,20 +973,20 @@ export default function useBackingLoop(ownerMode = "") {
     setImportCandidates([]);
     setImportRejectedCount(0);
     setSelectedImportCandidateId("");
-    setNotice(`${files.length}개 파일을 확인하고 있어요.`);
+    setNotice(formatMessage(ko["backingLoop.checkingValue1Files"], { value1: files.length }));
     setPhaseImmediate("loading");
 
     try {
       const { imported, rejected } = await prepareImportedBackingAudioSources(files, {
         onProgress: ({ completed, total }) => {
           if (mountedRef.current && operationVersion === operationVersionRef.current) {
-            setNotice(`${completed}/${total} 백킹 파일 확인 중...`);
+            setNotice(formatMessage(ko["backingLoop.checkingBackingFileValue1Value2"], { value1: completed, value2: total }));
           }
         },
       });
       if (!mountedRef.current || operationVersion !== operationVersionRef.current) return;
       if (!imported.length) {
-        setNotice("가져올 수 있는 오디오가 없습니다. MP3, WAV, M4A, AAC 파일을 확인해주세요.");
+        setNotice(ko["backingLoop.noSupportedAudioToImportCheckYourMp3WavM4aOrAac"]);
         setPhaseImmediate("error");
         return;
       }
@@ -1025,17 +1027,17 @@ export default function useBackingLoop(ownerMode = "") {
       setSelectedLibraryIds([]);
       setPlaylistLibraryPickerOpen(false);
       setImportRejectedCount(rejected.length);
-      const targetTitle = getBackingPlaylistById(nextPlaylistState, importTargetId)?.title || "현재 재생목록";
+      const targetTitle = getBackingPlaylistById(nextPlaylistState, importTargetId)?.title || ko["backingLoop.currentPlaylist"];
       setNotice(storageFailureCount
-        ? `${persistedRecordings.length}개를 “${targetTitle}”에 추가했지만 ${storageFailureCount}개는 영구 보관하지 못했어요.`
+        ? formatMessage(ko["backingLoop.addedValue1FilesToValue2ButCouldnTStoreValue3Permanently"], { value1: persistedRecordings.length, value2: targetTitle, value3: storageFailureCount })
         : rejected.length
-          ? `${persistedRecordings.length}개를 “${targetTitle}”에 추가했어요 · ${rejected.length}개 파일 제외`
-          : `${persistedRecordings.length}개 파일을 “${targetTitle}”에 추가했어요.`);
+          ? formatMessage(ko["backingLoop.addedValue1FilesToValue2ExcludedValue3Files"], { value1: persistedRecordings.length, value2: targetTitle, value3: rejected.length })
+          : formatMessage(ko["backingLoop.addedValue1FilesToValue2"], { value1: persistedRecordings.length, value2: targetTitle }));
       setDialog("load");
       setPhaseImmediate("idle");
     } catch {
       if (!mountedRef.current || operationVersion !== operationVersionRef.current) return;
-      setNotice("이 브라우저에서 디코딩할 수 있는 오디오 파일인지 확인해주세요.");
+      setNotice(ko["backingLoop.checkThatThisBrowserCanDecodeTheAudioFiles"]);
       setPhaseImmediate("error");
     } finally {
       importPlaylistTargetIdRef.current = "";
@@ -1048,7 +1050,7 @@ export default function useBackingLoop(ownerMode = "") {
     activateImportedRecording(
       selected.recording,
       importRejectedCount
-        ? `“${selected.recording.fileName}” 선택 완료 · ${importRejectedCount}개 파일은 제외했습니다.`
+        ? formatMessage(ko["backingLoop.selectedValue1ExcludedValue2Files"], { value1: selected.recording.fileName, value2: importRejectedCount })
         : "",
     );
   }, [activateImportedRecording, importCandidates, importRejectedCount, selectedImportCandidateId]);
@@ -1067,7 +1069,7 @@ export default function useBackingLoop(ownerMode = "") {
     const operationVersion = ++operationVersionRef.current;
     resetAudioPosition();
     setPhaseImmediate("processing");
-    setNotice("편집할 파형을 준비하고 있어요.");
+    setNotice(ko["backingLoop.preparingWaveformForEditing"]);
     try {
       const sourceRecording = editSourceRecording?.blob ? editSourceRecording : recording;
       const audioData = editSourceAudioData
@@ -1103,11 +1105,11 @@ export default function useBackingLoop(ownerMode = "") {
       setTrimPreviewPositionMs(nextRange.startMs);
       setTrimPreviewPlaying(false);
       setDialog("trim");
-      setNotice("원본 전체 범위에서 구간을 다시 다듬을 수 있어요.");
+      setNotice(ko["backingLoop.youCanTrimAgainFromTheFullOriginalRange"]);
       setPhaseImmediate("trimming");
     } catch {
       if (!mountedRef.current || operationVersion !== operationVersionRef.current) return;
-      setNotice("현재 백킹의 편집 파형을 불러올 수 없어요.");
+      setNotice(ko["backingLoop.couldnTLoadTheCurrentBackingWaveform"]);
       setPhaseImmediate("error");
     }
   }, [
@@ -1157,8 +1159,8 @@ export default function useBackingLoop(ownerMode = "") {
     setTrimDraft(null);
     setDialog("");
     setNotice(trimDraft.initialRecording
-      ? "원본 녹음을 그대로 사용합니다. EDIT에서 언제든 다시 다듬을 수 있어요."
-      : "이번 구간 조정을 취소하고 이전 백킹 상태를 유지합니다.");
+      ? ko["backingLoop.usingTheOriginalRecordingTrimItAnytimeInEdit"]
+      : ko["backingLoop.canceledThisTrimThePreviousBackingStateIsKept"]);
     setPhaseImmediate("idle");
   }, [setPhaseImmediate, stopTrimPreview, trimDraft]);
 
@@ -1166,7 +1168,7 @@ export default function useBackingLoop(ownerMode = "") {
     if (!trimDraft?.recording || !trimDraft.audioData || phaseRef.current === "applying") return;
     stopTrimPreview(false);
     setPhaseImmediate("applying");
-    setNotice("선택한 구간을 루프로 정돈하고 있어요.");
+    setNotice(ko["backingLoop.preparingTheSelectedRangeAsALoop"]);
     try {
       const fullDuration = trimDraft.recording.durationMs;
       const keepsFullRecording = trimStartMs <= 1 && trimEndMs >= fullDuration - 1;
@@ -1191,12 +1193,12 @@ export default function useBackingLoop(ownerMode = "") {
       setTrimDraft(null);
       setDialog("");
       setNotice(trimmed
-        ? "선택 구간 적용 완료 · 바로 PLAY하거나 SAVE하세요."
-        : "원본 전체 구간 적용 완료 · 바로 PLAY하거나 SAVE하세요.");
+        ? ko["backingLoop.selectionAppliedPressPlayOrSave"]
+        : ko["backingLoop.fullOriginalRangeAppliedPressPlayOrSave"]);
       setPhaseImmediate("idle");
     } catch {
       if (!mountedRef.current) return;
-      setNotice("선택 구간을 적용하지 못했어요. 원본은 그대로 유지됩니다.");
+      setNotice(ko["backingLoop.couldnTApplyTheRangeTheOriginalIsKept"]);
       setPhaseImmediate("trimming");
     }
   }, [setPhaseImmediate, stopTrimPreview, trimDraft, trimEndMs, trimStartMs]);
@@ -1254,7 +1256,7 @@ export default function useBackingLoop(ownerMode = "") {
       clearTrimPreviewTimer();
       setTrimPreviewPlaying(false);
       if (!mountedRef.current || !modeActiveRef.current) return;
-      setNotice("선택 구간을 미리 재생할 수 없어요.");
+      setNotice(ko["backingLoop.couldnTPreviewTheSelection"]);
     } finally {
       trimPreviewRequestRef.current = false;
     }
@@ -1264,7 +1266,7 @@ export default function useBackingLoop(ownerMode = "") {
     if (!recording?.blob || phaseRef.current === "saving") return;
     const title = normalizeBackingLoopTitle(titleDraft);
     if (!title) {
-      setSaveError("제목을 입력해주세요.");
+      setSaveError(ko["backingLoop.enterATitle"]);
       return;
     }
     setSaveError("");
@@ -1372,7 +1374,7 @@ export default function useBackingLoop(ownerMode = "") {
     if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id) return;
     const itemIds = playlist.itemIds.filter((itemId) => selectedSavedItemIds.includes(itemId));
     if (!itemIds.length) {
-      setNotice("목록에서 제거할 곡을 선택해주세요.");
+      setNotice(ko["backingLoop.selectTracksToRemove"]);
       return;
     }
     setPlaylistItemsDeleteTargetId(playlist.id);
@@ -1397,7 +1399,7 @@ export default function useBackingLoop(ownerMode = "") {
     setPlaylistItemsDeleteTargetIds([]);
     setPlaylistPanelView(playlist.id);
     setDialog("load");
-    setNotice(`“${playlist.title}”에서 선택한 ${itemIds.length}곡을 제거했어요. 음원 파일은 유지됩니다.`);
+    setNotice(formatMessage(ko["backingLoop.removedValue2SelectedTracksFromValue1AudioFilesAreKept"], { value1: playlist.title, value2: itemIds.length }));
   }, [commitPlaylistState, playlistItemsDeleteTargetId, playlistItemsDeleteTargetIds, resetAudioPosition, setPhaseImmediate]);
 
   const togglePlaylistLibraryPicker = useCallback((playlistId = "") => {
@@ -1415,7 +1417,7 @@ export default function useBackingLoop(ownerMode = "") {
     const target = getBackingPlaylistById(playlistStateRef.current, playlistLibraryTargetId)
       || getActiveBackingPlaylist(playlistStateRef.current);
     commitPlaylistState(state => addBackingPlaylistItems(state, target.id, [id]));
-    setNotice('그루브팩을 연결했어요. 원본 팩의 패턴과 BPM을 공유합니다.');
+    setNotice(ko["backingLoop.groovePackLinkedItsOriginalPatternAndBpmAreShared"]);
     setPlaylistLibraryPickerOpen(false);
   }, [commitPlaylistState, playlistLibraryTargetId]);
 
@@ -1424,16 +1426,16 @@ export default function useBackingLoop(ownerMode = "") {
     const title = saveTarget?.title || playlistRenameDraft.trim();
     const currentPlaylist = getActiveBackingPlaylist(playlistStateRef.current);
     if (!currentPlaylist.itemIds.length) {
-      setNotice("저장할 곡을 현재 재생목록에 먼저 추가해주세요.");
+      setNotice(ko["backingLoop.addTracksToTheCurrentPlaylistBeforeSaving"]);
       return;
     }
     if (!title) {
-      setNotice("저장할 목록 이름을 입력해주세요.");
+      setNotice(ko["backingLoop.enterAPlaylistName"]);
       return;
     }
     const itemIds = currentPlaylist.itemIds.filter((itemId) => selectedQueueItemIds.includes(itemId));
     if (!itemIds.length) {
-      setNotice("목록으로 저장할 곡을 선택해주세요.");
+      setNotice(ko["backingLoop.selectTracksToSaveAsAPlaylist"]);
       return;
     }
     const nextState = commitPlaylistState((state) => saveCurrentBackingPlaylist(state, title, {
@@ -1448,8 +1450,8 @@ export default function useBackingLoop(ownerMode = "") {
       setSelectedSavedItemIds([...saved.itemIds]);
     }
     setNotice(saveTarget
-      ? `선택한 ${itemIds.length}곡으로 “${saveTarget.title}” 목록을 갱신했어요.`
-      : `선택한 ${itemIds.length}곡을 “${saved?.title || title}” 목록으로 저장했어요.`);
+      ? formatMessage(ko["backingLoop.updatedValue2WithValue1SelectedTracks"], { value1: itemIds.length, value2: saveTarget.title })
+      : formatMessage(ko["backingLoop.savedValue1SelectedTracksAsValue2"], { value1: itemIds.length, value2: saved?.title || title }));
   }, [commitPlaylistState, playlistRenameDraft, playlistSaveTargetId, selectedQueueItemIds]);
 
   const selectPlaylistSaveTarget = useCallback((playlistId) => {
@@ -1473,7 +1475,7 @@ export default function useBackingLoop(ownerMode = "") {
     setSelectedQueueItemIds([...activePlaylist.itemIds]);
     setPlaylistPanelView("queue");
     setPlaylistLibraryPickerOpen(false);
-    setNotice(`“${savedPlaylist.title}” 구성을 현재 재생목록으로 불러왔어요.`);
+    setNotice(formatMessage(ko["backingLoop.loadedValue1IntoTheCurrentPlaylist"], { value1: savedPlaylist.title }));
   }, [commitPlaylistState, resetAudioPosition, setPhaseImmediate]);
 
   const requestDeletePlaylistTab = useCallback((playlistId) => {
@@ -1495,7 +1497,7 @@ export default function useBackingLoop(ownerMode = "") {
     if (playlistSaveTargetId === target.id) setPlaylistSaveTargetId("");
     setSelectedSavedItemIds([]);
     setPlaylistDeleteTargetId("");
-    setNotice(`저장된 목록 “${target.title}”만 삭제했어요. 음원 파일은 그대로 유지됩니다.`);
+    setNotice(formatMessage(ko["backingLoop.deletedSavedPlaylistValue1OnlyAudioFilesAreKept"], { value1: target.title }));
     setPlaylistPanelView("queue");
     setDialog("load");
   }, [commitPlaylistState, playlistDeleteTargetId, playlistSaveTargetId, resetAudioPosition, setPhaseImmediate]);
@@ -1600,7 +1602,7 @@ export default function useBackingLoop(ownerMode = "") {
     if (!recording?.blob || phaseRef.current === "saving") return;
     const title = normalizeBackingLoopTitle(titleDraft);
     if (!title) {
-      setSaveError("제목을 입력해주세요.");
+      setSaveError(ko["backingLoop.enterATitle"]);
       return;
     }
 
@@ -1625,14 +1627,14 @@ export default function useBackingLoop(ownerMode = "") {
         ...currentLibrary.filter((item) => item.id !== savedRecording.id),
       ]);
       setCurrentTimeMs(0);
-      setNotice(`“${savedRecording.title}” 저장 완료`);
+      setNotice(formatMessage(ko["backingLoop.savedValue1"], { value1: savedRecording.title }));
       setDialog("");
       setLibraryEditMode(false);
       setSelectedLibraryIds([]);
       setPhaseImmediate("idle");
     } catch {
       if (!mountedRef.current) return;
-      setSaveError("저장 공간을 사용할 수 없어요.");
+      setSaveError(ko["backingLoop.storageIsUnavailable"]);
       setDialog("save");
       setPhaseImmediate("idle");
     }
@@ -1669,13 +1671,13 @@ export default function useBackingLoop(ownerMode = "") {
       setSelectedLibraryIds([]);
       setLibraryEditMode(false);
       setCurrentTimeMs(0);
-      setNotice(options.notice || `“${savedRecording.title}” 불러오기 완료`);
+      setNotice(options.notice || formatMessage(ko["backingLoop.loadedValue1"], { value1: savedRecording.title }));
       setDialog(keepLibraryOpen ? "load" : "");
       setPhaseImmediate("idle");
       return savedRecording;
     } catch {
       if (!mountedRef.current) return;
-      setNotice("저장된 백킹을 불러올 수 없어요.");
+      setNotice(ko["backingLoop.couldnTLoadTheSavedBackingTrack"]);
       setPhaseImmediate("error");
     }
   }, [resetAudioPosition, setPhaseImmediate]);
@@ -1705,7 +1707,7 @@ export default function useBackingLoop(ownerMode = "") {
     const loaded = await loadRecording(targetId, {
       fromPlaylist: true,
       keepLibraryOpen: dialog === "load",
-      notice: `“${playbackPlaylist.title}” 재생 준비`,
+      notice: formatMessage(ko["backingLoop.value1ReadyToPlay"], { value1: playbackPlaylist.title }),
     });
     if (!loaded) {
       playlistAutoplayRef.current = false;
@@ -1720,7 +1722,7 @@ export default function useBackingLoop(ownerMode = "") {
     const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
     const itemIds = activePlaylist.itemIds.filter((itemId) => selectedQueueItemIds.includes(itemId));
     if (!itemIds.length) {
-      setNotice("재생할 곡을 선택해주세요.");
+      setNotice(ko["backingLoop.chooseATrackToPlay"]);
       return;
     }
     playPlaylistItem(itemIds[0], { itemIds });
@@ -1735,7 +1737,7 @@ export default function useBackingLoop(ownerMode = "") {
   const playAllSavedPlaylistItems = useCallback((playlistId) => {
     const playlist = getBackingPlaylistById(playlistStateRef.current, playlistId);
     if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id || !playlist.itemIds.length) {
-      setNotice("재생할 곡이 없습니다.");
+      setNotice(ko["backingLoop.noTracksToPlay"]);
       return;
     }
     playPlaylistItem(playlist.itemIds[0], { itemIds: playlist.itemIds, playlistId: playlist.id });
@@ -1746,7 +1748,7 @@ export default function useBackingLoop(ownerMode = "") {
     if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id) return;
     const itemIds = playlist.itemIds.filter((itemId) => selectedSavedItemIds.includes(itemId));
     if (!itemIds.length) {
-      setNotice("재생할 곡을 선택해주세요.");
+      setNotice(ko["backingLoop.chooseATrackToPlay"]);
       return;
     }
     playPlaylistItem(itemIds[0], { itemIds, playlistId: playlist.id });
@@ -1803,7 +1805,7 @@ export default function useBackingLoop(ownerMode = "") {
         // Metadata can change while a playlist item is loading.
       }
       setCurrentTimeMs(0);
-      setNotice("현재 백킹을 처음부터 재생합니다.");
+      setNotice(ko["backingLoop.playingTheCurrentBackingFromTheStart"]);
       return;
     }
     playAdjacentPlaylistItem("previous");
@@ -1855,12 +1857,12 @@ export default function useBackingLoop(ownerMode = "") {
       setSelectedLibraryId("");
       setSelectedLibraryIds([]);
       setLibraryEditMode(false);
-      setNotice(savedIds.length > 1 ? `저장된 백킹 ${savedIds.length}개를 삭제했어요.` : "저장된 백킹을 삭제했어요.");
+      setNotice(savedIds.length > 1 ? formatMessage(ko["backingLoop.deletedValue1SavedBackingTracks"], { value1: savedIds.length }) : ko["backingLoop.savedBackingDeleted"]);
       setDialog("load");
       if (deletingCurrent) setPhaseImmediate("idle");
     } catch {
       if (!mountedRef.current) return;
-      setNotice("저장된 백킹을 삭제하지 못했어요.");
+      setNotice(ko["backingLoop.couldnTDeleteSavedBacking"]);
       if (deletingCurrent) setPhaseImmediate("error");
     } finally {
       deletePendingRef.current = false;
@@ -1894,14 +1896,14 @@ export default function useBackingLoop(ownerMode = "") {
     if (!playback.playlistId) {
       if (!shouldLoopBackingTrack(playlistStateRef.current.playbackMode)) {
         audio.pause();
-        setNotice("백킹 재생 완료");
+        setNotice(ko["backingLoop.backingPlaybackFinished"]);
         setPhaseImmediate("idle");
         return;
       }
       audio.currentTime = 0;
       setCurrentTimeMs(0);
       audio.play().catch(() => {
-        setNotice("반복 재생을 계속할 수 없어요. PLAY를 다시 눌러주세요.");
+        setNotice(ko["backingLoop.couldnTContinueLoopingPressPlayAgain"]);
         setPhaseImmediate("error");
       });
       return;
@@ -1939,7 +1941,7 @@ export default function useBackingLoop(ownerMode = "") {
       playlistPlaybackRef.current = { itemId: "", playlistId: "" };
       setPlaylistPlaybackActive(false);
       setCurrentTimeMs(0);
-      setNotice(`“${activePlaybackList.title}” 순차 재생 완료`);
+      setNotice(formatMessage(ko["backingLoop.value1PlaylistFinished"], { value1: activePlaybackList.title }));
       setPhaseImmediate("idle");
       return;
     }
@@ -1967,7 +1969,7 @@ export default function useBackingLoop(ownerMode = "") {
     const loaded = await loadRecording(nextItemId, {
       fromPlaylist: true,
       keepLibraryOpen: dialog === "load",
-      notice: `“${activePlaybackList.title}” 다음 백킹 준비`,
+      notice: formatMessage(ko["backingLoop.preparingNextBackingInValue1"], { value1: activePlaybackList.title }),
     });
     if (loaded) setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
   }, [dialog, loadRecording, setPhaseImmediate]);

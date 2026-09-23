@@ -1,7 +1,8 @@
+import ko from "../i18n/locales/ko.js";
 export const GUITAR_HEADSTOCK_DESIGNS = Object.freeze([
   {
     id: "gold-inline",
-    label: "골드 기타",
+    label: ko["tuner.goldGuitar"],
     headstockSrc: "/assets/tuner/just-play-gold-inline-headstock.png",
     headstockFit: "cover",
     // Six inline tuners, from low E near the nut to high E at the tip.
@@ -16,7 +17,7 @@ export const GUITAR_HEADSTOCK_DESIGNS = Object.freeze([
   },
   {
     id: "original",
-    label: "블랙 기타",
+    label: ko["tuner.blackGuitar"],
     headstockSrc: "/assets/tuner/just-play-black-headstock.png",
     headstockFit: "cover",
     headstockHotspots: {
@@ -30,7 +31,7 @@ export const GUITAR_HEADSTOCK_DESIGNS = Object.freeze([
   },
   {
     id: "classical",
-    label: "클래식 기타",
+    label: ko["tuner.classicalGuitar"],
     headstockSrc: "/assets/tuner/just-play-classical-headstock.png",
     // Cover trims only the square source's transparent side margins.
     headstockFit: "cover",
@@ -57,21 +58,21 @@ const VIOLIN_HEADSTOCK_HOTSPOTS = Object.freeze({
 export const VIOLIN_HEADSTOCK_DESIGNS = Object.freeze([
   {
     id: "violin-red",
-    label: "레드 바이올린",
+    label: ko["tuner.redViolin"],
     headstockSrc: "/assets/tuner/just-play-violin-red-headstock.png",
     headstockFit: "contain",
     headstockHotspots: VIOLIN_HEADSTOCK_HOTSPOTS,
   },
   {
     id: "violin-gold",
-    label: "골드 바이올린",
+    label: ko["tuner.goldViolin"],
     headstockSrc: "/assets/tuner/just-play-violin-gold-headstock.png",
     headstockFit: "contain",
     headstockHotspots: VIOLIN_HEADSTOCK_HOTSPOTS,
   },
   {
     id: "violin-wood",
-    label: "우드 바이올린",
+    label: ko["tuner.woodViolin"],
     headstockSrc: "/assets/tuner/just-play-violin-wood-headstock.png",
     headstockFit: "contain",
     headstockHotspots: VIOLIN_HEADSTOCK_HOTSPOTS,
@@ -81,7 +82,7 @@ export const VIOLIN_HEADSTOCK_DESIGNS = Object.freeze([
 export const UKULELE_HEADSTOCK_DESIGNS = Object.freeze([
   {
     id: "ukulele-original",
-    label: "기본 우쿨렐레",
+    label: ko["tuner.standardUkulele"],
     headstockSrc: "/assets/tuner/just-play-ukulele-headstock.png",
     headstockFit: "contain",
     headstockHotspots: {
@@ -93,7 +94,7 @@ export const UKULELE_HEADSTOCK_DESIGNS = Object.freeze([
   },
   {
     id: "ukulele-dark-gold",
-    label: "다크 골드 우쿨렐레",
+    label: ko["tuner.darkGoldUkulele"],
     headstockSrc: "/assets/tuner/just-play-ukulele-dark-gold-headstock.png",
     headstockFit: "cover",
     // Follow the new image's strings: G/A at the lower posts, C/E above.
@@ -106,7 +107,7 @@ export const UKULELE_HEADSTOCK_DESIGNS = Object.freeze([
   },
   {
     id: "ukulele-flower",
-    label: "플라워 우쿨렐레",
+    label: ko["tuner.floralUkulele"],
     headstockSrc: "/assets/tuner/just-play-ukulele-flower-headstock.png",
     headstockFit: "cover",
     headstockHotspots: {
@@ -151,7 +152,7 @@ export const BASS_HEADSTOCK_DESIGNS = Object.freeze({
   4: [
     {
       designId: "bass-four",
-      designLabel: "기본 4현 베이스",
+      designLabel: ko["tuner.standard4StringBass"],
       headstockSrc: "/assets/tuner/just-play-bass-headstock.png",
       headstockFit: "contain",
       headstockHotspots: {
@@ -163,7 +164,7 @@ export const BASS_HEADSTOCK_DESIGNS = Object.freeze({
     },
     {
       designId: "bass-four-pink",
-      designLabel: "핑크 4현 베이스",
+      designLabel: ko["tuner.pink4StringBass"],
       headstockSrc: "/assets/tuner/just-play-bass-4-pink-headstock.png",
       headstockFit: "cover",
       headstockHotspots: {
@@ -175,10 +176,10 @@ export const BASS_HEADSTOCK_DESIGNS = Object.freeze({
     },
   ],
   5: [
-    { ...BASS_PRESET_HEADSTOCKS[5], designLabel: "기본 5현 베이스" },
+    { ...BASS_PRESET_HEADSTOCKS[5], designLabel: ko["tuner.standard5StringBass"] },
     {
       designId: "bass-five-pink",
-      designLabel: "핑크 5현 베이스",
+      designLabel: ko["tuner.pink5StringBass"],
       headstockSrc: "/assets/tuner/just-play-bass-5-pink-headstock.png",
       headstockFit: "cover",
       headstockHotspots: {
@@ -191,10 +192,10 @@ export const BASS_HEADSTOCK_DESIGNS = Object.freeze({
     },
   ],
   6: [
-    { ...BASS_PRESET_HEADSTOCKS[6], designId: "bass-six", designLabel: "기본 6현 베이스" },
+    { ...BASS_PRESET_HEADSTOCKS[6], designId: "bass-six", designLabel: ko["tuner.standard6StringBass"] },
     {
       designId: "bass-six-pink",
-      designLabel: "핑크 6현 베이스",
+      designLabel: ko["tuner.pink6StringBass"],
       headstockSrc: "/assets/tuner/just-play-bass-6-pink-headstock.png",
       headstockFit: "cover",
       headstockHotspots: {

@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 export const RHYTHM_CHORD_BEAT_LENGTHS = Object.freeze([1, 2, 4]);
 export const RHYTHM_CHORD_REST_ID = "rhythm-chord-rest";
 
@@ -15,7 +17,7 @@ export function getRhythmChordBeatLabel(value) {
   const displayBeatLength = Number.isFinite(numericValue) && numericValue > 0
     ? numericValue
     : normalizeRhythmChordBeatLength(value);
-  return `${displayBeatLength}박`;
+  return formatMessage(ko["app.beatValue1"], { value1: displayBeatLength });
 }
 
 function createAutomaticRest(beatLength, startBeat) {
@@ -23,7 +25,7 @@ function createAutomaticRest(beatLength, startBeat) {
     beatLength,
     chord: {
       beatLength,
-      displayName: "자동 쉼",
+      displayName: ko["rhythm.autoRest"],
       id: `${RHYTHM_CHORD_REST_ID}-auto-${startBeat}`,
       isAutoRest: true,
       isRest: true,

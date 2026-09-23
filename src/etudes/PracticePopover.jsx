@@ -1,6 +1,9 @@
+import { useLanguage } from "./../i18n/react.jsx";
+import { localizeUi } from "./../i18n/core.js";
 import {useLayoutEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 export default function PracticePopover({anchor,onClose,label,children,width:preferredWidth=330}){
+  useLanguage();
  const ref=useRef(null),[place,setPlace]=useState(null);
  useLayoutEffect(()=>{
   let frame,last='';
@@ -10,5 +13,5 @@ export default function PracticePopover({anchor,onClose,label,children,width:pre
   document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);return()=>{cancelAnimationFrame(frame);document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape);};
  },[anchor,onClose,preferredWidth]);
  const style=place?Object.fromEntries(Object.entries(place).filter(([k])=>k!=='up'&&k!=='side')):{visibility:'hidden',width:preferredWidth};
- return createPortal(<div className="etudeFloatingTheme"><div ref={ref} className={'etudeRemotePopover '+(place?.side?'opens-side':place?.up?'opens-up':'opens-down')} style={style} role="dialog" aria-label={label}><div className="etudeRemotePopoverBody">{children}</div></div></div>,anchor.current?.closest('.app')??document.body);
+ return createPortal(<div className="etudeFloatingTheme"><div ref={ref} className={'etudeRemotePopover '+(place?.side?'opens-side':place?.up?'opens-up':'opens-down')} style={style} role="dialog" aria-label={localizeUi(label)}><div className="etudeRemotePopoverBody">{children}</div></div></div>,anchor.current?.closest('.app')??document.body);
 }

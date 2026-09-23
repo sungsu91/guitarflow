@@ -176,7 +176,7 @@ html body .app .pdfStudio .pdfPractice--compact .pdfEditTabs button{padding:4px!
 .pdfPractice--compact .pdfEditHint{align-items:start;font-size:12px}
 .pdfPractice--compact .pdfZoomControls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .pdfPractice--compact .pdfZoomControls .pdfMappingQuick{grid-column:2;justify-self:end}
-.pdfZoomControls select[aria-label="PDF 보기 방식"]{width:150px}
+.pdfZoomControls select[data-ui="pdf-view-mode"]{width:150px}
 .pdfPractice--compact .pdfZoomControls select{width:100%}
 
 /* Page navigation remains beside the bottom transport; avoid duplicate controls. */

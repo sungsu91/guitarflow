@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { LAVA_CANYON_ENVIRONMENT_ASSETS } from "../assets/lavaCanyonAssets.js";
 import lavaCanyonLayout from "./lava-canyon-layout.json" with { type: "json" };
 
@@ -7,8 +8,8 @@ const LAVA_CANYON_EVENT_ROOT = "/assets/maps/lava-canyon/events";
 export const LAVA_CANYON_MAP_SKIN = Object.freeze({
   id: "lava-canyon",
   kind: "layered",
-  label: "용암 협곡",
-  description: "넓은 용암 통로를 중심으로 조립하는 모듈형 협곡 맵",
+  label: ko["shooter.lavaCanyon"],
+  description: ko["shooter.aModularCanyonMapBuiltAroundABroadLavaChannel"],
   previewImage: LAVA_CANYON_BACKGROUND_SRC,
   pickerPreviewImage: "/assets/maps/previews/lava-canyon-current.jpg",
   performance: Object.freeze({

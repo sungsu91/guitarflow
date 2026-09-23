@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { RIVER_ENVIRONMENT_ASSETS } from "../assets/riverAssets.js";
 import riverLayout from "./river-layout.json" with { type: "json" };
 
@@ -6,8 +7,8 @@ const RIVER_BACKGROUND_SRC = "/assets/maps/river/river-background.png";
 export const RIVER_MAP_SKIN = Object.freeze({
   id: "river-garden",
   kind: "layered",
-  label: "강가 정원",
-  description: "맑은 강물부터 조립하는 모듈형 강가 맵",
+  label: ko["shooter.riversideGarden"],
+  description: ko["shooter.aModularRiversideMapBuiltAroundClearFlowingWater"],
   previewImage: "/assets/maps/river/exports/river-garden-full-map.png",
   pickerPreviewImage: "/assets/maps/previews/river-garden-current.jpg",
   performance: Object.freeze({

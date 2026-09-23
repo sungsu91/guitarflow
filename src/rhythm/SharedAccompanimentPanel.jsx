@@ -1,7 +1,12 @@
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import { Lock, Settings, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 function SharedAccompanimentVolumeSlider({ disabled, onVolumeCommit, onVolumeInput, part }) {
+  useLanguage();
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -14,7 +19,7 @@ function SharedAccompanimentVolumeSlider({ disabled, onVolumeCommit, onVolumeInp
   return (
     <label className="miniChordVolumeRail">
       <input
-        aria-label={`${part.label} 볼륨`}
+        aria-label={localizeUi(translateUi("app.value1Volume", { value1: part.label }))}
         data-backing-volume-part={part.id}
         defaultValue={part.volume}
         disabled={disabled}
@@ -37,7 +42,7 @@ export function SharedAccompanimentPanel({
   defaultExpanded = true,
   disabled = false,
   hidePartSummary = false,
-  lockedLabel = "추천 진행",
+  lockedLabel = ko["app.recommendedProgressions"],
   lockedNotice = "",
   onOpenSettings,
   onToggleAll,
@@ -47,6 +52,7 @@ export function SharedAccompanimentPanel({
   onVolumeInput,
   parts = [],
 }) {
+  useLanguage();
   const [expanded, setExpanded] = useState(Boolean(defaultExpanded));
   const [beatValueOverrides, setBeatValueOverrides] = useState({});
   const [enabledOverrides, setEnabledOverrides] = useState({});
@@ -94,16 +100,14 @@ export function SharedAccompanimentPanel({
       data-accompaniment-locked={disabled ? "true" : undefined}
       onToggle={(event) => setExpanded(event.currentTarget.open)}
       open={expanded}
-      title={disabled ? `${lockedLabel}의 반주 사운드는 고정되어 있습니다` : undefined}
+      title={disabled ? translateUi("rhythm.value1BackingSoundIsFixed", { value1: lockedLabel }) : undefined}
     >
       <summary>
         <span>
-          {disabled ? <Lock aria-hidden="true" size={12} /> : null}
-          반주 사운드
-          <button
+          {disabled ? <Lock aria-hidden="true" size={12} /> : null}<Translation id="rhythm.backingSound" /><button
             type="button"
             className="sharedAccompanimentMasterToggle"
-            aria-label={`반주 사운드 전체 ${parts.some(part => part.enabled) ? "끄기" : "켜기"}`}
+            aria-label={translateUi("rhythm.allBackingSoundsValue1", { value1: parts.some(part => part.enabled) ? ko["app.off"] : ko["app.on"] })}
             aria-pressed={parts.some(part => part.enabled)}
             disabled={masterDisabled}
             onClick={(event) => {
@@ -115,7 +119,7 @@ export function SharedAccompanimentPanel({
             {parts.some(part => part.enabled) ? "ON" : "OFF"}
           </button>
         </span>
-        {!hidePartSummary ? <b>{disabled ? `${lockedLabel} · 반주 고정` : "드럼 · 베이스 · 피아노"}</b> : null}
+        {!hidePartSummary ? <b>{disabled ? translateUi("rhythm.value1FixedBacking", { value1: lockedLabel }) : translateUi("rhythm.drumsBassPiano")}</b> : null}
         <button
           aria-haspopup="dialog"
           className="sharedAccompanimentSettingsButton"
@@ -127,9 +131,7 @@ export function SharedAccompanimentPanel({
           }}
           type="button"
         >
-          <Settings aria-hidden="true" size={13} />
-          리듬 사용자 설정
-        </button>
+          <Settings aria-hidden="true" size={13} /><Translation id="app.customRhythms" /></button>
       </summary>
       {disabled && lockedNotice ? (
         <p className="sharedAccompanimentLockNotice" role="note">
@@ -146,13 +148,13 @@ export function SharedAccompanimentPanel({
             : part.enabled;
           return (
             <section
-              aria-label={`${part.label} 반주 설정`}
+              aria-label={localizeUi(translateUi("rhythm.value1BackingSettings", { value1: part.label }))}
               className={`miniChordBackingRow miniChordBackingRow--${part.id}`}
               key={part.id}
             >
               <div className="miniChordBackingControlLine">
                 <div className="miniChordPartMeter">
-                  <strong>{part.label}</strong>
+                  <strong>{localizeUi(part.label)}</strong>
                 </div>
                 <SharedAccompanimentVolumeSlider
                   disabled={disabled}
@@ -161,7 +163,7 @@ export function SharedAccompanimentPanel({
                   part={part}
                 />
                 <button
-                  aria-label={`${part.label} ${enabled ? "끄기" : "켜기"}`}
+                  aria-label={localizeUi(`${part.label} ${enabled ? translateUi("app.off") : translateUi("app.on")}`)}
                   aria-pressed={enabled}
                   className={`miniChordPowerToggle ${enabled ? "is-on" : "is-off"}`}
                   disabled={disabled}
@@ -177,7 +179,7 @@ export function SharedAccompanimentPanel({
                     : <VolumeX aria-hidden="true" size={14} />}
                 </button>
               </div>
-              <div className="miniChordBeatOptions" role="group" aria-label={`${part.label} 비트 선택`}>
+              <div className="miniChordBeatOptions" role="group" aria-label={localizeUi(translateUi("rhythm.chooseValue1Beat", { value1: part.label }))}>
                 {part.options.map((option) => (
                   <button
                     aria-pressed={beatValue === option.id}
@@ -191,7 +193,7 @@ export function SharedAccompanimentPanel({
                     }}
                     type="button"
                   >
-                    {option.compactLabel ?? option.label}
+                    {localizeUi(option.compactLabel ?? option.label)}
                   </button>
                 ))}
               </div>

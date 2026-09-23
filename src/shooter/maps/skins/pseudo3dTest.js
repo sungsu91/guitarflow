@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { DEFAULT_PSEUDO3D_SETTINGS } from "../../pseudo3d/projection.js";
 
 const PSEUDO3D_DECORATIONS = Object.freeze([
@@ -16,8 +17,8 @@ export const PSEUDO3D_TEST_MAP_SKIN = Object.freeze({
   kind: "pseudo3d",
   renderer: "pseudo3d",
   devOnly: true,
-  label: "모드7 실험실",
-  description: "개발자 전용 Pseudo 3D 원근·Ground 테스트",
+  label: ko["shooter.mode7Lab"],
+  description: ko["shooter.developerOnlyPseudo3dPerspectiveAndGroundTests"],
   referenceViewport: Object.freeze({
     width: 390,
     height: 756,

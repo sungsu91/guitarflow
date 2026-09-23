@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
 import { createShooterTargetNote } from "./gameplayRules.js";
 
@@ -8,32 +9,32 @@ export const SHOOTER_NORMAL_STABLE_ROUNDS = 1;
 export const SHOOTER_NORMAL_SECTIONS = Object.freeze([
   Object.freeze({
     id: 1,
-    label: "1구간 · 5프렛 출발",
-    announcement: "5프렛에서 시작해 볼까요?",
+    label: ko["shooter.section1StartAtFret5"],
+    announcement: ko["shooter.letSStartAtFret5"],
     direction: "ascending",
   }),
   Object.freeze({
     id: 2,
-    label: "2구간 · 7~9프렛 상행",
-    announcement: "조금 더 높은 위치로 올라갑니다.",
+    label: ko["shooter.section2AscendThroughFrets79"],
+    announcement: ko["shooter.moveUpToAHigherPosition"],
     direction: "ascending",
   }),
   Object.freeze({
     id: 3,
-    label: "3구간 · 10프렛 고음",
-    announcement: "10프렛 고음에 도착해 보세요.",
+    label: ko["shooter.section3HighNotesAtFret10"],
+    announcement: ko["shooter.reachTheHighNotesAtFret10"],
     direction: "ascending",
   }),
   Object.freeze({
     id: 4,
-    label: "4구간 · 계단식 하행",
-    announcement: "높은 음에서 다시 내려옵니다.",
+    label: ko["shooter.section4DescendStepByStep"],
+    announcement: ko["shooter.comeBackDownFromTheHighNotes"],
     direction: "descending",
   }),
   Object.freeze({
     id: 5,
-    label: "5구간 · 5프렛 복귀",
-    announcement: "출발 위치로 돌아옵니다.",
+    label: ko["shooter.section5ReturnToFret5"],
+    announcement: ko["shooter.returnToTheStartingPosition"],
     direction: "descending",
   }),
 ]);
@@ -148,12 +149,12 @@ export function getShooterNormalRoundProgress({
 
 export function getShooterNormalReviewMessage(missedSteps = []) {
   const misses = Array.isArray(missedSteps) ? missedSteps : [];
-  if (!misses.length) return "상행과 하행을 정확하게 완주했습니다.";
+  if (!misses.length) return ko["shooter.youCompletedTheAscentAndDescentAccurately"];
   if (misses.some((step) => Number(step?.fretNumber) >= 9)) {
-    return "9~10프렛 고음 구간을 한 번 더 연습해 보세요.";
+    return ko["shooter.practiceTheHighRegisterSectionAtFrets910Again"];
   }
   if (misses.some((step) => step?.sectionId === 4 || step?.sectionId === 5)) {
-    return "하행과 5프렛 복귀 구간을 한 번 더 연습해 보세요.";
+    return ko["shooter.practiceTheDescentAndReturnToFret5Again"];
   }
-  return "5~8프렛 상행 구간을 한 번 더 연습해 보세요.";
+  return ko["shooter.practiceTheAscentThroughFrets58Again"];
 }

@@ -1,0 +1,361 @@
+{
+  "keysReviewed": 5103,
+  "policy": "Native music UI terminology; source Korean unchanged. Short contextual labels retain the actual function.",
+  "terms": [
+    "Tuner",
+    "Metronome",
+    "Fretboard",
+    "Backing Track",
+    "Backing Loop",
+    "BPM",
+    "TAB",
+    "PDF",
+    "Hammer-on",
+    "Pull-off",
+    "Palm Mute",
+    "Bending"
+  ],
+  "contextualVariants": [
+    {
+      "source": "강박 {value1}",
+      "entries": [
+        {
+          "key": "app.accentValue1",
+          "english": "Accent {value1}"
+        },
+        {
+          "key": "metronome.accentStateCompact",
+          "english": "Acc. {value1}"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "카운트인 {value1}",
+      "entries": [
+        {
+          "key": "app.countInValue1",
+          "english": "Count-in {value1}"
+        },
+        {
+          "key": "metronome.countInStateCompact",
+          "english": "Pre {value1}"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "반복",
+      "entries": [
+        {
+          "key": "app.repeat",
+          "english": "Repeat"
+        },
+        {
+          "key": "editor.repeatCompact",
+          "english": "Rpt."
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "반복 {value1}",
+      "entries": [
+        {
+          "key": "app.repeatValue1",
+          "english": "Repeat {value1}"
+        },
+        {
+          "key": "metronome.repeatStateCompact",
+          "english": "Loop {value1}"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "진행",
+      "entries": [
+        {
+          "key": "app.progression",
+          "english": "Progression"
+        },
+        {
+          "key": "practice.noteGuide",
+          "english": "Guide"
+        }
+      ],
+      "reason": "Context-specific meaning: progression versus guide, optional versus select, and chord extension/accidental versus default."
+    },
+    {
+      "source": "선택",
+      "entries": [
+        {
+          "key": "app.select",
+          "english": "Select"
+        },
+        {
+          "key": "metadata.optional",
+          "english": "Optional"
+        }
+      ],
+      "reason": "Context-specific meaning: progression versus guide, optional versus select, and chord extension/accidental versus default."
+    },
+    {
+      "source": "주법",
+      "entries": [
+        {
+          "key": "app.technique",
+          "english": "Technique"
+        },
+        {
+          "key": "editor.techniqueCompact",
+          "english": "Tech."
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "코드표",
+      "entries": [
+        {
+          "key": "etudes.chordDiagrams",
+          "english": "Chord diagrams"
+        },
+        {
+          "key": "editor.chordsCompact",
+          "english": "Chords"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "피킹",
+      "entries": [
+        {
+          "key": "etudes.picking",
+          "english": "Picking"
+        },
+        {
+          "key": "editor.pickingCompact",
+          "english": "Pick"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "줄 삭제",
+      "entries": [
+        {
+          "key": "etudes.deleteRow",
+          "english": "Delete row"
+        },
+        {
+          "key": "editor.clearRowCompact",
+          "english": "Clear"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "박 복사",
+      "entries": [
+        {
+          "key": "etudes.copyBeat",
+          "english": "Copy beat"
+        },
+        {
+          "key": "editor.copyBeatCompact",
+          "english": "Copy"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "박 삭제",
+      "entries": [
+        {
+          "key": "etudes.deleteBeat",
+          "english": "Delete beat"
+        },
+        {
+          "key": "editor.deleteBeatCompact",
+          "english": "Clear"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "빔표기",
+      "entries": [
+        {
+          "key": "etudes.beaming",
+          "english": "Beaming"
+        },
+        {
+          "key": "editor.beamingCompact",
+          "english": "Beams"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "짧은 기둥",
+      "entries": [
+        {
+          "key": "etudes.shortStems",
+          "english": "Short stems"
+        },
+        {
+          "key": "editor.shortStemsCompact",
+          "english": "Short"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "빔 삭제",
+      "entries": [
+        {
+          "key": "etudes.removeBeams",
+          "english": "Remove beams"
+        },
+        {
+          "key": "editor.hideBeamsCompact",
+          "english": "Hide"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "마디 추가",
+      "entries": [
+        {
+          "key": "etudes.addBar",
+          "english": "Add bar"
+        },
+        {
+          "key": "editor.addBarCompact",
+          "english": "Add"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "마디 삭제",
+      "entries": [
+        {
+          "key": "etudes.deleteBar",
+          "english": "Delete bar"
+        },
+        {
+          "key": "editor.deleteBarCompact",
+          "english": "Delete"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "백킹루프",
+      "entries": [
+        {
+          "key": "etudes.backingLoop",
+          "english": "Backing Loop"
+        },
+        {
+          "key": "score.backingLoopCompact",
+          "english": "Loop"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "PDF 저장 · 인쇄",
+      "entries": [
+        {
+          "key": "etudes.savePdfPrint",
+          "english": "Save PDF · Print"
+        },
+        {
+          "key": "editor.pdfCompact",
+          "english": "PDF"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "기타",
+      "entries": [
+        {
+          "key": "app.guitar",
+          "english": "Guitar"
+        },
+        {
+          "key": "editor.guitarCompact",
+          "english": "Gtr."
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "기본",
+      "entries": [
+        {
+          "key": "app.default",
+          "english": "Default"
+        },
+        {
+          "key": "chord.noExtension",
+          "english": "None"
+        },
+        {
+          "key": "chord.natural",
+          "english": "♮"
+        }
+      ],
+      "reason": "Context-specific meaning: progression versus guide, optional versus select, and chord extension/accidental versus default."
+    },
+    {
+      "source": "표준 튜닝",
+      "entries": [
+        {
+          "key": "etudes.standardTuning",
+          "english": "Standard tuning"
+        },
+        {
+          "key": "editor.standardTuningCompact",
+          "english": "Standard"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "OFF",
+      "entries": [
+        {
+          "key": "originalUi.off",
+          "english": "OFF"
+        },
+        {
+          "key": "metronome.disabledCompact",
+          "english": "–"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    },
+    {
+      "source": "ON",
+      "entries": [
+        {
+          "key": "originalUi.on",
+          "english": "ON"
+        },
+        {
+          "key": "metronome.enabledCompact",
+          "english": "✓"
+        }
+      ],
+      "reason": "Compact toolbar label; full label retained in its contextual resource."
+    }
+  ],
+  "unresolvedDuplicateTranslations": 0
+}

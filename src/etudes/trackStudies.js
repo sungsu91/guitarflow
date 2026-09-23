@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 // Original, deterministic studies. Links are authored inside cells; a cell's
 // first note is picked again. Rests give beginners time to prepare a new grip.
 const quarter = ['4','4','4','4'];
@@ -6,7 +8,7 @@ const sixteenth = Array(16).fill('16');
 const repeat = (cell, times) => Array.from({length:times}, () => cell).flat();
 
 const make = (id, level, type, name, english, bpm, shape, patterns, rhythm, purpose, goal, extra = {}) => ({
-  id, level, type, name, english, bpm, shape, patterns, family:'major', style:'기초', complete:true,
+  id, level, type, name, english, bpm, shape, patterns, family:'major', style:ko["etudes.basics"], complete:true,
   rhythms: patterns.map((_, i) => Array.isArray(rhythm[0]) ? rhythm[i] : rhythm),
   purpose, difficultyReason:`${level} · ${goal}`, ...extra,
 });
@@ -14,8 +16,8 @@ const make = (id, level, type, name, english, bpm, shape, patterns, rhythm, purp
 function techniqueStudies() {
   const result = [];
   const definitions = [
-    ['hammer','해머온','H','Hammer-on'], ['pull','풀오프','P','Pull-off'],
-    ['slide','슬라이드','S','Slide'], ['legato','레가토','HP','Legato'],
+    ['hammer',ko["etudes.hammerOn"],'H','Hammer-on'], ['pull',ko["etudes.pullOff"],'P','Pull-off'],
+    ['slide',ko["etudes.slide"],'S','Slide'], ['legato',ko["etudes.legato"],'HP','Legato'],
   ];
   const singleShape = [[3,5],[3,7],[2,1],[2,3]]; // C–D on either string.
   // Three notes per string in a connected G-major route; no random voicing lookup.
@@ -37,20 +39,20 @@ function techniqueStudies() {
     const opening = Array.from({length:8}, (_, bar) => pair(0, bar % 2 === 1));
     opening[7] = kind === 'P' ? [1,0,0,0] : [0,1,0,0];
     const beginnerPurpose = kind === 'HP'
-      ? '한 줄에서 낮은 음→높은 음→낮은 음을 H·P로 연결합니다. 1–7마디의 마지막 박은 쉬고, 연결 표시가 없는 음에서 다시 피킹하세요.'
-      : `${type} 표시가 있는 두 음만 연결합니다. 표시 없는 음은 피킹하고 마지막 박은 쉬면서 손의 힘을 풉니다.`;
-    const single = make(`${prefix}-single`, '초급', type, kind === 'HP' ? '한 줄 해머·풀 연결' : `한 줄 두 음 ${type}`,
+      ? ko["etudes.connectLowHighLowNotesOnOneStringWithHPRest"]
+      : formatMessage(ko["etudes.connectOnlyTheTwoNotesMarkedValuePickUnmarkedNotesAndRelax"], { value1: type });
+    const single = make(`${prefix}-single`, ko["etudes.beginner"], type, kind === 'HP' ? ko["etudes.oneStringHammerOnPullOff"] : formatMessage(ko["etudes.twoNoteValueOnOneString"], { value1: type }),
       `Single-string ${english}`, kind === 'HP' ? 44 : 48, singleShape, opening, quarter,
-      beginnerPurpose, '한 줄·두 프렛 간격·4분음표와 쉼으로 한 가지 연결을 익힙니다.',
+      beginnerPurpose, ko["etudes.learnOneConnectionUsingATwoFretIntervalOnOneStringQuarter"],
       {techniqueMap:opening.map(pairMarks)});
     result.push(single);
     if (prefix === 'slide' || prefix === 'legato') {
       const rows = [0,0,2,2,0,2,2,0].map(base => pair(base));
       rows[7] = [0,1,0,0];
-      result.push(make(`${prefix}-pairs`, '초급', type, `두 줄에 적용하는 ${type}`, `Two-string ${english}`, 52,
+      result.push(make(`${prefix}-pairs`, ko["etudes.beginner"], type, formatMessage(ko["etudes.valueAcrossTwoStrings"], { value1: type }), `Two-string ${english}`, 52,
         singleShape, rows, rows.map((_,bar)=>bar===1||bar===3?['8','8','2','4']:quarter),
-        '각 마디는 한 줄에서 완성합니다. 쉼표 동안 다음 줄의 시작 위치를 준비하고, 두 줄의 음량을 비슷하게 맞추세요.',
-        '연결을 두 줄에 번갈아 적용하고 8분음표 뒤 긴 음을 유지합니다. 위치 변경은 쉼표 동안 준비합니다.',
+        ko["etudes.completeEachBarOnOneStringPrepareTheNextStringSStarting"],
+        ko["etudes.alternateTheConnectionBetweenTwoStringsAndSustainTheLongNoteAfter"],
         {techniqueMap:rows.map(pairMarks)}));
     }
     const cell = (base, variation = false) => kind === 'H' ? (variation ? [base,base+2,base,base+1] : [base,base+1,base+2,base])
@@ -70,18 +72,18 @@ function techniqueStudies() {
     });
     const finish = row => [...row.slice(0,-4), 2,1,0,0];
     const specifications = [
-      ['three','중급',`${type} 세 음 연결`,'Three-note',60,[0,0,0,0,0,0,0,0],2,false,
-        '한 줄에서 세 음을 연결합니다. 네 음 묶음의 첫 음을 다시 피킹하고 연결음이 작아지지 않도록 들어 보세요.',
-        '세 음과 최대 네 프렛 간격을 8분음표로 제어합니다.'],
-      ['crossing','중급',`줄을 옮기는 ${type}`,'String Crossing',64,[0,3,6,9,6,3,0,0],2,false,
-        '한 마디마다 다음 줄로 이동합니다. 새 줄의 첫 음은 피킹하고 이전 줄의 잔향은 뮤트하세요.',
-        '세 음 연결에 인접 줄 이동과 뮤트를 더합니다.'],
-      ['drive','고급',`연속 16분 ${type}`,'Sixteenth Drive',72,[0,3,6,9,9,6,3,0],4,false,
-        '네 음 묶음을 일정한 16분음표로 이어갑니다. 피킹하는 시작음과 연결음의 크기를 맞추세요.',
-        '연속 16분음표·세 음 연결·줄 이동을 8마디 유지합니다.'],
-      ['sequence','고급',`방향을 바꾸는 ${type}`,'Changing Sequence',76,[0,3,6,9,6,3,0,0],4,true,
-        '세 음 음형과 간격을 바꾼 음형을 교대합니다. 표시 없는 도약음은 피킹하고 다음 연결을 준비하세요.',
-        '16분음표에서 음형·피킹 시점·포지션을 바꿉니다.'],
+      ['three',ko["etudes.intermediate"],formatMessage(ko["etudes.threeNoteValue"], { value1: type }),'Three-note',60,[0,0,0,0,0,0,0,0],2,false,
+        ko["etudes.connectThreeNotesOnOneStringPickTheFirstNoteOfEach"],
+        ko["etudes.controlThreeNotesSpanningUpToFourFretsInEighthNotes"]],
+      ['crossing',ko["etudes.intermediate"],formatMessage(ko["etudes.valueWithStringChanges"], { value1: type }),'String Crossing',64,[0,3,6,9,6,3,0,0],2,false,
+        ko["etudes.moveToTheNextStringEachBarPickItsFirstNoteAnd"],
+        ko["etudes.addAdjacentStringChangesAndMutingToThreeNoteConnections"]],
+      ['drive',ko["etudes.advanced"],formatMessage(ko["etudes.continuousSixteenthNoteValue"], { value1: type }),'Sixteenth Drive',72,[0,3,6,9,9,6,3,0],4,false,
+        ko["etudes.connectFourNoteGroupsInSteadySixteenthsMatchTheVolumeOfPicked"],
+        ko["etudes.maintainContinuousSixteenthsThreeNoteConnectionsAndStringChangesForEightBars"]],
+      ['sequence',ko["etudes.advanced"],formatMessage(ko["etudes.valueWithDirectionChanges"], { value1: type }),'Changing Sequence',76,[0,3,6,9,6,3,0,0],4,true,
+        ko["etudes.alternateAThreeNotePatternWithAVariationInItsIntervalsPick"],
+        ko["etudes.changePatternsPickingPointsAndPositionsInSixteenthNotes"]],
     ];
     for (const [suffix,level,name,en,bpm,bases,times,varied,purpose,goal] of specifications) {
       // Existing studies already cover these steps in the slide/legato tracks.
@@ -106,20 +108,20 @@ export function trackStudies({penta, pentaIntervals}) {
   });
   return [
     ...techniqueStudies(),
-    make('penta-pairs','초급','펜타토닉','펜타토닉 두 음 간격','Pentatonic Finger Pairs',48,pentaPairs,
+    make('penta-pairs',ko["etudes.beginner"],ko["app.pentatonics"],ko["etudes.twoNotePentatonicSpacing"],'Pentatonic Finger Pairs',48,pentaPairs,
       [[0,1,0,-1],[0,1,1,-1],[2,3,2,-1],[2,3,3,-1],[0,1,0,-1],[2,3,2,-1],[2,3,2,-1],[1,0,0,0]],quarter,
-      '한 줄에서 두 음을 4분음표로 짚습니다. 쉼표 동안 다음 줄을 준비하고 세 프렛 간격에 익숙해지세요.',
-      '두 줄·4분음표·쉼으로 마이너 펜타토닉의 손가락 간격을 익힙니다.',{family:'minor',intervals:pentaIntervals}),
-    make('penta-turns','고급','펜타토닉','펜타토닉 교차 왕복','Pentatonic Crossing Turns',80,penta,pentaRows,sixteenth,
-      '두 음을 건너갔다가 한 음 되돌아오는 음형을 연속해서 연주합니다. 방향 전환에서도 16분음표 간격을 유지하세요.',
-      '연속 16분음표에서 순차 진행과 도약을 교대합니다.',{family:'minor',intervals:pentaIntervals,style:'락'}),
-    make('triad-three-strings','초급','코드톤 런','세 줄 1·3·5음 첫걸음','Three-string Triad',48,triad,
+      ko["etudes.playTwoQuarterNotesOnOneStringPrepareTheNextStringDuring"],
+      ko["etudes.learnMinorPentatonicFingerSpacingUsingTwoStringsQuarterNotesAndRests"],{family:'minor',intervals:pentaIntervals}),
+    make('penta-turns',ko["etudes.advanced"],ko["app.pentatonics"],ko["etudes.pentatonicCrossPattern"],'Pentatonic Crossing Turns',80,penta,pentaRows,sixteenth,
+      ko["etudes.continuouslyMoveTwoNotesAheadThenOneNoteBackKeepSixteenthNote"],
+      ko["etudes.alternateStepwiseMovementAndLeapsInContinuousSixteenths"],{family:'minor',intervals:pentaIntervals,style:ko["etudes.rock"]}),
+    make('triad-three-strings',ko["etudes.beginner"],ko["etudes.chordToneRuns"],ko["etudes.firstStepsWith135AcrossThreeStrings"],'Three-string Triad',48,triad,
       [[0,1,2,1],[0,1,2,-1],[0,1,2,1],[0,1,0,-1],[0,1,2,1],[0,1,2,-1],[2,1,0,1],[2,1,0,0]],quarter,
-      '메이저 코드의 1·3·5음을 인접한 세 줄에서 한 음씩 연주합니다. 지나간 줄을 뮤트해 음을 분리하고, 줄 이동은 4분음표로 천천히 합니다.',
-      '한 포지션·세 줄·4분음표로 트라이어드의 세 구성음을 익힙니다.'),
-    make('triad-eighth-answer','초급','코드톤 런','세 줄 8분음표 왕복','Triad Eighth-note Return',56,triad,
+      ko["etudes.playAMajorChordS1st3rdAnd5thOneAtA"],
+      ko["etudes.learnTheThreeTriadTonesInOnePositionAcrossThreeStringsUsing"]),
+    make('triad-eighth-answer',ko["etudes.beginner"],ko["etudes.chordToneRuns"],ko["etudes.threeStringEighthNoteRoundTrip"],'Triad Eighth-note Return',56,triad,
       [[0,1,2,1,0,1,2,1],[0,1,2,1,0,1,0,-1],[0,1,2,1,2,1,0,1],[2,1,0,1,2,1,0,-1],[0,1,2,1,0,1,0,1],[2,1,0,1,0,1,2,1],[0,1,2,1,0,1,0,-1],[2,1,0,1,2,1,0,0]],eighth,
-      '앞 과제의 세 줄 운지를 8분음표로 왕복합니다. 마지막 쉼표에서도 박자를 세고 다시 들어오세요.',
-      '세 줄 운지를 유지하며 8분음표와 쉼표를 연결합니다.'),
+      ko["etudes.playThePreviousExerciseSThreeStringFingeringUpAndDownIn"],
+      ko["etudes.connectEighthNotesAndRestsWhileKeepingTheThreeStringFingering"]),
   ];
 }

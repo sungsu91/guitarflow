@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {scheduleScoreExpressions} from './scoreExpressions.js';
 import {scheduleDrum,prepareDrumSamples} from './scoreDrums.js';
 import {getAudioBusInput,AUDIO_BUS_IDS} from './audioBus.js';
@@ -10,7 +11,7 @@ export async function prepareScoreInstrument(audio,instrument){
  if(instrument==='drums')return prepareDrumSamples(audio);
  if(instrument!=='piano')return;
  if(!pianoBuffers.has(audio)){
-  const load=fetch('/sounds/gpg4.wav').then(r=>{if(!r.ok)throw Error('피아노 음원을 불러오지 못했습니다.');return r.arrayBuffer();}).then(data=>audio.decodeAudioData(data)).then(buffer=>alignScorePianoAttack(audio,buffer)).catch(e=>{pianoBuffers.delete(audio);throw e;});
+  const load=fetch('/sounds/gpg4.wav').then(r=>{if(!r.ok)throw Error(ko["audio.couldnTLoadPianoAudio"]);return r.arrayBuffer();}).then(data=>audio.decodeAudioData(data)).then(buffer=>alignScorePianoAttack(audio,buffer)).catch(e=>{pianoBuffers.delete(audio);throw e;});
   pianoBuffers.set(audio,load);
  }
  return pianoBuffers.get(audio);

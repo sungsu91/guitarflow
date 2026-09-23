@@ -1,3 +1,4 @@
+import { Translation } from "./../../i18n/react.jsx";
 import { memo, useEffect, useRef, useState } from "react";
 
 import {
@@ -154,7 +155,7 @@ function ThreeDLabHorizontalRenderer({ active = false, battleState = "idle", sta
     >
       <canvas className="threeDLabHorizontalCanvas" ref={canvasRef} />
       {canvasFailed ? (
-        <div className="threeDLabHorizontalFallback">Moonlit Lotus Canal을 표시할 수 없습니다.</div>
+        <div className="threeDLabHorizontalFallback"><Translation id="shooter.unableToDisplayMoonlitLotusCanal" /></div>
       ) : null}
     </div>
   );

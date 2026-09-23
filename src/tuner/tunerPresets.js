@@ -1,29 +1,30 @@
+import ko from "../i18n/locales/ko.js";
 import { frequencyToChromaticPitch, midiToFrequency } from "./tunerMath.js";
 
 export const TUNER_PRESET_DEFINITIONS = Object.freeze({
   violin: Object.freeze([
-    Object.freeze({ id: "standard", label: "STANDARD", description: "바이올린 기본 튜닝", midis: [55, 62, 69, 76] }),
+    Object.freeze({ id: "standard", label: "STANDARD", description: ko["tuner.standardViolinTuning"], midis: [55, 62, 69, 76] }),
   ]),
   bass: Object.freeze([
-    Object.freeze({ id: "standard", label: "4현 스탠다드", description: "4현 기본 튜닝", midis: [28, 33, 38, 43] }),
-    Object.freeze({ id: "standard-5", label: "5현 스탠다드", description: "5현 기본 튜닝", midis: [23, 28, 33, 38, 43] }),
-    Object.freeze({ id: "standard-6", label: "6현 스탠다드", description: "6현 기본 튜닝", midis: [23, 28, 33, 38, 43, 48] }),
-    Object.freeze({ id: "drop-d", label: "4현 DROP D", description: "4현 · 4번 줄만 D로", midis: [26, 33, 38, 43] }),
+    Object.freeze({ id: "standard", label: ko["tuner.4StringStandard"], description: ko["tuner.standard4StringTuning"], midis: [28, 33, 38, 43] }),
+    Object.freeze({ id: "standard-5", label: ko["tuner.5StringStandard"], description: ko["tuner.standard5StringTuning"], midis: [23, 28, 33, 38, 43] }),
+    Object.freeze({ id: "standard-6", label: ko["tuner.6StringStandard"], description: ko["tuner.standard6StringTuning"], midis: [23, 28, 33, 38, 43, 48] }),
+    Object.freeze({ id: "drop-d", label: ko["tuner.4StringDropD"], description: ko["tuner.4StringsLowerString4ToD"], midis: [26, 33, 38, 43] }),
   ]),
   guitar: Object.freeze([
-    Object.freeze({ id: "standard", label: "STANDARD", description: "기본 튜닝", midis: [40, 45, 50, 55, 59, 64] }),
-    Object.freeze({ id: "drop-d", label: "DROP D", description: "6번 줄만 D로", midis: [38, 45, 50, 55, 59, 64] }),
+    Object.freeze({ id: "standard", label: "STANDARD", description: ko["tuner.standardTuning"], midis: [40, 45, 50, 55, 59, 64] }),
+    Object.freeze({ id: "drop-d", label: "DROP D", description: ko["tuner.lowerString6ToD"], midis: [38, 45, 50, 55, 59, 64] }),
     Object.freeze({
       id: "half-step",
       label: "½ STEP DOWN",
-      description: "모든 줄 반음 낮게",
+      description: ko["tuner.allStringsDownASemitone"],
       midis: [39, 44, 49, 54, 58, 63],
       noteNames: ["Eb", "Ab", "Db", "Gb", "Bb", "Eb"],
     }),
   ]),
   ukulele: Object.freeze([
-    Object.freeze({ id: "high-g", label: "HIGH-G", description: "높은 4번 줄 G", midis: [67, 60, 64, 69] }),
-    Object.freeze({ id: "low-g", label: "LOW-G", description: "낮은 4번 줄 G", midis: [55, 60, 64, 69] }),
+    Object.freeze({ id: "high-g", label: "HIGH-G", description: ko["tuner.highGOnString4"], midis: [67, 60, 64, 69] }),
+    Object.freeze({ id: "low-g", label: "LOW-G", description: ko["tuner.lowGOnString4"], midis: [55, 60, 64, 69] }),
   ]),
 });
 

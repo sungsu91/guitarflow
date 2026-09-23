@@ -1,3 +1,8 @@
+import { formatMessage } from "./../i18n/core.js";
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {MobileLibraryTools,DesktopLibraryTools} from './LibraryChrome.jsx';
 import {Folder,ChevronLeft,ChevronRight,MoreVertical,Plus} from 'lucide-react';
 import {useEffect,useRef,useState} from 'react';
@@ -8,16 +13,18 @@ import './scoreFolders.css';
 function read(){try{return {data:loadScoreFolders(localStorage),error:''};}catch(e){return {data:null,error:e.message};}}
 
 function FolderDialog({action,folders,busy,onClose,onApply}){
+  useLanguage();
  const ref=useRef(null),[name,setName]=useState(action.folder?.name??''),[target,setTarget]=useState('');
  useEffect(()=>{ref.current.showModal();},[]);
- const move=action.type==='move',remove=action.type==='remove',title=move?'선택 악보 이동':remove?'폴더 삭제':action.type==='rename'?'폴더 이름 변경':'새 폴더';
+ const move=action.type==='move',remove=action.type==='remove',title=move?ko["pdf.moveSelectedScores"]:remove?ko["pdf.deleteFolder"]:action.type==='rename'?ko["pdf.renameFolder"]:ko["pdf.newFolder"];
  return <dialog ref={ref} className="pdfDialog" aria-label={title} onCancel={onClose}><form onSubmit={e=>{e.preventDefault();onApply({name,folderId:target});}}><h2>{title}</h2>
-  {move?<><p>{action.keys.length}개 악보를 이동할 위치</p><label>대상 폴더<select value={target} onChange={e=>setTarget(e.target.value)}><option value="">내 악보 (기본 위치)</option>{folders.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label></>:remove?<p>‘{action.folder.name}’ 폴더를 삭제할까요? 안의 악보는 삭제하지 않고 내 악보 기본 위치로 옮깁니다.</p>:<label>폴더 이름<input autoFocus required maxLength="100" value={name} onChange={e=>setName(e.target.value)}/></label>}
-  {action.error&&<p role="alert">{action.error}</p>}<footer><button type="button" disabled={busy} onClick={onClose}>취소</button><button type="submit" disabled={busy}>{move?'이동':remove?'폴더 삭제':'저장'}</button></footer>
+  {move?<><p>{action.keys.length}<Translation id="pdf.scoresMoveTo" /></p><label><Translation id="pdf.destinationFolder" /><select value={target} onChange={e=>setTarget(e.target.value)}><option value=""><Translation id="pdf.myScoresDefaultLocation" /></option>{folders.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label></>:remove?<p>‘{action.folder.name}<Translation id="pdf.folderDeleteItItsScoresWillMoveToMyScoresAndWill" /></p>:<label><Translation id="pdf.folderName" /><input autoFocus required maxLength="100" value={name} onChange={e=>setName(e.target.value)}/></label>}
+  {action.error&&<p role="alert">{localizeUi(action.error)}</p>}<footer><button type="button" disabled={busy} onClick={onClose}><Translation id="common.cancel" /></button><button type="submit" disabled={busy}>{move?translateUi("pdf.move"):remove?translateUi("pdf.deleteFolder"):translateUi("common.save")}</button></footer>
  </form></dialog>;
 }
 
 export default function ScoreFolderList({items,allItems,search,onSearch,sort,onSort,mobile,busy,folderId,onFolderChange,filter='all',onFilterChange,onOpen,onRename,onDelete}){
+  useLanguage();
  const [store,setStore]=useState(read),[selecting,setSelecting]=useState(false),[selected,setSelected]=useState([]),[action,setAction]=useState(null),[message,setMessage]=useState('');
  const data=store.data,folders=data?.folders??[],current=folders.find(f=>f.id===folderId);
  const location=item=>data?.locations[scoreFileKey(item)]??null;
@@ -30,22 +37,22 @@ export default function ScoreFolderList({items,allItems,search,onSearch,sort,onS
  const go=id=>{onFolderChange(id);setSelected([]);setSelecting(false);setMessage('');};
  const toggle=key=>setSelected(old=>old.includes(key)?old.filter(v=>v!==key):[...old,key]);
  const changeFilter=value=>{onFilterChange(value);setSelected([]);setSelecting(false);setMessage('');};
- const favorite=item=>{try{const value=!data.favorites[scoreFileKey(item)],next=updateScoreFolders(localStorage,{type:'favorite',keys:[scoreFileKey(item)],value});setStore({data:next,error:''});setMessage(value?'즐겨찾기에 추가했습니다.':'즐겨찾기를 해제했습니다.');}catch(e){setMessage(`저장하지 못했습니다: ${e.message}`);}};
- const apply=values=>{try{const next=updateScoreFolders(localStorage,{...values,type:action.type,id:action.folder?.id??crypto.randomUUID(),keys:action.keys});setStore({data:next,error:''});if(action.type==='move'){setSelected([]);setSelecting(false);setMessage(`${action.keys.length}개 악보를 이동했습니다.`);}else setMessage(action.type==='remove'?'폴더를 삭제했습니다. 악보는 기본 위치에 보존됩니다.':'폴더를 저장했습니다.');setAction(null);}catch(e){setAction(old=>({...old,error:`저장하지 못했습니다: ${e.message}`}));}};
- const editButton=<button type="button" disabled={!data||busy} aria-label={selecting?'목록 편집 완료':'목록 편집'} aria-pressed={selecting} onClick={()=>{setSelecting(v=>!v);setSelected([]);}}>{selecting?'완료':'편집'}</button>;
+ const favorite=item=>{try{const value=!data.favorites[scoreFileKey(item)],next=updateScoreFolders(localStorage,{type:'favorite',keys:[scoreFileKey(item)],value});setStore({data:next,error:''});setMessage(value?ko["pdf.addedToFavorites"]:ko["pdf.removedFromFavorites"]);}catch(e){setMessage(formatMessage(ko["pdf.couldnTSaveValue1"], { value1: e.message }));}};
+ const apply=values=>{try{const next=updateScoreFolders(localStorage,{...values,type:action.type,id:action.folder?.id??crypto.randomUUID(),keys:action.keys});setStore({data:next,error:''});if(action.type==='move'){setSelected([]);setSelecting(false);setMessage(formatMessage(ko["pdf.movedValue1Scores"], { value1: action.keys.length }));}else setMessage(action.type==='remove'?ko["pdf.folderDeletedScoresAreKeptInTheDefaultLocation"]:ko["pdf.folderSaved"]);setAction(null);}catch(e){setAction(old=>({...old,error:formatMessage(ko["pdf.couldnTSaveValue1"], { value1: e.message })}));}};
+ const editButton=<button type="button" disabled={!data||busy} aria-label={selecting?translateUi("pdf.doneEditingList"):translateUi("pdf.editList")} aria-pressed={selecting} onClick={()=>{setSelecting(v=>!v);setSelected([]);}}>{selecting?translateUi("common.done"):translateUi("common.edit")}</button>;
  const tools={search,onSearch,sort,onSort,filter,onFilter:changeFilter};
  return <section className={`libraryBrowser ${mobile?'libraryBrowser--mobile':'libraryBrowser--desktop'}`}>
   {mobile?<MobileLibraryTools {...tools}/>:<DesktopLibraryTools {...tools}/>}
-  {current&&<nav className="libraryCrumb" aria-label="내 악보 위치"><button type="button" onClick={()=>go(null)}><ChevronLeft size={20}/>내 악보</button><span>/</span><Folder size={19}/><strong title={current.name}>{current.name}</strong></nav>}
-  {globalView&&current&&<p className="libraryNotice">전체 폴더에서 찾기</p>}
-  {store.error&&<p role="alert">{store.error} 폴더 수정은 잠시 사용할 수 없습니다.</p>}{message&&<p className="libraryNotice" role="status">{message}</p>}
-  <div className="librarySectionHeading"><h2>{showFolders?'내 악보':'악보'} <span>{visibleFolders.length+visible.length}</span></h2><div className="libraryHeadingActions">{showFolders&&<button type="button" disabled={!data||busy} onClick={()=>setAction({type:'create'})}><Plus size={17}/>새 폴더</button>}{editButton}</div></div>
-  {selecting&&<div className="libraryManage"><button type="button" onClick={()=>setSelected(visible.map(scoreFileKey))}>전체 선택</button><button type="button" disabled={!selection.length} onClick={()=>setAction({type:'move',keys:selection})}>폴더로 이동 ({selection.length})</button>{current&&<details className="libraryMenu"><summary aria-label="현재 폴더 관리"><MoreVertical size={20}/></summary><div><button type="button" disabled={busy} onClick={e=>{e.currentTarget.closest("details").open=false;setAction({type:"remove",folder:current});}}>이 폴더 삭제</button></div></details>}</div>}
-  <ul className="libraryGroup libraryScores" aria-label="내 악보 목록">{visibleFolders.map(folder=><li key={`folder:${folder.id}`} data-document-type="folder">
-    <button type="button" className="libraryFolderOpen" aria-label={`${folder.name} 폴더 열기`} onClick={()=>go(folder.id)}><span className="libraryDocumentIcon libraryFolderIcon"><Folder size={25}/></span><strong title={folder.name}>{folder.name}</strong><small>{allItems.filter(item=>location(item)===folder.id).length}개</small>{!selecting&&<ChevronRight size={20}/>}</button>
-    <details className="libraryMenu"><summary aria-label={`${folder.name} 폴더 관리`}><MoreVertical size={20}/></summary><div><button type="button" onClick={e=>{e.currentTarget.closest('details').open=false;setAction({type:'rename',folder});}}>이름 변경</button><button type="button" onClick={e=>{e.currentTarget.closest('details').open=false;setAction({type:'remove',folder});}}>폴더 삭제</button></div></details>
+  {current&&<nav className="libraryCrumb" aria-label={translateUi("pdf.myScoresLocation")}><button type="button" onClick={()=>go(null)}><ChevronLeft size={20}/><Translation id="app.myScores" /></button><span>/</span><Folder size={19}/><strong title={current.name}>{current.name}</strong></nav>}
+  {globalView&&current&&<p className="libraryNotice"><Translation id="pdf.searchAllFolders" /></p>}
+  {store.error&&<p role="alert">{localizeUi(store.error)}<Translation id="pdf.folderEditingIsTemporarilyUnavailable" /></p>}{message&&<p className="libraryNotice" role="status">{localizeUi(message)}</p>}
+  <div className="librarySectionHeading"><h2>{showFolders?translateUi("app.myScores"):translateUi("components.scores")} <span>{visibleFolders.length+visible.length}</span></h2><div className="libraryHeadingActions">{showFolders&&<button type="button" disabled={!data||busy} onClick={()=>setAction({type:'create'})}><Plus size={17}/><Translation id="pdf.newFolder" /></button>}{editButton}</div></div>
+  {selecting&&<div className="libraryManage"><button type="button" onClick={()=>setSelected(visible.map(scoreFileKey))}><Translation id="app.selectAll" /></button><button type="button" disabled={!selection.length} onClick={()=>setAction({type:'move',keys:selection})}><Translation id="pdf.moveToFolder" />{selection.length})</button>{current&&<details className="libraryMenu"><summary aria-label={translateUi("pdf.manageCurrentFolder")}><MoreVertical size={20}/></summary><div><button type="button" disabled={busy} onClick={e=>{e.currentTarget.closest("details").open=false;setAction({type:"remove",folder:current});}}><Translation id="pdf.deleteThisFolder" /></button></div></details>}</div>}
+  <ul className="libraryGroup libraryScores" aria-label={translateUi("pdf.myScoresList")}>{visibleFolders.map(folder=><li key={`folder:${folder.id}`} data-document-type="folder">
+    <button type="button" className="libraryFolderOpen" aria-label={translateUi("pdf.openValue1Folder", { value1: folder.name })} onClick={()=>go(folder.id)}><span className="libraryDocumentIcon libraryFolderIcon"><Folder size={25}/></span><strong title={folder.name}>{folder.name}</strong><small>{allItems.filter(item=>location(item)===folder.id).length}<Translation id="app.items" /></small>{!selecting&&<ChevronRight size={20}/>}</button>
+    <details className="libraryMenu"><summary aria-label={translateUi("pdf.manageValue1Folder", { value1: folder.name })}><MoreVertical size={20}/></summary><div><button type="button" onClick={e=>{e.currentTarget.closest('details').open=false;setAction({type:'rename',folder});}}><Translation id="audioStudio.rename" /></button><button type="button" onClick={e=>{e.currentTarget.closest('details').open=false;setAction({type:'remove',folder});}}><Translation id="pdf.deleteFolder" /></button></div></details>
    </li>)}{visible.map(item=><PdfLibraryCard key={scoreFileKey(item)} item={item} mobile={mobile} busy={busy} selecting={selecting} selected={selection.includes(scoreFileKey(item))} favorite={Boolean(data?.favorites[scoreFileKey(item)])} onFavorite={data?()=>favorite(item):undefined} onToggle={()=>toggle(scoreFileKey(item))} onOpen={()=>onOpen(item)} onRename={()=>onRename(item)} onDelete={()=>onDelete(item)}/>)}</ul>
-  {!visible.length&&!visibleFolders.length&&<div className="libraryEmpty"><p>{search?'검색 결과가 없습니다.':filter==='favorites'?'즐겨찾기한 악보가 없습니다. 편집에서 추가할 수 있습니다.':filter==='recent'?'최근 연습한 악보가 없습니다.':!current&&!allItems.length?'아직 저장된 악보가 없습니다.':'이 위치에 저장된 악보가 없습니다.'}</p>{!search&&filter==='all'&&!allItems.length&&<small>PDF를 불러오거나 악보를 만들어 보세요.</small>}</div>}
+  {!visible.length&&!visibleFolders.length&&<div className="libraryEmpty"><p>{search?translateUi("etudes.noResultsFound"):filter==='favorites'?translateUi("pdf.noFavoriteScoresAddThemInEdit"):filter==='recent'?translateUi("pdf.noRecentlyPracticedScores"):!current&&!allItems.length?translateUi("pdf.noSavedScoresYet"):translateUi("pdf.noScoresInThisLocation")}</p>{!search&&filter==='all'&&!allItems.length&&<small><Translation id="pdf.importAPdfOrCreateAScore" /></small>}</div>}
   {action&&<FolderDialog action={action} folders={folders} busy={busy} onClose={()=>setAction(null)} onApply={apply}/>}
  </section>;
 }

@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 function markEntries(marks = {}, barCount = 4) {
   const safeBarCount = Math.max(1, Math.round(Number(barCount) || 1));
   return Object.entries(marks && typeof marks === "object" ? marks : {})
@@ -51,11 +53,11 @@ export function validateMiniChordRepeatEdit({
   const entries = markEntries(marks, barCount);
   const current = marks?.[barIndex] ?? marks?.[String(barIndex)] ?? {};
   const key = type === "end" ? "repeatEnd" : "repeatStart";
-  if (enabled && current[key]) return { valid: false, message: "이미 동일한 도돌이표가 설정되어 있습니다." };
+  if (enabled && current[key]) return { valid: false, message: ko["miniChord.theSameRepeatMarkingIsAlreadySet"] };
 
   if (enabled && type === "end") {
     const hasStart = entries.some(({ barIndex: index, mark }) => index <= barIndex && mark.repeatStart);
-    if (!hasStart) return { valid: false, message: "반복 시작 지점이 필요합니다." };
+    if (!hasStart) return { valid: false, message: ko["miniChord.aRepeatStartIsRequired"] };
   }
 
   const ranges = normalizedRanges(endingRanges, barCount);
@@ -68,7 +70,7 @@ export function validateMiniChordRepeatEdit({
       range.startBar >= barIndex && (!nextEnd || range.startBar <= nextEnd.barIndex)
     ));
     if ((nextEnd && !hasLaterStart) || ownsEnding) {
-      return { valid: false, message: "연결된 반복 끝과 엔딩을 먼저 제거해주세요." };
+      return { valid: false, message: ko["miniChord.removeTheConnectedRepeatEndAndEndingsFirst"] };
     }
   }
   if (!enabled && type === "end") {
@@ -79,7 +81,7 @@ export function validateMiniChordRepeatEdit({
       ));
       return !earlierEnd;
     });
-    if (ownsEnding) return { valid: false, message: "이 도돌이표를 사용하는 엔딩을 먼저 제거해주세요." };
+    if (ownsEnding) return { valid: false, message: ko["miniChord.removeTheEndingsThatUseThisRepeatFirst"] };
   }
   return { valid: true, message: "" };
 }
@@ -100,35 +102,35 @@ export function validateMiniChordEndingEdit({
   if (current?.endingNumber === safeEnding) {
     const higherExists = ranges.some((range) => range.endingNumber > safeEnding);
     return higherExists
-      ? { valid: false, message: "뒤 번호 엔딩을 먼저 제거해주세요." }
+      ? { valid: false, message: ko["miniChord.removeHigherNumberedEndingsFirst"] }
       : { valid: true, message: "" };
   }
 
   if (existing && barIndex !== existing.startBar - 1 && barIndex !== existing.endBar + 1) {
-    return { valid: false, message: "같은 번호 엔딩은 인접 마디에서만 연장할 수 있습니다." };
+    return { valid: false, message: ko["miniChord.anEndingCanOnlyExtendIntoAnAdjacentBarWithTheSame"] };
   }
 
   if (safeEnding === 1) {
     const hasStart = entries.some(({ barIndex: index, mark }) => index <= barIndex && mark.repeatStart);
     const hasEnd = entries.some(({ barIndex: index, mark }) => index >= barIndex && mark.repeatEnd);
-    if (!hasStart || !hasEnd) return { valid: false, message: "1번 엔딩에는 반복 시작과 반복 끝이 필요합니다." };
+    if (!hasStart || !hasEnd) return { valid: false, message: ko["miniChord.ending1NeedsBothARepeatStartAndARepeatEnd"] };
     return { valid: true, message: "" };
   }
 
   for (let required = 1; required < safeEnding; required += 1) {
     if (!ranges.some((range) => range.endingNumber === required)) {
-      return { valid: false, message: `${required}번 엔딩을 먼저 설정해주세요.` };
+      return { valid: false, message: formatMessage(ko["miniChord.setEndingValueFirst"], { value1: required }) };
     }
   }
   const previous = ranges.find((range) => range.endingNumber === safeEnding - 1);
   if (previous && barIndex <= previous.endBar) {
-    return { valid: false, message: `${safeEnding}번 엔딩은 ${safeEnding - 1}번 엔딩 뒤에 설정해주세요.` };
+    return { valid: false, message: formatMessage(ko["miniChord.placeEndingValueAfterEndingValue"], { value1: safeEnding, value2: safeEnding - 1 }) };
   }
   const first = ranges.find((range) => range.endingNumber === 1);
   const firstHasRepeatEnd = first && entries.some(({ barIndex: index, mark }) => (
     mark.repeatEnd && index >= first.startBar && index <= first.endBar
   ));
-  if (!firstHasRepeatEnd) return { valid: false, message: "1번 엔딩 구간에 반복 끝 도돌이표가 필요합니다." };
+  if (!firstHasRepeatEnd) return { valid: false, message: ko["miniChord.ending1NeedsARepeatEndMarking"] };
   return { valid: true, message: "" };
 }
 
@@ -147,31 +149,31 @@ export function validateMiniChordMarkerEdit({
     const oldMarker = current.marker;
     const oldIndex = Math.max(1, Math.round(Number(current.markerIndex) || 1));
     if (oldMarker === "coda" && findMarker(entries, "toCoda", oldIndex, barIndex)) {
-      return { valid: false, message: "이 Coda를 참조하는 To Coda를 먼저 제거해주세요." };
+      return { valid: false, message: ko["miniChord.removeTheToCodaReferencingThisCodaFirst"] };
     }
     const referencing = findCommandEntries(entries, barIndex).find(({ mark }) => (
       commandNeedsMarker(mark.command, oldMarker)
       && (oldMarker === "fine" || Math.max(1, Math.round(Number(mark.targetIndex) || 1)) === oldIndex)
     ));
     return referencing
-      ? { valid: false, message: "이 기호를 참조하는 이동 명령을 먼저 제거해주세요." }
+      ? { valid: false, message: ko["miniChord.removeTheJumpInstructionReferencingThisSymbolFirst"] }
       : { valid: true, message: "" };
   }
 
-  if (current.command) return { valid: false, message: "같은 마디의 이동 명령을 먼저 제거해주세요." };
-  if (sameTarget(current, marker, safeIndex)) return { valid: false, message: "이미 동일한 기호가 설정되어 있습니다." };
+  if (current.command) return { valid: false, message: ko["miniChord.removeTheJumpInstructionInTheSameBarFirst"] };
+  if (sameTarget(current, marker, safeIndex)) return { valid: false, message: ko["miniChord.theSameSymbolIsAlreadySet"] };
   if (findMarker(entries, marker, safeIndex, barIndex)) {
-    return { valid: false, message: marker === "fine" ? "Fine은 진행에 하나만 설정할 수 있습니다." : `동일한 ${marker === "toCoda" ? "To Coda" : marker === "coda" ? "Coda" : "Segno"} 대상이 이미 있습니다.` };
+    return { valid: false, message: marker === "fine" ? ko["miniChord.aProgressionCanContainOnlyOneFine"] : formatMessage(ko["miniChord.theSameValueTargetAlreadyExists"], { value1: marker === "toCoda" ? "To Coda" : marker === "coda" ? "Coda" : "Segno" }) };
   }
 
   if (marker === "toCoda") {
     const coda = findMarker(entries, "coda", safeIndex);
-    if (!coda) return { valid: false, message: "참조할 Coda 기호가 필요합니다." };
-    if (coda.barIndex <= barIndex) return { valid: false, message: "Coda는 To Coda 뒤 마디에 있어야 합니다." };
+    if (!coda) return { valid: false, message: ko["miniChord.aCodaSymbolIsNeededAsTheTarget"] };
+    if (coda.barIndex <= barIndex) return { valid: false, message: ko["miniChord.codaMustBeInABarAfterToCoda"] };
   }
   if (marker === "coda") {
     const toCoda = findMarker(entries, "toCoda", safeIndex);
-    if (toCoda && toCoda.barIndex >= barIndex) return { valid: false, message: "Coda는 To Coda 뒤 마디에 있어야 합니다." };
+    if (toCoda && toCoda.barIndex >= barIndex) return { valid: false, message: ko["miniChord.codaMustBeInABarAfterToCoda"] };
   }
   return { valid: true, message: "" };
 }
@@ -187,30 +189,30 @@ export function validateMiniChordCommandEdit({
   const entries = markEntries(marks, barCount);
   const current = marks?.[barIndex] ?? marks?.[String(barIndex)] ?? {};
   const safeIndex = Math.max(1, Math.min(5, Math.round(Number(targetIndex) || 1)));
-  if (current.marker) return { valid: false, message: "같은 마디의 위치 기호를 먼저 제거해주세요." };
+  if (current.marker) return { valid: false, message: ko["miniChord.removeTheLocationSymbolInTheSameBarFirst"] };
   if (current.command === command && Math.max(1, Math.round(Number(current.targetIndex) || 1)) === safeIndex) {
-    return { valid: false, message: "이미 동일한 이동 명령이 설정되어 있습니다." };
+    return { valid: false, message: ko["miniChord.theSameJumpInstructionIsAlreadySet"] };
   }
   if (findCommandEntries(entries, barIndex).length) {
-    return { valid: false, message: "이동 명령은 한 진행에 하나만 설정할 수 있습니다." };
+    return { valid: false, message: ko["miniChord.aProgressionCanContainOnlyOneJumpInstruction"] };
   }
-  if (barIndex === 0) return { valid: false, message: "이동 명령은 첫 마디 뒤에 설정해주세요." };
+  if (barIndex === 0) return { valid: false, message: ko["miniChord.placeTheJumpInstructionAfterTheFirstBar"] };
 
   const segno = findMarker(entries, "segno", safeIndex);
   const fine = findMarker(entries, "fine", 1);
   const toCoda = findMarker(entries, "toCoda", safeIndex);
   const coda = findMarker(entries, "coda", safeIndex);
-  if (String(command).startsWith("ds") && !segno) return { valid: false, message: "참조할 Segno 기호가 필요합니다." };
-  if (segno && segno.barIndex >= barIndex) return { valid: false, message: "Segno는 D.S. 명령보다 앞 마디에 있어야 합니다." };
-  if ((command === "dcAlFine" || command === "dsAlFine") && !fine) return { valid: false, message: "참조할 Fine 기호가 필요합니다." };
+  if (String(command).startsWith("ds") && !segno) return { valid: false, message: ko["miniChord.aSegnoSymbolIsNeededAsTheTarget"] };
+  if (segno && segno.barIndex >= barIndex) return { valid: false, message: ko["miniChord.segnoMustBeInABarBeforeTheDSInstruction"] };
+  if ((command === "dcAlFine" || command === "dsAlFine") && !fine) return { valid: false, message: ko["miniChord.aFineSymbolIsNeededAsTheTarget"] };
   if ((command === "dcAlFine" || command === "dsAlFine") && fine.barIndex >= barIndex) {
-    return { valid: false, message: "Fine은 이동 명령보다 앞 마디에 있어야 합니다." };
+    return { valid: false, message: ko["miniChord.fineMustBeInABarBeforeTheJumpInstruction"] };
   }
   if (command === "dcAlCoda" || command === "dsAlCoda") {
-    if (!toCoda || !coda) return { valid: false, message: "같은 번호의 To Coda와 Coda가 필요합니다." };
-    if (toCoda.barIndex >= barIndex) return { valid: false, message: "To Coda는 이동 명령보다 앞 마디에 있어야 합니다." };
-    if (coda.barIndex <= barIndex) return { valid: false, message: "Coda는 이동 명령보다 뒤 마디에 있어야 합니다." };
-    if (segno && toCoda.barIndex <= segno.barIndex) return { valid: false, message: "To Coda는 Segno 뒤에 있어야 합니다." };
+    if (!toCoda || !coda) return { valid: false, message: ko["miniChord.toCodaAndCodaMustHaveMatchingNumbers"] };
+    if (toCoda.barIndex >= barIndex) return { valid: false, message: ko["miniChord.toCodaMustBeInABarBeforeTheJumpInstruction"] };
+    if (coda.barIndex <= barIndex) return { valid: false, message: ko["miniChord.codaMustBeInABarAfterTheJumpInstruction"] };
+    if (segno && toCoda.barIndex <= segno.barIndex) return { valid: false, message: ko["miniChord.toCodaMustComeAfterSegno"] };
   }
   return { valid: true, message: "" };
 }

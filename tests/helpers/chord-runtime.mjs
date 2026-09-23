@@ -1,7 +1,8 @@
+import { readFile } from "./i18n-source.mjs";
 import * as additional from "../../src/chords/additionalChords.js";
 import * as fixedAdd from "../../src/chords/fixedAddVoicings.js";
 import vm from "node:vm";
-import { readFile } from "node:fs/promises";
+
 import * as notation from "../../src/music/noteNotation.js";
 import * as theory from "../../src/chords/chordTheory.js";
 import { getChordFretWindow } from "../../src/fretboard/chordFretWindow.js";

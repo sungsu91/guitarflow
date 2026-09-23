@@ -1,9 +1,12 @@
+import { t as translateUi } from "./../../i18n/core.js";
+import { Translation, useLanguage } from "./../../i18n/react.jsx";
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Share2, ChevronRight} from 'lucide-react';
 import {createShooterResultPng, shooterShareResult, shareShooterResult, usesMobileImageSharing} from './shareResult.js';
 import './shooter-results.css';
 
 export default function ShooterShareButton({score=0,bestScore=0,menu=false}){
+  useLanguage();
   const result=useMemo(()=>shooterShareResult(score,bestScore),[score,bestScore]);
   const [prepared,setPrepared]=useState(null),[status,setStatus]=useState(''),[busy,setBusy]=useState(false);
   const sharing=useRef(false);
@@ -16,13 +19,13 @@ export default function ShooterShareButton({score=0,bestScore=0,menu=false}){
     try{setStatus(await shareShooterResult(result,linkOnly?null:prepared.file));}finally{sharing.current=false;setBusy(false);}
   };
   return <>
-    <button type="button" className={menu?'utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive shooterShareMenuButton':'shooterResultButton'} onClick={share} disabled={!ready||busy} aria-label="공유하기">
-      {menu?<><span className="utilityMenuIcon" aria-hidden="true"><Share2 size={19}/></span><div className="utilityMenuText"><strong className="utilityMenuTitle">공유하기</strong><small>{ready?(separateLink?'슈팅게임 점수 이미지':'슈팅게임 점수 · 접속 링크'):'결과 이미지 준비 중'}</small></div><span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20}/></span></>:<><Share2 size={17} aria-hidden="true"/>{!ready?'이미지 준비 중':busy?'공유 중…':'공유하기'}</>}
+    <button type="button" className={menu?'utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive shooterShareMenuButton':'shooterResultButton'} onClick={share} disabled={!ready||busy} aria-label={translateUi("shooter.share")}>
+      {menu?<><span className="utilityMenuIcon" aria-hidden="true"><Share2 size={19}/></span><div className="utilityMenuText"><strong className="utilityMenuTitle"><Translation id="shooter.share" /></strong><small>{ready?(separateLink?translateUi("shooter.noteShooterScoreImage"):translateUi("shooter.noteShooterScoreGameLink")):translateUi("shooter.preparingResultImage")}</small></div><span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20}/></span></>:<><Share2 size={17} aria-hidden="true"/>{!ready?translateUi("shooter.preparingImage"):busy?translateUi("shooter.sharing"):translateUi("shooter.share")}</>}
     </button>
     {separateLink&&<button type="button" className={menu?'utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive shooterShareMenuButton':'shooterResultButton'} onClick={event=>share(event,true)} disabled={busy}>
-      {menu?<><span className="utilityMenuIcon" aria-hidden="true"><Share2 size={19}/></span><div className="utilityMenuText"><strong className="utilityMenuTitle">접속 링크 공유</strong><small>함께 게임에 도전하기</small></div><span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20}/></span></>: '접속 링크 공유'}
+      {menu?<><span className="utilityMenuIcon" aria-hidden="true"><Share2 size={19}/></span><div className="utilityMenuText"><strong className="utilityMenuTitle"><Translation id="shooter.shareGameLink" /></strong><small><Translation id="shooter.challengeAFriend" /></small></div><span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20}/></span></>: translateUi("shooter.shareGameLink")}
     </button>}
-    {status==='copied'&&<p className="shooterShareFeedback" role="status">게임 링크를 복사했어요.</p>}
-    {status==='manual'&&<div className="shooterShareFeedback" role="status"><p>공유창과 자동 복사를 사용할 수 없어요. 아래 링크를 길게 눌러 복사해주세요.</p><input aria-label="공유할 게임 링크" readOnly value={result.url} onFocus={event=>event.target.select()}/></div>}
+    {status==='copied'&&<p className="shooterShareFeedback" role="status"><Translation id="shooter.gameLinkCopied" /></p>}
+    {status==='manual'&&<div className="shooterShareFeedback" role="status"><p><Translation id="shooter.sharingAndAutomaticCopyingAreUnavailablePressAndHoldTheLinkBelow" /></p><input aria-label={translateUi("shooter.gameLinkToShare")} readOnly value={result.url} onFocus={event=>event.target.select()}/></div>}
   </>;
 }

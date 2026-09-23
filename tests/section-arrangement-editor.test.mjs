@@ -1,5 +1,6 @@
+import { readFile } from "./helpers/i18n-source.mjs";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+
 import test from "node:test";
 
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");

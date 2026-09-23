@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 export const SHOOTER_PET_SKIN_IDS = Object.freeze({
   NONE: "none",
   CREAM_POMERANIAN: "cream-pomeranian",
@@ -7,8 +8,8 @@ export const SHOOTER_PET_SKIN_IDS = Object.freeze({
 export const SHOOTER_PET_SKINS = Object.freeze([
   Object.freeze({
     id: SHOOTER_PET_SKIN_IDS.NONE,
-    label: "펫 없음",
-    description: "기타 옆 펫을 표시하지 않습니다.",
+    label: ko["shooter.noPet"],
+    description: ko["shooter.hideThePetBesideTheGuitar"],
     sheetSrc: "",
     columns: 1,
     frameCount: 1,
@@ -16,8 +17,8 @@ export const SHOOTER_PET_SKINS = Object.freeze([
   }),
   Object.freeze({
     id: SHOOTER_PET_SKIN_IDS.CREAM_POMERANIAN,
-    label: "크림 포메",
-    description: "갸우뚱하고 엎드리고 충성 자세를 하는 크림 포메라니안",
+    label: ko["shooter.creamPomeranian"],
+    description: ko["shooter.aCreamPomeranianThatTiltsItsHeadLiesDownAndSitsUp"],
     sheetSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-sheet-36x1.png",
     masterSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-master-6x4.png",
     columns: 36,
@@ -26,8 +27,8 @@ export const SHOOTER_PET_SKINS = Object.freeze([
   }),
   Object.freeze({
     id: SHOOTER_PET_SKIN_IDS.SILVER_BARLEY_CAT,
-    label: "실버 고양이",
-    description: "보리풀 놀이와 꾹꾹이, 앞발 핥기와 세수를 하는 은백색 고양이",
+    label: ko["shooter.silverCat"],
+    description: ko["shooter.aSilverWhiteCatThatPlaysWithGrassKneadsLicksItsPaws"],
     sheetSrc: "/assets/pets/silver-barley-cat/silver-barley-cat-actions-sheet-120x1.png",
     masterSrc: "/assets/pets/silver-barley-cat/silver-barley-cat-actions-master-6x4.png",
     columns: 120,

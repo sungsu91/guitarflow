@@ -1,0 +1,2435 @@
+0	{value1} chord fingerings{value2}
+1	. Drag left or right with the mouse
+2	Applying {value1} theme
+3	Applying the {value1} theme.
+4	Choose a category first
+5	{value1} category
+6	Manage saved progressions
+7	{value1} selected
+8	Edit progressions
+9	Select all
+10	Deselect all
+11	Delete selected
+12	Done
+13	Edit saved progressions
+14	Saved progressions
+15	Edit
+16	Select progressions to delete
+17	Tap an item to apply
+18	Manage progression
+19	Unlock
+20	Lock
+21	Protect from deletion
+22	Delete {value1}
+23	Unlock before deleting
+24	Delete custom preset
+25	Select for deletion
+26	Unlock before selecting
+27	Include in selection
+28	Fine-tune BPM
+29	Increase BPM by 1
+30	Increase BPM by 10
+31	Decrease BPM by 10
+32	Decrease BPM by 1
+33	Quick BPM presets
+34	Quick
+35	Accent
+36	Accent {value1}
+37	Count-in {value1}
+38	Repeat
+39	Repeat {value1}
+40	Expand
+41	Collapse
+42	Meter
+43	Beat 1 sound
+44	First beat sound
+45	Subdivision
+46	Other beat sound
+47	Remaining beats sound
+48	Sound
+49	Expanded
+50	{value1} metronome progress
+51	 progress
+52	{value1} beat dots
+53	Beat {value1} {value2}
+54	Beat {value1}: {value2}
+55	Settings 
+56	Current note display {value1}
+57	Off
+58	On
+59	Progression
+60	Playing pattern
+61	Pattern {value1} X2
+62	Pattern {value1} {value2}
+63	Change to ghost strum
+64	Change to sounding strum
+65	Start {value1} practice
+66	Selected
+67	Select
+68	Beat {value1} {value2}, tap to cycle
+69	{value1} beat display. Swipe left or right to change the display mode only
+70	More metronome options
+71	Toggle beat dots
+72	Toggle vertical rhythm bar
+73	Toggle accent flash
+74	Enter bar count
+75	Delete {value1} selected Mini Chord items?
+76	Delete “{value1}”?
+77	Selected Mini Chord items
+78	This will remove them from your saved items. This cannot be undone.
+79	Cancel
+80	Delete
+81	My Mini Chords
+82	” — save this progression?
+83	The current chord progression and settings will be added to your saved items.
+84	Save
+85	Save title
+86	Enter a title for this progression.
+87	Title
+88	Chord progression title
+89	Leave blank to use the chord progression shown as the placeholder.
+90	Deleted progressions and edited fretboards cannot be restored.
+91	Reset all
+92	Reset Mini Chord
+93	Clear chords and structure/symbols
+94	Choose what to reset
+95	Close Mini Chord reset
+96	Clear all chords, repeats, endings, and navigation symbols.
+97	BPM, transposition, arrangement settings, and saved Mini Chord songs are kept. Use Undo to restore this change.
+98	Reset chords
+99	Clear chords, keep structure/symbols
+100	Reset structure/symbols
+101	Clear repeats, endings, and navigation symbols only
+102	Close
+103	Edit {value1} beat
+104	Beat {value1}
+105	Beat
+106	Rest
+107	Detailed horizontal editor · 16 steps · 1 e & a / 2 e & a / 3 e & a / 4 e & a
+108	Basic vertical editor · 4 steps per beat
+109	Back to basic vertical editor
+110	Vertical
+111	Open detailed horizontal editor
+112	Expand to landscape view
+113	Close pattern editor
+114	Stop the backing track before previewing
+115	■ Stop
+116	▶ Preview
+117	Save pattern
+118	Apply to section
+119	Apply
+120	Custom rhythms
+121	Shared custom rhythms
+122	Close custom rhythms
+123	Edit and preview each custom pattern. Selecting a pattern here does not change the current backing rhythm.
+124	Edit selected {value1} {value2} pattern
+125	Edit selected {value1} pattern
+126	Edit selection
+127	Reset {value1} rhythm settings
+128	Reset
+129	Select {value1} {value2} to edit
+130	Customized
+131	Modified
+132	Preview {value1} only
+133	Stop
+134	Preview all
+135	Restore all defaults
+136	Reset all rhythm settings
+137	Reset {value1} settings
+138	Restore all custom drum, bass, and piano rhythms to FRETIVA LAB defaults.
+139	Reset {value1} rhythm settings to defaults?
+140	Saved custom settings cannot be restored.
+141	Section arrangement
+142	Bar
+143	Close arrangement settings
+144	Section type
+145	Section name
+146	Start bar
+147	Section start bar
+148	End bar
+149	Section end bar
+150	Select {value1} arrangement
+151	Edit selected {value1} pattern
+152	Stop the backing track before previewing
+153	Section BPM
+154	Delete section
+155	Decrease BPM
+156	Increase BPM
+157	{value1} structure
+158	FRETIVA LAB is a 
+159	guitar practice app
+160	 with a tuner, fretboard, rhythm exercises, études, score library, backing tracks, and recording tools.
+161	Start with tuning, the fretboard, and the metronome
+162	Check your tuning
+163	Practice with the fretboard
+164	Add a metronome or backing track
+165	Start with these steps, then explore chord changes, Mini Backing, and the Note Shooter game.
+166	Enjoy your practice. 🎸
+167	Main navigation
+168	On desktop, open any screen from the left sidebar. On mobile, use the bottom navigation and 
+169	Menu
+170	.
+171	Main navigation guide
+172	🎵 Tuner
+173	Choose an instrument and tuning
+174	🗺️ Fretboard
+175	Explore notes, chords, and scales
+176	⏱️ Metronome
+177	Manage tempo and practice time
+178	👾 Note Shooter
+179	Hit targets with your guitar
+180	🧭 Menu
+181	Practice · Backing · Editing · Settings
+182	Mobile and desktop layouts may differ, but 
+183	practice data and features work the same way
+184	.
+185	Open-string and lower-fret notes
+186	 are shown on the reference fretboard for you to play along.
+187	Single-note practice steps
+188	Open Single Notes
+189	Check the reference fretboard
+190	Set BPM and play
+191	Repeat the displayed notes and positions slowly. This mode does not score your playing through the microphone.
+192	Major and minor 
+193	scales and pentatonics
+194	 can be practiced using the reference fretboard.
+195	Scale and pentatonic practice steps
+196	Choose a key
+197	Choose a scale and type
+198	Choose BOX 1–5
+199	Follow the fretboard
+200	Set the BPM and metronome, then repeat. You can also use 
+201	 to import or record a backing track. This mode uses a reference fretboard without automatic scoring.
+202	Follow your chord progression on screen and on the reference fretboard, changing chords in time.
+203	Rhythm & Chords steps
+204	Open LOAD
+205	Choose chords and fingerings
+206	Add with a beat length
+207	Save and START
+208	Add the selected chord for 
+209	1, 2, or 4 beats
+210	, or choose 
+211	1-beat rest
+212	 to insert a rest.
+213	Edit note positions on the mini fretboard in LOAD before adding a chord. 
+214	Your edited fingering is saved with the progression
+215	.
+216	Save with a title to recall it from Custom Progressions. You can also choose a recommended progression.
+217	On mobile, open 
+218	Menu → Score Practice
+219	; on desktop, use the left sidebar. The 
+220	Études
+221	 tab shows built-in practice pieces; 
+222	My Scores
+223	 shows your saved scores.
+224	Étude practice steps
+225	Open Études
+226	Choose a category and piece
+227	Set BPM
+228	Play along
+229	Choose a practice category
+230	 and use Previous/Next to switch pieces. Open 
+231	TIP · Practice Guide
+232	 for goals, preparation, and practice steps.
+233	Follow the notation, TAB, and playhead at a slow tempo. 
+234	Auto-follow
+235	 offers Line, Bar, or Off. The 
+236	Rhythm progress bar
+237	 can be toggled separately.
+238	Open your edited scores from 
+239	Saved Scores
+240	 to practice again. Score playback does not score your performance through the microphone.
+241	Score Practice → My Scores
+242	 holds PDFs and your edited scores. Search by title or artist, sort the list, and open a score to practice.
+243	Store PDF scores
+244	Save a PDF score
+245	Import PDF
+246	Check file and song details
+247	Open from the list
+248	PDF tools include margin cropping, text notes, bar markers, and practice loops. Printed notes and bars are not analyzed automatically, and PDFs are not automatically converted to editable TAB.
+249	Create and reopen an editable score
+250	Create Score
+251	 lets you enter notes, rests, and bars and check them with playback. Choose 
+252	 to set the title, artist, BPM, and other details before saving.
+253	Reopen saved scores in 
+254	 to practice or edit. To keep the original, choose 
+255	Save As · Copy
+256	.
+257	In the editor, use 
+258	File → Export Score JSON
+259	 to keep an editable backup. To restore it, open 
+260	Create Score → File → Import…
+261	, select the file, and save.
+262	Export PDF · Print
+263	 uses the print dialog to save a PDF. Keep a JSON backup as well if you want to edit the notes later.
+264	Local storage and backups
+265	Scores are 
+266	stored in this browser on this device
+267	 and do not sync automatically. Use 
+268	Back Up PDF Library / Restore PDF Backup
+269	 to transfer originals, notes, margins, and practice settings. Export edited scores separately as JSON.
+270	Export Original PDF
+271	 does not include margin cropping or notes. Save your scores and backup files before clearing browser data.
+272	Place chords into bars to create a backing track with 
+273	drums, bass, and piano
+274	.
+275	Mini Backing steps
+276	Choose the bar count
+277	Enter chords
+278	Set BPM and rhythm
+279	Play and save
+280	Use transposition, repeats, endings, and 
+281	 to set different patterns for each section. Save with a title to reopen from Load.
+282	Set BPM directly or use 
+283	 to tap the tempo, then choose the meter, subdivision, and sound and press play.
+284	Metronome steps
+285	Set BPM or TAP
+286	Choose meter and subdivision
+287	Tap a beat indicator to cycle through 
+288	accented, normal, and silent
+289	 beats.
+290	 raises or lowers BPM in steps at bar or time intervals. Coach Mode alternates audible and silent bars.
+291	 counts bars or time, with options to stop or reset when you reach your target.
+292	Use the 
+293	 player below to hear a backing track alongside the click.
+294	Backing Loop steps
+295	Open Playlist
+296	Add app or device files
+297	Choose playback mode
+298	Use Previous, Play, Next, and 
+299	Repeat All, Repeat One, or Shuffle
+300	. Record with REC, trim with EDIT, and store with SAVE.
+301	Audio Studio steps
+302	Open the studio
+303	Add audio
+304	TRIM · Position · Volume
+305	Save a mix
+306	Import one or more files into tracks, trim and adjust tempo, position waveforms, and set volume or mute. Listen to the mix, then save a 
+307	finished WAV file
+308	.
+309	This pitch-recognition game asks you to 
+310	play the target note on your guitar
+311	 to hit the approaching notes.
+312	Note Shooter steps
+313	Allow microphone access
+314	Check the target note
+315	Play it on your guitar
+316	Play one clear note at a time. When a pick from the guitar hits a neon note, it bursts into light.
+317	Tap the difficulty button
+318	 to open practice settings below it. Choose Easy, Normal, Hard, or a random mode, then tap Done. Settings cannot be changed during a game.
+319	Fall speed
+320	 offers 0.75×, 1×, 1.25×, and 1.5×. It changes how fast notes descend while keeping spawn intervals unchanged.
+321	Notes show their name and octave. C–B each have a fixed neon color. You can switch note-name and solfège displays.
+322	Change Skin
+323	 lets you choose a guitar, effect, pet, map, and pick. All targets use the shared neon design.
+324	The default map on first launch is 
+325	Moonlit Rooftop
+326	. The left column lists Moonlit Rooftop, Blue Ocean, Aurora Glacier, Above the Clouds, Milky Way Desert, and Firefly Forest. Your saved map selection is kept.
+327	Choose a background and hints, then take your time learning the target notes.
+328	Choose guitar, bass, or ukulele
+329	, then select its tuning.
+330	Tuner steps
+331	Choose instrument
+332	Choose tuning
+333	Play one string at a time
+334	 automatically detects the note you play. Tap a string on the headstock to switch to 
+335	 mode for that string; tap again to return to AUTO.
+336	Watch the gauge's 
+337	Flat / Sharp
+338	 direction and cents offset, then aim for the centered 
+339	In Tune
+340	 indicator.
+341	Allow microphone access in your browser the first time. If blocked, update the site's permissions in the address bar and start the microphone again.
+342	Notes, Chords, and Scales/Pentatonics
+343	 tabs help you explore fretboard positions.
+344	Fretboard steps
+345	Choose a tab
+346	Set a note, chord, or key
+347	Check fretboard positions
+348	Compare chord fingerings and the chord chart, or explore scales by changing the key, type, and box.
+349	Metronome
+350	 volume and the shared Rhythm & Chords / Mini Backing parts — 
+351	 — have on/off, volume, and default rhythm controls.
+352	Metronome volume is shared by the standalone metronome and Score Practice. Sound settings stay shared across different screen layouts.
+353	FRETIVA LAB 
+354	requires no account or payment.
+355	Practice history, imported audio, and recordings are 
+356	stored only in this browser on this device
+357	 and are not sent to the developer.
+358	The microphone is used only for tuning, guitar pitch detection, and recordings you start yourself.
+359	Clearing browser data, freeing storage, or changing devices can remove local data. Export or back up important audio and scores separately.
+360	Only import audio you have permission to use.
+361	Contact and feedback
+362	Bar {value1}, {value2} chord settings
+363	Chord input drag handle
+364	Drag to move chord input
+365	bar · 
+366	Chord settings
+367	Select two split beats
+368	Selected chord {value1}
+369	Merge these two 1-beat cells into 2 beats
+370	Split this 2-beat cell into 1-beat cells
+371	Merge into 2 beats using the selected chord
+372	Split into 1 + 1 beats
+373	Close chord settings
+374	Root
+375	Choose chord root
+376	Accidental
+377	Choose accidental
+378	Type
+379	Choose chord type
+380	Extension
+381	Choose chord extension
+382	Apply to both beats
+383	Set rest
+384	Load saved chord progression
+385	Select custom progression
+386	Saved progression actions
+387	Rhythm & Chords metronome sound {value1}
+388	Metronome
+389	Voice-leading course
+390	Voice leading
+391	Course {value1}
+392	Choose course
+393	Practice progression
+394	Choose recommended or custom progression
+395	Choose progression
+396	Recommended progressions
+397	No saved custom progressions
+398	Custom progressions
+399	Choose collection
+400	Progression list
+401	Beat-dot metronome
+402	Close menu
+403	Theme settings
+404	Theme
+405	Choose display colors
+406	More features
+407	🎵 Score Practice
+408	Notation · TAB · Phrase practice
+409	Single Notes
+410	Learn note positions from C through three-chord practice
+411	Scales · Pentatonics
+412	Positions · Phrase practice
+413	Rhythm & Chords
+414	Practice chord changes with a metronome
+415	Mini Backing
+416	Build chord progressions and backing tracks
+417	Audio Studio
+418	Sound & Rhythm
+419	Metronome, backing tracks, and shared rhythms
+420	{value1} volume
+421	Reset sound
+422	Guide & Help
+423	Practice features and instructions
+424	Refresh
+425	Reload this screen
+426	Contact
+427	App {value1}
+428	Close user guide
+429	User Guide & Help
+430	Screen guides and practice workflows
+431	Tuner
+432	Fretboard
+433	Note Shooter
+434	Open menu
+435	Preparing Score Practice…
+436	Fretboard
+437	Mini Chord backing mode
+438	Processing
+439	Mini Chord backing
+440	bars / Total 
+441	Preparing
+442	Start
+443	Mini Chord save tools
+444	LOAD Library
+445	Name, load, or save your progression
+446	Enter title
+447	Load Mini Chord backing
+448	Load
+449	Bar and page selection
+450	Editable · Save as your own copy
+451	Quick bar count
+452	Remove one bar
+453	Add one bar
+454	Mini Chord history and reset
+455	Undo
+456	Redo
+457	Manage {value1}
+458	Manage section arrangements
+459	Bars {value1}–{value2} · Set, duplicate, move, or delete
+460	{value1} sections · Reuse saved patterns.
+461	Close section manager
+462	Open {value1}, bars {value2}–{value3} settings
+463	Duplicate
+464	Range
+465	+ Add section
+466	{value1} · Bars {value2}–{value3}
+467	Duplicate section
+468	Section: bars {value1}–{value2}
+469	Create a new section using the same pattern?
+470	Change the range while keeping the section and pattern?
+471	Set the section and pattern for the selected range?
+472	Duplicate settings
+473	Change range
+474	Section settings
+475	Mini Chord transposition and arrangement
+476	Transpose by semitones
+477	Transpose down a semitone
+478	Transpose up a semitone
+479	Transpose all
+480	Return to original key {value1}
+481	Original key {value1}
+482	Key
+483	Section arrangement settings
+484	Arrangement selected, {value1} ranges
+485	Manage arrangement, {value1} sections
+486	Set first section
+487	Arrangement selected
+488	Arrangement
+489	Chord timeline, bars {value1}–{value2}
+490	Play from bar {value1}
+491	Select arrangement range at bar {value1}
+492	Manage {value1}, bars {value2}–{value3}
+493	{value1} · {value2} · Bars {value3}–{value4}
+494	Bar {value1} repeat start: {value2}
+495	Clear
+496	Settings
+497	Bar {value1} start repeat
+498	Bar {value1} repeat end: {value2}
+499	Bar {value1} end repeat
+500	Set leading repeat symbol at bar {value1}
+501	Bar {value1} symbols
+502	Ending {value1}, bars {value2}–{value3}
+503	Bar {value1} navigation symbols
+504	{value1} section configured
+505	Bar {value1} repeat command{value2}
+506	Bar {value1} symbol warning: {value2}
+507	Set bar {value1} symbols
+508	Symbol settings
+509	Close symbol settings
+510	Ending
+511	Set repeat ending number
+512	Ending {value1}: {value2}
+513	Adjacent bars with the same number form one ending range
+514	Set position marker
+515	Set jump command
+516	Remove bar {value1} symbols
+517	Remove symbols
+518	Bar {value1}, beat {value2} chord settings
+519	{value1} · Beat {value2}
+520	First beat
+521	Second beat
+522	{value1} · 2 beats
+523	Navigate bar pages
+524	Previous page: bars {value1}–{value2}
+525	Next page: bars {value1}–{value2}
+526	Mini Chord metronome
+527	Tap tempo, playback, count-in
+528	Mini Chord BPM, tap tempo, playback, count-in
+529	Mini Chord BPM and backing playback
+530	Start Mini Chord backing
+531	Stop Mini Chord backing
+532	Tap to set Mini Chord BPM
+533	Previous 
+534	Next 
+535	FRETIVA LAB UI Lab
+536	A FRETIVA LAB workspace for creating, registering, comparing, and choosing designs
+537	Current header preview
+538	Live header: {value1}
+539	Live app icon: {value1}
+540	Metronome Visual Lab: preview only
+541	Design archive; not applied to the live app
+542	Live
+543	{value1} size previews
+544	FRETIVA LAB guitar design guidelines
+545	Realistic proportions based on front views of Martin, Gibson, Taylor, and Yamaha guitars
+546	Designs: 
+547	 · Archived: 
+548	 items
+549	Delete all
+550	View archive
+551	Acoustic guitar pack: {value1} designs
+552	Classical guitar pack: {value1} designs
+553	Electric guitar pack: {value1} designs
+554	No candidate selected
+555	 — save
+556	Square SVG candidates combine R with picks, frets, headstocks, and practice symbols. The existing V11 badge and logo are managed separately.
+557	Short impact sounds for breaking targets. Candidate A is currently the game default.
+558	Compare visuals with the same BPM and audio without applying them to the metronome screen.
+559	Play preview
+560	Discarded designs 🗑️
+561	Restore deleted items or delete them permanently here.
+562	Empty trash
+563	Restore
+564	Delete permanently
+565	Archived
+566	{value1} archive preview
+567	Fretboard view
+568	Chords
+569	Notes
+570	Scales
+571	Pentatonics
+572	All fretboard notes
+573	Reference fretboard
+574	 · Swipe
+575	↔ Swipe
+576	View all
+577	Play {value1} {value2}
+578	Original recording
+579	Current fingering
+580	Play chord
+581	Note positions
+582	Scale positions
+583	Reference fretboard
+584	Standard omitted-tone voicing · Omitted: 
+585	Degree {value1} ({value2})
+586	Full chord tones: 
+587	{value1} {value2}. Swipe to change position
+588	Type
+589	Chord builder
+590	Convert
+591	Guitar audio · BiblicalBricksProductions · CC BY 3.0
+592	Basic major chords C–B use original recordings; their voicings may differ from the displayed positions. Other chords are synthesized from the current fingering.
+593	 · Original file kept · Lead-in skipped during playback
+594	Chord chart
+595	Chord fingering guide
+596	All chord fingerings
+597	Tap a chord to enlarge
+598	↔ Swipe to browse chords
+599	Standalone metronome
+600	Advanced metronome status and settings
+601	Reset metronome session
+602	Close metronome settings
+603	{value1} settings
+604	AUTOMATOR interval
+605	TRACKER timer
+606	Metronome mode
+607	 Groove
+608	Groove Packs ▾
+609	BPM control. Swipe left or right to adjust BPM only
+610	Save and load metronome settings
+611	Metronome preset name
+612	Warm-up
+613	Load metronome preset
+614	Map Studio
+615	Build fretboard recognition and picking accuracy through repetition.
+616	Note Shooter difficulty
+617	Difficulty
+618	Current 
+619	{value1} · Up to {value2} targets
+620	Speed 
+621	× · Settings
+622	Note Shooter history
+623	Practice totals
+624	Games played
+625	 times
+626	Practice time
+627	Targets cleared
+628	Shots fired
+629	Hits
+630	History by difficulty
+631	Last 10 games
+632	Easy
+633	No history yet
+634	Play your first game
+635	Target
+636	Waiting
+637	String {value1} {value2}
+638	No fretboard position
+639	Waiting for a target note
+640	Detected note
+641	Microphone
+642	Difficulty cannot be changed during a game.
+643	Choose difficulty
+644	Hints
+645	Playing hints {value1}
+646	Level {value1}
+647	About playing hints
+648	Korean solfège display {value1}
+649	Korean solfège ON · Switch to letter names
+650	Korean solfège OFF · Switch to Korean solfège
+651	Note Shooter MIDI connection
+652	Note Shooter microphone on
+653	Enable Note Shooter microphone
+654	Landscape-only map information
+655	Landscape-only map
+656	Rotate your phone to landscape.
+657	Change map
+658	Landscape view
+659	Level 
+660	Landscape map navigation
+661	Leave landscape map
+662	Home
+663	Return to the previous portrait map
+664	Back
+665	Target note
+666	OFF hides hints, 1 shows the fret, and 2 shows the fret and string.
+667	Note Shooter score and level
+668	Current loadout
+669	Note Shooter best score
+670	Note Shooter status
+671	Open strings–fret 12 · Random, including sharps
+672	Target note {value1}{value2}{value3}
+673	 Click to attack
+674	Current target
+675	Current guitar and effect alignment preview
+676	Move {value1}: press and drag
+677	Press and drag to move
+678	Lives left: {value1}
+679	Section {value1} · Accuracy {value2}%
+680	After {value1}, the next tempo is {value2} BPM.
+681	Your consistent accuracy is ready for {value1} BPM.
+682	Missed positions: 
+683	Note Shooter start menu
+684	Start Note Shooter
+685	Change Note Shooter skin
+686	Edit {value1} map
+687	Edit map
+688	Note Shooter pause menu
+689	Pause
+690	Resume Note Shooter
+691	Resume
+692	Reset Note Shooter
+693	Close skin selector
+694	Skin category
+695	Coming soon
+696	New guitars will appear here.
+697	Choose pet skin
+698	Choose pick skin
+699	Choose game map
+700	Landscape only
+701	Map for landscape phones
+702	Landscape
+703	Developer comparison test
+704	Choose guitar effects
+705	SET · Independent selection
+706	AURA above · FLOOR below
+707	Standalone floor · Cabinet
+708	Choose guitar type
+709	Saved chord progressions
+710	Library
+711	Close saved progressions
+712	Choose saved chords and strumming patterns
+713	{value1} {value2} chord reference fretboard
+714	Technique
+715	Add down-up strum
+716	Add downstroke
+717	Add upstroke
+718	Add X2 pattern marker
+719	Add row 1
+720	Add 1
+721	Add row 2
+722	Add 2
+723	Choose a technique
+724	Selected chord
+725	Edit chord {value1} · {value2}
+726	Add 1 beat
+727	Add 2 beats
+728	Add 4 beats
+729	Sequence
+730	Auto rest {value1}
+731	 Edit
+732	Remove {value1} {value2}
+733	Choose a chord to add
+734	Strumming patterns by row
+735	Row
+736	Added patterns
+737	Choose a pattern to add
+738	Chord progression
+739	Current chord progression
+740	Next chord 
+741	Suggested fingering: 
+742	 enharmonic
+743	Empty 8-bar progression example
+744	Empty 4-bar progression example
+745	Choose a progression
+746	Choose a recommended or custom progression to see fingerings
+747	Beat progress
+748	Rhythm & Chords beat-dot metronome
+749	Playback, tap tempo, count-in
+750	Rhythm & Chords BPM, tap tempo, start, count-in
+751	Start practice
+752	Stop practice
+753	Metronome settings
+754	Built-in packs cannot be edited
+755	Reference fretboard
+756	Ready
+757	Find and play the highlighted note on the fretboard.
+758	Press Start to practice finding positions on the reference fretboard.
+759	Practice BPM, playback, tap tempo, count-in
+760	Rhythm subdivision
+761	Scoring mode
+762	Choose rhythm subdivision
+763	Direction
+764	Choose direction
+765	Ascending from {value1}
+766	Descending from {value1}
+767	Repeat practice
+768	Stop after {value1} repeats
+769	Stop after one pass
+770	Repeat count
+771	Increase repeats
+772	Decrease repeats
+773	Quick BPM
+774	Choose quick BPM
+775	Metronome on
+776	Metronome off
+777	The same note can appear in several positions. Follow the reference fretboard.
+778	Focus on rhythm and finger control rather than memorizing theory.
+779	Upcoming notes
+780	 string
+781	Fret
+782	The note you played is highlighted in the selected box
+783	Check the string and fret within {value1}
+784	Check the next note's string and fret
+785	Accuracy
+786	Practice stats
+787	Current BPM
+788	Current combo
+789	Best combo
+790	Rhythm accuracy
+791	Pitch accuracy
+792	Attempts
+793	Perfect hits
+794	Misses
+795	Most missed note
+796	Input level
+797	Microphone input is low. Move your guitar closer or increase the input level.
+798	Frequency
+799	Target 
+800	Target frequency
+801	String / Fret
+802	Scoring mode
+803	Signal
+804	Current BPM
+805	Practice stage
+806	Select audio files
+807	Finished audio library · WAV files
+808	Rename audio
+809	Filename
+810	Saved in WAV format with the .wav extension.
+811	Change
+812	Finished audio name
+813	E.g. Guitar Mix
+814	Saving mixes all tracks into one WAV file.
+815	Saving...
+816	Studio
+817	Finished audio
+818	 tracks
+819	Play
+820	Rename {value1}
+821	Rename
+822	Download {value1} to device
+823	Download to device
+824	No finished audio yet.
+825	Combine sounds in the studio, then use MIX SAVE.
+826	Open finished audio library
+827	Create your finished mix
+828	Audio timeline
+829	Reorder {value1}
+830	Mute {value1}
+831	Solo {value1}
+832	 Match
+833	No audio
+834	 + Add audio
+835	 Record
+836	Generating waveform...
+837	Adjust selection start
+838	Adjust selection end
+839	Analyzing waveform...
+840	The filename and waveform will appear when ready.
+841	Pinch to zoom the timeline
+842	Playback and timeline navigation
+843	Stop recording
+844	Record now
+845	Saving
+846	Loop selection
+847	Zoom out
+848	Fit all
+849	Zoom in
+850	Master BPM
+851	1 bar
+852	2 bars
+853	Headphones recommended
+854	 RECORDING · Recording a new track while playing existing tracks
+855	Selection editing tools
+856	Waveform range
+857	{value1} clips selected
+858	Drag the handles to fine-tune the range
+859	Apply to selected clips
+860	Drag on a waveform to show range tools
+861	 Add audio
+862	 Import files
+863	 Record now
+864	Timeline quick tools
+865	Add audio to timeline
+866	View and practice options
+867	More
+868	 Fit song
+869	 Zoom out
+870	 Zoom in
+871	Set Loop A here
+872	Set Loop B here
+873	 Finished audio library
+874	{value1} context tools
+875	Adjust range with both handles
+876	Drag on the timeline to move
+877	Original file
+878	Clip name
+879	Start (ms)
+880	Length (ms)
+881	Drag either end of the clip to trim precisely.
+882	Split at playhead
+883	Delete clip
+884	 Clips · Apply group values
+885	Clip volume
+886	Fade in (ms)
+887	Fade out (ms)
+888	 Mute this clip
+889	Selected track
+890	Track name
+891	Detected/manual BPM
+892	Not detected
+893	 Match BPM · Preserve pitch
+894	Track volume
+895	 Mute
+896	 Solo
+897	Move up
+898	Move down
+899	Delete track
+900	Close Inspector
+901	Track settings
+902	Essential settings
+903	Waveform editing
+904	Save mix
+905	Balance the levels
+906	Compare all tracks in one view.
+907	Mute
+908	Solo
+909	Volume
+910	Master output
+911	Master volume
+912	Preview the full mix, then save a WAV file to the Audio Studio library.
+913	Trim range
+914	Use the handles to select the range to keep.
+915	Use audio from {value1}
+916	Use audio through {value1}
+917	Move start back 0.01 s
+918	Move start forward 0.01 s
+919	Move end back 0.01 s
+920	Move end forward 0.01 s
+921	Selection
+922	Preview selection
+923	Go to selection start
+924	Pause preview
+925	Play selection
+926	Go to selection end
+927	Selection playhead
+928	Speed/tempo · Preserve pitch
+929	Original BPM 
+930	Detected
+931	Manual
+932	Analyze BPM
+933	Target BPM
+934	Decrease target BPM by 1
+935	Increase target BPM by 1
+936	Stretch ratio
+937	Supported range: 
+938	×.
+939	 Processing with pitch preserved
+940	 Restore original range
+941	Processing...
+942	Trim {value1}
+943	Unmute
+944	Move {value1}, currently starting at {value2}
+945	Drag left or right to set the start position
+946	Shared audio timeline
+947	No audio to edit.
+948	Select one or more files. Each will be placed on its own track.
+949	 Analyzing files.
+950	Go to timeline start
+951	Go to start
+952	Play all
+953	Master playhead
+954	 Save mix
+955	Combine the current arrangement into one finished audio file.
+956	Return to finished audio library
+957	Back to library
+958	Trim and combine your audio.
+959	How to use
+960	Set range and tempo in TRIM
+961	Move waveforms left or right
+962	Adjust volume and mute
+963	Play together and save a mix
+964	Choose backing groove pack
+965	Groove Packs
+966	Close groove pack picker
+967	Pack type
+968	Recommended
+969	My packs
+970	All
+971	Search backing packs
+972	Search packs
+973	Pack category
+974	Pop · Ballad
+975	Pop
+976	Funk · Disco
+977	Funk
+978	Select {value1}
+979	Already in list
+980	Stop preview
+981	Preview
+982	No results
+983	No saved packs
+984	No matching packs
+985	Choose pack
+986	Add to list
+987	Guitar input level {value1}%{value2}
+988	, peak
+989	Backing Loop playhead
+990	Unmute backing track
+991	Mute backing track
+992	Muted · Hover to adjust volume
+993	Adjust backing volume
+994	Backing volume
+995	Shared backing playback controls
+996	Previous backing track or restart current track
+997	Pause backing
+998	Play backing
+999	Next backing track
+1000	Repeat one
+1001	Repeat all
+1002	Repeat off · Play list once
+1003	Turn shuffle off
+1004	Turn shuffle on
+1005	Shuffle on
+1006	Shuffle off
+1007	Close Playlist
+1008	Backing recording and file controls
+1009	Stop guitar recording
+1010	Start guitar recording
+1011	Edit current backing track
+1012	Delete current backing track
+1013	Cancel current operation
+1014	Name and save current backing track
+1015	Trim start: {value1} s
+1016	{value1} s
+1017	Trim end: {value1} s
+1018	Trim the lead-in and tail for a seamless loop.
+1019	Selected backing range
+1020	Applying
+1021	CANCEL discards this adjustment only. The original is kept until SAVE.
+1022	Clear the current backing track?
+1023	The recording in this panel will be removed. Saved backing tracks remain in your library.
+1024	Clear
+1025	Save backing track
+1026	Enter a title you can recognize during practice.
+1027	Close save dialog
+1028	Backing title
+1029	E.g. Am Practice
+1030	Current backing track
+1031	The current recording and title will be added to your saved items.
+1032	No
+1033	Current and saved playlist tabs
+1034	Current playlist
+1035	Open saved playlist {value1}
+1036	Saved · 
+1037	Add device files
+1038	Play selected
+1039	Select tracks
+1040	Select {value1} in list
+1041	Play {value1} now
+1042	Move {value1} up
+1043	Move {value1} down
+1044	Remove {value1} from Playlist
+1045	Add files or saved audio to build a playlist.
+1046	Choose a playlist to save to
+1047	Save as new playlist
+1048	 — save selection
+1049	New playlist name
+1050	New playlist name (e.g. Busking Set)
+1051	Save selected
+1052	Save playlist
+1053	Select tracks in the current playlist, then save the list.
+1054	 tracks · 
+1055	Delete {value1} title and saved playlist
+1056	Delete playlist title
+1057	Remove selected
+1058	Select {value1} in saved playlist
+1059	Play {value1} from saved playlist
+1060	Add groove packs or device files to this playlist.
+1061	Selected playlist
+1062	” — delete this saved playlist?
+1063	Only the saved playback order will be deleted. Audio files and the current playlist will be kept.
+1064	Delete playlist
+1065	” — 
+1066	 tracks: remove them?
+1067	Tracks are removed from this playlist only. Audio files stored in the app are kept.
+1068	Collapse Backing Loop to the right
+1069	Backing Loop guitar recording and loop playback
+1070	Record a chord progression and loop it to practice soloing.
+1071	Choose backing audio files to add to the current playlist
+1072	 string 
+1073	{value1}, open string {value2} deletion menu
+1074	Play {value1}, open string {value2}
+1075	Delete {value1}, open string {value2}
+1076	Add open string {value1}
+1077	Delete barre at fret {value1}, strings {value2}–{value3}: open menu
+1078	Frets {value1}–{value2} {value3}
+1079	Rest
+1080	Open string
+1081	Fret {value1}
+1082	{value1}: {value2}{value3}
+1083	Add {value1}, string {value2}, fret {value3}
+1084	{value1}, string {value2}, fret {value3}: open deletion menu
+1085	Play {value1}, string {value2}, fret {value3}
+1086	{value1} · String {value2}, fret {value3}
+1087	Delete {value1}, string {value2}, fret {value3}
+1088	Delete barre at fret {value1}, strings {value2}–{value3}
+1089	All notes
+1090	Choose note
+1091	Currently {value1}. Tap to use {value2}
+1092	Flats
+1093	Sharps
+1094	Groove pack volume
+1095	Feature status: {value1}
+1096	Preview {value1}
+1097	Couldn't load the preview audio. Tap to try again.
+1098	Metronome volume
+1099	Fit {value1} to width
+1100	Fit width
+1101	{value1} zoom level
+1102	Chord diagrams
+1103	Chord display
+1104	Chord names
+1105	Hi-hat
+1106	Open hi-hat
+1107	Closed
+1108	Open
+1109	Fill
+1110	Fill hi-hat
+1111	Drum technique
+1112	Rest
+1113	More instruments
+1114	Previous input position
+1115	← Previous
+1116	Next input position
+1117	Next →
+1118	Drum input sound
+1119	Sound 
+1120	On
+1121	Off
+1122	Drum kit input
+1123	Hi-hat {value1}
+1124	More percussion
+1125	Rimshot (synthesized)
+1126	Volume
+1127	Drum volume
+1128	Sound and playback
+1129	Score sound
+1130	Stop score playback
+1131	Play score
+1132	Score playback BPM
+1133	Confirm BPM
+1134	Unmute drum editor
+1135	Mute drum editor
+1136	Drums
+1137	Turn click off
+1138	Turn click on
+1139	 · Click 
+1140	← Techniques
+1141	Quick note duration
+1142	Whole note
+1143	Half note
+1144	Quarter note
+1145	Eighth note
+1146	Sixteenth note
+1147	1/{value1}
+1148	Quick input panel
+1149	Current selection
+1150	Empty input position
+1151	String {value1}, fret {value2}
+1152	Selected string is empty
+1153	beat · 
+1154	string · 
+1155	1/{value1} note
+1156	Choose string
+1157	Input string {value1}
+1158	Fret number
+1159	Lower fret
+1160	Quick fret input
+1161	Raise fret
+1162	Click the score, then type a number.
+1163	↑↓ Change string · ←→ Change beat
+1164	Delete selected note/rest
+1165	Bar {value1} {value2}
+1166	Merge with previous line
+1167	Split to new line
+1168	Bar layout
+1169	Per line
+1170	Bars per line
+1171	{value1} bars per line
+1172	Split individual lines when showing 2 or more bars
+1173	Edit lines
+1174	Range selected · Ctrl+C Copy · Esc Deselect
+1175	Drag: select range · Ctrl+C / Ctrl+V · Alt+drag: move note
+1176	Review the layout here. Use 1-bar view for detailed input.
+1177	Score keyboard input
+1178	Key signature settings
+1179	Key signature
+1180	Major or minor
+1181	Major
+1182	Minor
+1183	Choose key signature
+1184	No key signature
+1185	{value2} {value1}
+1186	Capo {value1}
+1187	No capo
+1188	Edit ▾
+1189	Tuning settings
+1190	Key and capo settings
+1191	Capo settings
+1192	Edit menu
+1193	Tuning
+1194	Key · Capo
+1195	Capo
+1196	Close editing settings
+1197	Existing notes
+1198	Keep pitch
+1199	Keep fingering
+1200	Keep sounding pitches and recalculate TAB positions for the new capo or tuning. Review fingering changes below before applying.
+1201	Keep strings and capo-relative frets, changing sounding pitches.
+1202	Manual fingerings: 
+1203	 recalculated: 
+1204	. Applying changes these strings and frets.
+1205	No TAB position for 
+1206	 notes · Original pitch kept
+1207	Recalculate and apply
+1208	Apply changes
+1209	Custom
+1210	 → 1st string · Sounding open-string pitch
+1211	 string
+1212	String {value1} open pitch
+1213	Apply custom tuning
+1214	 → 1st string: 
+1215	Choose capo
+1216	None
+1217	TAB 0 = open at capo · Highest physical fret: 
+1218	Edit score line breaks
+1219	Split lines when showing 2 or more bars per line.
+1220	Auto TAB
+1221	Position
+1222	Auto TAB position
+1223	Auto
+1224	Preferred fret range
+1225	Min
+1226	Max
+1227	Preferred fret {value1}
+1228	Frets relative to capo · Applies to new input · Manual fingerings kept
+1229	Check TAB positions
+1230	Bar 
+1231	notes · 
+1232	Check fingering (?)
+1233	Unplayable with current settings (?)
+1234	Outside preferred range
+1235	Confirm fret
+1236	Practice categories
+1237	Choose score
+1238	Close score picker
+1239	Score list
+1240	Search scores
+1241	Filter scores
+1242	Favorites
+1243	No results found.
+1244	Tap the star beside a score to add it to Favorites.
+1245	No saved scores.
+1246	Choose a score
+1247	Browse études
+1248	Previous étude
+1249	Next étude
+1250	Practice curriculum
+1251	‹ Previous
+1252	Next ›
+1253	Learning goal
+1254	Prerequisite: 
+1255	Note
+1256	Warm-up 
+1257	 BPM → Target 
+1258	Completion checklist
+1259	Notation: vertically aligned TAB notes are plucked together · let ring sustains notes
+1260	Notation: H Hammer-on · P Pull-off · SL Slide
+1261	General TIP · 
+1262	Fingerstyle backing
+1263	Picking and practice basics
+1264	Right-hand example · p thumb / i index / m middle / a ring · + means together
+1265	Steady-beat picking example · D down / U up
+1266	Rhythm
+1267	Counting
+1268	Right hand
+1269	Picking
+1270	These are general practice examples, not prescribed picking directions for every note.
+1271	Preparing the editor…
+1272	Rhythm progress mode
+1273	Follows note and rest durations, showing the current note and connected techniques.
+1274	 — switch to this instrument?
+1275	This score cannot be converted directly.
+1276	Save or discard the current score, then start with a 
+1277	blank 
+1278	 score
+1279	. Previously saved scores will not be deleted.
+1280	Save and switch
+1281	Switch without saving
+1282	Cancel · Keep current score
+1283	 input
+1284	 lower octave
+1285	 higher octave
+1286	{value1} key
+1287	Chord input
+1288	Chord
+1289	Delete selected note
+1290	Left hand
+1291	Selected note
+1292	Move to left-hand staff
+1293	Move to right-hand staff
+1294	Cursor and bar navigation
+1295	Previous bar
+1296	Input position above
+1297	Next bar
+1298	Input position below
+1299	Guitar string above
+1300	Copy row
+1301	Copy current fingering to the next position · Keep next note duration
+1302	Delete row
+1303	Delete fingering or rest at the current position · Keep duration
+1304	Copy beat
+1305	Delete beat
+1306	Guitar string below
+1307	Reset current bar
+1308	Reset this bar?
+1309	Yes
+1310	No
+1311	Enter fret number
+1312	Delete fret
+1313	Muted note
+1314	Fret {value1}
+1315	{value1} tools
+1316	Beaming
+1317	Close tools
+1318	Picking mark position
+1319	Position
+1320	Below
+1321	Above
+1322	Show picking {value1}
+1323	All down
+1324	All up
+1325	Alternate down/up
+1326	Manual
+1327	Clear
+1328	Manual picking {value1}
+1329	Down
+1330	Up
+1331	TAB beams
+1332	Short stems
+1333	Remove beams
+1334	Remove TAB beams
+1335	Show TAB beams {value1}
+1336	Add bar
+1337	Delete bar
+1338	Connect
+1339	{value1} tools: {value2}
+1340	Open
+1341	Delete all drum notes at this position
+1342	Clear notes in this bar · Can be undone
+1343	Unified score input
+1344	Score settings
+1345	Technique tools
+1346	Close settings sheet
+1347	Select a note to apply a technique.
+1348	Silent
+1349	Unaccented
+1350	Beat 
+1351	 — switch
+1352	Score metronome
+1353	Move metronome (arrow keys supported)
+1354	Detailed metronome settings
+1355	Practice BPM
+1356	Adjust BPM {value1}
+1357	■ Stop metronome
+1358	▶ Start metronome
+1359	Elapsed bars
+1360	Close metronome
+1361	 adjustment
+1362	Resume practice
+1363	Metronome settings
+1364	Adjust BPM
+1365	Mute click
+1366	Quick BPM adjustment
+1367	Metronome click 
+1368	On
+1369	Backing Loop
+1370	 Expand panel
+1371	Tap to open · Drag vertically to move
+1372	Playing
+1373	Backing Loop playing
+1374	Collapse Backing Loop panel
+1375	Expand Backing Loop panel
+1376	Repeat count
+1377	Repeat continuously
+1378	Range:
+1379	Loop start bar
+1380	Loop end bar
+1381	Score toolbar
+1382	Score view
+1383	Change score display
+1384	Staff+TAB
+1385	Staff
+1386	Score display
+1387	Score view settings
+1388	Staff + TAB
+1389	Staff only
+1390	TAB only
+1391	Score layout settings
+1392	Practice position and zoom
+1393	Practice position
+1394	Score playback bar
+1395	Score zoom
+1396	Create or edit score
+1397	Create/Edit
+1398	Create new score
+1399	Edit current score
+1400	Switch to landscape
+1401	View
+1402	Auto bars per line
+1403	Practice playing
+1404	Save score PDF · Print
+1405	Remove from favorites
+1406	Add to favorites
+1407	Save PDF
+1408	Title: 
+1409	Practice score scroll area
+1410	Practice score
+1411	Tuning (
+1412	→1st string) · 
+1413	Preparing the score…
+1414	Score practice tools
+1415	Score sound 
+1416	Off
+1417	Section label · Does not affect playback
+1418	Barline
+1419	Single barline |
+1420	Double barline ‖
+1421	Final barline (thin + thick)
+1422	 section label
+1423	INT Intro · OUT Outro · Tap again to clear. These labels are separate from repeat and numbered-ending playback.
+1424	Repeat and navigation symbols
+1425	Repeat start
+1426	Repeat end
+1427	Numbered endings · Repeat passes
+1428	Ending {value1}
+1429	Repeat navigation
+1430	No jump
+1431	Remove repeat markings from selected bar
+1432	Clear repeat markings
+1433	Applies to 
+1434	Left boundary
+1435	Right boundary
+1436	Standard repeats play twice · Numbered endings play on the matching pass
+1437	Numbered ending
+1438	Use the same number on adjacent bars to extend the ending. Add an end repeat to each ending except the last. Tap again to clear.
+1439	Navigation markers
+1440	Fine
+1441	Segno and Coda apply at the bar start; To Coda and Fine at the bar end.
+1442	Jump command · Bar end
+1443	D.C. returns to the beginning; D.S. returns to the segno.
+1444	 · After the jump, skip repeats and play the last numbered ending.
+1445	Dotted notes and triplets
+1446	Dotted note
+1447	Dotted note · Hold to lock
+1448	Locked
+1449	Triplet
+1450	Go to playhead and resume auto-scroll
+1451	Go to playhead
+1452	Preparing score…
+1453	Create chord diagram
+1454	Close chord diagram
+1455	Edit chord diagram
+1456	Load chord diagram
+1457	Chord candidates
+1458	No matching candidates
+1459	Choose a fingering
+1460	Treat empty strings as open
+1461	Near match with extra tones
+1462	Some chord tones omitted
+1463	Matching chord tones
+1464	Enter chord name
+1465	E.g. C, Am7, C/G
+1466	Previous fret
+1467	 fret
+1468	 · Swipe to move
+1469	Next fret
+1470	Toggle string {value1} open/muted
+1471	Blank → O → X → Blank
+1472	Visible frets: 
+1473	 cells
+1474	Number of visible frets
+1475	Place fret
+1476	 fret · Tap the ending string for the barre
+1477	Tap to place · Tap again to clear · Hold for barre
+1478	Selected fingering 
+1479	→1st string
+1480	Reset chord fingering
+1481	Insert selected fingering
+1482	Inserts on one beat only. Use Copy Beat in the score to repeat it.
+1483	Attach the diagram only; keep existing notes.
+1484	Barre 
+1485	fret · 
+1486	Remove barre
+1487	Delete chord diagram
+1488	Attach to score
+1489	Title · BPM · Practice notes
+1490	List title
+1491	Score title
+1492	Default BPM
+1493	Practice notes
+1494	TIP · One sentence per line
+1495	Editing bar
+1496	Notes · Rests
+1497	Editing note
+1498	Current bar 
+1499	Advanced options
+1500	Onset · Quarter note = 1 beat
+1501	Note onset
+1502	Triplet
+1503	Ungroup
+1504	Delete group
+1505	Current duration
+1506	Dotted eighth · ¾ beat
+1507	1/{value1} triplet · {value2} ticks
+1508	Technique / Connection
+1509	Left-hand finger
+1510	Note {value1} left-hand finger
+1511	Note {value1} right hand
+1512	Picking direction
+1513	Unspecified
+1514	Down Π
+1515	Up V
+1516	Add simultaneous note
+1517	Connect to next note
+1518	Connection technique
+1519	H · Hammer-on
+1520	P · Pull-off
+1521	SL · Slide
+1522	Duplicate note
+1523	Delete note
+1524	Edit this bar's chord diagram
+1525	From top: 1→
+1526	 string. Changing a fret also changes this bar's notes on that string. × is muted; 0 is open.
+1527	Chord string {value1} fret
+1528	Finger
+1529	Chord string {value1} finger
+1530	Hide
+1531	Barre marker
+1532	Barre fret
+1533	Barre start string
+1534	Barre end string
+1535	Duplicate bar
+1536	Tie
+1537	Clear connection
+1538	Add to Quick Tools
+1539	Quick Tools
+1540	Technique category
+1541	General
+1542	Bending
+1543	Note connections
+1544	Hammer-on
+1545	Pull-off
+1546	Slide
+1547	Slur
+1548	Slur
+1549	Expression
+1550	P.M. Palm Mute
+1551	Palm Mute
+1552	Vibrato
+1553	Harmonics
+1554	Ascending arpeggio
+1555	Ascending
+1556	Descending arpeggio
+1557	Descending
+1558	Open connections and parentheses
+1559	Open tie
+1560	Slide in from below
+1561	Slide in from above
+1562	Slide out upward
+1563	Out ↗
+1564	Slide out downward
+1565	Out ↘
+1566	Parenthesized note
+1567	(Note)
+1568	Bend interval
+1569	Bend and release
+1570	Pre-bend
+1571	Bend up
+1572	Raise
+1573	Hold bend
+1574	Hold
+1575	Release bend
+1576	Release
+1577	Bend and release
+1578	Raise/Release
+1579	Clear technique
+1580	Insert beat before
+1581	Insert beat after
+1582	Split current beat
+1583	Add empty bar
+1584	History
+1585	Undo
+1586	Undo · Ctrl+Z
+1587	Redo · Ctrl+Shift+Z
+1588	A4 print preview
+1589	Save PDF · Print preview
+1590	Save PDF · Print
+1591	Note durations and rests
+1592	R Rest
+1593	Advance after entering a rest or muted note
+1594	Zoom
+1595	Editor zoom
+1596	Editing tool categories
+1597	Notes · Bars
+1598	Note properties
+1599	Bar properties
+1600	Song details
+1601	Batch picking
+1602	Staff
+1603	Piano staff layout
+1604	Guitar
+1605	Chord names are generated from this bar's fingering. Tap a name to edit it manually.
+1606	Staff view
+1607	View mode
+1608	String {value1}
+1609	Input settings
+1610	Pitch · Alternate fingerings
+1611	Sounding pitch (MIDI). 
+1612	Notation is written one octave above sounding pitch.
+1613	Notation uses sounding pitch.
+1614	 The current string is kept when possible; choose among alternatives manually.
+1615	Sounding pitch MIDI
+1616	Apply pitch · Keep string
+1617	Same note on another string
+1618	Copy bar range · Score settings
+1619	Last bar to copy
+1620	Copied {value1} bars.
+1621	Copy range
+1622	Paste after current bar
+1623	Changing the meter keeps existing note positions and durations.
+1624	Key signature
+1625	Note and bar tools
+1626	Reset score
+1627	Reset scope
+1628	Changes only the current edit. The saved copy stays unchanged until you save. You can undo this action.
+1629	Restored the score to its state when the editor opened. You can undo this.
+1630	Restore initial edit state
+1631	Cleared notes and chord diagrams, leaving one empty bar. You can undo this.
+1632	Reset to one empty bar
+1633	Apply to
+1634	Picking range
+1635	Entire score
+1636	Current bar
+1637	Current bar through specified bar
+1638	Picking end bar
+1639	Picking pattern
+1640	Batch picking pattern
+1641	Alternate down → up
+1642	Alternate up → down
+1643	Clear picking marks
+1644	Skip picking on H/P/SL destination notes
+1645	Replaces picking marks in the range. Alternates on each picked note, excluding rests and tied destinations, without restarting at each bar. Simultaneous notes count as one.
+1646	Applied picking marks to the range. Notes, fingerings, and rhythm are unchanged. You can undo this.
+1647	Apply picking pattern
+1648	Score menu
+1649	File
+1650	Created a new score. Existing saved copies are kept. You can undo this.
+1651	New score
+1652	Import…
+1653	Import score file
+1654	FRETIVA scores open in this editor. PDFs open in their original view and are not converted automatically.
+1655	Export Score JSON
+1656	Choose Save as PDF in the print dialog.
+1657	Copied selected bars.
+1658	Copy bars
+1659	Paste
+1660	Staff display
+1661	Changes the display only; notes, fingerings, and saved data are kept.
+1662	Fit screen width
+1663	Zoom level
+1664	View menu zoom
+1665	Properties panel 
+1666	Hide
+1667	Show
+1668	Instrument: 
+1669	{value1} strings · Staff and TAB share the same notes.
+1670	Percussion staff · GM drum input
+1671	Grand or single staff · Both hands and sounding pitches are kept
+1672	Meter · Key signature · Bars
+1673	Title · Tempo
+1674	Choose staff display from View. Switching piano between grand and single staff keeps both hands' notes and playback.
+1675	Playback and practice
+1676	Use playback below to hear the score's pitches and rhythm. PDF metronome practice is available in PDF Score Practice.
+1677	Set playback BPM
+1678	Check TAB positions: 
+1679	 notes · ? means unplayable · Review in Edit
+1680	Score zoom and history
+1681	Delete current bar
+1682	Correct invalid input in Properties. Your input data has been preserved.
+1683	Attached {value2} chord diagram to bar {value1}.
+1684	Deleted chord diagram.
+1685	Deleted selected drum notes. Rhythm durations are kept.
+1686	Review input issues
+1687	 · {value1} more
+1688	Input review 
+1689	Score editor
+1690	Back from score editor
+1691	Open score settings
+1692	Save score
+1693	Choose score file
+1694	You have unsaved changes.
+1695	Save draft and close
+1696	Discard changes and close
+1697	Keep editing
+1698	FRETIVA LAB / Score Editor
+1699	 · User-edited · Not reviewed for teaching
+1700	File management
+1701	Loaded the default score. You can undo this. Other saved copies are kept.
+1702	Restore default score
+1703	Import file
+1704	Download file
+1705	Saved · No changes
+1706	Unsaved changes
+1707	Save in this browser
+1708	Input guide · Shortcuts
+1709	Click: place cursor · Numbers: fret · ↑↓: string · ←→: position · R: rest · Delete: remove · Tab: staff/TAB
+1710	Numbers edit the current position without advancing. Use ← → to move. For frets 10, 12, 15, or 23, type the digits in order with no time limit. Selecting a new position starts a new number.
+1711	Drag a note or TAB number vertically to change pitch/string, or horizontally onto a rest of the same duration. Create space with Insert Beat Before/After or Split Beat. Esc cancels the move.
+1712	Keyboard input advances automatically. In chord mode, press → to confirm. ← →: move · R: rest · Delete: remove selected note.
+1713	Score input
+1714	Selected note properties
+1715	Score input tools
+1716	Selection properties · Advanced editing
+1717	Input review · 
+1718	 issues · Draft can be saved / Playback paused
+1719	Listen to score
+1720	■ Stop score
+1721	▶ Listen to score
+1722	Resume playback
+1723	Sound 
+1724	Score sound
+1725	Playhead 
+1726	Bar {value1} · Beat {value2}
+1727	Listen to score pitch and rhythm
+1728	Click sound
+1729	Drums · Synthesized
+1730	Piano · Reference sound
+1731	Clean guitar · Plucked-string model
+1732	Score save details
+1733	Applies to the current edit. Use Save at the top to finish saving.
+1734	The title and song details appear at the top of the first page.
+1735	Composer / Artist 
+1736	Time signature
+1737	Save
+1738	FRETIVA LAB app QR code
+1739	Technique Quick Tools
+1740	Open technique Quick Tools
+1741	Collapse technique Quick Tools
+1742	Remove {value1} from Quick Tools
+1743	Game input
+1744	Game input mode
+1745	Audio · Mic / USB
+1746	MIDI input
+1747	 · Unsupported
+1748	Audio input
+1749	Input device
+1750	Audio input device
+1751	Default microphone
+1752	Selected device · Disconnected
+1753	Audio input {value1}
+1754	Input channel
+1755	Audio input channel
+1756	All · Mono sum
+1757	Channel 
+1758	Input level
+1759	Audio input level
+1760	Clipping · Lower your interface input gain.
+1761	Waiting for signal
+1762	Reconnect
+1763	Single-note detection · Only available channels are shown.
+1764	Connect device
+1765	This browser does not support MIDI input.
+1766	MIDI input device
+1767	Choose device
+1768	Close settings and select the score before playing. Notes within 70 ms form a chord, then input advances by the selected duration.
+1769	Each new Note On counts as a hit. Release and play again for another hit.
+1770	All MIDI channels · No automatic string detection or pitch bend
+1771	Audio input is available in the tuner and game.
+1772	Theme ready
+1773	Preparing theme {value1}%
+1774	Release to refresh
+1775	Pull down to refresh
+1776	Couldn't load the app.
+1777	Try again
+1778	Row {value1}, step {value2}
+1779	Row {value1}, step {value2} · Velocity {value3}
+1780	Delete row {value1}
+1781	Groove sound settings
+1782	Groove editing grid
+1783	Groove track list
+1784	Velocity:
+1785	Velocity
+1786	Default
+1787	Strong
+1788	Soft
+1789	Quick:
+1790	Quick
+1791	Partial
+1792	Rows:
+1793	Add row
+1794	Add
+1795	Reset the pattern?
+1796	Save groove pack
+1797	Close groove packs
+1798	Save mode
+1799	Update existing pack
+1800	Save as new pack
+1801	Pack name
+1802	E.g. Funk Practice 01
+1803	 sounds · 
+1804	 · Saves the current checked pattern.
+1805	Save pack
+1806	Search pack names
+1807	Sort saved packs
+1808	Recently saved
+1809	Name
+1810	Custom order
+1811	Groove pack list
+1812	 Pause preview
+1813	 Preview
+1814	Edit pattern
+1815	 Move up
+1816	 Move down
+1817	New pack name
+1818	No saved packs. Save one from the editor.
+1819	Choose a pack
+1820	Row {value1} sound
+1821	 · Off
+1822	Choose row {value1} sound
+1823	 Preview
+1824	Couldn't load the audio. Tap to try again.
+1825	Mute this row
+1826	App bottom navigation
+1827	FRETIVA LAB desktop navigation
+1828	Main screens
+1829	Practice courses
+1830	Beginner ★
+1831	Rhythm & Chords
+1832	Backing · Editing
+1833	Build progressions
+1834	Quick editing
+1835	Display theme
+1836	{value1} theme
+1837	‹ My Scores
+1838	Choose saved score
+1839	This is an unfinished draft. Check the meter and input in the score editor.
+1840	Delete score
+1841	FRETIVA LAB home
+1842	Full menu
+1843	Search title or artist
+1844	Sort: {value1}
+1845	Sort scores: {value1}
+1846	Score list filter
+1847	Recent practice
+1848	Manage scores on this device
+1849	Device storage and backup
+1850	Sort scores
+1851	Choose score order
+1852	Close ×
+1853	Back to My Scores
+1854	PDF document menu
+1855	Quick PDF edit
+1856	PDF document actions
+1857	pages · 
+1858	Document details
+1859	Reset crop
+1860	Edited view
+1861	Original view
+1862	Fullscreen
+1863	Previous PDF page
+1864	Start/stop PDF practice
+1865	Ⅱ Pause
+1866	▶ Resume practice
+1867	▶ Start practice
+1868	Count-in
+1869	Next PDF page
+1870	BPM and practice settings
+1871	Decrease BPM by 10
+1872	Decrease BPM by 1
+1873	Increase BPM by 1
+1874	Increase BPM by 10
+1875	Practice settings
+1876	Pen settings
+1877	Color · Width
+1878	Color
+1879	Pen color {value1}
+1880	Width
+1881	Pen width {value1}
+1882	Opacity
+1883	Pen opacity
+1884	PDF editing tools
+1885	Move/select
+1886	Pen
+1887	Text
+1888	Crop margins
+1889	Set bars
+1890	Undo PDF edit
+1891	Redo PDF edit
+1892	Edit PDF text note
+1893	Score note
+1894	Move note
+1895	Drag to move
+1896	Save note
+1897	Cancel note
+1898	Note properties
+1899	Delete note
+1900	Size
+1901	Note size
+1902	Note color {value1}
+1903	Delete selected drawing
+1904	Selected drawing properties
+1905	Deselect drawing
+1906	Selected drawing color {value1}
+1907	Selected drawing width
+1908	PDF area to keep
+1909	Crop {value1} handle
+1910	Set bar count
+1911	How many bars should this selection contain?
+1912	Split into {value1} bars
+1913	Cancel bar count
+1914	All PDF pages vertically
+1915	Page {value1}
+1916	Saved first-page preview
+1917	Recent 
+1918	Loading…
+1919	Mark PDF bars
+1920	PDF score page
+1921	Select line: bars {value1}–{value2}
+1922	Resize line region
+1923	Delete line region from bar {value1}
+1924	Tap the lower-right corner
+1925	Edit score details
+1926	Continuous PDF scroll
+1927	View all pages continuously
+1928	BPM · Quarter-note beat
+1929	PDF meter
+1930	Metronome sound
+1931	1-bar count-in
+1932	Shared metronome volume · 
+1933	PDF metronome volume
+1934	Bar positions · Loop practice
+1935	Printed bars are not detected automatically. Practice follows the order you mark the regions.
+1936	Highlight current line background
+1937	Selected bar
+1938	Selected PDF bar
+1939	Page
+1940	Beats in this bar · Based on the time-signature denominator
+1941	Beats per bar
+1942	Delete selected line region
+1943	Practice order · E.g. 1,2,1,2,3
+1944	PDF practice order
+1945	Enter marked bar numbers separated by commas.
+1946	Apply practice order
+1947	Start index
+1948	End index
+1949	Add bar markers and notes over the PDF. Export Original PDF does not include margin cropping or notes.
+1950	Reset margins
+1951	Cancel crop
+1952	Apply margin crop
+1953	‹ My Scores
+1954	Save again
+1955	Discard unsaved changes and leave
+1956	✓ Done editing
+1957	Quick edit
+1958	PDF score area
+1959	Fullscreen score controls
+1960	Fullscreen previous page
+1961	Fullscreen next page
+1962	Close fullscreen score
+1963	Each page can store up to 1,000 strokes. Remove unnecessary strokes before adding more.
+1964	Save or cancel the current note before writing on another page.
+1965	Save or cancel the note you're editing.
+1966	‹ Previous bar
+1967	Bar {value1}
+1968	Choose bar
+1969	Next bar ›
+1970	Practice settings · 
+1971	PDF score details
+1972	Composer / Artist
+1973	Unspecified
+1974	Beginner
+1975	Intermediate
+1976	Advanced
+1977	Practice tags · Comma-separated
+1978	Notes
+1979	The original PDF and settings are stored in this browser on this device, without uploading to a server.
+1980	Saving…
+1981	Save to device
+1982	Stored only in this browser on this device. Browser data cleanup or a device change may remove it. Keep original files and backups separately.
+1983	Site storage: 
+1984	 MB / Quota: 
+1985	Persistent storage was granted.
+1986	The browser did not grant persistent storage. Keep a backup.
+1987	Request persistent storage
+1988	Back up PDF library
+1989	Restore PDF backup
+1990	PDF backups include originals, margin crops, text notes, bars, and practice settings. Export editable scores from the editor's File menu.
+1991	Choose PDF file
+1992	Choose PDF backup
+1993	Preparing practice piece…
+1994	Delete “{value1}”{value2} from this device?
+1995	 original PDF and settings
+1996	 editable score
+1997	Score deleted.
+1998	The PDF “{value1}” already exists. Open the existing score?
+1999	Preparing editor…
+2000	OK
+2001	Rename score
+2002	PDF zoom
+2003	Width and zoom
+2004	Fit page
+2005	 scores: move to
+2006	Destination folder
+2007	My Scores (default location)
+2008	’ folder: delete it? Its scores will move to My Scores and will not be deleted.
+2009	Folder name
+2010	Move
+2011	Delete folder
+2012	Done editing list
+2013	Edit list
+2014	My Scores location
+2015	Search all folders
+2016	 Folder editing is temporarily unavailable.
+2017	Scores
+2018	New folder
+2019	Move to folder (
+2020	Manage current folder
+2021	Delete this folder
+2022	My Scores list
+2023	Open {value1} folder
+2024	Manage {value1} folder
+2025	No favorite scores. Add them in Edit.
+2026	No recently practiced scores.
+2027	No saved scores yet.
+2028	No scores in this location.
+2029	Import a PDF or create a score.
+2030	Score categories
+2031	{value1} backing sound is fixed
+2032	Backing sound
+2033	All backing sounds {value1}
+2034	{value1} · Fixed backing
+2035	Drums · Bass · Piano
+2036	{value1} backing settings
+2037	Choose {value1} beat
+2038	Desktop Note Shooter status
+2039	Played note
+2040	Landscape Note Shooter stats
+2041	Current
+2042	Landscape Note Shooter settings
+2043	Difficulty 
+2044	Hints 
+2045	Choose hint level
+2046	Change skin
+2047	Solfège KO
+2048	Note names EN
+2049	Microphone 
+2050	Sound effects
+2051	History
+2052	Choose an object to adjust
+2053	Select in Preview or the placement list below
+2054	px · Scale 
+2055	Adjusting
+2056	Target skin and text alignment
+2057	Current target skin
+2058	Save per note
+2059	Choose target note to adjust
+2060	Adjust {value1} target
+2061	{value1} target live preview
+2062	Preview actual game position and size
+2063	Target text: move by 1 pixel
+2064	Target text up 1 pixel
+2065	Target text left 1 pixel
+2066	Text
+2067	Target text right 1 pixel
+2068	Target text down 1 pixel
+2069	Text horizontal offset (reference px)
+2070	Target text horizontal offset
+2071	Text vertical offset (reference px)
+2072	Target text vertical offset
+2073	Text color
+2074	Choose a color to match orb brightness
+2075	Auto color
+2076	Text color
+2077	Target text color
+2078	Target text color HEX
+2079	Outline color
+2080	Target text outline color
+2081	Target text outline color HEX
+2082	Text size
+2083	Reduce target text size by 5%
+2084	Reduce target text size by 1%
+2085	Target text size
+2086	Increase target text size by 1%
+2087	Increase target text size by 5%
+2088	Target skin size
+2089	Reduce target size by 5%
+2090	Reduce target size by 1%
+2091	Increase target size by 1%
+2092	Increase target size by 5%
+2093	Scale text and target together
+2094	Reduce text and target size by 5%
+2095	Reduce text and target size by 1%
+2096	Text and target size
+2097	Increase text and target size by 1%
+2098	Increase text and target size by 5%
+2099	Text moves on a fixed layer matching the target's size. Browser-only adjustments appear as changes; Apply saves them as shared deployment values.
+2100	Reset this note's target adjustments
+2101	Guitar effect alignment
+2102	FLOOR · AURA · As needed
+2103	Guitar effect type to adjust
+2104	Guitar stand/floor
+2105	Guitar aura
+2106	✓ Selected
+2107	Choose {value1} skin
+2108	Selected effect
+2109	Live adjustment
+2110	Disabled
+2111	Effect: move by 1 pixel
+2112	Effect up 1 pixel
+2113	Effect left 1 pixel
+2114	Effect right 1 pixel
+2115	Effect down 1 pixel
+2116	X offset (px)
+2117	Effect X offset
+2118	Y offset (px)
+2119	Effect Y offset
+2120	Reduce effect size by 5%
+2121	Reduce effect size by 1%
+2122	Effect size
+2123	Increase effect size by 1%
+2124	Increase effect size by 5%
+2125	Opacity
+2126	Effect opacity
+2127	Reset this effect's adjustments
+2128	Choose an effect for this slot in Change Skin to adjust its position, size, and opacity.
+2129	Placed objects
+2130	 OBJECTS · Tap to open
+2131	Select an existing object and adjust its position and size.
+2132	Quick select
+2133	Placed object to edit
+2134	Choose an object
+2135	Placed object list
+2136	Fine-tune position and size
+2137	Move by 1 pixel
+2138	Up 1 pixel
+2139	Up 1 px
+2140	Left 1 pixel
+2141	Left 1 px
+2142	Right 1 pixel
+2143	Right 1 px
+2144	Down 1 pixel
+2145	Down 1 px
+2146	X position (px)
+2147	Object X coordinate in pixels
+2148	Y position (px)
+2149	Object Y coordinate in pixels
+2150	Arrow keys
+2151	 Move 1 px · 
+2152	 Move 5 px
+2153	Reduce size by 5%
+2154	Reduce size by 1%
+2155	Object size
+2156	Increase size by 1%
+2157	Increase size by 5%
+2158	Restore selected object to pre-edit state
+2159	Sleepy frog
+2160	Dozing animation
+2161	Cycles through breathing, nodding, flopping, and waking
+2162	Sleepy frog animation
+2163	Average doze interval (s)
+2164	Frog doze interval
+2165	Lying duration (s)
+2166	Frog lying duration
+2167	Flop probability
+2168	Frog flop probability
+2169	Animation speed
+2170	Sleepy frog animation speed
+2171	Open-mouth sleep duration
+2172	s
+2173	Frog open-mouth sleep duration
+2174	Preview sleepy frog animation
+2175	Preview animation and bubble
+2176	Plays in Preview only; saved values stay unchanged
+2177	Stop frog animation preview
+2178	Frog color
+2179	Changes hue while keeping original details
+2180	Sleepy frog body color
+2181	Sleep bubble color
+2182	Applies to the bubble layer only
+2183	Frog sleep bubble color
+2184	Frog color presets
+2185	Apply hue, saturation, brightness, and bubble color together
+2186	Apply {value1} colors
+2187	Body tint strength
+2188	Sleepy frog tint strength
+2189	Body brightness
+2190	Sleepy frog brightness
+2191	Save the ground contact point on rocks, lily pads, bridges, or the lower dock
+2192	Landing
+2193	Sleepy frog landing object
+2194	Choose rock, lily pad, bridge, or dock
+2195	Sleepy frog X coordinate
+2196	Sleepy frog Y coordinate
+2197	Nudge sleepy frog position
+2198	Move point A by 1 px
+2199	Sleepy frog left 1 pixel
+2200	Sleepy frog up 1 pixel
+2201	Sleepy frog down 1 pixel
+2202	Sleepy frog right 1 pixel
+2203	Sleep bubble
+2204	An independent layer separate from the frog
+2205	Show frog sleep bubble
+2206	Bubble base size
+2207	Frog bubble base size
+2208	Bubble maximum size
+2209	Frog bubble maximum size
+2210	Bubble breathing speed
+2211	Frog bubble breathing speed
+2212	Bubble opacity
+2213	Frog bubble opacity
+2214	Lava Canyon baby dragon
+2215	Ambient behavior
+2216	Plays resting, dozing, sleeping, and occasional fire breath
+2217	Baby dragon ambient behavior
+2218	Average behavior interval (s)
+2219	Baby dragon behavior interval
+2220	Sleep duration (s)
+2221	Baby dragon sleep duration
+2222	Fire breath probability
+2223	Baby dragon fire breath probability
+2224	Lying sleep probability
+2225	Baby dragon sleep probability
+2226	Baby dragon animation speed
+2227	Preview baby dragon animation
+2228	Preview animation
+2229	Plays in Preview only; saved values stay unchanged
+2230	Stop baby dragon animation preview
+2231	Diving frog settings
+2232	Frog movement settings
+2233	Repeat dives
+2234	Hopping
+2235	When OFF, stays at the default position
+2236	Frog movement
+2237	Movement order
+2238	Frog jump order
+2239	Dive interval (s)
+2240	Jump interval (s)
+2241	Frog dive interval
+2242	Frog jump interval
+2243	Maximum travel distance
+2244	Frog jump distance
+2245	Jump height
+2246	Frog jump height
+2247	Frog animation speed
+2248	Drag points directly in Preview
+2249	+ Point
+2250	Water entry
+2251	Free position on water
+2252	Start
+2253	Frog point {value1} landing object
+2254	Choose rock, lily pad, or bridge
+2255	Frog point {value1} X coordinate
+2256	Frog point {value1} Y coordinate
+2257	Delete frog point {value1}
+2258	Nudge frog point {value1}
+2259	 point: move 1 px
+2260	Point {value1} left 1 pixel
+2261	Point {value1} up 1 pixel
+2262	Point {value1} down 1 pixel
+2263	Point {value1} right 1 pixel
+2264	Selected object actions
+2265	Bring forward
+2266	Send backward
+2267	Delete selected object
+2268	 also deletes; restore with 
+2269	.
+2270	Free planar and perspective transform
+2271	Drag the four teal corners in Preview to fit the ground plane while preserving PNG transparency.
+2272	Rotation · In-plane
+2273	Object rotation
+2274	Object rotation angle
+2275	Scale X · Horizontal
+2276	Object horizontal scale
+2277	Scale Y · Vertical
+2278	Object vertical scale
+2279	Object X skew
+2280	Object Y skew
+2281	↔ Flip horizontal
+2282	↕ Flip vertical
+2283	Tilt X · Front/back
+2284	Object front/back perspective tilt
+2285	Object front/back perspective angle
+2286	Tilt Y · Left/right
+2287	Object left/right perspective tilt
+2288	Object left/right perspective angle
+2289	Perspective · Distance
+2290	Object perspective distance
+2291	Object perspective distance value
+2292	Drag TL · TR · BR · BL independently
+2293	Reset corners
+2294	Ambient animation
+2295	Ambient animation speed
+2296	Add new object
+2297	Only when needed
+2298	Use when you need objects beyond the default layout.
+2299	Choose {value1} placement
+2300	Add {value1} object
+2301	Placed
+2302	Edit history
+2303	 Undo · 
+2304	 Redo
+2305	↶ Undo
+2306	↷ Redo
+2307	Click an object in Preview or choose it from the placement list.
+2308	Deselect
+2309	Close map editor without saving
+2310	Applying…
+2311	Change map to edit
+2312	Compare maps
+2313	Temporary layouts are kept for this session when switching maps.
+2314	Edit previous map
+2315	Game map to edit
+2316	Edit next map
+2317	{value1} perspective handle
+2318	Frog dive entry point
+2319	Frog movement point {value1}
+2320	{value1} placed object
+2321	Overall scale handle
+2322	Difficulty and speed
+2323	Close settings
+2324	Mode 7 settings
+2325	Developer only
+2326	Live perspective adjustment
+2327	Reset perspective
+2328	Horizon
+2329	● Ready to record · Starts with the game
+2330	Preparing recording…
+2331	Creating video…
+2332	Exit bottom camera mode
+2333	Exit
+2334	Front camera
+2335	Check camera framing
+2336	Exit camera mode
+2337	Checking permissions · Cancel
+2338	Camera mode
+2339	Cancel permission request
+2340	Camera OFF
+2341	Camera ON
+2342	Stop capture
+2343	Dismiss notification
+2344	Preparing skin smoothing…
+2345	Skin smoothing: {value1}
+2346	Enhance
+2347	Wide capture
+2348	Move camera
+2349	Drag or use arrow keys to move
+2350	⠿ Move camera
+2351	Resize camera
+2352	Drag a corner or use arrow keys to resize
+2353	Choose camera mode
+2354	Show camera over full map
+2355	Split game and camera views
+2356	Split
+2357	Review recording
+2358	This browser couldn't play the preview. Save the video to view it.
+2359	Record again
+2360	Save video
+2361	Note Shooter final results
+2362	Game over
+2363	Final score
+2364	Best score 
+2365	Play again
+2366	Exit game
+2367	Share
+2368	Note Shooter score image
+2369	Note Shooter score · Game link
+2370	Preparing result image
+2371	Preparing image
+2372	Sharing…
+2373	Share game link
+2374	Challenge a friend
+2375	Game link copied.
+2376	Sharing and automatic copying are unavailable. Press and hold the link below to copy it.
+2377	Game link to share
+2378	Detected note now
+2379	Played note 
+2380	3D LAB settings
+2381	WebGL is unavailable, so the 3D LAB scene cannot be displayed.
+2382	Unable to display Moonlit Lotus Canal.
+2383	AUTO, automatic detection
+2384	{value1}, locked to string {value2}
+2385	Automatic detection
+2386	{value1} · String {value2} locked
+2387	Tap a tuning peg to lock a string
+2388	Tap the same peg to return to auto
+2389	Change instrument design, currently {value1}. Swipe up or press Enter
+2390	Select {value1} string manually
+2391	Target note {value1}{value2}
+2392	, in tune
+2393	{value1} headstock
+2394	Headstock image coming soon
+2395	String {value1} {value2}{value3}
+2396	, deselect
+2397	, select manually
+2398	Current {value1}, target {value2}, offset {value3} cents
+2399	Detecting
+2400	Current note
+2401	Offset
+2402	Tuner diagnostics
+2403	Ocean tuning gauge
+2404	Current note {value1}{value2}
+2405	In tune!
+2406	Current status {value1}
+2407	Flat
+2408	 In tune
+2409	Sharp
+2410	Allow microphone access
+2411	Turn on the microphone
+2412	Checking microphone permission
+2413	 Start microphone
+2414	Large pitch shift from {value1} to {value2}
+2415	Live pitch and tuning graph
+2416	Turn microphone off
+2417	Turn microphone on
+2418	Close tuning settings
+2419	 tuning
+2420	Reference frequency
+2421	Tuning preset
+2422	Change presets here. The main screen shows a compact summary of the current settings.
+2423	Close instrument picker
+2424	Tuner instrument
+2425	 strings
+2426	Choose an instrument, then play a string.
+2427	Open tuning settings
+2428	Current tuning preset {value1}, {value2}
+2429	Tuner top settings
+2430	Close picker
+2431	Choose instrument, currently {value1}
+2432	Instrument list
+2433	Choose tuning preset, currently {value1}
+2434	Tuning preset list

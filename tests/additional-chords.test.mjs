@@ -1,5 +1,6 @@
+import { readFile } from "./helpers/i18n-source.mjs";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+
 import test from "node:test";
 import { loadChordRuntime, snapshotChordRuntime } from "./helpers/chord-runtime.mjs";
 import { ADDITIONAL_CHORD_SHAPES, NEW_CHORD_FORMULAS, isPermittedChordOmission, parseAdditionalChordName } from "../src/chords/additionalChords.js";

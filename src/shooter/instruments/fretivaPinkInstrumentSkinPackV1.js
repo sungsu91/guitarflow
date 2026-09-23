@@ -1,3 +1,5 @@
+import ko from "../../i18n/locales/ko.js";
+import { formatMessage } from "../../i18n/format.js";
 import manifest from "../../../public/assets/shooter/instruments/fretiva_pink_instrument_skin_pack_v1/skin_manifest.json" with { type: "json" };
 export const FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_ID = manifest.pack_id;
 // Measure the solid silhouette for collisions; the original PNG stays untouched.
@@ -42,7 +44,7 @@ export const FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1 = Object.freeze(manifest.items
   pack: {acoustic: "Acoustic", electric: "Electric", bass: "Bass"}[item.category],
   assetSrc: `/assets/shooter/instruments/${manifest.pack_id}/${item.path}`,
   instrumentSkinPack: manifest.pack_id,
-  description: `${item.display_title} 원본 투명 PNG 악기 스킨`,
+  description: formatMessage(ko["shooter.valueOriginalTransparentPngInstrumentSkin"], { value1: item.display_title }),
   canvasWidth: manifest.image_contract.width, canvasHeight: manifest.image_contract.height,
   ...bounds, collisionAspectRatio: bounds.visibleWidth / bounds.visibleHeight,
   muzzleHeightScale: (manifest.image_contract.height - bounds.visibleTop) / manifest.image_contract.height,

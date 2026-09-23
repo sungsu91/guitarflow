@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {compileScoreDocument} from './scoreDocument.js';
 
 // A separate authored composition: no random notes or default-grip lookup.
@@ -109,14 +110,14 @@ export const daylightDocument={
  origin:{templateId:'daylight-fingerstyle-sketch',revision:1},instrument:'guitar',tuning:[64,59,55,50,45,40],
  title:'햇살 사이로 · 핑거스타일 작곡 스케치',english:'A Little Further · Fingerstyle Sketch',
  bpm:92,meter:[4,4],keySignature:'C',viewSettings:{tabRhythm:true,notationView:'tab'},
- purpose:'따뜻하고 경쾌하게 앞으로 걷는 멜로딕 핑거스타일. 작성 40마디, 도돌이 포함 56마디. 짧은 멜로디와 동시에 뜯는 화음을 듣고 직접 변형하세요.',
+ purpose:ko["etudes.warmUpbeatMelodicFingerstyleWithASenseOfForwardMotion40Written"],
  tips:[
   'Intro 1–2 → Verse A 3–10 ×2 → Pre 11–12 → Chorus 13–20 ×2 → Interlude 21–22 → Verse B 23–26 → Pre 27–28 → Final 29–36 → Outro 37–40.',
-  '세로로 겹친 TAB은 동시에 뜹니다. 베이스+멜로디 pinch, 중간의 두 음 화음, 단음 응답을 번갈아 연주합니다. 스트럼이나 컨트리식 교대 베이스로 강조하지 마세요.',
-  '1·2번줄의 긴 음을 노래하듯 연결하고, 안쪽 16분음표는 작게 뜹니다. B7의 D#·A와 E7의 G#·D를 분명하게 들으세요.',
-  '23–24마디의 저음은 A→G→F→E. 29–36마디는 5–10프렛의 작은 바레와 부분 보이싱으로 음역을 엽니다. G의 높은 B는 부분 보이싱으로 잡습니다.',
-  'Pre는 두 마디로 압축했습니다. 마지막 마디 Em7·Am7·Dm7은 각각 한 박, Gsus4·G는 각각 반 박입니다. 첫 Pre와 두 번째 Pre의 리듬은 다릅니다.',
-  '39마디 3박의 Gsus4→G, 마지막 Cadd9의 C→E/G→D/E를 들어보세요. 마지막 두 박은 새 피킹 없이 let ring으로 남깁니다. 템포는 끝까지 92 BPM입니다.',
+  ko["etudes.playStackedTabNumbersTogetherAlternateBassAndMelodyPinchesMiddleVoice"],
+  ko["etudes.letTheLongNotesOnStrings1And2SingAndPlay"],
+  ko["etudes.theBassInBars2324DescendsAGFEBars"],
+  ko["etudes.thePreChorusIsCondensedToTwoBarsInItsFinalBar"],
+  ko["etudes.listenForGsus4GOnBeat3OfBar39AndC"],
  ],
  measures:rows.map(([plan,pattern],bar)=>{
   let changeTick=0;
@@ -138,10 +139,10 @@ export const daylightDocument={
    ...(ending?.repeat?{repeatEnd:true}:{}),events,sketchVoicings:voicings};
  }),
 };
-const result=compileScoreDocument(daylightDocument,{root:'C',level:'중급',style:'핑거스타일',type:'아르페지오',lesson:1001,trackLesson:8});
+const result=compileScoreDocument(daylightDocument,{root:'C',difficultyReason:ko["etudes.intermediateConnectBassAndTrebleMelodyWithMixedRhythmsAndPositionShifts"],level:ko["etudes.intermediate"],style:ko["etudes.fingerstyle"],type:ko["etudes.arpeggios"],lesson:1001,trackLesson:8});
 if(!result.score||result.errors.length||result.issues.length)throw Error(JSON.stringify({errors:result.errors,issues:result.issues}));
 export const daylightFingerstyle={...result.score,edited:false,pedagogy:{
- objective:daylightDocument.purpose,prerequisites:[],preparation:'오픈 코드, 작은 바레, 베이스와 고음 동시 뜯기를 익힌 뒤 시작하세요.',
- instructions:daylightDocument.tips[1],keyBars:[],links:[],checks:['Verse·Chorus의 도돌이는 각각 두 번만 연주합니다.','고음 멜로디를 살리며 중간의 두 음 화음을 부드럽게 뜹니다.'],
- tempo:{start:72,target:92},review:'작곡 영감용 스케치 · 실제 기타에서 자신에게 맞게 운지와 강약을 조절하세요.',
+ objective:daylightDocument.purpose,prerequisites:[],preparation:ko["etudes.startAfterLearningOpenChordsSmallBarresAndSimultaneousBassAndTreble"],
+ instructions:daylightDocument.tips[1],keyBars:[],links:[],checks:[ko["etudes.playTheVerseAndChorusRepeatsTwiceEachOnly"],ko["etudes.bringOutTheTrebleMelodyWhileGentlyPluckingTheInnerDyads"]],
+ tempo:{start:72,target:92},review:ko["etudes.aSketchForCompositionInspirationAdjustFingeringAndDynamicsToSuitYour"],
 }};

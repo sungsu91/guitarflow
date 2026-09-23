@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import { CHROMATIC_NOTES, SOLFEGE } from "../music/noteNotation.js";
 
 export const TUNER_REFERENCE_FREQUENCY = 440;
@@ -354,12 +355,12 @@ export function getTunerDisplayCents(
 }
 
 export function getHorizontalTuningState({ cents, completed = false, hasSignal }) {
-  if (!hasSignal || !Number.isFinite(cents)) return "소리를 기다리는 중";
-  if (Math.abs(cents) <= 3) return completed ? "정확" : "거의 정확";
-  if (cents <= -50) return "많이 낮음";
-  if (cents < 0) return "조금 낮음";
-  if (cents >= 50) return "많이 높음";
-  return "조금 높음";
+  if (!hasSignal || !Number.isFinite(cents)) return ko["tuner.waitingForSound"];
+  if (Math.abs(cents) <= 3) return completed ? ko["app.inTune"] : ko["tuner.almostInTune"];
+  if (cents <= -50) return ko["tuner.veryFlat"];
+  if (cents < 0) return ko["tuner.slightlyFlat"];
+  if (cents >= 50) return ko["tuner.verySharp"];
+  return ko["tuner.slightlySharp"];
 }
 
 export function getTunerGuidance({
@@ -373,32 +374,32 @@ export function getTunerGuidance({
     if (trackingPhase === "NO_SIGNAL") {
       return {
         key: "waiting",
-        message: "신호가 약해졌어요. 다시 튕겨주세요",
-        detail: "마지막 음을 완료로 처리하지 않고 새 입력을 기다리고 있어요",
+        message: ko["tuner.signalFadingPluckAgain"],
+        detail: ko["tuner.waitingForANewNoteTheLastNoteWasNotMarkedComplete"],
       };
     }
-    return { key: "waiting", message: "줄을 한 번 튕겨주세요~", detail: "줄 소리가 들리면 바로 따라갈게요" };
+    return { key: "waiting", message: ko["tuner.pluckAString"], detail: ko["tuner.iLlFollowAsSoonAsIHearIt"] };
   }
   if (!manual) {
     if (Math.abs(cents) <= 3) {
       return stableExact
-        ? { key: "exact", message: "음이 정확해요! ✓", detail: "현재 감지된 음을 안정적으로 유지하고 있어요" }
-        : { key: "almost", message: "현재 음을 인식했어요", detail: "감지된 음 기준 cents 오차를 표시해요" };
+        ? { key: "exact", message: ko["tuner.inTune2"], detail: ko["tuner.theDetectedNoteIsStable"] }
+        : { key: "almost", message: ko["tuner.noteDetected"], detail: ko["tuner.showingTheCentsOffsetForTheDetectedNote"] };
     }
-    return { key: "tracking", message: "현재 음을 인식하고 있어요", detail: "입력 음이 바뀌면 음 이름도 바로 따라가요" };
+    return { key: "tracking", message: ko["tuner.detectingTheCurrentNote"], detail: ko["tuner.theNoteNameFollowsYourInput"] };
   }
   if (manual && cents >= 300) {
-    return { key: "danger", message: "⚠ 앗! 너무 높아요!", detail: "더 조이지 마세요" };
+    return { key: "danger", message: ko["tuner.tooSharp"], detail: ko["tuner.donTTightenFurther"] };
   }
   if (Math.abs(cents) <= 3) {
     return stableExact
-      ? { key: "exact", message: "딱 좋아요! ✓", detail: "안정적으로 잘 맞았어요" }
-      : { key: "almost", message: "오오 거의 다 왔어요!", detail: "그대로 잠깐 유지해요" };
+      ? { key: "exact", message: ko["tuner.inTune3"], detail: ko["tuner.stableAndInTune"] }
+      : { key: "almost", message: ko["tuner.almostThere"], detail: ko["tuner.holdItSteady"] };
   }
-  if (cents <= -100) return { key: "very-low", message: "낮아요~~! 더 올려요 ↑", detail: "목표 음을 향해 천천히 조여요" };
-  if (cents < -12) return { key: "low", message: "조금만 더~ ↑", detail: "중앙으로 가까워지고 있어요" };
-  if (cents < 0) return { key: "almost", message: "오오 거의 다 왔어요!", detail: "아주 조금만 올려요" };
-  if (cents >= 100) return { key: "very-high", message: "높아요~~! 조금 내려요 ↓", detail: "목표 음을 향해 천천히 풀어요" };
-  if (cents > 12) return { key: "high", message: "살짝 높아요~ ↓", detail: "중앙 쪽으로 조금 내려요" };
-  return { key: "almost", message: "오오 거의 다 왔어요!", detail: "아주 조금만 내려요" };
+  if (cents <= -100) return { key: "very-low", message: ko["tuner.flatTuneUp"], detail: ko["tuner.tightenSlowlyTowardTheTargetNote"] };
+  if (cents < -12) return { key: "low", message: ko["tuner.aLittleHigher"], detail: ko["tuner.gettingCloserToCenter"] };
+  if (cents < 0) return { key: "almost", message: ko["tuner.almostThere"], detail: ko["tuner.tuneUpJustALittle"] };
+  if (cents >= 100) return { key: "very-high", message: ko["tuner.sharpTuneDown"], detail: ko["tuner.loosenSlowlyTowardTheTargetNote"] };
+  if (cents > 12) return { key: "high", message: ko["tuner.aLittleSharp"], detail: ko["tuner.lowerItTowardCenter"] };
+  return { key: "almost", message: ko["tuner.almostThere"], detail: ko["tuner.tuneDownJustALittle"] };
 }

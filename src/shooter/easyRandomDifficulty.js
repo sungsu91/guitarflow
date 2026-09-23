@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {
   STANDARD_GUITAR_OPEN_MIDI,
   createShooterTargetNote,
@@ -5,8 +6,8 @@ import {
 
 export const SHOOTER_EASY_RANDOM_DIFFICULTY_ID = "easy-random";
 export const SHOOTER_NORMAL_RANDOM_DIFFICULTY_ID = "normal-random";
-export const SHOOTER_EASY_RANDOM_RANGE_LABEL = "개방현~3프렛 · # 없이 랜덤";
-export const SHOOTER_NORMAL_RANDOM_RANGE_LABEL = "개방현~3프렛 · # 포함 랜덤";
+export const SHOOTER_EASY_RANDOM_RANGE_LABEL = ko["shooter.openStringsFret3RandomNoSharps"];
+export const SHOOTER_NORMAL_RANDOM_RANGE_LABEL = ko["shooter.openStringsFret3RandomIncludingSharps"];
 
 export const SHOOTER_NORMAL_RANDOM_POSITIONS = Object.freeze(
   Object.keys(STANDARD_GUITAR_OPEN_MIDI)

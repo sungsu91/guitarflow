@@ -1,3 +1,8 @@
+import { formatMessage } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import { memo, useEffect, useRef, useState } from "react";
 import {
   LICK_TECHNIQUES,
@@ -189,6 +194,7 @@ function Fretboard({
   onNoteDelete,
   onNotePress,
 }) {
+  useLanguage();
   const [deleteTargetKey, setDeleteTargetKey] = useState("");
   const [barreDeleteTargetKey, setBarreDeleteTargetKey] = useState("");
   const [barreDraft, setBarreDraft] = useState(null);
@@ -543,7 +549,7 @@ function Fretboard({
               >
                 {showStringNames && (
                   <span>
-                    {stringInfo.stringNumber}번줄 {getPitchClass(stringInfo.pitch)}
+                    {stringInfo.stringNumber}<Translation id="components.string" />{getPitchClass(stringInfo.pitch)}
                   </span>
                 )}
                 <i />
@@ -553,7 +559,7 @@ function Fretboard({
                   </em>
                 ) : !isTabMode && openNote ? (
                   <em
-                    aria-label={editable ? `${openAccessiblePitch}, ${stringInfo.stringNumber}번줄 개방현 삭제 메뉴 열기` : onNotePress ? `${openAccessiblePitch}, ${stringInfo.stringNumber}번줄 개방현 소리 듣기` : undefined}
+                    aria-label={editable ? translateUi("components.value1OpenStringValue2DeletionMenu", { value1: openAccessiblePitch, value2: stringInfo.stringNumber }) : onNotePress ? translateUi("components.playValue1OpenStringValue2", { value1: openAccessiblePitch, value2: stringInfo.stringNumber }) : undefined}
                     className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""} ${isOpenSelected ? "selected" : ""} ${onNotePress || editable ? "is-interactive" : ""} ${deleteTargetKey === getEditablePositionKey(openNote) ? "delete-menu-open" : ""}`}
                     data-fretboard-delete-target={editable ? getEditablePositionKey(openNote) : undefined}
                     data-fret-number="0"
@@ -564,10 +570,10 @@ function Fretboard({
                     role={onNotePress || editable ? "button" : undefined}
                     tabIndex={onNotePress || editable ? 0 : undefined}
                   >
-                    {openLabel}
+                    {localizeUi(openLabel)}
                     {editable && deleteTargetKey === getEditablePositionKey(openNote) ? (
                       <button
-                        aria-label={`${openAccessiblePitch}, ${stringInfo.stringNumber}번줄 개방현 삭제`}
+                        aria-label={translateUi("components.deleteValue1OpenStringValue2", { value1: openAccessiblePitch, value2: stringInfo.stringNumber })}
                         className="fretboardNoteDeleteButton fretboardNoteDeleteButton--open"
                         onClick={(event) => deleteEditableNote(event, openNote)}
                         type="button"
@@ -578,7 +584,7 @@ function Fretboard({
                   </em>
                 ) : editable && !isTabMode && !openNote ? (
                   <button
-                    aria-label={`${stringInfo.stringNumber}번줄 개방현 음 추가`}
+                    aria-label={translateUi("components.addOpenStringValue1", { value1: stringInfo.stringNumber })}
                     className="fretboardOpenEditTarget"
                     onClick={(event) => addEditableNote(event, getEditablePosition(stringInfo, 0))}
                     type="button"
@@ -599,7 +605,7 @@ function Fretboard({
           const isDeleteMenuOpen = editable && barreDeleteTargetKey === barreKey;
           return (
             <span
-              aria-label={editable ? `${fret}프렛 ${topString}번줄부터 ${bottomString}번줄 바레 삭제 메뉴 열기` : undefined}
+              aria-label={editable ? translateUi("components.deleteBarreAtFretValue1StringsValue2Value3OpenMenu", { value1: fret, value2: topString, value3: bottomString }) : undefined}
               className={`fretboardBarre ${editable ? "fretboardBarre--editable" : ""} ${isDeleteMenuOpen ? "delete-menu-open" : ""}`}
               data-fretboard-barre-delete-target={editable ? barreKey : undefined}
               key={barre.id ?? `barre-${fret}-${fromString}-${toString}-${index}`}
@@ -621,7 +627,7 @@ function Fretboard({
               }}
               tabIndex={editable ? 0 : undefined}
             >
-              {barre.label}
+              {localizeUi(barre.label)}
             </span>
           );
         })}
@@ -647,7 +653,7 @@ function Fretboard({
           const widthRatio = Math.abs(toRatio - fromRatio);
           return (
             <span
-              aria-label={`${connection.from.fretNumber}프렛에서 ${connection.to.fretNumber}프렛 ${connection.label}`}
+              aria-label={localizeUi(translateUi("components.fretsValue1Value2Value3", { value1: connection.from.fretNumber, value2: connection.to.fretNumber, value3: connection.label }))}
               className={`fretboardTabConnection fretboardTabConnection--${connection.technique} ${connection.isActive ? "active" : ""}`}
               key={connection.id}
               role="img"
@@ -674,11 +680,11 @@ function Fretboard({
           const isVibrato = technique === LICK_TECHNIQUES.VIBRATO;
           const displayValue = getTabStepDisplay(step);
           const stringLabel = isRest
-            ? "휴지"
-            : `${step.stringNumber}번줄 ${fretNumber === 0 ? "개방현" : `${fretNumber}프렛`}`;
+            ? translateUi("app.restApp")
+            : translateUi("app.stringValue1Value2", { value1: step.stringNumber, value2: fretNumber === 0 ? ko["app.openString"] : formatMessage(ko["app.fretValue1"], { value1: fretNumber }) });
           return (
             <span
-              aria-label={`${step.order}번째 ${stringLabel}${techniqueLabel ? ` ${techniqueLabel}` : ""}`}
+              aria-label={translateUi("components.value1Value2Value3", { value1: step.order, value2: stringLabel, value3: techniqueLabel ? ` ${techniqueLabel}` : "" })}
               className={`fretboardTabNote fretboardTabNote--${technique || "pick"} ${fretNumber === 0 ? "open" : ""} ${isRest ? "rest" : ""} ${isMute ? "mute" : ""} ${isHarmonic ? "harmonic" : ""} ${step.isActive ? "active current-note" : ""}`}
               data-lick-order={step.order}
               key={step.tabId}
@@ -692,16 +698,16 @@ function Fretboard({
               {isBend ? (
                 <small className="fretboardTabLocalTechnique fretboardTabBend">
                   <i aria-hidden="true">↗</i>
-                  <em>Bend {getLickBendAmountLabel(step)}</em>
+                  <em><Translation id="originalUi.bend" />{localizeUi(getLickBendAmountLabel(step))}</em>
                 </small>
               ) : null}
               {isRelease ? (
                 <small className="fretboardTabLocalTechnique fretboardTabRelease">
                   <i aria-hidden="true">↘</i>
-                  <em>Release</em>
+                  <em><Translation id="originalUi.release" /></em>
                 </small>
               ) : null}
-              {isHarmonic ? <small className="fretboardTabLocalTechnique fretboardTabHarmonicLabel">Harm.</small> : null}
+              {isHarmonic ? <small className="fretboardTabLocalTechnique fretboardTabHarmonicLabel"><Translation id="originalUi.harm" /></small> : null}
             </span>
           );
         })}
@@ -711,7 +717,7 @@ function Fretboard({
           const position = getEditablePosition(stringInfo, fretNumber);
           return (
             <button
-              aria-label={`${position.pitch}, ${stringInfo.stringNumber}번줄 ${fretNumber}프렛 음 추가`}
+              aria-label={translateUi("components.addValue1StringValue2FretValue3", { value1: position.pitch, value2: stringInfo.stringNumber, value3: fretNumber })}
               className="fretboardEditCell"
               data-fret-number={fretNumber}
               data-string-number={stringInfo.stringNumber}
@@ -744,7 +750,7 @@ function Fretboard({
           const accessiblePitch = note.displayPitch ?? note.pitch ?? noteName;
           return (
             <span
-              aria-label={editable ? `${accessiblePitch}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 삭제 메뉴 열기` : onNotePress ? `${accessiblePitch}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 소리 듣기` : undefined}
+              aria-label={editable ? translateUi("components.value1StringValue2FretValue3OpenDeletionMenu", { value1: accessiblePitch, value2: note.stringNumber, value3: note.fretNumber }) : onNotePress ? translateUi("components.playValue1StringValue2FretValue3", { value1: accessiblePitch, value2: note.stringNumber, value3: note.fretNumber }) : undefined}
               className={`fretboardNoteChip ${isRoot ? "root" : ""} ${note.isActive ? "active" : ""} ${isCurrent ? "current-note" : ""} ${isSelected ? "selected" : ""} ${onNotePress || editable ? "is-interactive" : ""} ${deleteTargetKey === getEditablePositionKey(note) ? "delete-menu-open" : ""}`}
               data-fretboard-delete-target={editable ? getEditablePositionKey(note) : undefined}
               data-fret-number={note.fretNumber}
@@ -765,12 +771,12 @@ function Fretboard({
                 ...getNoteStyle(noteName),
               }}
               tabIndex={onNotePress || editable ? 0 : undefined}
-              title={`${accessiblePitch} · ${note.stringNumber}번줄 ${note.fretNumber}프렛`}
+              title={translateUi("components.value1StringValue2FretValue3", { value1: accessiblePitch, value2: note.stringNumber, value3: note.fretNumber })}
             >
-              <b>{displayLabel}</b>
+              <b>{localizeUi(displayLabel)}</b>
               {editable && deleteTargetKey === getEditablePositionKey(note) ? (
                 <button
-                  aria-label={`${accessiblePitch}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 삭제`}
+                  aria-label={translateUi("components.deleteValue1StringValue2FretValue3", { value1: accessiblePitch, value2: note.stringNumber, value3: note.fretNumber })}
                   className="fretboardNoteDeleteButton"
                   onClick={(event) => deleteEditableNote(event, note)}
                   type="button"
@@ -796,7 +802,7 @@ function Fretboard({
           ) return null;
           return (
             <button
-              aria-label={`${fret}프렛 ${topString}번줄부터 ${bottomString}번줄 바레 삭제`}
+              aria-label={translateUi("components.deleteBarreAtFretValue1StringsValue2Value3", { value1: fret, value2: topString, value3: bottomString })}
               className="fretboardBarreDeleteButton"
               data-fretboard-barre-delete-target={barreKey}
               key={`barre-delete-${barreKey}-${index}`}

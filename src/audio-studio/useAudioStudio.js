@@ -1,3 +1,6 @@
+import { localizeUi } from "../i18n/core.js";
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AUDIO_BUS_IDS,
@@ -93,7 +96,7 @@ export default function useAudioStudio() {
   const [importing, setImporting] = useState(false);
   const [importCompletionId, setImportCompletionId] = useState(0);
   const [fitProjectRequestId, setFitProjectRequestId] = useState(0);
-  const [notice, setNotice] = useState("편집실에서 MIX SAVE한 완성 음원이 이 보관함에 저장됩니다.");
+  const [notice, setNotice] = useState(ko["audioStudio.finishedMixesSavedWithMixSaveAppearHere"]);
   const [playbackStatus, setPlaybackStatus] = useState("stopped");
   const [libraryMixId, setLibraryMixId] = useState("");
   const [libraryPlaybackStatus, setLibraryPlaybackStatus] = useState("stopped");
@@ -139,7 +142,7 @@ export default function useAudioStudio() {
     try {
       setSavedMixes(await listAudioStudioMixes());
     } catch {
-      setNotice("완성 음원 보관함을 열 수 없습니다. 브라우저 저장 권한을 확인해주세요.");
+      setNotice(ko["audioStudio.couldnTOpenTheFinishedAudioLibraryCheckBrowserStoragePermissions"]);
     }
   }, []);
 
@@ -213,7 +216,7 @@ export default function useAudioStudio() {
     } : studioProject;
     const durationMs = getAudioStudioProjectDurationMs(playbackProject);
     if (!durationMs) {
-      setNotice("먼저 오디오 파일을 IMPORT 해주세요.");
+      setNotice(ko["audioStudio.importAnAudioFileFirst"]);
       return;
     }
     try {
@@ -330,7 +333,7 @@ export default function useAudioStudio() {
       if (import.meta.env.DEV) console.error("Audio Studio playback failed", error);
       clearScheduledPlayback();
       setPlaybackStatus("stopped");
-      setNotice("이 브라우저에서 오디오를 디코딩하거나 재생할 수 없습니다.");
+      setNotice(ko["audioStudio.thisBrowserCannotDecodeOrPlayAudio"]);
     }
   }, [clearScheduledPlayback, currentTimeMs, ensurePlaybackContext, ensureSourceBuffers, releaseLibraryAudio]);
 
@@ -369,7 +372,7 @@ export default function useAudioStudio() {
         await currentAudio.play();
         setLibraryPlaybackStatus("playing");
       } catch {
-        setNotice("이 브라우저에서 완성 음원을 재생할 수 없습니다.");
+        setNotice(ko["audioStudio.thisBrowserCannotPlayTheFinishedAudio"]);
       }
       return;
     }
@@ -387,14 +390,14 @@ export default function useAudioStudio() {
       audio.onended = releaseLibraryAudio;
       audio.onerror = () => {
         releaseLibraryAudio();
-        setNotice("완성 음원 파일을 재생할 수 없습니다.");
+        setNotice(ko["audioStudio.couldnTPlayTheFinishedAudioFile"]);
       };
       setLibraryMixId(mixId);
       await audio.play();
       setLibraryPlaybackStatus("playing");
     } catch {
       releaseLibraryAudio();
-      setNotice("완성 음원을 불러오지 못했습니다.");
+      setNotice(ko["audioStudio.couldnTLoadTheFinishedAudio"]);
     } finally {
       setProjectOperation("");
     }
@@ -407,9 +410,9 @@ export default function useAudioStudio() {
       const mix = await loadAudioStudioMix(mixId);
       if (!mix?.blob) throw new Error("MIX_NOT_FOUND");
       downloadAudioStudioBlob(mix.blob, mix.fileName);
-      setNotice(`“${mix.fileName}” 다운로드를 시작했습니다.`);
+      setNotice(formatMessage(ko["audioStudio.downloadStartedValue1"], { value1: mix.fileName }));
     } catch {
-      setNotice("완성 음원을 기기로 다운로드하지 못했습니다.");
+      setNotice(ko["audioStudio.couldnTDownloadTheFinishedAudioToYourDevice"]);
     } finally {
       setProjectOperation("");
     }
@@ -421,9 +424,9 @@ export default function useAudioStudio() {
     try {
       const renamed = await renameAudioStudioMix(mixId, name);
       await refreshSavedMixes();
-      setNotice(`완성 음원 이름을 “${renamed.fileName}”으로 변경했습니다.`);
+      setNotice(formatMessage(ko["audioStudio.renamedFinishedAudioToValue1"], { value1: renamed.fileName }));
     } catch {
-      setNotice("완성 음원 이름을 변경하지 못했습니다.");
+      setNotice(ko["audioStudio.couldnTRenameTheFinishedAudio"]);
     } finally {
       setProjectOperation("");
     }
@@ -432,15 +435,15 @@ export default function useAudioStudio() {
   const deleteSavedMix = useCallback(async (mixId) => {
     if (!mixId || projectOperation) return;
     const saved = savedMixes.find((item) => item.id === mixId);
-    if (typeof window !== "undefined" && !window.confirm(`“${saved?.fileName || "선택한 음원"}”을 삭제할까요? 이 음원을 사용하는 BACKING LOOP 재생목록에서도 제거됩니다.`)) return;
+    if (typeof window !== "undefined" && !window.confirm(localizeUi(formatMessage(ko["audioStudio.deleteValue1ItWillAlsoBeRemovedFromBackingLoopPlaylistsThat"], { value1: saved?.fileName || ko["audioStudio.selectedAudio"] })))) return;
     setProjectOperation("deleting-mix");
     try {
       if (libraryMixId === mixId) releaseLibraryAudio();
       await deleteAudioStudioMix(mixId);
       await refreshSavedMixes();
-      setNotice("완성 음원을 삭제했습니다.");
+      setNotice(ko["audioStudio.finishedAudioDeleted"]);
     } catch {
-      setNotice("완성 음원을 삭제하지 못했습니다.");
+      setNotice(ko["audioStudio.couldnTDeleteTheFinishedAudio"]);
     } finally {
       setProjectOperation("");
     }
@@ -548,7 +551,7 @@ export default function useAudioStudio() {
     mediaRecorderRef.current = null;
     releaseRecordingInput();
     setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
-    setNotice("녹음 준비를 취소했습니다.");
+    setNotice(ko["audioStudio.recordingSetupCanceled"]);
   }, [releaseRecordingInput]);
 
   const startRecording = useCallback(async (requestedTrackId = "") => {
@@ -558,11 +561,11 @@ export default function useAudioStudio() {
       return;
     }
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof window.MediaRecorder !== "function") {
-      setNotice("이 브라우저에서는 마이크 녹음을 지원하지 않습니다.");
+      setNotice(ko["audioStudio.thisBrowserDoesNotSupportMicrophoneRecording"]);
       return;
     }
     setRecordingState({ beat: 0, phase: "requesting", targetTrackId: requestedTrackId });
-    setNotice("마이크 사용 권한을 확인하고 있습니다.");
+    setNotice(ko["audioStudio.checkingMicrophonePermission"]);
     const requestVersion = ++recordingRequestVersionRef.current;
     const isCurrent = () => requestVersion === recordingRequestVersionRef.current;
     recordingPendingRef.current = true;
@@ -612,7 +615,7 @@ export default function useAudioStudio() {
         mediaRecorderRef.current = null;
         recordingChunksRef.current = [];
         setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
-        setNotice("녹음 중 문제가 발생했습니다. 기존 트랙은 그대로 유지됩니다.");
+        setNotice(ko["audioStudio.recordingFailedExistingTracksAreKept"]);
       };
       recorder.onstop = async () => {
         if (!isCurrent()) return;
@@ -628,11 +631,11 @@ export default function useAudioStudio() {
         setPlaybackStatus("paused");
         if (!blob.size || durationMs < 100) {
           setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
-          setNotice("녹음된 오디오가 너무 짧습니다. 기존 트랙은 그대로 유지됩니다.");
+          setNotice(ko["audioStudio.theRecordingIsTooShortExistingTracksAreKept"]);
           return;
         }
         setRecordingState({ beat: 0, phase: "processing", targetTrackId: targetId });
-        setNotice("녹음 파형과 BPM을 분석하고 있습니다.");
+        setNotice(ko["audioStudio.analyzingRecordedWaveformAndBpm"]);
         try {
           const recordingNumber = projectRef.current.audioSources.filter((source) => /^Recording\b/i.test(source.fileName)).length + 1;
           const extension = blobType.includes("ogg") ? "ogg" : blobType.includes("mp4") ? "m4a" : "webm";
@@ -660,9 +663,9 @@ export default function useAudioStudio() {
           setSelectedClipIds(placement.clipIds);
           setCurrentTimeMs(timelineStartMs + source.durationMs);
           setFitProjectRequestId((value) => value + 1);
-          setNotice(`“${source.fileName.replace(/\.[^.]+$/, "")}” 녹음과 실제 파형을 추가했습니다.`);
+          setNotice(formatMessage(ko["audioStudio.addedValue1RecordingAndWaveform"], { value1: source.fileName.replace(/\.[^.]+$/, "") }));
         } catch {
-          if (isCurrent()) setNotice("녹음 파일을 디코딩하지 못했습니다. 브라우저의 녹음 형식 지원을 확인해주세요.");
+          if (isCurrent()) setNotice(ko["audioStudio.couldnTDecodeTheRecordingCheckThisBrowserSRecordingFormatSupport"]);
         } finally {
           if (isCurrent()) setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
         }
@@ -671,7 +674,7 @@ export default function useAudioStudio() {
       try {
         if (!localStorage.getItem("rifflab-audio-studio-headphone-tip")) {
           localStorage.setItem("rifflab-audio-studio-headphone-tip", "shown");
-          setNotice("기존 반주를 들으며 녹음할 때는 이어폰/헤드폰 사용을 권장합니다.");
+          setNotice(ko["audioStudio.useHeadphonesWhenRecordingAlongsideExistingBackingTracks"]);
         }
       } catch {
         // Private browsing may deny localStorage; recording itself remains available.
@@ -716,7 +719,7 @@ export default function useAudioStudio() {
       releaseRecordingInput();
       mediaRecorderRef.current = null;
       setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
-      setNotice("마이크 권한을 허용해야 바로 녹음할 수 있습니다.");
+      setNotice(ko["audioStudio.allowMicrophoneAccessToRecord"]);
     }
   }, [clearScheduledPlayback, currentTimeMs, ensurePlaybackContext, playCountInClick, releaseRecordingInput, startPlayback, stopRecording]);
 
@@ -741,7 +744,7 @@ export default function useAudioStudio() {
     projectRef.current = result.project;
     setHistory((current) => recordAudioStudioHistory(current, result.project));
     setSelectedClipIds(result.selectedClipIds);
-    setNotice("선택 구간의 시작과 끝에서 클립을 분할했습니다.");
+    setNotice(ko["audioStudio.splitClipsAtTheSelectionBoundaries"]);
   }, [rangeSelection]);
 
   const trimRangeSelection = useCallback(() => {
@@ -751,7 +754,7 @@ export default function useAudioStudio() {
     projectRef.current = result.project;
     setHistory((current) => recordAudioStudioHistory(current, result.project));
     setSelectedClipIds(result.selectedClipIds);
-    setNotice("선택 구간만 남도록 클립의 앞뒤를 잘랐습니다.");
+    setNotice(ko["audioStudio.trimmedClipsToTheSelectedRange"]);
   }, [rangeSelection]);
 
   const deleteRangeSelection = useCallback(() => {
@@ -761,7 +764,7 @@ export default function useAudioStudio() {
     setHistory((current) => recordAudioStudioHistory(current, result.project));
     setSelectedClipIds(result.createdClipIds);
     setRangeSelection(null);
-    setNotice("선택한 구간을 원본 파일 손상 없이 제거했습니다.");
+    setNotice(ko["audioStudio.removedTheSelectedRangeWithoutChangingOriginalFiles"]);
   }, [rangeSelection]);
 
   const duplicateRangeSelection = useCallback(() => {
@@ -772,7 +775,7 @@ export default function useAudioStudio() {
     setHistory((current) => recordAudioStudioHistory(current, result.project));
     setSelectedClipIds(result.createdClipIds);
     setRangeSelection(null);
-    setNotice("선택 구간의 복사본을 같은 트랙 끝에 배치했습니다.");
+    setNotice(ko["audioStudio.placedACopyOfTheSelectionAtTheEndOfTheSame"]);
   }, [rangeSelection]);
 
   const loopRangeSelection = useCallback(() => {
@@ -785,7 +788,7 @@ export default function useAudioStudio() {
       },
       updatedAt: Date.now(),
     }));
-    setNotice("선택 구간을 LOOP 범위로 설정했습니다.");
+    setNotice(ko["audioStudio.setTheSelectionAsTheLoopRange"]);
   }, [commitProject, rangeSelection]);
 
   const undo = useCallback(() => {
@@ -812,7 +815,7 @@ export default function useAudioStudio() {
     const copied = copyAudioStudioClips(projectRef.current, selectedClipIdsRef.current);
     if (!copied.clips.length) return;
     clipboardRef.current = copied;
-    setNotice(`${copied.clips.length}개 Clip을 Audio Studio 클립보드에 복사했습니다.`);
+    setNotice(formatMessage(ko["audioStudio.copiedValue1ClipsToTheAudioStudioClipboard"], { value1: copied.clips.length }));
   }, []);
 
   const cutSelection = useCallback(() => {
@@ -823,7 +826,7 @@ export default function useAudioStudio() {
       ? rippleDeleteAudioStudioClips(current, selectedClipIdsRef.current)
       : removeAudioStudioClips(current, selectedClipIdsRef.current));
     setSelectedClipIds([]);
-    setNotice(`${copied.clips.length}개 Clip을 잘라냈습니다.`);
+    setNotice(formatMessage(ko["audioStudio.cutValue1Clips"], { value1: copied.clips.length }));
   }, [commitProject]);
 
   const pasteSelection = useCallback(() => {
@@ -1092,13 +1095,13 @@ export default function useAudioStudio() {
     setCurrentTimeMs(0);
     setPlaybackStatus("stopped");
     setMasterLevel(0);
-    setNotice("+ 음원 추가에서 한 개 또는 여러 파일을 선택하세요. 각 파일은 별도 TRACK에 바로 배치됩니다.");
+    setNotice(ko["audioStudio.chooseFilesFromAddAudioEachIsPlacedOnItsOwnTrack"]);
   }, [clearScheduledPlayback, releaseLibraryAudio]);
 
   const goToLibrary = useCallback(() => {
     if (recordingPendingRef.current || countInTimerRef.current || (mediaRecorderRef.current?.state && mediaRecorderRef.current.state !== "inactive")) {
       stopRecording();
-      setNotice("녹음을 먼저 마무리하고 있습니다. 완료 후 다시 뒤로가기를 눌러주세요.");
+      setNotice(ko["audioStudio.finishingTheRecordingPressBackAgainWhenComplete"]);
       return;
     }
     clearScheduledPlayback();
@@ -1116,7 +1119,7 @@ export default function useAudioStudio() {
     const mixName = String(name || "").trim();
     if (!mixName || projectOperation || !getAudioStudioProjectDurationMs(projectRef.current)) return null;
     setProjectOperation("mix-saving");
-    setNotice("모든 트랙을 하나의 완성 WAV 음원으로 믹싱하고 있습니다.");
+    setNotice(ko["audioStudio.mixingAllTracksIntoOneWavFile"]);
     try {
       const context = await ensurePlaybackContext();
       await ensureSourceBuffers(context, projectRef.current);
@@ -1133,10 +1136,10 @@ export default function useAudioStudio() {
       setSelectedClipIds([]);
       setSelectedTrackId("");
       setRangeSelection(null);
-      setNotice(`“${savedMix.fileName}” 완성 · AUDIO STUDIO 보관함과 BACKING LOOP에서 사용할 수 있습니다.`);
+      setNotice(formatMessage(ko["audioStudio.value1IsReadyInTheAudioStudioLibraryAndBackingLoop"], { value1: savedMix.fileName }));
       return savedMix;
     } catch {
-      setNotice("MIX SAVE를 완료하지 못했습니다. 음원 길이, 브라우저 메모리와 저장 공간을 확인해주세요.");
+      setNotice(ko["audioStudio.mixSaveFailedCheckAudioLengthBrowserMemoryAndAvailableStorage"]);
       return null;
     } finally {
       setProjectOperation("");
@@ -1166,11 +1169,11 @@ export default function useAudioStudio() {
     const safeTargetBpm = Number(targetBpm);
     const ratio = getAudioStudioTimeStretchRatio(safeSourceBpm, safeTargetBpm);
     if (!track || !track.clips.length || !safeSourceBpm || !safeTargetBpm) {
-      setNotice("원본 BPM과 목표 BPM을 모두 입력해주세요.");
+      setNotice(ko["audioStudio.enterBothOriginalAndTargetBpm"]);
       return false;
     }
     if (!isAudioStudioTimeStretchRatioSupported(ratio)) {
-      setNotice("STRETCH 배율은 0.75×에서 1.50×까지만 적용할 수 있습니다.");
+      setNotice(ko["audioStudio.stretchSupportsRatiosFrom075To150"]);
       return false;
     }
     clearScheduledPlayback();
@@ -1180,7 +1183,7 @@ export default function useAudioStudio() {
       ...current,
       [trackId]: { error: "", progress: 0, status: "processing" },
     }));
-    setNotice(`${safeSourceBpm} → ${safeTargetBpm} BPM · Pitch를 유지하며 변환하고 있습니다.`);
+    setNotice(formatMessage(ko["audioStudio.value1Value2BpmProcessingWithPitchPreserved"], { value1: safeSourceBpm, value2: safeTargetBpm }));
     try {
       const context = await ensurePlaybackContext();
       await ensureSourceBuffers(context, currentProject);
@@ -1279,13 +1282,13 @@ export default function useAudioStudio() {
         ...current,
         [trackId]: { error: "", progress: 1, status: "complete" },
       }));
-      setNotice(`${track.name} · ${safeSourceBpm} → ${safeTargetBpm} BPM 변환을 완료했습니다. 원본은 그대로 보존됩니다.`);
+      setNotice(formatMessage(ko["audioStudio.value1ConvertedValue2Value3BpmTheOriginalIsKept"], { value1: track.name, value2: safeSourceBpm, value3: safeTargetBpm }));
       return true;
     } catch (error) {
       const unsupported = error?.message === "AUDIO_WORKLET_UNAVAILABLE";
       const message = unsupported
-        ? "이 브라우저에서는 Signalsmith WASM AudioWorklet을 사용할 수 없습니다. 최신 브라우저에서 다시 시도해주세요."
-        : "Time Stretch를 완료하지 못했습니다. 기기 메모리와 음원 길이를 확인해주세요.";
+        ? ko["audioStudio.signalsmithWasmAudioworkletIsUnavailableInThisBrowserTryAnUpTo"]
+        : ko["audioStudio.timeStretchFailedCheckDeviceMemoryAndAudioLength"];
       setTrackStretchState((current) => ({
         ...current,
         [trackId]: { error: message, progress: 0, status: "error" },
@@ -1357,7 +1360,7 @@ export default function useAudioStudio() {
     setSelectedClipIds([]);
     setRangeSelection(null);
     setCurrentTimeMs(0);
-    setNotice(`“${targetTrack.name}” 음원을 삭제했습니다.`);
+    setNotice(formatMessage(ko["audioStudio.deletedValue1"], { value1: targetTrack.name }));
   }, [clearScheduledPlayback]);
 
   const moveActiveTrack = useCallback((direction) => {
@@ -1408,17 +1411,17 @@ export default function useAudioStudio() {
     input.value = "";
     if (!files.length || importing) return;
     setImporting(true);
-    setNotice(`${files.length}개 파일의 재생시간과 파형을 분석하고 있습니다.`);
+    setNotice(formatMessage(ko["audioStudio.analyzingDurationAndWaveformsForValue1Files"], { value1: files.length }));
     try {
       const context = await ensurePlaybackContext();
       const { decoded, rejected } = await decodeAudioStudioFiles(files, {
         context,
         onProgress: ({ completed, total }) => {
-          setNotice(`${completed}/${total} 파일 파형 생성 중...`);
+          setNotice(formatMessage(ko["audioStudio.generatingWaveformValue1Value2"], { value1: completed, value2: total }));
         },
       });
       if (!decoded.length) {
-        setNotice("가져올 수 있는 오디오가 없습니다. MP3, WAV, M4A, AAC 파일을 확인해주세요.");
+        setNotice(ko["backingLoop.noSupportedAudioToImportCheckYourMp3WavM4aOrAac"]);
         return;
       }
       decoded.forEach(({ audioBuffer, source }) => audioBuffersRef.current.set(source.id, audioBuffer));
@@ -1439,10 +1442,10 @@ export default function useAudioStudio() {
       importTargetTrackIdRef.current = "";
       setFitProjectRequestId((value) => value + 1);
       setNotice(rejected.length
-        ? `${decoded.length}개 가져오기 완료 · ${rejected.length}개는 브라우저에서 디코딩하지 못했습니다.`
-        : `${decoded.length}개 파일을 독립 Track으로 추가했습니다. Timeline에서 위치를 정하세요.`);
+        ? formatMessage(ko["audioStudio.importedValue1FilesTheBrowserCouldnTDecodeValue2Files"], { value1: decoded.length, value2: rejected.length })
+        : formatMessage(ko["audioStudio.addedValue1FilesAsSeparateTracksPositionThemOnTheTimeline"], { value1: decoded.length }));
     } catch {
-      setNotice("오디오 디코더를 시작할 수 없습니다. 브라우저 오디오 지원을 확인해주세요.");
+      setNotice(ko["audioStudio.couldnTStartTheAudioDecoderCheckBrowserAudioSupport"]);
     } finally {
       importTargetTrackIdRef.current = "";
       setImporting(false);

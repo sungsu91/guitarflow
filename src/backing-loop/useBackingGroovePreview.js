@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {useEffect, useRef, useState} from 'react';
 import {loadGrooveBackingSource} from './grooveBackingSource.js';
 import {resumeSharedAudioContext, connectMediaElementToBus, disconnectMediaElementFromBus} from '../audio/audioBus.js';
@@ -19,7 +20,7 @@ export function useBackingGroovePreview(volume) {
       s.url=URL.createObjectURL(source.blob);s.audio=new Audio(s.url);s.audio.loop=true;
       s.graph=connectMediaElementToBus(s.audio,{level:volume});s.graph?.setGrooveEnabled(true);if(!s.graph)s.audio.volume=volume;
       await s.audio.play();if(token===s.token)setLoading(false);
-    }catch{if(token===s.token){stop();setError('미리 듣기를 시작하지 못했어요.');}}
+    }catch{if(token===s.token){stop();setError(ko["backingLoop.couldnTStartThePreview"]);}}
   }
   return {active,loading,error,play,stop};
 }

@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { COASTAL_COVE_ENVIRONMENT_ASSETS } from "../assets/coastalCoveAssets.js";
 import coastalCoveLayout from "./coastal-cove-layout.json" with { type: "json" };
 
@@ -6,8 +7,8 @@ const COASTAL_COVE_BACKGROUND_SRC = "/assets/maps/coastal-cove/coastal-cove-back
 export const COASTAL_COVE_MAP_SKIN = Object.freeze({
   id: "coastal-cove",
   kind: "layered",
-  label: "해안 포구",
-  description: "맑은 얕은 바다와 모래사장을 중심으로 조립하는 모듈형 해안 맵",
+  label: ko["shooter.coastalCove"],
+  description: ko["shooter.aModularCoastalMapBuiltAroundClearShallowsAndASandyBeach"],
   previewImage: COASTAL_COVE_BACKGROUND_SRC,
   pickerPreviewImage: "/assets/maps/previews/coastal-cove-current.jpg",
   performance: Object.freeze({

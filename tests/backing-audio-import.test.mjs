@@ -1,6 +1,7 @@
+import { readFile } from "./helpers/i18n-source.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+
 import {
   BACKING_AUDIO_FILE_ACCEPT,
   BACKING_AUDIO_SOURCE_TYPES,

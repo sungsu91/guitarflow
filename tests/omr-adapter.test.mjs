@@ -33,11 +33,12 @@ test('bar duration issue preserves notes; source and raw result survive save/rel
 
 test('manual articulation on an OMR-origin score reaches shared playback without altering the PDF/source mapping',()=>{
  const d=convertTromr(parseTromr(raw),options).document;
- for(const technique of ['H','S']) {
-  const edited=patchEvent(d,0,0,{technique}),checked=compileDocumentV2(edited);
+ for(const [technique,legato,count] of [['H',false,3],['S',false,4],['S',true,3]]) {
+  const edited=patchEvent(d,0,0,{technique,...(legato?{slurTo:d.measures[0].events[1].id}:{})}),checked=compileDocumentV2(edited);
   assert.deepEqual(checked.issues,[]);
   const voices=guitarVoiceTimeline(checked.score).voices;
-  assert.equal(voices.length,3);assert.equal(voices[0].segments[1].connection,technique);
+  assert.equal(voices.length,count);assert.equal(voices[0].segments[1].connection,technique);
+  if(technique==='S'&&!legato){assert.equal(voices[1].start,1);assert.equal(voices[1].segments[0].connection,null);assert.equal(voices[0].segments[1].duration,0);}
   assert.deepEqual(edited.omr,d.omr);assert.equal(edited.origin.sourcePdfId,'pdf-1');
  }
  assert.equal(d.measures[0].events[0].technique,null);

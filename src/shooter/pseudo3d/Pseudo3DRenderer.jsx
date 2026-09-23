@@ -1,3 +1,7 @@
+import ko from "../../i18n/locales/ko.js";
+import { useLanguage } from "./../../i18n/react.jsx";
+import { localizeUi } from "./../../i18n/core.js";
+import { Translation } from "./../../i18n/react.jsx";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, RotateCcw, SlidersHorizontal } from "lucide-react";
 
@@ -11,21 +15,21 @@ import {
 const imageCache = new Map();
 
 const CONTROL_GROUPS = Object.freeze([
-  Object.freeze({ key: "horizon", label: "지평선 높이", min: 0.12, max: 0.45, step: 0.01 }),
-  Object.freeze({ key: "cameraPitch", label: "카메라 기울기", min: -0.35, max: 0.5, step: 0.01 }),
-  Object.freeze({ key: "perspectiveStrength", label: "원근감 강도", min: 0.45, max: 2.4, step: 0.01 }),
-  Object.freeze({ key: "groundScale", label: "바닥 크기", min: 0.55, max: 1.8, step: 0.01 }),
-  Object.freeze({ key: "groundScrollSpeed", label: "바닥 흐름 속도", min: 0, max: 0.8, step: 0.01 }),
-  Object.freeze({ key: "nearSpriteScale", label: "가까운 오브젝트 크기", min: 0.65, max: 1.8, step: 0.01 }),
-  Object.freeze({ key: "farSpriteScale", label: "먼 오브젝트 크기", min: 0.08, max: 0.65, step: 0.01 }),
-  Object.freeze({ key: "spritePerspectiveStrength", label: "오브젝트 원근감", min: 0.45, max: 2.4, step: 0.01 }),
-  Object.freeze({ key: "xSpreadStrength", label: "좌우 벌어짐", min: 0.45, max: 1.8, step: 0.01 }),
-  Object.freeze({ key: "enemyApproachVisualSpeed", label: "적 접근 연출 속도", min: 0.4, max: 2.2, step: 0.01 }),
-  Object.freeze({ key: "fov", label: "시야각 느낌", min: 0.65, max: 1.65, step: 0.01 }),
-  Object.freeze({ key: "cameraHeight", label: "카메라 높이", min: 0.08, max: 0.5, step: 0.01 }),
-  Object.freeze({ key: "nearClip", label: "근거리 기준", min: 0.01, max: 0.25, step: 0.01 }),
-  Object.freeze({ key: "farDistance", label: "최대 표현 거리", min: 0.5, max: 2.5, step: 0.01 }),
-  Object.freeze({ key: "groundTextureRepeat", label: "바닥 격자 반복", min: 6, max: 24, step: 1 }),
+  Object.freeze({ key: "horizon", label: ko["shooter.horizonHeight"], min: 0.12, max: 0.45, step: 0.01 }),
+  Object.freeze({ key: "cameraPitch", label: ko["shooter.cameraTilt"], min: -0.35, max: 0.5, step: 0.01 }),
+  Object.freeze({ key: "perspectiveStrength", label: ko["shooter.perspectiveStrength"], min: 0.45, max: 2.4, step: 0.01 }),
+  Object.freeze({ key: "groundScale", label: ko["shooter.groundSize"], min: 0.55, max: 1.8, step: 0.01 }),
+  Object.freeze({ key: "groundScrollSpeed", label: ko["shooter.groundScrollSpeed"], min: 0, max: 0.8, step: 0.01 }),
+  Object.freeze({ key: "nearSpriteScale", label: ko["shooter.nearObjectSize"], min: 0.65, max: 1.8, step: 0.01 }),
+  Object.freeze({ key: "farSpriteScale", label: ko["shooter.distantObjectSize"], min: 0.08, max: 0.65, step: 0.01 }),
+  Object.freeze({ key: "spritePerspectiveStrength", label: ko["shooter.objectPerspective"], min: 0.45, max: 2.4, step: 0.01 }),
+  Object.freeze({ key: "xSpreadStrength", label: ko["shooter.horizontalSpread"], min: 0.45, max: 1.8, step: 0.01 }),
+  Object.freeze({ key: "enemyApproachVisualSpeed", label: ko["shooter.enemyApproachAnimationSpeed"], min: 0.4, max: 2.2, step: 0.01 }),
+  Object.freeze({ key: "fov", label: ko["shooter.fieldOfView"], min: 0.65, max: 1.65, step: 0.01 }),
+  Object.freeze({ key: "cameraHeight", label: ko["shooter.cameraHeight"], min: 0.08, max: 0.5, step: 0.01 }),
+  Object.freeze({ key: "nearClip", label: ko["shooter.nearDistanceReference"], min: 0.01, max: 0.25, step: 0.01 }),
+  Object.freeze({ key: "farDistance", label: ko["shooter.maximumDrawDistance"], min: 0.5, max: 2.5, step: 0.01 }),
+  Object.freeze({ key: "groundTextureRepeat", label: ko["shooter.groundGridTiling"], min: 6, max: 24, step: 1 }),
 ]);
 
 function getCachedImage(src) {
@@ -166,6 +170,7 @@ function drawDecorations(context, decorations, width, height, settings, travelle
 }
 
 function Pseudo3DControlPanel({ defaults, onSettingsChange, settings }) {
+  useLanguage();
   const [open, setOpen] = useState(() => typeof window !== "undefined" && window.innerWidth > 620);
 
   return (
@@ -177,21 +182,21 @@ function Pseudo3DControlPanel({ defaults, onSettingsChange, settings }) {
         type="button"
       >
         <SlidersHorizontal aria-hidden="true" size={14} />
-        <span>모드7 설정</span>
+        <span><Translation id="shooter.mode7Settings" /></span>
         <ChevronDown aria-hidden="true" size={13} />
       </button>
       {open ? (
         <div className="pseudo3dDevPanelBody">
           <div className="pseudo3dDevPanelHeading">
-            <span><i />개발자 전용</span>
-            <strong>실시간 원근 조정</strong>
+            <span><i /><Translation id="shooter.developerOnly" /></span>
+            <strong><Translation id="shooter.livePerspectiveAdjustment" /></strong>
           </div>
           <div className="pseudo3dDevControls">
             {CONTROL_GROUPS.map((control) => (
               <label className="pseudo3dDevControl" key={control.key}>
-                <span>{control.label}<output>{Number(settings[control.key]).toFixed(control.step >= 1 ? 0 : 2)}</output></span>
+                <span>{localizeUi(control.label)}<output>{Number(settings[control.key]).toFixed(control.step >= 1 ? 0 : 2)}</output></span>
                 <input
-                  aria-label={control.label}
+                  aria-label={localizeUi(control.label)}
                   max={control.max}
                   min={control.min}
                   onChange={(event) => onSettingsChange({
@@ -210,9 +215,7 @@ function Pseudo3DControlPanel({ defaults, onSettingsChange, settings }) {
             onClick={() => onSettingsChange(defaults)}
             type="button"
           >
-            <RotateCcw aria-hidden="true" size={13} />
-            원근 설정 초기화
-          </button>
+            <RotateCcw aria-hidden="true" size={13} /><Translation id="shooter.resetPerspective" /></button>
         </div>
       ) : null}
     </aside>
@@ -302,7 +305,7 @@ function Pseudo3DRenderer({
   return (
     <>
       <canvas aria-hidden="true" className="pseudo3dGroundCanvas" ref={canvasRef} />
-      <div aria-hidden="true" className="pseudo3dHorizonLabel"><span>지평선</span></div>
+      <div aria-hidden="true" className="pseudo3dHorizonLabel"><span><Translation id="shooter.horizon" /></span></div>
       {developer && typeof onSettingsChange === "function" ? (
         <Pseudo3DControlPanel
           defaults={defaults}

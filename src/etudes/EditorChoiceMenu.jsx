@@ -1,9 +1,13 @@
+import { useLanguage } from "./../i18n/react.jsx";
+import { localizeUi } from "./../i18n/core.js";
+import { Translation } from "./../i18n/react.jsx";
 import {useId,useLayoutEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import './editorChoiceMenu.css';
 
 // A bounded two-column list in the editor's top layer, including nested settings.
 export default function EditorChoiceMenu({label,value,onChange,options,disabled=false,className='',direction='auto',triggerLabel,selectedValues}){
+  useLanguage();
  const id=useId(),trigger=useRef(null),menu=useRef(null);
  const [open,setOpen]=useState(false),[position,setPosition]=useState(null),[submenu,setSubmenu]=useState(null);
  const choices=submenu?.options??options;
@@ -37,6 +41,6 @@ export default function EditorChoiceMenu({label,value,onChange,options,disabled=
   buttons[next]?.focus();
  };
  const host=trigger.current?.closest('.editorSettingsPopover')??trigger.current?.closest('dialog');
- return <><button ref={trigger} type="button" role="combobox" aria-label={label} aria-expanded={open&&!disabled} aria-controls={open?id:undefined} aria-haspopup="listbox" disabled={disabled} className={`editorChoiceTrigger ${className}`} onClick={()=>setOpen(v=>!v)} onKeyDown={e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setOpen(true);}}}><span>{triggerLabel??selected?.label??value}</span><span aria-hidden="true">{open&&direction==='up'?'▴':'▾'}</span></button>
- {open&&!disabled&&host&&createPortal(<div ref={menu} id={id} role="listbox" aria-multiselectable={selectedValues?true:undefined} aria-label={label} className="editorChoiceMenu" style={position??{visibility:'hidden'}} onKeyDown={keyDown}>{submenu&&<button type="button" role="option" aria-selected="false" onClick={()=>setSubmenu(null)}>← 주법</button>}{choices.map(option=><button type="button" role="option" aria-selected={selectedValues?selectedValues.includes(option.value):String(option.value)===String(value)} key={option.value} onClick={()=>{if(option.options){setSubmenu(option);return;}close(true);onChange(option.value);}}>{option.label}</button>)}</div>,host)}</>;
+ return <><button ref={trigger} type="button" role="combobox" aria-label={localizeUi(label)} aria-expanded={open&&!disabled} aria-controls={open?id:undefined} aria-haspopup="listbox" disabled={disabled} className={`editorChoiceTrigger ${className}`} onClick={()=>setOpen(v=>!v)} onKeyDown={e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setOpen(true);}}}><span>{localizeUi(triggerLabel??selected?.label??value)}</span><span aria-hidden="true">{open&&direction==='up'?'▴':'▾'}</span></button>
+ {open&&!disabled&&host&&createPortal(<div ref={menu} id={id} role="listbox" aria-multiselectable={selectedValues?true:undefined} aria-label={localizeUi(label)} className="editorChoiceMenu" style={position??{visibility:'hidden'}} onKeyDown={keyDown}>{submenu&&<button type="button" role="option" aria-selected="false" onClick={()=>setSubmenu(null)}><Translation id="etudes.techniques" /></button>}{choices.map(option=><button type="button" role="option" aria-selected={selectedValues?selectedValues.includes(option.value):String(option.value)===String(value)} key={option.value} onClick={()=>{if(option.options){setSubmenu(option);return;}close(true);onChange(option.value);}}>{localizeUi(option.label)}</button>)}</div>,host)}</>;
 }

@@ -1,3 +1,8 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "./../i18n/locales/ko.js";
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ChevronLeft,ChevronRight,RotateCcw} from 'lucide-react';
 import {OPEN_CHORD_SHAPES} from './openChordStudies.js';
@@ -7,6 +12,7 @@ import {maxFret} from './scoreTuning.js';
 import './scoreChordDialog.css';
 
 export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApply,onClose}){
+  useLanguage();
  const existing=score.measures[bar].chord,count=score.tuning.length,maximum=maxFret(score)-(score.capo??0);
  const meter=measureMeters(score)[bar],unit=1920/meter[1],capacity=meterTicks(meter);
  const initialFrets=editableChordFrets(existing,count);
@@ -28,7 +34,7 @@ export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApp
  const viewStart=useRef(initialWindow.start);
  const selectedName=manual?name:(candidates.includes(choice)?choice:candidates[0]??'');
  const library=useMemo(()=>{
-  const items=score.measures.flatMap((m,i)=>m.chord?[{label:`${m.chord.name} · ${i+1}마디`,shape:m.chord}]:[]);
+  const items=score.measures.flatMap((m,i)=>m.chord?[{label:formatMessage(ko["etudes.valueBarValue"], { value1: m.chord.name, value2: i+1 }),shape:m.chord}]:[]);
   const standard=score.instrument==='guitar'&&score.tuning.join(',')==='64,59,55,50,45,40'&&!score.capo;
   return [...items,...(standard?Object.entries(OPEN_CHORD_SHAPES).map(([name,shape])=>({label:name,shape:{...shape,name}})):[])];
  },[score]);
@@ -44,7 +50,7 @@ export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApp
   // Barre is a visual annotation; only explicit string input changes notes.
   setError('');
  };
- const tap=(string,fret)=>{if(barreStart){finishBarre(barreStart,string);return;}editString(string,frets[count-string]===fret?undefined:fret);setLastInput(`${string}번줄 · ${fret}프렛`);};
+ const tap=(string,fret)=>{if(barreStart){finishBarre(barreStart,string);return;}editString(string,frets[count-string]===fret?undefined:fret);setLastInput(formatMessage(ko["etudes.stringValueFretValue"], { value1: string, value2: fret }));};
  const down=(e,string,fret)=>{
   if(e.button!==0)return;clearTimeout(timer.current);
   // The fret wire belongs to the cell on its left, including a small touch tolerance.
@@ -63,35 +69,35 @@ export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApp
  const load=value=>{if(value==='')return;const shape=library[Number(value)].shape,next=editableChordFrets(shape,count),range=shape.fretWindow??chordFretWindow(next,maximum);setFrets(next);setBarre(shape.barre??null);setFingers(shape.fingers??Array(count).fill(null));setName(shape.name);setManual(!chordNameCandidates(score,next).includes(shape.name));setChoice(shape.name);viewStart.current=range.start;setVisibleStart(range.start);setFretCount(Math.max(3,Math.min(7,range.end-range.start+1)));board.current.scrollLeft=(range.start-1)*cellWidth;setBarreStart(null);setError('');};
  const reset=()=>{setFrets(Array(count).fill(undefined));setFingers(Array(count).fill(null));setBarre(null);setBarreStart(null);setManual(false);setName('');setChoice('');setLastInput('');viewStart.current=1;setVisibleStart(1);board.current.scrollLeft=0;setError('');};
  const submit=()=>{
-  if(!selectedName.trim()){setManual(true);setError('코드명을 입력하거나 코드 후보를 선택하세요.');return;}
-  if(!appliedFrets.some(f=>Number.isInteger(f))){setError('연주할 줄을 하나 이상 선택하세요.');return;}
+  if(!selectedName.trim()){setManual(true);setError(ko["etudes.enterAChordNameOrChooseASuggestedChord"]);return;}
+  if(!appliedFrets.some(f=>Number.isInteger(f))){setError(ko["etudes.selectAtLeastOneStringToPlay"]);return;}
   try{onApply({name:selectedName.trim(),frets:appliedFrets.map(f=>f??null),fingers:fingers.map((f,i)=>appliedFrets[i]>0?f:null),barre:barre&&barre.fret>=window.start&&barre.fret<=window.end?barre:null,blankStrings:appliedFrets.flatMap((f,i)=>f===undefined?[count-i]:[]),fretWindow:window,range:{startTick:0,endTick:Math.min(unit,capacity)}},{autoFill});}catch(e){setError(e.message);}
  };
  const displayBarre=barrePreview??barre;
- return <dialog ref={ref} className={`scoreChordDialog scoreChordDialog--${mobile?'mobile':'desktop'}`} aria-label="코드표 만들기" onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();onClose();}}>
-  <header><button ref={closeButton} type="button" aria-label="코드표 닫기" onClick={onClose}><ArrowLeft size={22}/></button><h2>{existing?'코드표 편집':'코드표 만들기'}</h2><label className="chordLoad"><span>불러오기</span><select aria-label="코드표 불러오기" value="" onChange={e=>load(e.target.value)}><option value="">불러오기</option>{library.map((item,i)=><option value={i} key={i}>{item.label}</option>)}</select></label></header>
+ return <dialog ref={ref} className={`scoreChordDialog scoreChordDialog--${mobile?'mobile':'desktop'}`} aria-label={translateUi("etudes.createChordDiagram")} onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();onClose();}}>
+  <header><button ref={closeButton} type="button" aria-label={translateUi("etudes.closeChordDiagram")} onClick={onClose}><ArrowLeft size={22}/></button><h2>{existing?translateUi("etudes.editChordDiagram"):translateUi("etudes.createChordDiagram")}</h2><label className="chordLoad"><span><Translation id="app.load" /></span><select aria-label={translateUi("etudes.loadChordDiagram")} value="" onChange={e=>load(e.target.value)}><option value=""><Translation id="app.load" /></option>{library.map((item,i)=><option value={i} key={i}>{localizeUi(item.label)}</option>)}</select></label></header>
   <div className="chordDialogContent">
-   <div className="chordNameRow"><span>코드 후보</span><div className="chordCandidates">{candidates.length?candidates.map(c=><button type="button" key={c} aria-pressed={!manual&&selectedName===c} onClick={()=>{setChoice(c);setManual(false);}}>{c}</button>):<small>{frets.some(f=>Number.isInteger(f))?'일치하는 후보 없음':'운지를 선택하세요'}</small>}</div><button type="button" aria-pressed={manual} onClick={()=>{setName(selectedName);setManual(v=>!v);}}>직접 입력</button></div>
-   {!manual&&details.length>0&&<small className="chordCandidateHelp">{(()=>{const c=details.find(c=>c.name===selectedName);return [c?.assumed?'빈 줄을 개방현으로 가정':null,c?.extra?'다른 음이 섞인 근접 후보':c?.missing?'일부 구성음 생략':!c?.assumed?'구성음 일치':null].filter(Boolean).join(' · ');})()}</small>}
-   {manual&&<label className="chordManualName">코드명<input aria-label="코드명 직접 입력" placeholder="예: C, Am7, C/G" maxLength={40} value={name} onChange={e=>setName(e.target.value)}/></label>}
-   <div className="chordFretNavigation"><button type="button" aria-label="이전 프렛" disabled={visibleStart<=1} onClick={()=>scrollToFret(visibleStart-1)}><ChevronLeft size={18}/></button><span><strong>{visibleStart}–{Math.min(maximum,visibleStart+fretCount-1)} 프렛</strong> · 좌우로 밀어 이동</span><button type="button" aria-label="다음 프렛" disabled={visibleStart>=maximum-fretCount+1} onClick={()=>scrollToFret(visibleStart+1)}><ChevronRight size={18}/></button></div>
+   <div className="chordNameRow"><span><Translation id="etudes.chordCandidates" /></span><div className="chordCandidates">{candidates.length?candidates.map(c=><button type="button" key={c} aria-pressed={!manual&&selectedName===c} onClick={()=>{setChoice(c);setManual(false);}}>{c}</button>):<small>{frets.some(f=>Number.isInteger(f))?translateUi("etudes.noMatchingCandidates"):translateUi("etudes.chooseAFingering")}</small>}</div><button type="button" aria-pressed={manual} onClick={()=>{setName(selectedName);setManual(v=>!v);}}><Translation id="audioStudio.manual" /></button></div>
+   {!manual&&details.length>0&&<small className="chordCandidateHelp">{(()=>{const c=details.find(c=>c.name===selectedName);return [c?.assumed?ko["etudes.treatEmptyStringsAsOpen"]:null,c?.extra?ko["etudes.nearMatchWithExtraTones"]:c?.missing?ko["etudes.someChordTonesOmitted"]:!c?.assumed?ko["etudes.matchingChordTones"]:null].filter(Boolean).join(' · ');})()}</small>}
+   {manual&&<label className="chordManualName"><Translation id="etudes.chordNames" /><input aria-label={translateUi("etudes.enterChordName")} placeholder={translateUi("etudes.eGCAm7CG")} maxLength={40} value={name} onChange={e=>setName(e.target.value)}/></label>}
+   <div className="chordFretNavigation"><button type="button" aria-label={translateUi("etudes.previousFret")} disabled={visibleStart<=1} onClick={()=>scrollToFret(visibleStart-1)}><ChevronLeft size={18}/></button><span><strong>{visibleStart}–{Math.min(maximum,visibleStart+fretCount-1)}<Translation id="etudes.fret" /></strong><Translation id="etudes.swipeToMove" /></span><button type="button" aria-label={translateUi("etudes.nextFret")} disabled={visibleStart>=maximum-fretCount+1} onClick={()=>scrollToFret(visibleStart+1)}><ChevronRight size={18}/></button></div>
    <div className="chordFretboard" style={{'--chord-cell':`${cellWidth}px`,'--chord-row':`${rowHeight}px`,'--chord-board-height':`${rowHeight*count}px`}}>
-    <div className="chordOpenStrings">{Array.from({length:count},(_,i)=>{const string=i+1,value=frets[count-string];return <div key={string}><span>{string}</span><button type="button" aria-label={`${string}번줄 개방현·뮤트 전환`} title="빈칸 → O → X → 빈칸" onClick={()=>{setBarreStart(null);editString(string,value===0?null:value===null?undefined:0);}}>{value===0?'○':value===null?'×':''}</button></div>;})}</div>
+    <div className="chordOpenStrings">{Array.from({length:count},(_,i)=>{const string=i+1,value=frets[count-string];return <div key={string}><span>{string}</span><button type="button" aria-label={translateUi("etudes.toggleStringValue1OpenMuted", { value1: string })} title={translateUi("etudes.blankOXBlank")} onClick={()=>{setBarreStart(null);editString(string,value===0?null:value===null?undefined:0);}}>{value===0?'○':value===null?'×':''}</button></div>;})}</div>
     <div className="chordFretViewport"><div className="chordFretScroll" ref={board} onScroll={()=>{const first=Math.min(maximum-fretCount+1,Math.max(1,Math.round(board.current.scrollLeft/cellWidth)+1));viewStart.current=first;setVisibleStart(first);if(gesture.current&&!gesture.current.long){gesture.current.moved=true;clearTimeout(timer.current);}}}>
      <div className="chordFretColumns">{Array.from({length:maximum},(_,i)=>i+1).map(fret=><div key={fret} className={`chordFretColumn${fret===1?' is-nut':''}`}>
-      <div className="chordFretCells">{Array.from({length:count},(_,i)=>i+1).map(string=><button key={string} type="button" aria-label={`${string}번줄 ${fret}프렛`} aria-pressed={frets[count-string]===fret} onPointerDown={e=>down(e,string,fret)} onPointerMove={move} onPointerUp={up} onPointerCancel={clearGesture} onContextMenu={e=>e.preventDefault()} onClick={e=>{if(e.detail===0)tap(string,fret);}}><span className="chordStringLine"/>{frets[count-string]===fret&&<span className="chordFingerDot"/>}</button>)}{displayBarre?.fret===fret&&<span className="chordBarreMark" style={{top:(displayBarre.to-1)*rowHeight+(rowHeight-16)/2,height:(displayBarre.from-displayBarre.to)*rowHeight+16}}/>}</div>
+      <div className="chordFretCells">{Array.from({length:count},(_,i)=>i+1).map(string=><button key={string} type="button" aria-label={translateUi("etudes.stringValue1FretValue2", { value1: string, value2: fret })} aria-pressed={frets[count-string]===fret} onPointerDown={e=>down(e,string,fret)} onPointerMove={move} onPointerUp={up} onPointerCancel={clearGesture} onContextMenu={e=>e.preventDefault()} onClick={e=>{if(e.detail===0)tap(string,fret);}}><span className="chordStringLine"/>{frets[count-string]===fret&&<span className="chordFingerDot"/>}</button>)}{displayBarre?.fret===fret&&<span className="chordBarreMark" style={{top:(displayBarre.to-1)*rowHeight+(rowHeight-16)/2,height:(displayBarre.from-displayBarre.to)*rowHeight+16}}/>}</div>
       <span className="chordFretNumber">{fret}</span>
      </div>)}</div>
     </div></div>
    </div>
-   <label className="chordFretCount"><span>표시 프렛 <strong>{fretCount}칸</strong></span><input type="range" aria-label="표시 프렛 수" min="3" max="7" step="1" value={fretCount} onChange={e=>{const n=Number(e.target.value);viewStart.current=Math.min(visibleStart,maximum-n+1);setFretCount(n);setError('');}}/><output>{window.start}–{window.end}프렛 부착</output></label>
+   <label className="chordFretCount"><span><Translation id="etudes.visibleFrets" /><strong>{fretCount}<Translation id="etudes.cells" /></strong></span><input type="range" aria-label={translateUi("etudes.numberOfVisibleFrets")} min="3" max="7" step="1" value={fretCount} onChange={e=>{const n=Number(e.target.value);viewStart.current=Math.min(visibleStart,maximum-n+1);setFretCount(n);setError('');}}/><output>{window.start}–{window.end}<Translation id="etudes.placeFret" /></output></label>
 
-   {barreStart?<div className="chordBarreHint" role="status">{barreStart.fret}프렛 · 바레 끝 줄을 누르세요<button type="button" onClick={()=>setBarreStart(null)}>취소</button></div>:<p className="chordGestureHelp">탭하여 운지 · 다시 탭하여 해제 · 길게 눌러 바레</p>}
-   <div className="chordGripSummary"><span>선택 운지 <strong>{appliedFrets.map(f=>f===undefined?'–':f===null?'X':f).join(' · ')}</strong><small>{count}→1번 줄{lastInput&&` · ${lastInput}`}</small></span><button type="button" aria-label="코드표 운지 초기화" onClick={reset}><RotateCcw size={16}/>초기화</button></div>
-   <label className="chordAutoFill"><input type="checkbox" checked={autoFill} onChange={e=>setAutoFill(e.target.checked)}/><span>선택 운지 자동 기입<small>{autoFill?'1박에만 기입합니다. 반복은 악보의 박 복사를 사용하세요.':'코드표만 붙이고 음표는 유지합니다.'}</small></span></label>
-   {barre&&<div className="chordBarreHint">바레 {barre.fret}프렛 · {barre.from}→{barre.to}번 줄<button type="button" onClick={()=>{setBarre(null);setBarreStart(null);}}>바레 해제</button></div>}
-   {error&&<p className="chordDialogError" role="alert">{error}</p>}
+   {barreStart?<div className="chordBarreHint" role="status">{barreStart.fret}<Translation id="etudes.fretTapTheEndingStringForTheBarre" /><button type="button" onClick={()=>setBarreStart(null)}><Translation id="common.cancel" /></button></div>:<p className="chordGestureHelp"><Translation id="etudes.tapToPlaceTapAgainToClearHoldForBarre" /></p>}
+   <div className="chordGripSummary"><span><Translation id="etudes.selectedFingering" /><strong>{appliedFrets.map(f=>f===undefined?'–':f===null?'X':f).join(' · ')}</strong><small>{count}<Translation id="etudes.1stStringScoreChordDialog" />{lastInput&&` · ${lastInput}`}</small></span><button type="button" aria-label={translateUi("etudes.resetChordFingering")} onClick={reset}><RotateCcw size={16}/><Translation id="app.reset" /></button></div>
+   <label className="chordAutoFill"><input type="checkbox" checked={autoFill} onChange={e=>setAutoFill(e.target.checked)}/><span><Translation id="etudes.insertSelectedFingering" /><small>{autoFill?translateUi("etudes.insertsOnOneBeatOnlyUseCopyBeatInTheScoreTo"):translateUi("etudes.attachTheDiagramOnlyKeepExistingNotes")}</small></span></label>
+   {barre&&<div className="chordBarreHint"><Translation id="etudes.barre" />{barre.fret}<Translation id="etudes.fretScoreChordDialog" />{barre.from}→{barre.to}<Translation id="etudes.stringEditorSettings" /><button type="button" onClick={()=>{setBarre(null);setBarreStart(null);}}><Translation id="etudes.removeBarre" /></button></div>}
+   {error&&<p className="chordDialogError" role="alert">{localizeUi(error)}</p>}
   </div>
-  <footer>{existing&&<button type="button" className="chordRemove" onClick={()=>onApply(null)}>코드표 삭제</button>}<button type="button" className="chordApply" onClick={submit}>{existing?'변경 적용':'악보에 붙이기'}</button></footer>
+  <footer>{existing&&<button type="button" className="chordRemove" onClick={()=>onApply(null)}><Translation id="etudes.deleteChordDiagram" /></button>}<button type="button" className="chordApply" onClick={submit}>{existing?translateUi("etudes.applyChanges"):translateUi("etudes.attachToScore")}</button></footer>
  </dialog>;
 }

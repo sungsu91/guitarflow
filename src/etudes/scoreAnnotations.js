@@ -1,3 +1,5 @@
+import { localizeUi } from "../i18n/core.js";
+import ko from "../i18n/locales/ko.js";
 // Offsets use engraving units, so zooming and printing preserve placement.
 export function annotationOffset(offset){
  return {x:Number.isFinite(offset?.x)?offset.x:0,y:Number.isFinite(offset?.y)?offset.y:0};
@@ -17,7 +19,7 @@ export function bindAnnotationEditing(svg,{offsets,onMove,onName}){
   for(const [key,value] of Object.entries({x:box.x,y:box.y,width:box.width,height:box.height,fill:'transparent',stroke:'none','pointer-events':'all'}))hit.setAttribute(key,value);
   node.prepend(hit);svg.append(node);node.style.cursor='grab';node.style.touchAction='none';
   node.setAttribute('tabindex','0');node.setAttribute('role','button');
-  node.setAttribute('aria-label',kind==='section'?'구간 표시 이동':kind==='chord'?'코드표 이동':'코드명 수정');
+  node.setAttribute('aria-label',localizeUi(kind==='section'?ko["etudes.moveSectionMarker"]:kind==='chord'?ko["etudes.moveChordDiagram"]:ko["etudes.editChordName"]));
   let gesture=null,suppress=false;
   const local=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());};
   const editName=()=>{
@@ -25,9 +27,9 @@ export function bindAnnotationEditing(svg,{offsets,onMove,onName}){
    const field=document.createElementNS(ns,'foreignObject');
    for(const [k,v] of Object.entries({x:box.x,y:box.y-3,width:Math.max(110,box.width+16),height:30}))field.setAttribute(k,v);
    const input=document.createElementNS('http://www.w3.org/1999/xhtml','input');
-   input.setAttribute('aria-label','코드명 직접 입력');input.maxLength=40;
+   input.setAttribute('aria-label',localizeUi(ko["etudes.enterChordName"]));input.maxLength=40;
    const fullName=node.dataset.harmonyText??node.querySelector('text')?.textContent??'';
-   input.value=fullName==='코드명'?'':fullName;
+   input.value=fullName===ko["etudes.chordNames"]?'':fullName;
    input.style.cssText='box-sizing:border-box;width:100%;height:28px;font:14px Arial;color:#111;background:white;border:1px solid #795536;border-radius:2px;padding:3px';
    let done=false;const finish=save=>{if(done)return;done=true;const value=input.value.trim();field.remove();if(save)onName(value);};
    input.onblur=()=>finish(true);

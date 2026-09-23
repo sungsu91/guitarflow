@@ -1,3 +1,7 @@
+import { localizeUi } from "../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import { memo, useMemo, useSyncExternalStore } from "react";
 import {
   CHROMATIC_NOTES,
@@ -16,7 +20,7 @@ function useFretboardNoteViewerSnapshot(store) {
 
 export const FretboardNoteViewerTitle = memo(function FretboardNoteViewerTitle({ store }) {
   const { accidentalPreference, noteFilter } = useFretboardNoteViewerSnapshot(store);
-  if (noteFilter === ALL_FRETBOARD_NOTES) return <strong>전체 음표</strong>;
+  if (noteFilter === ALL_FRETBOARD_NOTES) return <strong><Translation id="app.allNotes" /></strong>;
   return (
     <strong>
       {getNoteDisplayName(noteFilter, accidentalPreference)} / {getNoteSolfegeDisplayName(noteFilter, accidentalPreference)}
@@ -59,14 +63,15 @@ export const FretboardNoteViewerBoard = memo(function FretboardNoteViewerBoard({
 });
 
 export const FretboardNoteViewerControls = memo(function FretboardNoteViewerControls({ store }) {
+  useLanguage();
   const { accidentalPreference, noteFilter } = useFretboardNoteViewerSnapshot(store);
   const isFlat = accidentalPreference === NOTE_ACCIDENTAL_PREFERENCES.FLAT;
 
   return (
-    <div className="viewerNotePanel" aria-label="음표 선택">
-      <span>음표 선택</span>
+    <div className="viewerNotePanel" aria-label={translateUi("components.chooseNote")}>
+      <span><Translation id="components.chooseNote" /></span>
       <button
-        aria-label={`현재 ${isFlat ? "플랫" : "샵"} 표기. 눌러 ${isFlat ? "샵" : "플랫"}으로 변경`}
+        aria-label={localizeUi(translateUi("components.currentlyValue1TapToUseValue2", { value1: isFlat ? ko["components.flats"] : ko["components.sharps"], value2: isFlat ? ko["components.sharps"] : ko["components.flats"] }))}
         className={`viewerNoteAccidentalControls ${isFlat ? "is-flat" : "is-sharp"}`}
         onClick={() => store.selectAccidental(
           isFlat ? NOTE_ACCIDENTAL_PREFERENCES.SHARP : NOTE_ACCIDENTAL_PREFERENCES.FLAT,
@@ -92,9 +97,7 @@ export const FretboardNoteViewerControls = memo(function FretboardNoteViewerCont
           className={noteFilter === ALL_FRETBOARD_NOTES ? "selected" : ""}
           onClick={() => store.selectNote(ALL_FRETBOARD_NOTES)}
           type="button"
-        >
-          전체
-        </button>
+        ><Translation id="app.all" /></button>
         {CHROMATIC_NOTES.map((note) => (
           <button
             aria-pressed={noteFilter === note}

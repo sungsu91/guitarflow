@@ -1,10 +1,11 @@
+import ko from "../../../i18n/locales/ko.js";
 export const THREE_D_LAB_MAP_SKIN = Object.freeze({
   id: "dev-three-d-lab",
   kind: "perspective3d",
   renderer: "perspective3d",
   landscapeOnly: true,
-  label: "입체 실험실",
-  description: "휴대폰 가로 화면과 데스크톱용 3D 전장",
+  label: ko["shooter.3dLab"],
+  description: ko["shooter.a3dBattlefieldForLandscapePhonesAndDesktop"],
   referenceViewport: Object.freeze({
     width: 390,
     height: 756,

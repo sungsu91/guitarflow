@@ -1,3 +1,4 @@
+import ko from "../../i18n/locales/ko.js";
 import { RECORDING_WIDTH } from "./recordingMedia.js";
 import { createPaintTexture } from "./canvasPaintTexture.js";
 const UI = ".mobileShooterTopHud,.mobileShooterTargetHud,.mobileShooterScoreHud,.mobileShooterLives,.shooterCenterStatus,.shooterCountInOverlay,.shooterScenarioCountdown,.shooterScenarioRoundSummary,.shooterPitchMonitorMobile,.shooterPitchMonitorDesktop,.shooterEnemyPitchLabel,.shooterGuitarCabinet--gameplay";
@@ -12,7 +13,7 @@ const boxSize = (n, s, axis) => {
 export function createSceneCapture(panel, { paintCamera } = {}) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d", { alpha: false });
-  if (!ctx) throw new Error("영상 합성 기능을 사용할 수 없습니다.");
+  if (!ctx) throw new Error(ko["shooter.videoCompositingIsUnavailable"]);
   const textures = new Map(), images = new Map(), renderers = new Set();
   const spriteFrames = new Map();
   let spriteBytes = 0;
@@ -322,7 +323,7 @@ export function createSceneCapture(panel, { paintCamera } = {}) {
     ctx.restore();
   }
   function frame() {
-    if (disposed) throw new Error("촬영이 종료되었습니다.");
+    if (disposed) throw new Error(ko["shooter.recordingEnded"]);
     if (fatal) throw fatal;
     const start = performance.now();
     styleCache = new WeakMap();

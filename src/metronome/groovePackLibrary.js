@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {createGroovePattern} from './groove.js';
 import {RECOMMENDED_GROOVE_PACKS} from './recommendedGrooves.js';
 
@@ -19,4 +20,4 @@ export function readPacks() {
     return Array.isArray(saved) ? saved.filter(p => p?.id && typeof p.title === 'string' && Array.isArray(p.pattern?.rows) && p.pattern.rows.length && p.pattern.rows.every(r => typeof r.tone === 'string' && Array.isArray(r.steps))) : [];
   } catch { return []; }
 }
-export const defaults = [...[['8beat','8비트'],['16beat','16비트']].map(([id,title]) => ({id,title,category:'기본',builtin:true,pattern:createGroovePattern(id),timeSignature:'4/4',subdivision:'sixteenth',description:'기본 격자 연습.'})), ...RECOMMENDED_GROOVE_PACKS];
+export const defaults = [...[['8beat',ko["metronome.8Beat"]],['16beat',ko["metronome.16Beat"]]].map(([id,title]) => ({id,title,category:ko["app.default"],builtin:true,pattern:createGroovePattern(id),timeSignature:'4/4',subdivision:'sixteenth',description:ko["metronome.basicGridPractice"]})), ...RECOMMENDED_GROOVE_PACKS];

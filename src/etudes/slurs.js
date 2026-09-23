@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {patchEvent} from './scoreModel.js';
 
 export function slurSpans(measures){
@@ -10,7 +11,7 @@ export function slurSpans(measures){
 }
 export function setSlur(document,from,to){
  const events=document.measures.flatMap(m=>m.events),start=events.findIndex(e=>e.id===from),end=events.findIndex(e=>e.id===to);
- if(start<0||end<=start||events.slice(start,end+1).some(e=>e.rest||!e.notes.length))throw Error('쉼표 없이 이어지는 시작음과 뒤쪽 끝음을 선택하세요.');
+ if(start<0||end<=start||events.slice(start,end+1).some(e=>e.rest||!e.notes.length))throw Error(ko["etudes.selectAStartingNoteAndALaterEndingNoteWithNoRests"]);
  const bar=document.measures.findIndex(m=>m.events.some(e=>e.id===from));
  return patchEvent(document,bar,document.measures[bar].events.findIndex(e=>e.id===from),{slurTo:to});
 }

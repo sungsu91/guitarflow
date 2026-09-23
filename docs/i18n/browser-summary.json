@@ -1,0 +1,51 @@
+{
+  "matrixCases": 90,
+  "errors": [],
+  "englishKorean": [
+    "미 / E2",
+    "C / 도"
+  ],
+  "horizontalPageOverflow": 0,
+  "elementCountChanged": [],
+  "editorCases": 6,
+  "editorEnglishOverflow": [],
+  "editorUntranslated": [],
+  "controls": [
+    {
+      "width": 360,
+      "settingsSwitch": true,
+      "reloadPersistence": true,
+      "existingStoragePreserved": true
+    },
+    {
+      "width": 375,
+      "settingsSwitch": true,
+      "reloadPersistence": true,
+      "existingStoragePreserved": true
+    },
+    {
+      "width": 390,
+      "settingsSwitch": true,
+      "reloadPersistence": true,
+      "existingStoragePreserved": true
+    },
+    {
+      "width": 393,
+      "settingsSwitch": true,
+      "reloadPersistence": true,
+      "existingStoragePreserved": true
+    },
+    {
+      "width": 430,
+      "settingsSwitch": true,
+      "reloadPersistence": true,
+      "existingStoragePreserved": true
+    },
+    {
+      "width": 1440,
+      "settingsSwitch": true,
+      "reloadPersistence": true,
+      "existingStoragePreserved": true
+    }
+  ]
+}

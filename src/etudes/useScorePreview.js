@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {useEffect,useRef} from 'react';
 import {resumeSharedAudioContext} from '../audio/audioBus.js';
 import {createScoreVoiceOutput,prepareScoreInstrument} from '../audio/scoreInstrument.js';
@@ -11,7 +12,7 @@ export default function useScorePreview(instrument,onError){
   const current=state.current,request=++current.request;
   try{
    // Called directly from the key/touch event, allowing iOS to unlock audio.
-   const audio=await resumeSharedAudioContext();if(!audio)throw Error('이 브라우저에서 오디오를 시작할 수 없습니다.');
+   const audio=await resumeSharedAudioContext();if(!audio)throw Error(ko["etudes.audioCannotBeStartedInThisBrowser"]);
    const buffer=await prepareScoreInstrument(audio,instrument);if(request!==current.request)return;
    current.output??=createScoreVoiceOutput(audio);current.output.releaseAll();
    const phrases=event.notes.map(n=>({string:n.string,fret:n.fret,midi:soundingMidi(document,n),dead:Boolean(n.dead??event.dead),palmMute:Boolean(event.palmMute),pickStroke:event.pickStroke,start:0,duration:.45,segments:[]}));

@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import {TUNING, spellMidi, parseChord, validateEtude} from './notationData.js';
 import {compileDocumentV2,upgradeDocument} from './scoreModel.js';
 export {upgradeDocument} from './scoreModel.js';
@@ -29,52 +31,52 @@ function legacyDocument(score) {
 function compileLegacyDocument(document,base) {
  const errors=[];
  const fail=message=>errors.push(message);
- if(!base||!document||document.format!==DOCUMENT_FORMAT||document.version!==1||document.templateId!==base.templateId)return {score:null,errors:['현재 과제의 악보 파일(version 1)을 선택하세요.']};
- for(const key of ['title','english','purpose'])if(typeof document[key]!=='string'||!document[key].trim()||document[key].length>2000)fail('제목과 연습 설명을 입력하세요.');
- if(!integer(document.bpm,30,240))fail('BPM은 30–240 사이의 정수입니다.');
- if(!Array.isArray(document.tips)||document.tips.length>30||document.tips.some(t=>typeof t!=='string'||t.length>2000))fail('TIP은 30줄 이내의 문장으로 작성하세요.');
- if(!Array.isArray(document.measures)||document.measures.length<1||document.measures.length>64)return {score:null,errors:[...errors,'악보는 1–64마디로 작성하세요.']};
+ if(!base||!document||document.format!==DOCUMENT_FORMAT||document.version!==1||document.templateId!==base.templateId)return {score:null,errors:[ko["etudes.chooseAVersion1ScoreFileForTheCurrentExercise"]]};
+ for(const key of ['title','english','purpose'])if(typeof document[key]!=='string'||!document[key].trim()||document[key].length>2000)fail(ko["etudes.enterATitleAndPracticeDescription"]);
+ if(!integer(document.bpm,30,240))fail(ko["etudes.bpmMustBeAWholeNumberFrom30To240"]);
+ if(!Array.isArray(document.tips)||document.tips.length>30||document.tips.some(t=>typeof t!=='string'||t.length>2000))fail(ko["etudes.keepTipsWithin30Lines"]);
+ if(!Array.isArray(document.measures)||document.measures.length<1||document.measures.length>64)return {score:null,errors:[...errors,ko["etudes.theScoreMustContain164Bars"]]};
  const measures=[],chordShapes=[],harmony=[];
  for(const [bar,m] of document.measures.entries()) {
-  const prefix=`${bar+1}마디`;
+  const prefix=formatMessage(ko["etudes.barValue1"], { value1: bar+1 });
   let chord=null;
   if(base.accompaniment) {
-   if(!m?.chord){fail(`${prefix}: 코드표가 필요합니다.`);continue;}
-   try{chord=parseChord(m.chord.name);}catch{fail(`${prefix}: 코드명을 확인하세요. 예: C, Am, Bmaj7, D#m, Em7`);continue;}
+   if(!m?.chord){fail(formatMessage(ko["etudes.valueAChordDiagramIsRequired"], { value1: prefix }));continue;}
+   try{chord=parseChord(m.chord.name);}catch{fail(formatMessage(ko["etudes.valueCheckTheChordNameExamplesCAmBmaj7DMEm7"], { value1: prefix }));continue;}
    const g=m.chord;
-   if(!Array.isArray(g.frets)||g.frets.length!==6||g.frets.some(f=>f!==null&&!integer(f,0,24))){fail(`${prefix}: 코드표는 6개 줄에 × 또는 0–24프렛을 입력하세요.`);continue;}
-   if(!Array.isArray(g.fingers)||g.fingers.length!==6||g.fingers.some(f=>f!==null&&!integer(f,1,4)))fail(`${prefix}: 손가락은 빈칸 또는 1–4입니다.`);
-   if(g.frets.every(f=>f===null))fail(`${prefix}: 코드표에 연주할 줄이 필요합니다.`);
+   if(!Array.isArray(g.frets)||g.frets.length!==6||g.frets.some(f=>f!==null&&!integer(f,0,24))){fail(formatMessage(ko["etudes.valueEnterOrFret024ForEachOfTheSixStrings"], { value1: prefix }));continue;}
+   if(!Array.isArray(g.fingers)||g.fingers.length!==6||g.fingers.some(f=>f!==null&&!integer(f,1,4)))fail(formatMessage(ko["etudes.valueFingerNumbersMustBeBlankOr14"], { value1: prefix }));
+   if(g.frets.every(f=>f===null))fail(formatMessage(ko["etudes.valueTheChordDiagramMustIncludeAStringToPlay"], { value1: prefix }));
    const pressed=g.frets.filter(f=>f>0),start=g.frets.includes(0)?1:Math.min(...pressed);
-   if(pressed.length&&Math.max(...pressed)-start>5)fail(`${prefix}: 코드표는 연속 6프렛 이내로 작성하세요.`);
-   g.frets.forEach((f,i)=>{if(f!==null&&!chord.intervals.includes((TUNING[5-i]+f-chord.pc+120)%12))fail(`${prefix}: 코드표 ${6-i}번줄 ${f}프렛은 ${g.name}의 구성음이 아닙니다.`);});
+   if(pressed.length&&Math.max(...pressed)-start>5)fail(formatMessage(ko["etudes.valueKeepTheChordDiagramWithinSixConsecutiveFrets"], { value1: prefix }));
+   g.frets.forEach((f,i)=>{if(f!==null&&!chord.intervals.includes((TUNING[5-i]+f-chord.pc+120)%12))fail(formatMessage(ko["etudes.valueStringValueFretValueInTheChordDiagramIsNotA"], { value1: prefix, value2: 6-i, value3: f, value4: g.name }));});
    if(g.barre) {
     const b=g.barre;
-    if(!integer(b.fret,1,24)||!integer(b.from,2,6)||!integer(b.to,1,5)||b.from<=b.to)fail(`${prefix}: 바레의 프렛·시작 줄·끝 줄을 확인하세요.`);
-    else for(let string=b.to;string<=b.from;string++)if(g.frets[6-string]===null||g.frets[6-string]<b.fret)fail(`${prefix}: 바레와 ${string}번줄의 프렛이 맞지 않습니다.`);
+    if(!integer(b.fret,1,24)||!integer(b.from,2,6)||!integer(b.to,1,5)||b.from<=b.to)fail(formatMessage(ko["etudes.valueCheckTheBarreFretAndItsStartAndEndStrings"], { value1: prefix }));
+    else for(let string=b.to;string<=b.from;string++)if(g.frets[6-string]===null||g.frets[6-string]<b.fret)fail(formatMessage(ko["etudes.valueTheBarreDoesNotMatchTheFretOnStringValue"], { value1: prefix, value2: string }));
    }
    chordShapes.push({frets:copy(g.frets),fingers:copy(g.fingers??[]),barre:g.barre?copy(g.barre):null});harmony.push(g.name);
   } else if(m?.harmony) {
-   try{parseChord(m.harmony);harmony.push(m.harmony);}catch{fail(`${prefix}: 코드명을 확인하세요.`);}
+   try{parseChord(m.harmony);harmony.push(m.harmony);}catch{fail(formatMessage(ko["etudes.valueCheckTheChordName"], { value1: prefix }));}
   }
-  if(!Array.isArray(m?.events)||m.events.length<1||m.events.length>64){fail(`${prefix}: 음표 또는 쉼표를 1–64개 입력하세요.`);continue;}
+  if(!Array.isArray(m?.events)||m.events.length<1||m.events.length>64){fail(formatMessage(ko["etudes.valueEnter164NotesOrRests"], { value1: prefix }));continue;}
   const events=[];
   for(const [i,event] of m.events.entries()) {
-   const position=`${prefix} ${i+1}번째`;
-   if(!['1','2','4','8','16'].includes(event?.duration)){fail(`${position}: 음표 길이를 선택하세요.`);continue;}
-   if(typeof event.rest!=='boolean'){fail(`${position}: 쉼표 상태를 확인하세요.`);continue;}
-   if(event.technique!==null&&!['H','P','S'].includes(event.technique)){fail(`${position}: H·P·SL 중 하나를 선택하세요.`);continue;}
+   const position=formatMessage(ko["etudes.valueItemValue"], { value1: prefix, value2: i+1 });
+   if(!['1','2','4','8','16'].includes(event?.duration)){fail(formatMessage(ko["etudes.valueChooseANoteDuration"], { value1: position }));continue;}
+   if(typeof event.rest!=='boolean'){fail(formatMessage(ko["etudes.valueCheckTheRestSetting"], { value1: position }));continue;}
+   if(event.technique!==null&&!['H','P','S'].includes(event.technique)){fail(formatMessage(ko["etudes.valueChooseHPOrSl"], { value1: position }));continue;}
    if(event.rest) {
-    if(event.technique)fail(`${position}: 쉼표에는 연결 기법을 적용할 수 없습니다.`);
+    if(event.technique)fail(formatMessage(ko["etudes.valueConnectingTechniquesCannotBeAppliedToRests"], { value1: position }));
     events.push({rest:true,duration:event.duration,technique:null,string:1,fret:0,midi:64,pitch:spellMidi(64,'C','major')});continue;
    }
-   if(!Array.isArray(event.notes)||!event.notes.length||event.notes.length>6){fail(`${position}: 연주할 음을 1–6개 입력하세요.`);continue;}
+   if(!Array.isArray(event.notes)||!event.notes.length||event.notes.length>6){fail(formatMessage(ko["etudes.valueEnter16NotesToPlay"], { value1: position }));continue;}
    const tones=[];
    for(const n of event.notes) {
-    if(!n||!integer(n.string,1,6)||!integer(n.fret,0,24)){fail(`${position}: 줄은 1–6, 프렛은 0–24의 정수입니다.`);continue;}
+    if(!n||!integer(n.string,1,6)||!integer(n.fret,0,24)){fail(formatMessage(ko["etudes.valueStringMustBeAnIntegerFrom1To6FretFrom"], { value1: position }));continue;}
     const midi=TUNING[n.string-1]+n.fret;
     try{tones.push({string:n.string,fret:n.fret,midi,pitch:spellMidi(midi,chord?.root??base.root,chord?.family??(base.keySignature.endsWith('m')?'minor':'major'),!chord&&base.intervals.includes(6))});}
-    catch{fail(`${position}: ${n.string}번줄 ${n.fret}프렛이 현재 음계 또는 코드와 맞지 않습니다.`);}
+    catch{fail(formatMessage(ko["etudes.valueStringValueFretValueDoesNotMatchTheCurrentScaleOr"], { value1: position, value2: n.string, value3: n.fret }));}
    }
    if(tones.length!==event.notes.length)continue;
    events.push({...tones[0],rest:false,duration:event.duration,technique:event.technique,...(tones.length>1?{tones}:{})});
@@ -113,9 +115,9 @@ export function readScoreEdits(storage,bases) {
    const doc=parsed[base.templateId];if(!doc)continue;
    const result=compileScoreDocument(doc,base);
    if(result.score){documents[base.templateId]=doc;scores[base.id]=result.score;}
-   else errors.push(`${base.title}: 저장된 수정본을 확인하지 못해 기본 악보를 표시합니다.`);
+   else errors.push(formatMessage(ko["etudes.valueCouldNotValidateTheSavedRevisionShowingTheDefaultScore"], { value1: base.title }));
   }
- } catch {errors.push('저장된 악보를 읽지 못했습니다. 기본 악보를 표시합니다.');}
+ } catch {errors.push(ko["etudes.couldNotReadTheSavedScoreShowingTheDefaultScore"]);}
  return {documents,scores,errors};
 }
 
@@ -130,5 +132,5 @@ export function persistScoreEdit(storage,base,document) {
   if(document)next[base.templateId]=document;else delete next[base.templateId];
   storage.setItem(EDITS_STORAGE_KEY,JSON.stringify(next));
   return result;
- } catch{return {score:null,errors:['브라우저에 저장하지 못했습니다. 악보 파일을 내려받아 보관해 주세요.']};}
+ } catch{return {score:null,errors:[ko["etudes.couldNotSaveInThisBrowserDownloadTheScoreFileToKeep"]]};}
 }

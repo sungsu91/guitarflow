@@ -146,11 +146,16 @@ html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etud
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools{display:flex!important;flex-wrap:nowrap!important;gap:2px!important;min-width:0}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeViewMenu{flex:1 1 66px!important;max-width:82px!important;min-width:0!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.scoreEditMenu{flex:1 1 66px!important;max-width:76px!important;min-width:0!important}
-html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[aria-label="메트로놈"],html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeBackingToggleMount{flex:0 0 36px!important;width:36px!important;min-width:0!important;padding:3px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[data-ui="metronome"],html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeBackingToggleMount{flex:0 0 36px!important;width:36px!important;min-width:0!important;padding:3px!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeBackingToggleMount button{width:36px!important;min-width:0!important;padding:3px!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeFavoriteToggle{margin-left:0!important;flex:0 0 30px!important;width:30px!important;min-width:30px!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools{justify-content:flex-start!important;column-gap:2px!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeViewMenu{flex:0 1 72px!important;max-width:72px!important;margin:0!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.scoreEditMenu{flex:0 1 70px!important;max-width:70px!important;margin:0!important}
-html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[aria-label="메트로놈"]{flex:0 0 32px!important;width:32px!important;max-width:32px!important;min-width:32px!important;margin:0!important;padding:2px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[data-ui="metronome"]{flex:0 0 32px!important;width:32px!important;max-width:32px!important;min-width:32px!important;margin:0!important;padding:2px!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>:is(.etudeViewMenu,.scoreEditMenu)>button{justify-content:center!important;margin:0!important;padding-inline:2px!important;gap:2px!important}
+
+/* Mobile icon buttons must center their SVG without hidden text consuming width. */
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[data-ui="metronome"]{display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[data-ui="metronome"] svg{flex:0 0 20px!important;width:20px!important;height:20px!important;margin:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>:is(.etudeViewMenu,.scoreEditMenu)>button svg{flex:0 0 16px!important;width:16px!important;height:16px!important}

@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { CLOCKWORK_OPERA_ASSETS } from "../assets/clockworkOperaAssets.js";
 import clockworkOperaLayout from "./clockwork-opera-citadel-layout.json" with { type: "json" };
 
@@ -7,10 +8,10 @@ const CLOCKWORK_OPERA_BACKGROUND_SRC = `${CLOCKWORK_OPERA_ROOT}/clockwork_opera_
 export const CLOCKWORK_OPERA_CITADEL_MAP_SKIN = Object.freeze({
   id: "clockwork-opera-citadel",
   kind: "layered",
-  label: "태엽 오페라 성채",
-  nameKo: "태엽 오페라 성채",
+  label: ko["shooter.clockworkOperaCitadel"],
+  nameKo: ko["shooter.clockworkOperaCitadel"],
   nameEn: "Clockwork Opera Citadel",
-  description: "거대한 오르간과 태엽 장치가 울리는 기계 오페라 성채",
+  description: ko["shooter.aMechanicalOperaCitadelResonatingWithAGiantOrganAndClockworkMechanisms"],
   mobileOnly: false,
   previewImage: `${CLOCKWORK_OPERA_ROOT}/clockwork_opera_master.png`,
   pickerPreviewImage: "/assets/maps/previews/clockwork-opera-citadel-current.jpg",

@@ -1,10 +1,12 @@
+import { localizeUi } from "../i18n/core.js";
+import ko from "../i18n/locales/ko.js";
 export function drawPalmMute(svg,events,notes,stave,{staff=false,headroom=0,bar=0}={}){
  const ns='http://www.w3.org/2000/svg';
  return events.flatMap((event,i)=>{
   if(event.rest||!event.palmMute)return [];
   const g=document.createElementNS(ns,'g');
   g.setAttribute('class',`${staff?'fretiva-staff-view':'fretiva-tab-view'} scorePalmMute`);
-  g.dataset.rhythmEvents=bar+':'+i;g.dataset.palmMuteEvents=String(i);g.setAttribute('aria-label','P.M. 팜 뮤트');
+  g.dataset.rhythmEvents=bar+':'+i;g.dataset.palmMuteEvents=String(i);g.setAttribute('aria-label',localizeUi(ko["etudes.pMPalmMute"]));
   // TAB P.M. stays above the first string, regardless of the played strings.
   const x=notes[i].getStemX(),y=staff?stave.getYForLine(0)-headroom-28:stave.getYForLine(0)-12;
   const label=document.createElementNS(ns,'text');

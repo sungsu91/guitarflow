@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readFileSync } from "./helpers/i18n-source.mjs";
 import test from "node:test";
 
 import {
@@ -21,7 +22,7 @@ import { THREE_D_LAB_MAP_SKIN } from "../src/shooter/maps/skins/threeDLab.js";
 
 const appSource = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
 const registrySource = fs.readFileSync(new URL("../src/shooter/maps/registry.js", import.meta.url), "utf8");
-const rendererSource = fs.readFileSync(new URL("../src/shooter/threed/archive/ThreeDLabPortraitRenderer.jsx", import.meta.url), "utf8");
+const rendererSource = readFileSync(new URL("../src/shooter/threed/archive/ThreeDLabPortraitRenderer.jsx", import.meta.url), "utf8");
 const archiveReadmeSource = fs.readFileSync(new URL("../src/shooter/threed/archive/README.md", import.meta.url), "utf8");
 const horizontalRendererSource = fs.readFileSync(new URL("../src/shooter/threed/ThreeDLabHorizontalRenderer.jsx", import.meta.url), "utf8");
 const canalArtSource = fs.readFileSync(new URL("../src/shooter/threed/moonlitLotusCanalArt.js", import.meta.url), "utf8");

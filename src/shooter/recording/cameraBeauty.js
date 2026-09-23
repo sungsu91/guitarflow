@@ -1,7 +1,8 @@
+import ko from "../../i18n/locales/ko.js";
 import { createSkinPipeline } from "./skinPipeline.js";
 // Frame-matched face-skin processing shared by preview and recording.
 const processors = new WeakMap();
-export const BEAUTY_LEVELS = ['끔', '자연', '매끈'];
+export const BEAUTY_LEVELS = [ko["etudes.off"], ko["shooter.natural"], ko["shooter.smooth"]];
 const vertex = `attribute vec2 position; varying vec2 uv;
 void main(){ uv=(position+1.0)*0.5; gl_Position=vec4(position,0.0,1.0); }`;
 const fragment = `precision mediump float;

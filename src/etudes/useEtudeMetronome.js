@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AUDIO_BUS_IDS, getAudioBusInput, resumeSharedAudioContext, smoothAudioParam } from '../audio/audioBus.js';
 import { createAudioTransportCursor, collectAudioTransportSteps, getAudioTransportStepSeconds } from '../audio/transportClock.js';
@@ -22,7 +23,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
   const config=useRef({beatsPerBar,clicksPerBeat});config.current={beatsPerBar,clicksPerBeat};
   const token = useRef(0);
   const toneBuffer = useRef(null);
-  useEffect(()=>{let live=true;toneBuffer.current=null;if(toneSrc)resumeSharedAudioContext().then(async context=>{const response=await fetch(toneSrc);if(!response.ok)throw Error("음색을 불러오지 못했습니다.");const buffer=await context.decodeAudioData(await response.arrayBuffer());if(live)toneBuffer.current=buffer;}).catch(e=>{if(live)setError(e.message);});return()=>{live=false;};},[toneSrc]);
+  useEffect(()=>{let live=true;toneBuffer.current=null;if(toneSrc)resumeSharedAudioContext().then(async context=>{const response=await fetch(toneSrc);if(!response.ok)throw Error(ko["etudes.couldNotLoadTheInstrumentSound"]);const buffer=await context.decodeAudioData(await response.arrayBuffer());if(live)toneBuffer.current=buffer;}).catch(e=>{if(live)setError(e.message);});return()=>{live=false;};},[toneSrc]);
   const stop = useCallback(() => {
     token.current++;
     const s = session.current;
@@ -40,7 +41,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
     try {
       const context = await resumeSharedAudioContext();
       if (request !== token.current) return;
-      if (!context || context.state !== 'running') throw new Error('오디오를 시작할 수 없습니다. 다시 눌러 주세요.');
+      if (!context || context.state !== 'running') throw new Error(ko["etudes.couldNotStartAudioTapAgain"]);
       const gain = context.createGain();
       gain.gain.setValueAtTime(audible ? volume : 0, context.currentTime);
       gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME));

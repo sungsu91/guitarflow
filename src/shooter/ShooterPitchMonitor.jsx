@@ -1,38 +1,44 @@
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import "./pitch-monitor.css";
 
 const STATUS = {
-  "no-signal": "입력 신호가 약해요",
-  "no-pitch": "음 높이를 찾는 중",
-  "low-confidence": "음이 불안정해요",
-  "wrong-pitch": "목표 음과 달라요",
-  "no-target": "다음 목표를 기다리는 중",
-  "sustain-lock": "다시 튕겨주세요",
-  "target-lock": "명중 · 다음 음을 기다려요",
-  stabilizing: "음을 확인하는 중",
-  hit: "명중",
-  held: "마지막 감지 음",
-  listening: "연주 음 확인 중",
+  "no-signal": ko["shooter.inputSignalIsWeak"],
+  "no-pitch": ko["shooter.findingThePitch"],
+  "low-confidence": ko["shooter.pitchIsUnstable"],
+  "wrong-pitch": ko["shooter.differentFromTheTargetNote"],
+  "no-target": ko["shooter.waitingForTheNextTarget"],
+  "sustain-lock": ko["shooter.pluckAgain"],
+  "target-lock": ko["shooter.hitWaitingForTheNextNote"],
+  stabilizing: ko["shooter.checkingTheNote"],
+  hit: ko["shooter.hit"],
+  held: ko["shooter.lastDetectedNote"],
+  listening: ko["shooter.checkingYourNote"],
 };
 
 function MobilePitchMonitor({ pitch, message }) {
-  return <output className="shooterPitchMonitorMobile" aria-label="지금 감지한 음">
-    <span>내가 친 음 <b>{pitch?.note ?? "—"}</b></span>
-    <small>{message}</small>
+  useLanguage();
+  return <output className="shooterPitchMonitorMobile" aria-label={translateUi("shooter.detectedNoteNow")}>
+    <span><Translation id="shooter.playedNoteShooterPitchMonitor" /><b>{pitch?.note ?? "—"}</b></span>
+    <small>{localizeUi(message)}</small>
   </output>;
 }
 
 function DesktopPitchMonitor({ pitch, message }) {
-  return <output className="shooterPitchMonitorDesktop" aria-label="지금 감지한 음">
-    <span>내가 친 음</span>
+  useLanguage();
+  return <output className="shooterPitchMonitorDesktop" aria-label={translateUi("shooter.detectedNoteNow")}>
+    <span><Translation id="shooter.playedNote" /></span>
     <b>{pitch?.note ?? "—"}</b>
     <span>{pitch ? `${pitch.frequency.toFixed(1)} Hz` : "— Hz"}</span>
-    <small>{message}</small>
+    <small>{localizeUi(message)}</small>
   </output>;
 }
 
 export default function ShooterPitchMonitor({ mobile, pitch, reason, active = true, micStatus }) {
-  const message = active ? (STATUS[reason] ?? "소리를 기다리는 중")
-    : ({ 'Permission Denied': '마이크 권한을 허용해주세요', 'MIDI Disconnected': 'MIDI 장치를 연결해주세요', 'Device Disconnected': '오디오 장치 연결이 끊겼어요', 'Input Error': '오디오 입력 연결 실패' }[micStatus] ?? '마이크 연결 중');
+  const message = active ? (STATUS[reason] ?? ko["tuner.waitingForSound"])
+    : ({ 'Permission Denied': ko["shooter.allowMicrophoneAccess"], 'MIDI Disconnected': ko["shooter.connectAMidiDevice"], 'Device Disconnected': ko["shooter.audioDeviceDisconnected"], 'Input Error': ko["shooter.audioInputConnectionFailed"] }[micStatus] ?? ko["shooter.connectingMicrophone"]);
   return mobile
     ? <MobilePitchMonitor pitch={pitch} message={message} />
     : <DesktopPitchMonitor pitch={pitch} message={message} />;

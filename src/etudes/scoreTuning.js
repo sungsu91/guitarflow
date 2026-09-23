@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import {normalizeInstrumentDocument} from './scoreInstruments.js';
 import {isFretted,scoreInstrument} from './scoreInstruments.js';
 
@@ -9,13 +11,13 @@ export const effectiveTuning=d=>d.tuning.map(n=>n+(d.capo??0));
 export const soundingMidi=(d,n)=>!isFretted(d.instrument)||n.unplaced?n.midi:d.tuning[n.string-1]+(d.capo??0)+(n.harmonic?(HARMONICS[n.fret]??n.fret):n.fret);
 export const midiName=n=>['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'][((n%12)+12)%12]+(Math.floor(n/12)-1);
 export function tuningPresets(instrument){const t=scoreInstrument(instrument).tuning;return [
- {id:'standard',label:'표준 튜닝',tuning:[...t]},
- {id:'half-down',label:'반음 다운',tuning:t.map(n=>n-1)},
- {id:'whole-down',label:'온음 다운',tuning:t.map(n=>n-2)},
+ {id:'standard',label:ko["etudes.standardTuning"],tuning:[...t]},
+ {id:'half-down',label:ko["etudes.halfStepDown"],tuning:t.map(n=>n-1)},
+ {id:'whole-down',label:ko["etudes.wholeStepDown"],tuning:t.map(n=>n-2)},
  ...(instrument==='guitar'||!instrument?[{id:'drop-d',label:'Drop D',tuning:t.map((n,i)=>i===5?n-2:n)}]:[]),
  ];}
-export const tuningName=d=>tuningPresets(d.instrument).find(p=>p.tuning.every((n,i)=>n===d.tuning[i]))?.label??'사용자 지정';
-export const tuningCaption=d=>!isFretted(d.instrument)?'':[tuningName(d)!=='표준 튜닝'?`${tuningName(d)} (${[...d.tuning].reverse().map(midiName).join(' ')})`:'',d.capo?`카포 ${d.capo}`:''].filter(Boolean).join(' · ');
+export const tuningName=d=>tuningPresets(d.instrument).find(p=>p.tuning.every((n,i)=>n===d.tuning[i]))?.label??ko["etudes.custom"];
+export const tuningCaption=d=>!isFretted(d.instrument)?'':[tuningName(d)!==ko["etudes.standardTuning"]?`${tuningName(d)} (${[...d.tuning].reverse().map(midiName).join(' ')})`:'',d.capo?formatMessage(ko["etudes.capoValue1"], { value1: d.capo }):''].filter(Boolean).join(' · ');
 export function normalizePitches(d){d=normalizeInstrumentDocument(d);return {...d,capo:d.capo??0,autoTab:d.autoTab??{mode:'auto',min:0,max:12},measures:d.measures.map(m=>({...m,events:m.events.map(e=>({...e,notes:e.notes.map(n=>({...n,midi:soundingMidi(d,n),locked:n.locked!==false}))}))}))};}
 export function tabCandidates(d,midi){return effectiveTuning(d).flatMap((open,i)=>{const fret=midi-open;return Number.isInteger(fret)&&fret>=0&&fret+(d.capo??0)<=maxFret(d)?[{string:i+1,fret}]:[];});}
 
@@ -39,17 +41,17 @@ export function assignTab(d,notes,neighbors=[]){
  return best??notes.map(n=>n.locked&&!n.unplaced?n:{...n,string:null,fret:null,unplaced:true,outsidePreferred:false});
 }
 export function changeTuning(d,settings,mode='pitch',{reassignLocked=false}={}){
- if(!isFretted(d.instrument))throw Error('건반·드럼에는 튜닝과 카포를 적용하지 않습니다.');
+ if(!isFretted(d.instrument))throw Error(ko["etudes.tuningAndCapoDoNotApplyToKeyboardOrDrums"]);
  const next={...d,...settings};
- if(!Number.isInteger(next.capo??0)||(next.capo??0)<0||(next.capo??0)>Math.min(12,maxFret(next)))throw Error('카포는 0–12프렛을 선택하세요.');
- if(next.tuning.length!==scoreInstrument(next.instrument).tuning.length||next.tuning.some(n=>!Number.isInteger(n)||n<24||n>88))throw Error('개방현은 C1–E6 범위에서 옥타브까지 선택하세요.');
+ if(!Number.isInteger(next.capo??0)||(next.capo??0)<0||(next.capo??0)>Math.min(12,maxFret(next)))throw Error(ko["etudes.chooseCapoFret012"]);
+ if(next.tuning.length!==scoreInstrument(next.instrument).tuning.length||next.tuning.some(n=>!Number.isInteger(n)||n<24||n>88))throw Error(ko["etudes.chooseOpenStringNotesIncludingOctavesWithinC1E6"]);
  const conflicts=[];let previous=[];
  next.measures=d.measures.map((m,b)=>({...m,events:m.events.map((e,i)=>{
   const lockedIds=new Set(e.notes.filter(n=>n.locked!==false).map(n=>n.id));
   let notes=e.notes.map(n=>({...n,midi:soundingMidi(d,n)}));
-  if(mode==='fingering')notes=notes.map(n=>{if(n.unplaced)return n;if(n.fret+(next.capo??0)>maxFret(next))throw Error(`${b+1}마디 ${i+1}음: 실제 프렛이 ${maxFret(next)}를 넘습니다.`);return {...n,midi:soundingMidi(next,n)};});
-  else {notes=notes.map(n=>{if(n.unplaced){const prior=n.previousFingering;if(n.locked&&prior&&soundingMidi(next,{...n,...prior,unplaced:false})===n.midi&&prior.fret+(next.capo??0)<=maxFret(next))return {...n,...prior,unplaced:false};if(reassignLocked){conflicts.push(`${b+1}마디 ${i+1}음 · ${midiName(n.midi)}`);return {...n,locked:false,harmonic:false};}return n;}if(soundingMidi(next,n)===n.midi&&n.fret+(next.capo??0)<=maxFret(next))return n;
-    if(n.locked!==false){conflicts.push(`${b+1}마디 ${i+1}음 ${n.string}번줄`);if(reassignLocked)return {...n,locked:false,harmonic:false,previousFingering:{string:n.string,fret:n.fret}};return {...n,unplaced:true,previousFingering:{string:n.string,fret:n.fret},string:null,fret:null,locked:true};}
+  if(mode==='fingering')notes=notes.map(n=>{if(n.unplaced)return n;if(n.fret+(next.capo??0)>maxFret(next))throw Error(formatMessage(ko["etudes.barValueNoteValueTheActualFretExceedsValue"], { value1: b+1, value2: i+1, value3: maxFret(next) }));return {...n,midi:soundingMidi(next,n)};});
+  else {notes=notes.map(n=>{if(n.unplaced){const prior=n.previousFingering;if(n.locked&&prior&&soundingMidi(next,{...n,...prior,unplaced:false})===n.midi&&prior.fret+(next.capo??0)<=maxFret(next))return {...n,...prior,unplaced:false};if(reassignLocked){conflicts.push(formatMessage(ko["etudes.barValueNoteValueValue"], { value1: b+1, value2: i+1, value3: midiName(n.midi) }));return {...n,locked:false,harmonic:false};}return n;}if(soundingMidi(next,n)===n.midi&&n.fret+(next.capo??0)<=maxFret(next))return n;
+    if(n.locked!==false){conflicts.push(formatMessage(ko["etudes.barValueNoteValueStringValue"], { value1: b+1, value2: i+1, value3: n.string }));if(reassignLocked)return {...n,locked:false,harmonic:false,previousFingering:{string:n.string,fret:n.fret}};return {...n,unplaced:true,previousFingering:{string:n.string,fret:n.fret},string:null,fret:null,locked:true};}
     return {...n,harmonic:false,locked:false};});
    const movable=notes.filter(n=>!n.unplaced||!n.locked),assigned=assignTab(next,movable,previous);let at=0;notes=notes.map(n=>n.unplaced&&n.locked?n:assigned[at++]);
   }

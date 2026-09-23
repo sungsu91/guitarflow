@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 export const MINI_CHORD_EMPTY_SAVED_OPTION_ID = "mini-chord-saved-empty";
 
 export function summarizeMiniChordLoadDescription(value, maxLength = 14) {
@@ -15,7 +17,7 @@ export function createMiniChordLoadLibrary(items = []) {
   const options = items.map((item) => {
     const isRecommended = item.libraryType === "recommended-progression";
     const facts = [
-      Number.isFinite(item.barCount) ? `${item.barCount}마디` : "",
+      Number.isFinite(item.barCount) ? formatMessage(ko["etudes.barValue1"], { value1: item.barCount }) : "",
       Number.isFinite(item.bpm) ? `${item.bpm} BPM` : "",
     ].filter(Boolean).join(" · ");
     itemsById.set(item.id, item);
@@ -23,8 +25,8 @@ export function createMiniChordLoadLibrary(items = []) {
     else userIds.push(item.id);
     return {
       id: item.id,
-      label: item.title || (isRecommended ? "추천 진행" : "저장된 코드"),
-      longLabel: `${item.title || "미니코드"}${facts ? ` · ${facts}` : ""}`,
+      label: item.title || (isRecommended ? ko["app.recommendedProgressions"] : ko["miniChord.savedChords"]),
+      longLabel: `${item.title || ko["miniChord.miniChords"]}${facts ? ` · ${facts}` : ""}`,
       description: [summarizeMiniChordLoadDescription(item.description), facts].filter(Boolean).join(" · "),
       tabId: isRecommended ? "recommended" : "saved",
       deletable: !item.builtIn,
@@ -34,8 +36,8 @@ export function createMiniChordLoadLibrary(items = []) {
   if (!userIds.length) {
     options.push({
       id: MINI_CHORD_EMPTY_SAVED_OPTION_ID,
-      label: "저장된 코드가 없습니다",
-      description: "저장 후 이곳에서 불러옵니다.",
+      label: ko["miniChord.noSavedChords"],
+      description: ko["miniChord.saveChordsThenLoadThemHere"],
       tabId: "saved",
       disabled: true,
     });
@@ -45,8 +47,8 @@ export function createMiniChordLoadLibrary(items = []) {
     itemsById,
     options,
     optionTabs: [
-      { id: "recommended", label: "추천 진행", count: recommendedCount },
-      { id: "saved", label: "저장된 코드", count: userIds.length },
+      { id: "recommended", label: ko["app.recommendedProgressions"], count: recommendedCount },
+      { id: "saved", label: ko["miniChord.savedChords"], count: userIds.length },
     ],
     userIds,
   };

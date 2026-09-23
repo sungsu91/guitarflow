@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
+import { readFile } from './helpers/i18n-source.mjs';
 
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
 const styleSourceUrl = new URL("../src/style.css", import.meta.url);

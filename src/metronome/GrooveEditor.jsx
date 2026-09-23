@@ -1,3 +1,7 @@
+import ko from "./../i18n/locales/ko.js";
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import GrooveTonePicker from './GrooveTonePicker.jsx';
 import React, {useEffect, useRef, useState, useSyncExternalStore, useCallback} from 'react';
 import {applyGrooveQuick, createGrooveRow, GROOVE_TONES} from './groove.js';
@@ -7,11 +11,12 @@ import './groove.css';
 const GrooveTrackName=GrooveTonePicker;
 
 const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,quick,changeRow,canRemove,removing}) {
+  useLanguage();
   const groups=Array.from({length:beats},(_,b)=>b);
   return <div className={`grooveTrack ${row.muted?'is-muted':''}`}>
         <div className="grooveSteps">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=>{
           const i=b*divisions+s,velocity=row.velocities?.[i]??70;
-          return <button type="button" key={s} aria-label={`${r+1}행 ${i+1}칸`} aria-pressed={row.steps[i]} data-strength={velocity>=85?"strong":velocity>=55?"medium":velocity>=35?"soft":"ghost"} title={`${r+1}행 ${i+1}칸 · 강약 ${velocity}`} onClick={()=>{
+          return <button type="button" key={s} aria-label={translateUi("metronome.rowValue1StepValue2", { value1: r+1, value2: i+1 })} aria-pressed={row.steps[i]} data-strength={velocity>=85?"strong":velocity>=55?"medium":velocity>=35?"soft":"ghost"} title={translateUi("metronome.rowValue1StepValue2VelocityValue3", { value1: r+1, value2: i+1, value3: velocity })} onClick={()=>{
             if(quick!=='default') {changeRow(r,applyGrooveQuick(row,quick,i,beats,divisions,paint));return;}
             const steps=[...row.steps],velocities=Array.from({length:72},(_,k)=>row.velocities?.[k]??70);
             steps[i]=!(steps[i] && velocities[i]===Number(paint));
@@ -19,11 +24,12 @@ const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,q
             changeRow(r,{steps,velocities});
           }}><i/></button>;
         })}</div>)}</div>
-        {removing && <button className="grooveRemoveTrack" type="button" aria-label={`${r+1}행 삭제`} title="줄 삭제" disabled={!canRemove} onClick={()=>changeRow(r,null)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>}
+        {removing && <button className="grooveRemoveTrack" type="button" aria-label={translateUi("metronome.deleteRowValue1", { value1: r+1 })} title={translateUi("etudes.deleteRow")} disabled={!canRemove} onClick={()=>changeRow(r,null)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>}
       </div>;
 });
 
 function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint, quick, removing, mobile}) {
+  useLanguage();
   const root=useRef(null);
   const viewport=useRef(null);
   const zoomRef=useRef(1);
@@ -104,13 +110,13 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
   const label=s=>divisions===4?['1','e','&','a'][s]:divisions===3?['1','trip','let'][s]:divisions===2?['1','&'][s]:s+1;
   const changeRow=useCallback((r,patch)=>{const current=store.getSnapshot();onChange({...current,name:'custom',rows:patch?current.rows.map((v,i)=>i===r?{...v,...patch}:v):current.rows.filter((_,i)=>i!==r)});},[store,onChange]);
   return <div ref={viewport} className="grooveGridViewport" onClickCapture={event=>{if(Date.now()<suppressClickUntil.current){event.preventDefault();event.stopPropagation();}}} style={{'--groove-beats':beats,'--groove-divisions':divisions,'--groove-zoom':zoom}}>
-    <div className="grooveTrackRail" aria-label="그루브 음색 설정">
+    <div className="grooveTrackRail" aria-label={translateUi("metronome.grooveSoundSettings")}>
       <span className="grooveTrackRailHeader" aria-hidden="true"/>
       {pattern.rows.map((row,r)=><GrooveTrackName key={r} row={row} r={r} changeRow={changeRow}/>)}
     </div>
-    <div ref={root} className="grooveHorizontalScroll" aria-label="그루브 편집 격자"><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{width:zoom>1?`${zoom*100}%`:'100%',minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18*zoom}px)`:undefined}}>
-      <div className="grooveTrackHeader"><div className="grooveSteps grooveLabels">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=><span key={s}>{s===0?b+1:label(s)}</span>)}</div>)}</div>{removing && <div/>}</div>
-      <div className="grooveTrackList" aria-label="그루브 트랙 목록">
+    <div ref={root} className="grooveHorizontalScroll" aria-label={translateUi("metronome.grooveEditingGrid")}><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{width:zoom>1?`${zoom*100}%`:'100%',minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18*zoom}px)`:undefined}}>
+      <div className="grooveTrackHeader"><div className="grooveSteps grooveLabels">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=><span key={s}>{localizeUi(s===0?b+1:label(s))}</span>)}</div>)}</div>{removing && <div/>}</div>
+      <div className="grooveTrackList" aria-label={translateUi("metronome.grooveTrackList")}>
         {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} quick={quick} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing}/> )}
       </div>
       <div className="groovePlayTrack" aria-hidden="true"><i ref={playhead} style={{visibility:playing?'visible':'hidden'}}/></div>
@@ -118,23 +124,24 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
   </div>;
 }
 function GrooveEditor({store,...options}) {
+  useLanguage();
   const pattern=useSyncExternalStore(store.subscribe,store.getSnapshot,store.getSnapshot);
   const props={...options,pattern,store};
   const [paint,setPaint]=useState('70');
   const [removing,setRemoving]=useState(false);
   const [quick,setQuick]=useState('default');
   const resetDialog=useRef(null);
-  const strength=<><label className="grooveStrengthControl">강약:<select className="grooveStrengthSelect" aria-label="강약" value={paint} onChange={e=>setPaint(e.target.value)}><option value="70">기본</option><option value="100">강</option><option value="45">약</option></select></label><label className="grooveStrengthControl grooveQuickControl">퀵:<select className="grooveStrengthSelect" aria-label="퀵" value={quick} onChange={e=>setQuick(e.target.value)}><option value="default">기본</option><option value="bulk">일괄</option><option value="partial">부분</option></select></label></>;
-  return <section className={`grooveEditor grooveEditor--${props.mobile?'mobile':'desktop'}`} aria-label="그루브팩">
-    <div className="grooveToolbar">{strength}<span className="grooveRowLabel">줄:</span><button type="button" aria-label="줄 추가" onClick={()=>props.onChange({...props.pattern,name:'custom',rows:[...props.pattern.rows,createGrooveRow(GROOVE_TONES.find(([id])=>!props.pattern.rows.some(row=>row.tone===id))?.[0]??'clap')]})}>추가</button><button type="button" className="grooveDeleteToggle" aria-label="줄 삭제" aria-pressed={removing} onClick={()=>setRemoving(value=>!value)}>삭제</button><button type="button" className="grooveSaveButton" onClick={props.onSave}>저장</button><button type="button" onClick={()=>resetDialog.current?.showModal()}>초기화</button></div>
+  const strength=<><label className="grooveStrengthControl"><Translation id="metronome.velocity" /><select className="grooveStrengthSelect" aria-label={translateUi("metronome.velocityGrooveEditor")} value={paint} onChange={e=>setPaint(e.target.value)}><option value="70"><Translation id="app.default" /></option><option value="100"><Translation id="metronome.strong" /></option><option value="45"><Translation id="metronome.soft" /></option></select></label><label className="grooveStrengthControl grooveQuickControl"><Translation id="metronome.quick" /><select className="grooveStrengthSelect" aria-label={translateUi("metronome.quickGrooveEditor")} value={quick} onChange={e=>setQuick(e.target.value)}><option value="default"><Translation id="app.default" /></option><option value="bulk"><Translation id="etudes.fill" /></option><option value="partial"><Translation id="metronome.partial" /></option></select></label></>;
+  return <section className={`grooveEditor grooveEditor--${props.mobile?'mobile':'desktop'}`} aria-label={translateUi("app.groovePacksApp")}>
+    <div className="grooveToolbar">{strength}<span className="grooveRowLabel"><Translation id="metronome.rows" /></span><button type="button" aria-label={translateUi("metronome.addRow")} onClick={()=>props.onChange({...props.pattern,name:'custom',rows:[...props.pattern.rows,createGrooveRow(GROOVE_TONES.find(([id])=>!props.pattern.rows.some(row=>row.tone===id))?.[0]??'clap')]})}><Translation id="metronome.add" /></button><button type="button" className="grooveDeleteToggle" aria-label={translateUi("etudes.deleteRow")} aria-pressed={removing} onClick={()=>setRemoving(value=>!value)}><Translation id="common.delete" /></button><button type="button" className="grooveSaveButton" onClick={props.onSave}><Translation id="common.save" /></button><button type="button" onClick={()=>resetDialog.current?.showModal()}><Translation id="app.reset" /></button></div>
     <Grid {...props} paint={paint} quick={quick} removing={removing}/>
     <dialog ref={resetDialog} className="grooveResetDialog" aria-labelledby="groove-reset-title">
-      <p id="groove-reset-title">패턴을 초기화할까요?</p>
-      <div><button type="button" autoFocus onClick={()=>resetDialog.current?.close()}>아니오</button><button type="button" onClick={()=>{
+      <p id="groove-reset-title"><Translation id="metronome.resetThePattern" /></p>
+      <div><button type="button" autoFocus onClick={()=>resetDialog.current?.close()}><Translation id="components.no" /></button><button type="button" onClick={()=>{
         const current=store.getSnapshot();
         props.onChange({...current,name:'custom',rows:current.rows.map(row=>({...row,steps:Array(72).fill(false)}))});
         resetDialog.current?.close();
-      }}>예</button></div>
+      }}><Translation id="etudes.yes" /></button></div>
     </dialog>
   </section>;
 }
@@ -142,7 +149,8 @@ function GrooveEditor({store,...options}) {
 export default React.memo(GrooveEditor);
 
 export function MetronomeDockHandle({collapsed, onChange}) {
+  useLanguage();
   const start = useRef(null), swiped = useRef(false);
-  const label=collapsed?'트래커 펼치기':'트래커 접기';
-  return <button type="button" className="metronomeDockHandle" aria-expanded={!collapsed} aria-label={label} onPointerDown={e => {start.current = e.clientY; swiped.current = false; e.currentTarget.setPointerCapture(e.pointerId);}} onPointerUp={e => {if(start.current !== null && Math.abs(e.clientY-start.current)>18) {onChange(e.clientY<start.current); swiped.current=true;} start.current=null;}} onPointerCancel={() => {start.current=null;}} onClick={() => {if(!swiped.current) onChange(!collapsed);}}><span>{label}</span><svg className="metronomeDockChevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={collapsed?'m6 9 6 6 6-6':'m18 15-6-6-6 6'}/></svg></button>;
+  const label=collapsed?ko["metronome.expandTracker"]:ko["metronome.collapseTracker"];
+  return <button type="button" className="metronomeDockHandle" aria-expanded={!collapsed} aria-label={localizeUi(label)} onPointerDown={e => {start.current = e.clientY; swiped.current = false; e.currentTarget.setPointerCapture(e.pointerId);}} onPointerUp={e => {if(start.current !== null && Math.abs(e.clientY-start.current)>18) {onChange(e.clientY<start.current); swiped.current=true;} start.current=null;}} onPointerCancel={() => {start.current=null;}} onClick={() => {if(!swiped.current) onChange(!collapsed);}}><span>{localizeUi(label)}</span><svg className="metronomeDockChevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={collapsed?'m6 9 6 6 6-6':'m18 15-6-6-6 6'}/></svg></button>;
 }

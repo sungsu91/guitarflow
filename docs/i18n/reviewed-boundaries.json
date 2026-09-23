@@ -1,0 +1,82 @@
+[
+  {
+    "file": "src/App.jsx",
+    "boundaries": 34
+  },
+  {
+    "file": "src/components/BackingGroovePicker.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/components/BackingLoop.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/components/FretboardNoteViewer.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/DrumInput.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/EditorAudioDock.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/EditorScore.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/EditorSettings.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/EtudePicker.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/EtudeStudio.jsx",
+    "boundaries": 13
+  },
+  {
+    "file": "src/etudes/InstrumentChangeDialog.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/KeyboardInput.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/etudes/MobileScoreInput.jsx",
+    "boundaries": 3
+  },
+  {
+    "file": "src/etudes/ScoreEditor.jsx",
+    "boundaries": 6
+  },
+  {
+    "file": "src/metronome/GroovePacks.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/pdf/PdfPractice.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/pdf/PdfStudio.jsx",
+    "boundaries": 2
+  },
+  {
+    "file": "src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/shooter/maps/editor/MapEditPanel.jsx",
+    "boundaries": 4
+  },
+  {
+    "file": "src/tuner/TunerMode.jsx",
+    "boundaries": 2
+  }
+]

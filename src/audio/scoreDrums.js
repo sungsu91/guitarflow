@@ -1,10 +1,11 @@
+import ko from "../i18n/locales/ko.js";
 import {drumStrokes} from '../etudes/drumTechniques.js';
 import {drumForMidi} from '../etudes/scoreInstruments.js';
 const noises=new WeakMap();
 const sampleFiles={35:'kick.wav',36:'kick.wav',37:'rim.wav',38:'snare.wav',40:'electronic-snare.wav',41:'tom-low.wav',43:'tom-low.wav',45:'tom-mid.wav',47:'tom-mid.wav',48:'tom-high.wav',50:'tom-high.wav',42:'closed hihat.wav',44:'pedal-hihat.wav',46:'openhihat.wav',49:'crash.wav',57:'crash.wav',51:'ride.wav',53:'ride-bell.wav',59:'ride.wav'};
 const samples=new WeakMap(),loading=new WeakMap();
 export async function prepareDrumSamples(audio){
- if(!loading.has(audio)){const cache=new Map();samples.set(audio,cache);loading.set(audio,Promise.all([...new Set(Object.values(sampleFiles))].map(async file=>{const response=await fetch('/sounds/'+encodeURIComponent(file));if(!response.ok)throw Error('드럼 음원을 불러오지 못했습니다: '+file);cache.set(file,await audio.decodeAudioData(await response.arrayBuffer()));})).catch(error=>{loading.delete(audio);throw error;}));}
+ if(!loading.has(audio)){const cache=new Map();samples.set(audio,cache);loading.set(audio,Promise.all([...new Set(Object.values(sampleFiles))].map(async file=>{const response=await fetch('/sounds/'+encodeURIComponent(file));if(!response.ok)throw Error(ko["audio.couldnTLoadDrumAudio"]+file);cache.set(file,await audio.decodeAudioData(await response.arrayBuffer()));})).catch(error=>{loading.delete(audio);throw error;}));}
  return loading.get(audio);
 }
 // Composite voices keep all grace/repeated hits under the transport's release lifecycle.

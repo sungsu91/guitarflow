@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 export const SHOOTER_GUITAR_CABINET_SKIN_IDS = Object.freeze({
   NONE: "none",
   CLIMATE: "climate-cabinet",
@@ -6,15 +7,15 @@ export const SHOOTER_GUITAR_CABINET_SKIN_IDS = Object.freeze({
 export const SHOOTER_GUITAR_CABINET_SKINS = Object.freeze([
   Object.freeze({
     id: SHOOTER_GUITAR_CABINET_SKIN_IDS.NONE,
-    label: "없음",
-    description: "현재 기타만 표시",
+    label: ko["app.none"],
+    description: ko["shooter.showCurrentGuitarOnly"],
     backAssetSrc: "",
     frontAssetSrc: "",
   }),
   Object.freeze({
     id: SHOOTER_GUITAR_CABINET_SKIN_IDS.CLIMATE,
-    label: "온습도 캐비닛",
-    description: "조명과 전면 유리문이 있는 온습도 보관 캐비닛",
+    label: ko["shooter.climateControlledCabinet"],
+    description: ko["shooter.aTemperatureAndHumidityControlledCabinetWithLightingAndAGlassFront"],
     backAssetSrc: "/assets/shooter/guitar-cabinet/cabinet-back-alpha.png",
     frontAssetSrc: "/assets/shooter/guitar-cabinet/cabinet-glass-front-alpha.png",
   }),

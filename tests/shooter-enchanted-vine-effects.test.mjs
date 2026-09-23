@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
+import { readFile } from './helpers/i18n-source.mjs';
 
 import {
   SHOOTER_EFFECT_ANCHOR_PRESET_IDS,

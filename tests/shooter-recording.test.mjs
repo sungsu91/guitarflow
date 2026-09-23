@@ -1,7 +1,8 @@
+import { readFile } from "./helpers/i18n-source.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { verifyCameraWideFraming, setCameraWideFraming, cameraContainRect, frontCameraConstraints, coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
-import { readFile } from "node:fs/promises";
+
 
 test("recorder negotiates MP4, then WebM, then browser defaults", () => {
   assert.match(recorderOptions({ isTypeSupported: (type) => type === "video/mp4" }).mimeType, /mp4/);

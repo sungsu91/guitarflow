@@ -1,0 +1,681 @@
+{
+  "complete": true,
+  "scope": "Source string and resource parity audit; browser and hardware coverage are reported separately.",
+  "productionFiles": 367,
+  "parity": {
+    "ko": 5103,
+    "en": 5103,
+    "onlyKo": [],
+    "onlyEn": [],
+    "placeholderMismatch": [],
+    "missingReferences": []
+  },
+  "referencedKeys": 5070,
+  "remainingOccurrences": 82,
+  "remainingUnique": 75,
+  "classifications": {
+    "exception-chord-identifier": 42,
+    "exception-development-probe": 7,
+    "exception-song-title-or-credit": 7,
+    "exception-canonical-lookup-key": 2,
+    "exception-note-names": 24
+  },
+  "remaining": [
+    {
+      "file": "src/App.jsx",
+      "line": 1855,
+      "type": "Literal",
+      "value": "Cm(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1855,
+      "type": "Literal",
+      "value": "Cm(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1869,
+      "type": "Literal",
+      "value": "Cm7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1869,
+      "type": "Literal",
+      "value": "Cm7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1883,
+      "type": "Literal",
+      "value": "C#m(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1883,
+      "type": "Literal",
+      "value": "C#m(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1890,
+      "type": "Literal",
+      "value": "C#m7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1890,
+      "type": "Literal",
+      "value": "C#m7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1967,
+      "type": "Literal",
+      "value": "FM(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1967,
+      "type": "Literal",
+      "value": "FM(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1975,
+      "type": "Literal",
+      "value": "Fm(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1975,
+      "type": "Literal",
+      "value": "Fm(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1983,
+      "type": "Literal",
+      "value": "F7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1983,
+      "type": "Literal",
+      "value": "F7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1991,
+      "type": "Literal",
+      "value": "Fm7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 1991,
+      "type": "Literal",
+      "value": "Fm7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2005,
+      "type": "Literal",
+      "value": "F#m(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2005,
+      "type": "Literal",
+      "value": "F#m(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2013,
+      "type": "Literal",
+      "value": "F#m7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2013,
+      "type": "Literal",
+      "value": "F#m7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2029,
+      "type": "Literal",
+      "value": "Gm(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2029,
+      "type": "Literal",
+      "value": "Gm(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2037,
+      "type": "Literal",
+      "value": "G#m(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2037,
+      "type": "Literal",
+      "value": "G#m(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2045,
+      "type": "Literal",
+      "value": "G#m7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2045,
+      "type": "Literal",
+      "value": "G#m7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2061,
+      "type": "Literal",
+      "value": "Gm7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2061,
+      "type": "Literal",
+      "value": "Gm7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2112,
+      "type": "Literal",
+      "value": "BM(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2112,
+      "type": "Literal",
+      "value": "BM(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2119,
+      "type": "Literal",
+      "value": "Bm(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2119,
+      "type": "Literal",
+      "value": "Bm(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2133,
+      "type": "Literal",
+      "value": "Bm7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2133,
+      "type": "Literal",
+      "value": "Bm7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2140,
+      "type": "Literal",
+      "value": "BM7(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2140,
+      "type": "Literal",
+      "value": "BM7(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2189,
+      "type": "Literal",
+      "value": "Fsus4(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2189,
+      "type": "Literal",
+      "value": "Fsus4(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2227,
+      "type": "Literal",
+      "value": "Bsus4(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2227,
+      "type": "Literal",
+      "value": "Bsus4(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2234,
+      "type": "Literal",
+      "value": "Badd9(바레)",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 2234,
+      "type": "Literal",
+      "value": "Badd9(바레) chord",
+      "classification": "exception-chord-identifier",
+      "reason": "Existing chord catalog identity includes the Korean barre qualifier; do not change identity."
+    },
+    {
+      "file": "src/AppRuntime.jsx",
+      "line": 41,
+      "type": "Literal",
+      "value": "미니반주",
+      "classification": "exception-development-probe",
+      "reason": "Original Korean labels used by the DEV navigation profiler; no user-visible output."
+    },
+    {
+      "file": "src/AppRuntime.jsx",
+      "line": 41,
+      "type": "Literal",
+      "value": "지판 보기",
+      "classification": "exception-development-probe",
+      "reason": "Original Korean labels used by the DEV navigation profiler; no user-visible output."
+    },
+    {
+      "file": "src/AppRuntime.jsx",
+      "line": 41,
+      "type": "Literal",
+      "value": "지판보기",
+      "classification": "exception-development-probe",
+      "reason": "Original Korean labels used by the DEV navigation profiler; no user-visible output."
+    },
+    {
+      "file": "src/AppRuntime.jsx",
+      "line": 41,
+      "type": "Literal",
+      "value": "메트로놈",
+      "classification": "exception-development-probe",
+      "reason": "Original Korean labels used by the DEV navigation profiler; no user-visible output."
+    },
+    {
+      "file": "src/AppRuntime.jsx",
+      "line": 41,
+      "type": "Literal",
+      "value": "튜너",
+      "classification": "exception-development-probe",
+      "reason": "Original Korean labels used by the DEV navigation profiler; no user-visible output."
+    },
+    {
+      "file": "src/AppRuntime.jsx",
+      "line": 41,
+      "type": "Literal",
+      "value": "슈팅게임",
+      "classification": "exception-development-probe",
+      "reason": "Original Korean labels used by the DEV navigation profiler; no user-visible output."
+    },
+    {
+      "file": "src/AppRuntime.jsx",
+      "line": 41,
+      "type": "Literal",
+      "value": "훈련장",
+      "classification": "exception-development-probe",
+      "reason": "Original Korean labels used by the DEV navigation profiler; no user-visible output."
+    },
+    {
+      "file": "src/etudes/compositionSketch.js",
+      "line": 78,
+      "type": "Literal",
+      "value": "함께 걷는 길 · 작곡 스케치",
+      "classification": "exception-song-title-or-credit",
+      "reason": "Authored song title/artist/composer content is preserved."
+    },
+    {
+      "file": "src/etudes/daylightFingerstyle.js",
+      "line": 111,
+      "type": "Literal",
+      "value": "햇살 사이로 · 핑거스타일 작곡 스케치",
+      "classification": "exception-song-title-or-credit",
+      "reason": "Authored song title/artist/composer content is preserved."
+    },
+    {
+      "file": "src/etudes/pedagogy.js",
+      "line": 21,
+      "type": "Literal",
+      "value": "코드톤 런",
+      "classification": "exception-canonical-lookup-key",
+      "reason": "Object lookup key for an existing category or keyboard command; preserve the identifier. The displayed label is localized separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 410,
+      "type": "Literal",
+      "value": "삭제",
+      "classification": "exception-canonical-lookup-key",
+      "reason": "Object lookup key for an existing category or keyboard command; preserve the identifier. The displayed label is localized separately."
+    },
+    {
+      "file": "src/mini-chord/originalPracticeSongs.js",
+      "line": 1219,
+      "type": "Literal",
+      "value": "첫 번째 드라이브",
+      "classification": "exception-song-title-or-credit",
+      "reason": "Authored song title/artist/composer content is preserved."
+    },
+    {
+      "file": "src/mini-chord/originalPracticeSongs.js",
+      "line": 1256,
+      "type": "Literal",
+      "value": "밤 산책",
+      "classification": "exception-song-title-or-credit",
+      "reason": "Authored song title/artist/composer content is preserved."
+    },
+    {
+      "file": "src/mini-chord/originalPracticeSongs.js",
+      "line": 1293,
+      "type": "Literal",
+      "value": "창가의 오후",
+      "classification": "exception-song-title-or-credit",
+      "reason": "Authored song title/artist/composer content is preserved."
+    },
+    {
+      "file": "src/mini-chord/originalPracticeSongs.js",
+      "line": 1330,
+      "type": "Literal",
+      "value": "유리창의 불빛",
+      "classification": "exception-song-title-or-credit",
+      "reason": "Authored song title/artist/composer content is preserved."
+    },
+    {
+      "file": "src/mini-chord/originalPracticeSongs.js",
+      "line": 1367,
+      "type": "Literal",
+      "value": "달려가자",
+      "classification": "exception-song-title-or-credit",
+      "reason": "Authored song title/artist/composer content is preserved."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 21,
+      "type": "Literal",
+      "value": "도",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 22,
+      "type": "Literal",
+      "value": "도#",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 23,
+      "type": "Literal",
+      "value": "레",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 24,
+      "type": "Literal",
+      "value": "레#",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 25,
+      "type": "Literal",
+      "value": "미",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 26,
+      "type": "Literal",
+      "value": "파",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 27,
+      "type": "Literal",
+      "value": "파#",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 28,
+      "type": "Literal",
+      "value": "솔",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 29,
+      "type": "Literal",
+      "value": "솔#",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 30,
+      "type": "Literal",
+      "value": "라",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 31,
+      "type": "Literal",
+      "value": "라#",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 32,
+      "type": "Literal",
+      "value": "시",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 56,
+      "type": "Literal",
+      "value": "도",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 57,
+      "type": "Literal",
+      "value": "레b",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 58,
+      "type": "Literal",
+      "value": "레",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 59,
+      "type": "Literal",
+      "value": "미b",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 60,
+      "type": "Literal",
+      "value": "미",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 61,
+      "type": "Literal",
+      "value": "파",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 62,
+      "type": "Literal",
+      "value": "솔b",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 63,
+      "type": "Literal",
+      "value": "솔",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 64,
+      "type": "Literal",
+      "value": "라b",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 65,
+      "type": "Literal",
+      "value": "라",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 66,
+      "type": "Literal",
+      "value": "시b",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    },
+    {
+      "file": "src/music/noteNotation.js",
+      "line": 67,
+      "type": "Literal",
+      "value": "시",
+      "classification": "exception-note-names",
+      "reason": "Korean solfège is musical notation and follows the existing note-display setting."
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import ko from "../../i18n/locales/ko.js";
+import { formatMessage } from "../../i18n/format.js";
 export const FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1_ID = "fretiva_pomeranian_instrument_pack_v1";
 
 const ASSET_ROOT = "/assets/shooter/instruments/fretiva_pomeranian_instrument_pack_v1";
@@ -56,7 +58,7 @@ export const FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1 = Object.freeze(
     canvasHeight: CANVAS_HEIGHT,
     canvasWidth: CANVAS_WIDTH,
     collisionAspectRatio: skin.visibleWidth / skin.visibleHeight,
-    description: `${skin.title} 크림 포메 컬렉션 투명 PNG 악기 스킨`,
+    description: formatMessage(ko["shooter.valueCreamPomeranianCollectionTransparentPngInstrumentSkin"], { value1: skin.title }),
     instrumentSkinPack: FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1_ID,
     muzzleHeightScale: (CANVAS_HEIGHT - skin.visibleTop) / CANVAS_HEIGHT,
   })),

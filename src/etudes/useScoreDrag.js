@@ -1,3 +1,6 @@
+import { localizeUi } from '../i18n/core.js';
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import {useEffect,useRef} from 'react';
 import {midiAtStaffStep} from './scoreModel.js';
 
@@ -30,7 +33,7 @@ export default function useScoreDrag({canvas,score,onSelect,onMove,onMessage,ena
   const hit=hitAt(state.x,state.y);state.target=hit&&canvas.current.contains(hit.getRootNode().host)?location(hit,state.x,state.y,callbacks.current.score.keySignature,callbacks.current.score.instrument):null;
   if(state.from.mode==='staff'&&state.target?.mode==='staff'&&state.target.staffStep===state.from.staffStep)state.target.midi=state.from.midi;
   state.marker?.remove();state.marker=null;
-  state.preview.textContent=state.target?`${state.target.bar+1}마디 · ${state.target.event+1}박 · ${state.target.mode==='tab'?`${state.target.string}번줄`:'음높이 변경'}`:'악보 안에 놓으세요 · Esc 취소';
+  state.preview.textContent=localizeUi(state.target?formatMessage(ko["etudes.barValueBeatValueValue"], { value1: state.target.bar+1, value2: state.target.event+1, value3: state.target.mode==='tab'?formatMessage(ko["etudes.stringValue1"], { value1: state.target.string }):ko["etudes.changePitch"] }):ko["etudes.dropInsideTheScoreEscToCancel"]);
   if(hit&&state.target){
    const marker=document.createElementNS('http://www.w3.org/2000/svg','rect');let y=Number(hit.dataset.cursorY),height=14;
    if(state.target.mode==='staff'){const svg=hit.ownerSVGElement,p=svg.createSVGPoint();p.x=state.x;p.y=state.y;const local=p.matrixTransform(svg.getScreenCTM().inverse());y=Number(hit.dataset.staffBottom)-Math.round((Number(hit.dataset.staffBottom)-local.y)/5)*5-5;height=10;}
@@ -61,9 +64,9 @@ export default function useScoreDrag({canvas,score,onSelect,onMove,onMessage,ena
  };
  const up=e=>{
   const state=drag.current;if(!state||state.pointerId!==e.pointerId)return;
-  if(state.active){state.x=e.clientX;state.y=e.clientY;cancelAnimationFrame(state.frame);paint();suppressClick.current=true;const {from,target}=state;clear();if(target)callbacks.current.onMove(from,target);else callbacks.current.onMessage('이동을 취소했습니다. 악보 내용은 유지됩니다.');}
+  if(state.active){state.x=e.clientX;state.y=e.clientY;cancelAnimationFrame(state.frame);paint();suppressClick.current=true;const {from,target}=state;clear();if(target)callbacks.current.onMove(from,target);else callbacks.current.onMessage(ko["etudes.moveCanceledTheScoreIsUnchanged"]);}
   else {if(state.touch)callbacks.current.onSelect(state.from);suppressClick.current=true;clear();}
  };
- const cancel=()=>{if(drag.current){suppressClick.current=true;clear();callbacks.current.onMessage('이동을 취소했습니다.');}};
+ const cancel=()=>{if(drag.current){suppressClick.current=true;clear();callbacks.current.onMessage(ko["etudes.moveCanceled"]);}};
  return {onPointerDown:down,onPointerMove:move,onPointerUp:up,onPointerCancel:cancel,onLostPointerCapture:cancel,onClickCapture:e=>{if(suppressClick.current){suppressClick.current=false;e.preventDefault();e.stopPropagation();}},onKeyDownCapture:e=>{if(e.key==='Escape'&&drag.current){e.preventDefault();e.stopPropagation();cancel();}}};
 }

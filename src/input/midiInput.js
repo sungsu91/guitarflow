@@ -1,6 +1,8 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 // One connection, exclusive delivery. Channels are never inferred as guitar strings.
 export function createMidiInput({ navigator: nav = globalThis.navigator, window: win = globalThis.window, document: doc = globalThis.document } = {}) {
-  let state = { devices: [], selected: '', status: '미연결', connected: false };
+  let state = { devices: [], selected: '', status: ko["input.disconnected"], connected: false };
   let access, port, pending, denied = false, binding = 0, owner = null;
   const listeners = new Set(), consumers = new Set(), down = new Set();
   const supported = () => Boolean(nav?.requestMIDIAccess && win?.isSecureContext);
@@ -28,15 +30,15 @@ export function createMidiInput({ navigator: nav = globalThis.navigator, window:
     port = selected?.state === 'connected' ? selected : null;
     previous?.removeEventListener('midimessage', route);
     if (previous && previous !== port) { try { Promise.resolve(previous.close?.()).catch(() => {}); } catch {} }
-    if (!port) { publish({ connected: false, status: '장치 미연결 · 입력 장치를 연결하거나 선택하세요.' }); return; }
+    if (!port) { publish({ connected: false, status: ko["input.noDeviceConnectOrChooseAnInputDevice"] }); return; }
     const target = port;
-    publish({ connected: false, status: '연결 중' });
+    publish({ connected: false, status: ko["input.connecting"] });
     try {
       await target.open();
       if (version !== binding) return;
       target.addEventListener('midimessage', route);
-      publish({ connected: true, status: `연결됨 · ${target.name ?? 'MIDI 입력'}` });
-    } catch (error) { if (version === binding) publish({ connected: false, status: `장치 열기 실패: ${error.message}` }); }
+      publish({ connected: true, status: formatMessage(ko["input.connectedValue1"], { value1: target.name ?? ko["input.midiInput"] }) });
+    } catch (error) { if (version === binding) publish({ connected: false, status: formatMessage(ko["input.couldnTOpenDeviceValue1"], { value1: error.message }) }); }
   }
   function update() {
     const devices = [...access.inputs.values()].filter(d => d.state === 'connected');
@@ -45,7 +47,7 @@ export function createMidiInput({ navigator: nav = globalThis.navigator, window:
     if (next !== port) return bind();
   }
   async function connect(manual = true) {
-    if (!supported()) { publish({ status: '이 브라우저에서는 MIDI 입력을 지원하지 않습니다.' }); return; }
+    if (!supported()) { publish({ status: ko["input.thisBrowserDoesNotSupportMidiInput"] }); return; }
     if (pending) return pending;
     pending = (async () => {
       try {
@@ -53,16 +55,16 @@ export function createMidiInput({ navigator: nav = globalThis.navigator, window:
         try { permission = await nav.permissions?.query({ name: 'midi', sysex: false }); } catch {}
         if (permission?.state === 'denied' || (denied && permission?.state !== 'granted')) {
           reset();
-          publish({ connected: false, status: '권한 거부: 사이트 설정에서 MIDI를 허용한 뒤 재시도하세요. 권한 확인이 안 되면 새로고침하세요.' }); return;
+          publish({ connected: false, status: ko["input.permissionDeniedAllowMidiInSiteSettingsAndRetryRefreshIfPermission"] }); return;
         }
         if (!manual && permission?.state !== 'granted') return;
         if (!access) { access = await nav.requestMIDIAccess({ sysex: false }); access.addEventListener('statechange', update); }
         denied = false;
         await update();
-        if (port && !state.connected && state.status !== '연결 중') await bind();
+        if (port && !state.connected && state.status !== ko["input.connecting"]) await bind();
       } catch (error) {
         denied = ['NotAllowedError', 'SecurityError'].includes(error.name);
-        publish({ connected: false, status: denied ? '권한 거부: 사이트 설정에서 MIDI를 허용한 뒤 재시도하세요.' : `연결 실패: ${error.message}` });
+        publish({ connected: false, status: denied ? ko["input.permissionDeniedAllowMidiInSiteSettingsAndRetry"] : formatMessage(ko["input.connectionFailedValue1"], { value1: error.message }) });
       }
     })();
     try { await pending; } finally { pending = null; }

@@ -1,4 +1,10 @@
+import { localizeUi } from "./i18n/core.js";
+import ko from "./i18n/locales/ko.js";
+import { formatMessage } from "./i18n/core.js";
+import { t as translateUi } from "./i18n/core.js";
+import { Translation, useLanguage } from "./i18n/react.jsx";
 import DeviceConnection from './input/DeviceConnection.jsx';
+import LanguageSettings from './i18n/LanguageSettings.jsx';
 import { useAudioInputSelection, useMidiConnection } from './input/useInputSelection.js';
 import { getAudioInputSelection, audioInputError, publishAudioInput } from './input/audioInputSelection.js';
 import { midiInput } from './input/midiInput.js';
@@ -594,19 +600,19 @@ const SCALE_ROOT_OPTIONS = CHROMATIC_NOTES.map((note) => ({
 })).filter((note) => !note.id.includes("#"));
 
 const SCALE_FAMILIES = {
-  pentatonic: { id: "pentatonic", label: "펜타토닉" },
-  scale: { id: "scale", label: "스케일" },
+  pentatonic: { id: "pentatonic", label: ko["app.pentatonics"] },
+  scale: { id: "scale", label: ko["app.scales"] },
 };
 const SCALE_LICK_GROUP_ID = "lick";
 
 const PENTATONIC_TYPES = {
-  minor: { id: "minor", label: "마이너", intervals: [0, 3, 5, 7, 10], windowOffset: 0 },
-  major: { id: "major", label: "메이저", intervals: [0, 2, 4, 7, 9], windowOffset: -3 },
+  minor: { id: "minor", label: ko["app.minor"], intervals: [0, 3, 5, 7, 10], windowOffset: 0 },
+  major: { id: "major", label: ko["app.major"], intervals: [0, 2, 4, 7, 9], windowOffset: -3 },
 };
 
 const DIATONIC_SCALE_TYPES = {
-  major: { id: "major", label: "메이저", intervals: [0, 2, 4, 5, 7, 9, 11], windowOffset: 0 },
-  minor: { id: "minor", label: "마이너", intervals: [0, 2, 3, 5, 7, 8, 10], windowOffset: 0 },
+  major: { id: "major", label: ko["app.major"], intervals: [0, 2, 4, 5, 7, 9, 11], windowOffset: 0 },
+  minor: { id: "minor", label: ko["app.minor"], intervals: [0, 2, 3, 5, 7, 8, 10], windowOffset: 0 },
 };
 
 const SCALE_BOX_OPTIONS = [1, 2, 3, 4, 5];
@@ -616,9 +622,9 @@ const SCALE_BOX_SET_MAX_FRET = 15;
 const SCALE_LICK_STYLES = [
   {
     id: "intro-lick",
-    label: "입문 릭",
+    label: ko["app.beginnerLick"],
     defaultType: "minor",
-    basisLabel: "A 마이너 펜타토닉",
+    basisLabel: ko["app.aMinorPentatonic"],
     licks: [
       {
         number: 1,
@@ -682,9 +688,9 @@ const SCALE_LICK_STYLES = [
   },
   {
     id: "blues-lick",
-    label: "블루스 릭",
+    label: ko["app.bluesLick"],
     defaultType: "minor",
-    basisLabel: "A 마이너 블루스",
+    basisLabel: ko["app.aMinorBlues"],
     licks: [
       {
         number: 1,
@@ -748,9 +754,9 @@ const SCALE_LICK_STYLES = [
   },
   {
     id: "rock-lick",
-    label: "록 릭",
+    label: ko["app.rockLick"],
     defaultType: "minor",
-    basisLabel: "A 마이너 펜타토닉",
+    basisLabel: ko["app.aMinorPentatonic"],
     licks: [
       {
         number: 1,
@@ -820,9 +826,9 @@ const SCALE_LICK_STYLES = [
   },
   {
     id: "jazz-lick",
-    label: "재즈 릭",
+    label: ko["app.jazzLick"],
     defaultType: "minor",
-    basisLabel: "A7 코드톤",
+    basisLabel: ko["app.a7ChordTones"],
     licks: [
       {
         number: 1,
@@ -890,9 +896,9 @@ const SCALE_LICK_STYLES = [
   },
   {
     id: "country-lick",
-    label: "컨트리 릭",
+    label: ko["app.countryLick"],
     defaultType: "major",
-    basisLabel: "A 메이저 펜타토닉",
+    basisLabel: ko["app.aMajorPentatonic"],
     licks: [
       {
         number: 1,
@@ -1121,7 +1127,7 @@ function makeGuitarNote({ pitch, stringNumber, fretNumber, lane, hint, group }) 
     fretNumber,
     lane: normalizedLane,
     frequency: NOTE_FREQUENCIES[pitch],
-    hint: hint ?? `${SOLFEGE[noteName] ?? noteName}(${pitch}) = ${stringNumber}번줄 ${fretNumber === 0 ? "개방현" : `${fretNumber}프렛`}`,
+    hint: hint ?? formatMessage(ko["app.value1Value2StringValue3Value4"], { value1: SOLFEGE[noteName] ?? noteName, value2: pitch, value3: stringNumber, value4: fretNumber === 0 ? ko["app.openString"] : formatMessage(ko["app.fretValue1"], { value1: fretNumber }) }),
     group,
   };
 }
@@ -1326,7 +1332,7 @@ export function buildScaleLickPractice(familyId = SCALE_LICK_STYLES[0].id, lickI
         stringNumber: step.stringNumber,
         fretNumber: step.fretNumber,
         group: style.id,
-        hint: `${style.label} ${lick.label} ${step.order}번 음 = ${step.stringNumber}번줄 ${step.fretNumber === 0 ? "개방현" : `${step.fretNumber}프렛`}`,
+        hint: formatMessage(ko["app.value1Value2NoteValue3StringValue4Value5"], { value1: style.label, value2: lick.label, value3: step.order, value4: step.stringNumber, value5: step.fretNumber === 0 ? ko["app.openString"] : formatMessage(ko["app.fretValue1"], { value1: step.fretNumber }) }),
       }),
       id: step.noteId,
       label: String(step.order),
@@ -1656,12 +1662,12 @@ function buildScaleTrainingPractice(root = "C", typeId = "minor", familyId = SCA
 }
 
 const GUITAR_NOTES = [
-  makeGuitarNote({ pitch: "E2", stringNumber: 6, fretNumber: 0, group: "open", hint: "6번줄 개방현을 연주하세요" }),
-  makeGuitarNote({ pitch: "A2", stringNumber: 5, fretNumber: 0, group: "open", hint: "5번줄 개방현을 연주하세요" }),
-  makeGuitarNote({ pitch: "D3", stringNumber: 4, fretNumber: 0, group: "open", hint: "4번줄 개방현을 연주하세요" }),
-  makeGuitarNote({ pitch: "G3", stringNumber: 3, fretNumber: 0, group: "open", hint: "3번줄 개방현을 연주하세요" }),
-  makeGuitarNote({ pitch: "B3", stringNumber: 2, fretNumber: 0, group: "open", hint: "2번줄 개방현을 연주하세요" }),
-  makeGuitarNote({ pitch: "E4", stringNumber: 1, fretNumber: 0, group: "open", hint: "1번줄 개방현을 연주하세요" }),
+  makeGuitarNote({ pitch: "E2", stringNumber: 6, fretNumber: 0, group: "open", hint: ko["app.playTheOpen6thString"] }),
+  makeGuitarNote({ pitch: "A2", stringNumber: 5, fretNumber: 0, group: "open", hint: ko["app.playTheOpen5thString"] }),
+  makeGuitarNote({ pitch: "D3", stringNumber: 4, fretNumber: 0, group: "open", hint: ko["app.playTheOpen4thString"] }),
+  makeGuitarNote({ pitch: "G3", stringNumber: 3, fretNumber: 0, group: "open", hint: ko["app.playTheOpen3rdString"] }),
+  makeGuitarNote({ pitch: "B3", stringNumber: 2, fretNumber: 0, group: "open", hint: ko["app.playTheOpen2ndString"] }),
+  makeGuitarNote({ pitch: "E4", stringNumber: 1, fretNumber: 0, group: "open", hint: ko["app.playTheOpen1stString"] }),
   makeGuitarNote({ pitch: "F2", stringNumber: 6, fretNumber: 1, group: "first-position" }),
   makeGuitarNote({ pitch: "G2", stringNumber: 6, fretNumber: 3, group: "first-position" }),
   makeGuitarNote({ pitch: "B2", stringNumber: 5, fretNumber: 2, group: "first-position" }),
@@ -2255,7 +2261,7 @@ const CHORD_FLAT_ROOTS = {
 };
 const CHORD_ROOTS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const CHORD_ACCIDENTAL_OPTIONS = [
-  { id: "natural", label: "기본", suffix: "" },
+  { id: "natural", label: ko["app.default"], suffix: "" },
   { id: "sharp", label: "#", suffix: "#" },
   { id: "flat", label: "b", suffix: "b" },
 ];
@@ -2268,7 +2274,7 @@ const CHORD_QUALITY_OPTIONS = [
 ];
 
 const CHORD_EXTENSION_OPTIONS = [
-  { id: "none", label: "기본", quality: "any" },
+  { id: "none", label: ko["app.default"], quality: "any" },
   { id: "7", label: "7", quality: "major" },
   { id: "maj7", label: "maj7", quality: "major" },
   { id: "m7", label: "7", quality: "minor" },
@@ -2913,7 +2919,7 @@ function buildGeneratedChordShapeOption({
   quality,
   extension,
   displayName,
-  hint = `${displayName} 코드 운지입니다`,
+  hint = formatMessage(ko["app.value1ChordFingering"], { value1: displayName }),
   candidate = null,
   idSuffix = "",
 }) {
@@ -3145,7 +3151,7 @@ function buildChordReferencePositionMap({
   quality,
   extension,
   displayName,
-  hint = `${displayName} 코드 운지입니다`,
+  hint = formatMessage(ko["app.value1ChordFingering"], { value1: displayName }),
   storedChord = null,
 }) {
   if (isFixedAddFamily(quality, extension)) {
@@ -3240,7 +3246,7 @@ function buildChordToneReferencePosition({
   return positionMap[positionId] ?? null;
 }
 
-function buildChordToneReferenceOption({ root, quality, extension, displayName, hint = "선택 코드 운지를 표시합니다", storedChord = null }) {
+function buildChordToneReferenceOption({ root, quality, extension, displayName, hint = ko["app.showsTheSelectedChordFingering"], storedChord = null }) {
   if (isFixedAddFamily(quality, extension)) {
     if (root === 'B' && extension === 'add9' && !displayName?.startsWith('Cb')) return JSON.parse(JSON.stringify(preservedBadd9.chord));
     return buildFixedAddReferenceChords({root,quality,extension,displayName,hint})[0] ?? null;
@@ -3349,7 +3355,7 @@ function splitChordRootForSelector(root = "C") {
 
 function getChordDebugInfo({ baseRoot, accidental, quality, extension, chord }) {
   const generatedChordName = getChordNameFromParts(baseRoot, accidental, quality, extension);
-  const fretboardChordName = chord?.displayName ?? "운지 준비중";
+  const fretboardChordName = chord?.displayName ?? ko["app.fingeringComingSoon"];
   const normalizedChordName = chord?.displayName ?? generatedChordName;
   return {
     selectedRoot: baseRoot,
@@ -3369,7 +3375,7 @@ function getChordEntryId(entry) {
 }
 
 function getChordEntryLabel(entry, chord) {
-  if (isRhythmChordRest(entry)) return "쉼";
+  if (isRhythmChordRest(entry)) return ko["app.rest"];
   if (typeof entry === "string") return chord?.displayName ?? entry;
   return entry?.label ?? chord?.displayName ?? entry?.id ?? "";
 }
@@ -3383,7 +3389,7 @@ function getChordEntryPositionId(entry) {
 
 function getChordEntryPositionLabel(entry) {
   const positionId = getChordEntryPositionId(entry);
-  return CHORD_VIEWER_POSITIONS.find((position) => position.id === positionId)?.label ?? "1구간";
+  return CHORD_VIEWER_POSITIONS.find((position) => position.id === positionId)?.label ?? ko["app.position1"];
 }
 
 function getChordEntryBeatLength(entry) {
@@ -3404,7 +3410,7 @@ function normalizeStage3ChordEntry(entry) {
       beatLength: 1,
       id: RHYTHM_CHORD_REST_ID,
       isRest: true,
-      label: "쉼",
+      label: ko["app.rest"],
     };
   }
   const normalized = {
@@ -3502,7 +3508,7 @@ function makeStage3LibraryItem({
     ? chordIds.filter(isStage3ChordEntryValid).map(normalizeStage3ChordEntry)
     : [];
   const progression = getChordProgressionText(safeChordIds);
-  const safeTitle = String(title || "").trim() || progression || "내 진행";
+  const safeTitle = String(title || "").trim() || progression || ko["app.myProgression"];
   const isPreset = String(id || "").startsWith("preset-");
   const normalizedStrumSlots = isPreset
     ? []
@@ -3640,6 +3646,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
   onSelectChord,
   showChordFingeringGuide,
 }) {
+  useLanguage();
   const dragStateRef = useRef(null);
   const suppressClickUntilRef = useRef(0);
   const stopPointerDrag = useCallback((pointerId) => {
@@ -3702,7 +3709,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
         {group.root}
       </strong>
       <div
-        aria-label={`${group.root} 코드 운지 목록${desktopDraggable ? ". 마우스로 좌우 드래그" : ""}`}
+        aria-label={localizeUi(translateUi("app.value1ChordFingeringsValue2", { value1: group.root, value2: desktopDraggable ? ko["app.dragLeftOrRightWithTheMouse"] : "" }))}
         className="chordMiniGrid"
         data-desktop-draggable={desktopDraggable ? "true" : undefined}
         onClickCapture={suppressDraggedCardClick}
@@ -3808,30 +3815,30 @@ const BACKING_PIANO_ROOM = Object.freeze({
 });
 const BACKING_PATTERN_CHANGE_DEBOUNCE_MS = 72;
 const BACKING_PART_VOLUME_CONTROLS = [
-  { id: "drum", label: "드럼" },
-  { id: "bass", label: "베이스" },
-  { id: "piano", label: "피아노" },
+  { id: "drum", label: ko["app.drums"] },
+  { id: "bass", label: ko["tuner.bass"] },
+  { id: "piano", label: ko["etudes.piano"] },
 ];
 const BACKING_DRUM_PATTERN_OPTIONS = [
-  { id: "4beat", label: "4비트" },
-  { id: "8beat", label: "8비트" },
-  { id: "16beat", label: "16비트" },
+  { id: "4beat", label: ko["app.4Beat"] },
+  { id: "8beat", label: ko["metronome.8Beat"] },
+  { id: "16beat", label: ko["metronome.16Beat"] },
 ];
 const BACKING_BASS_BEAT_OPTIONS = [
-  { id: "basic", label: "기본" },
-  { id: "8beat", label: "8비트" },
-  { id: "16beat", label: "16비트" },
+  { id: "basic", label: ko["app.default"] },
+  { id: "8beat", label: ko["metronome.8Beat"] },
+  { id: "16beat", label: ko["metronome.16Beat"] },
 ];
 const BACKING_PIANO_BEAT_OPTIONS = [
-  { id: "basic", label: "기본" },
-  { id: "4beat", label: "4비트" },
-  { id: "8beat", label: "8비트" },
-  { id: "16beat", label: "16비트" },
+  { id: "basic", label: ko["app.default"] },
+  { id: "4beat", label: ko["app.4Beat"] },
+  { id: "8beat", label: ko["metronome.8Beat"] },
+  { id: "16beat", label: ko["metronome.16Beat"] },
 ];
 const MINI_CHORD_DEFAULT_PIANO_STYLE = "basic";
 const MINI_CHORD_PIANO_STYLE_OPTIONS = [
-  { id: "basic", label: "기본" },
-  { id: "custom", label: "커스텀" },
+  { id: "basic", label: ko["app.default"] },
+  { id: "custom", label: ko["app.custom"] },
 ];
 const MINI_CHORD_PIANO_STYLE_IDS = new Set(MINI_CHORD_PIANO_STYLE_OPTIONS.map((option) => option.id));
 const MINI_CHORD_CUSTOM_PATTERN_ID = "custom";
@@ -3859,13 +3866,13 @@ const MINI_CHORD_GROOVE_STEP_LABELS = [
   "4", "4e", "4&", "4a",
 ];
 const MINI_CHORD_DRUM_PATTERN_OPTIONS = [
-  { id: "basic", label: "기본" },
+  { id: "basic", label: ko["app.default"] },
   ...BACKING_DRUM_PATTERN_OPTIONS,
   { id: MINI_CHORD_CUSTOM_PATTERN_ID, label: "CUSTOM" },
 ];
 const MINI_CHORD_BASS_BEAT_OPTIONS = [
   BACKING_BASS_BEAT_OPTIONS[0],
-  { id: "4beat", label: "4비트" },
+  { id: "4beat", label: ko["app.4Beat"] },
   ...BACKING_BASS_BEAT_OPTIONS.slice(1),
   { id: MINI_CHORD_CUSTOM_PATTERN_ID, label: "CUSTOM" },
 ];
@@ -3885,17 +3892,17 @@ const MINI_CHORD_DRUM_INSTRUMENTS = [
   { id: "crash", label: "Crash", name: "Crash", sample: "crash", volume: 0.38 },
 ];
 const MINI_CHORD_BASS_STEP_VALUES = [
-  { id: "rest", label: "-", ariaLabel: "쉼" },
-  { id: "root", label: "R", ariaLabel: "루트" },
-  { id: "hold", label: "H", ariaLabel: "음 유지" },
-  { id: "third", label: "3", ariaLabel: "3도" },
-  { id: "fifth", label: "5", ariaLabel: "5도" },
-  { id: "octave", label: "8", ariaLabel: "옥타브" },
-  { id: "flatSeventh", label: "b7", ariaLabel: "플랫 7도" },
-  { id: "seventh", label: "7", ariaLabel: "7도" },
-  { id: "flatFifth", label: "b5", ariaLabel: "플랫 5도" },
-  { id: "approach", label: "A", ariaLabel: "다음 코드 접근음" },
-  { id: "nextRoot", label: "N", ariaLabel: "다음 코드 루트" },
+  { id: "rest", label: "-", ariaLabel: ko["app.rest"] },
+  { id: "root", label: "R", ariaLabel: ko["app.root"] },
+  { id: "hold", label: "H", ariaLabel: ko["app.sustain"] },
+  { id: "third", label: "3", ariaLabel: ko["app.3rd"] },
+  { id: "fifth", label: "5", ariaLabel: ko["app.5th"] },
+  { id: "octave", label: "8", ariaLabel: ko["app.octave"] },
+  { id: "flatSeventh", label: "b7", ariaLabel: ko["app.flat7th"] },
+  { id: "seventh", label: "7", ariaLabel: ko["app.7th"] },
+  { id: "flatFifth", label: "b5", ariaLabel: ko["app.flat5th"] },
+  { id: "approach", label: "A", ariaLabel: ko["app.approachToneToNextChord"] },
+  { id: "nextRoot", label: "N", ariaLabel: ko["app.nextChordRoot"] },
 ];
 const MINI_CHORD_BASS_STEP_VALUE_IDS = new Set(MINI_CHORD_BASS_STEP_VALUES.map((option) => option.id));
 const MINI_CHORD_PIANO_STEP_STYLES = [
@@ -3908,22 +3915,22 @@ const MINI_CHORD_PIANO_STEP_STYLES = [
 const MINI_CHORD_PIANO_STEP_STYLE_IDS = new Set(MINI_CHORD_PIANO_STEP_STYLES.map((option) => option.id));
 const MINI_CHORD_ARRANGEMENT_OPTION_GROUPS = {
   rhythmPattern: [
-    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: "기본" },
+    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: ko["app.default"] },
     ...MINI_CHORD_DRUM_PATTERN_OPTIONS.filter((option) => option.id !== "basic"),
   ],
   bassBeat: [
-    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: "기본" },
+    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: ko["app.default"] },
     ...MINI_CHORD_BASS_BEAT_OPTIONS.filter((option) => option.id !== "basic"),
   ],
   pianoBeat: [
-    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: "기본" },
+    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: ko["app.default"] },
     ...MINI_CHORD_PIANO_BEAT_OPTIONS.filter((option) => option.id !== "basic"),
   ],
 };
 const MINI_CHORD_ARRANGEMENT_PART_LABELS = {
-  rhythmPattern: "드럼",
-  bassBeat: "베이스",
-  pianoBeat: "피아노",
+  rhythmPattern: ko["app.drums"],
+  bassBeat: ko["tuner.bass"],
+  pianoBeat: ko["etudes.piano"],
 };
 const MINI_CHORD_ARRANGEMENT_KEY_TO_PART = {
   rhythmPattern: "drum",
@@ -3950,7 +3957,7 @@ const BACKING_SCHEDULER_MODES = {
 };
 const STAGE3_AUTO_REST_CHORD = Object.freeze({
   barres: [],
-  displayName: "자동 쉼",
+  displayName: ko["rhythm.autoRest"],
   id: `${RHYTHM_CHORD_REST_ID}-auto-display`,
   isAutoRest: true,
   isRest: true,
@@ -5657,9 +5664,9 @@ const COUNT_IN_VOICE_WORDS = [
 ];
 
 const COUNT_IN_VOICE_MODES = [
-  { id: "female", label: "여성" },
-  { id: "male", label: "남성" },
-  { id: "off", label: "음성 OFF" },
+  { id: "female", label: ko["app.female"] },
+  { id: "male", label: ko["app.male"] },
+  { id: "off", label: ko["app.voiceOff"] },
 ];
 
 const TRACKER_COUNT_IN_OPTIONS = [
@@ -5710,20 +5717,20 @@ const METRONOME_BEAT_STATE_ORDER = [
   METRONOME_BEAT_STATES.MUTE,
 ];
 const METRONOME_BEAT_STATE_LABELS = {
-  [METRONOME_BEAT_STATES.ACCENT]: "1박",
-  [METRONOME_BEAT_STATES.NORMAL]: "나머지 박",
-  [METRONOME_BEAT_STATES.MUTE]: "무음",
+  [METRONOME_BEAT_STATES.ACCENT]: ko["app.firstBeat2"],
+  [METRONOME_BEAT_STATES.NORMAL]: ko["app.otherBeats"],
+  [METRONOME_BEAT_STATES.MUTE]: ko["app.silent"],
 };
 const METRONOME_VISUAL_LAB_MODES = [
-  { id: "dot", label: "Dot", title: "Dot Mode", description: "현재 점자 방식. 점자 자체의 glow만 비교합니다." },
-  { id: "line", label: "Line", title: "Rhythm Line Mode", description: "좌에서 우로 흐르는 박자 위치를 비교합니다." },
-  { id: "circle", label: "Circle", title: "Circle Mode", description: "FRETIVA LAB 정식 후보로 승격한 원형 박자 훈련 시각화입니다." },
-  { id: "pick", label: "Pick Swing", title: "Pick Swing Mode", description: "기타 피크 스윙으로 스트로크 감각을 비교합니다." },
+  { id: "dot", label: "Dot", title: "Dot Mode", description: ko["appJsx.currentDotDisplayCompareTheGlowOfTheDotsAlone"] },
+  { id: "line", label: "Line", title: "Rhythm Line Mode", description: ko["appJsx.compareBeatPositionsMovingFromLeftToRight"] },
+  { id: "circle", label: "Circle", title: "Circle Mode", description: ko["appJsx.circularBeatVisualizationSelectedAsACandidateForFretivaLab"] },
+  { id: "pick", label: "Pick Swing", title: "Pick Swing Mode", description: ko["appJsx.compareTheFeelOfStrummingWithASwingingGuitarPick"] },
 ];
 const METRONOME_DISPLAY_MODES = [
   { id: "dot", label: "Dot Mode" },
   { id: "circle", label: "Circle Mode" },
-  { id: "groove", label: "그루브팩" },
+  { id: "groove", label: ko["app.groovePacksApp"] },
 ];
 const METRONOME_MODE_SWIPE_STEP_THRESHOLD = 40;
 const METRONOME_MODE_SWIPE_COMMIT_RATIO = 0.5;
@@ -5737,26 +5744,26 @@ const METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS = [
 ];
 const SVG_LOGO_LAB_STORAGE_KEY = "rifflab-svg-logo-lab-v1";
 const SVG_LOGO_LAB_CANDIDATES = [
-  ["svg-logo-09-a", "Logo 09-A", "String Priority R", "6현의 존재감을 가장 먼저 읽히게 한 Logo 09 기본 발전형."],
-  ["svg-logo-09-b", "Logo 09-B", "R Priority R", "멀리서 R 실루엣이 더 선명하게 보이도록 Bowl과 다리를 정리한 안."],
-  ["svg-logo-09-c", "Logo 09-C", "Quiet Wave R", "사운드웨이브를 더 절제해 R과 기타현만 남긴 미니멀 안."],
-  ["svg-logo-09-d", "Logo 09-D", "Headstock Engrave R", "헤드스톡 각인에 어울리도록 상단 현과 핀 정렬을 강조한 안."],
-  ["svg-logo-09-e", "Logo 09-E", "Hidden Fret R", "프렛보드 비율선을 은은하게 숨겨 악기 구조를 담은 안."],
-  ["svg-logo-09-f", "Logo 09-F", "App Icon R", "작은 앱 아이콘에서도 버티도록 굵기와 여백을 압축한 안."],
-  ["svg-logo-09-g", "Logo 09-G", "Pick Print R", "피크 인쇄에 맞춰 하단 마감과 실루엣을 단단하게 만든 안."],
-  ["svg-logo-09-h", "Logo 09-H", "Minimal Line R", "최소선으로 R, 6현, 리듬만 남긴 경량 심볼 안."],
-  ["svg-logo-09-i", "Logo 09-I", "Premium Studio R", "블랙 스튜디오 조명과 금속감을 가장 균형 있게 둔 프리미엄 안."],
-  ["svg-logo-09-j", "Logo 09-J", "Lower Grid R", "하단 끝점과 기준선을 가장 엄격하게 맞춘 정렬 중심 안."],
-  ["svg-logo-09-k", "Logo 09-K", "Tall String R", "상하 비례를 길게 잡아 현이 R로 변하는 과정을 강조한 안."],
-  ["svg-logo-09-l", "Logo 09-L", "Compact Badge R", "스티커와 배지 적용을 고려해 전체 폭을 압축한 안."],
-  ["svg-logo-09-m", "Logo 09-M", "Balanced Riff R", "좌우 사운드웨이브와 R 구조의 균형을 맞춘 대표 후보 안."],
-  ["svg-logo-09-n", "Logo 09-N", "Gold Inlay R", "고급 기타 인레이처럼 선 끝과 접합부를 정제한 안."],
-  ["svg-logo-09-o", "Logo 09-O", "Sharp Leg R", "R의 대각 다리를 선명하게 만들어 1차 시선에서 R을 강화한 안."],
-  ["svg-logo-09-p", "Logo 09-P", "Soft Bowl R", "R의 곡선부를 부드럽게 다듬어 현의 자연스러운 휨을 강조한 안."],
-  ["svg-logo-09-q", "Logo 09-Q", "Hardware Plate R", "앰프 명판과 장비 플레이트에 어울리는 수평 기준선 중심 안."],
-  ["svg-logo-09-r", "Logo 09-R", "Monochrome Ready R", "색을 제거해도 R 실루엣이 남도록 대비와 구조를 정리한 안."],
-  ["svg-logo-09-s", "Logo 09-S", "Master Symbol R", "FRETIVA LAB 공식 심볼 후보로 현, R, 웨이브를 가장 균형 있게 통합한 안."],
-  ["svg-logo-09-t", "Logo 09-T", "Signature String R", "향후 헤더, 피크, 티셔츠까지 확장 가능한 최종 후보형 안."],
+  ["svg-logo-09-a", "Logo 09-A", "String Priority R", ko["appJsx.anEvolutionOfLogo09ThatBringsTheSixStringsIntoFocus"]],
+  ["svg-logo-09-b", "Logo 09-B", "R Priority R", ko["appJsx.aRefinedBowlAndLegMakeTheRSilhouetteClearerFromA"]],
+  ["svg-logo-09-c", "Logo 09-C", "Quiet Wave R", ko["appJsx.aMinimalDesignWithARestrainedSoundWaveLeavingTheRAnd"]],
+  ["svg-logo-09-d", "Logo 09-D", "Headstock Engrave R", ko["appJsx.alignedUpperStringsAndTuningPegsSuitAHeadstockEngraving"]],
+  ["svg-logo-09-e", "Logo 09-E", "Hidden Fret R", ko["appJsx.subtleFretboardProportionsEchoTheInstrumentSConstruction"]],
+  ["svg-logo-09-f", "Logo 09-F", "App Icon R", ko["appJsx.compactStrokesAndSpacingRemainLegibleAsASmallAppIcon"]],
+  ["svg-logo-09-g", "Logo 09-G", "Pick Print R", ko["appJsx.aFirmLowerEdgeAndSilhouetteDesignedForPrintingOnPicks"]],
+  ["svg-logo-09-h", "Logo 09-H", "Minimal Line R", ko["appJsx.aLightweightSymbolUsingMinimalLinesForTheRSixStringsAnd"]],
+  ["svg-logo-09-i", "Logo 09-I", "Premium Studio R", ko["appJsx.aPremiumBalanceOfDarkStudioLightingAndMetallicTexture"]],
+  ["svg-logo-09-j", "Logo 09-J", "Lower Grid R", ko["appJsx.aPreciseDesignWithTightlyAlignedLowerEndpointsAndBaselines"]],
+  ["svg-logo-09-k", "Logo 09-K", "Tall String R", ko["appJsx.elongatedProportionsEmphasizeTheStringsTransformingIntoAnR"]],
+  ["svg-logo-09-l", "Logo 09-L", "Compact Badge R", ko["appJsx.aNarrowerDesignSuitedToStickersAndBadges"]],
+  ["svg-logo-09-m", "Logo 09-M", "Balanced Riff R", ko["appJsx.aLeadingCandidateBalancingTheRWithSoundWavesOnEitherSide"]],
+  ["svg-logo-09-n", "Logo 09-N", "Gold Inlay R", ko["appJsx.refinedLineEndingsAndJointsInspiredByFineGuitarInlays"]],
+  ["svg-logo-09-o", "Logo 09-O", "Sharp Leg R", ko["appJsx.aClearDiagonalLegMakesTheRImmediatelyRecognizable"]],
+  ["svg-logo-09-p", "Logo 09-P", "Soft Bowl R", ko["appJsx.aSoftenedRCurveEmphasizesTheNaturalBendOfTheStrings"]],
+  ["svg-logo-09-q", "Logo 09-Q", "Hardware Plate R", ko["appJsx.aHorizontalBaselineSuitedToAmplifierBadgesAndEquipmentPlates"]],
+  ["svg-logo-09-r", "Logo 09-R", "Monochrome Ready R", ko["appJsx.contrastAndStructurePreserveTheRSilhouetteInMonochrome"]],
+  ["svg-logo-09-s", "Logo 09-S", "Master Symbol R", ko["appJsx.aBalancedCombinationOfStringsRAndWavesForTheOfficialFretiva"]],
+  ["svg-logo-09-t", "Logo 09-T", "Signature String R", ko["appJsx.aFinalCandidateAdaptableToHeadersPicksAndTShirts"]],
 ].map(([id, label, title, description], index) => ({ id, label, title, description, index: index + 1 }));
 const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
 const METRONOME_PRESET_STORAGE_KEY = "rifflab-metronome-presets-v1";
@@ -5771,11 +5778,11 @@ const APP_DEFAULT_THEME = APP_THEMES.LIGHT;
 const APP_THEME_OPTIONS = [
   {
     id: APP_THEMES.LIGHT,
-    label: "화이트",
+    label: ko["app.white"],
   },
   {
     id: APP_THEMES.BRAND,
-    label: "골드 다크",
+    label: ko["app.goldDark"],
   },
 ];
 const THEME_TRANSITION_TIMINGS = Object.freeze({
@@ -5787,7 +5794,8 @@ const THEME_TRANSITION_TIMINGS = Object.freeze({
 });
 
 const ThemeTransitionOverlay = memo(function ThemeTransitionOverlay({ onComplete, transition }) {
-  const themeLabel = transition.nextTheme === APP_THEMES.LIGHT ? "화이트" : "골드 다크";
+  useLanguage();
+  const themeLabel = transition.nextTheme === APP_THEMES.LIGHT ? ko["app.white"] : ko["app.goldDark"];
   const handleComplete = useCallback(
     () => onComplete(transition.token),
     [onComplete, transition.token],
@@ -5795,13 +5803,13 @@ const ThemeTransitionOverlay = memo(function ThemeTransitionOverlay({ onComplete
 
   return (
     <SplashIntro
-      ariaLabel={`${themeLabel} 테마 적용 중`}
+      ariaLabel={translateUi("app.applyingValue1Theme", { value1: themeLabel })}
       fallbackMs={15000}
       minimumIntroMs={0}
       onComplete={handleComplete}
       progress={transition.progress}
       readyPromise={transition.readyPromise}
-      statusText={`${themeLabel} 테마를 적용하고 있습니다.`}
+      statusText={translateUi("app.applyingTheValue1Theme", { value1: themeLabel })}
     />
   );
 });
@@ -5813,7 +5821,7 @@ const FEEL_RECORDER_LONG_PRESS_MS = 420;
 const FEEL_RECORDER_MAX_EVENTS = 24;
 const FEEL_RECORDER_DEFAULT_NAME = "My Feel";
 const FEEL_RECORDER_MIN_TAP_MS = 60;
-const METRONOME_PRESET_DEFAULT_NAME = "워밍업";
+const METRONOME_PRESET_DEFAULT_NAME = ko["app.warmUp"];
 
 function normalizeFeelRecorderEvents(events) {
   if (!Array.isArray(events)) return [];
@@ -6105,6 +6113,7 @@ function MetronomeSelectControl({
   showLabel = true,
   triggerLabel = null,
 }) {
+  useLanguage();
   const [open, setOpen] = useState(false);
   const [activeOptionTab, setActiveOptionTab] = useState(() => optionTabs?.[0]?.id ?? "");
   const [managementEditing, setManagementEditing] = useState(false);
@@ -6280,7 +6289,7 @@ function MetronomeSelectControl({
       {showLabel ? (
         <span className="metronomeSelectLabel">
           {labelDot ? <i className={`metronomeSelectLabelDot metronomeSelectLabelDot--${labelDot}`} aria-hidden="true" /> : null}
-          {label}
+          {localizeUi(label)}
         </span>
       ) : null}
       <button
@@ -6288,7 +6297,7 @@ function MetronomeSelectControl({
         aria-current={selectedOption ? "true" : undefined}
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label={selectedOption?.longLabel ? `${ariaLabel || label}: ${selectedOption.longLabel}` : (ariaLabel || label)}
+        aria-label={localizeUi(selectedOption?.longLabel ? `${ariaLabel || label}: ${selectedOption.longLabel}` : (ariaLabel || label))}
         className="metronomeSelectButton"
         disabled={disabled}
         onClick={(event) => {
@@ -6304,11 +6313,11 @@ function MetronomeSelectControl({
         }}
         onPointerDown={(event) => event.stopPropagation()}
         onTouchStart={(event) => event.stopPropagation()}
-        title={selectedOption?.longLabel || selectedOption?.label || label}
+        title={localizeUi(selectedOption?.longLabel || selectedOption?.label || label)}
         type="button"
       >
         <b className={selectedOption?.notation ? "metronomeSelectButtonNotation" : undefined}>
-          {triggerLabel ?? renderMetronomeOptionLabel(selectedOption, value || label)}
+          {localizeUi(triggerLabel ?? renderMetronomeOptionLabel(selectedOption, value || label))}
         </b>
         {panelDirectionIndicator ? (
           <i aria-hidden="true" className="metronomeSelectPanelDirection">
@@ -6335,12 +6344,12 @@ function MetronomeSelectControl({
               <>
                 {optionTabsLabel ? (
                   <div className="metronomeSelectSectionLabel metronomeSelectTabsLabel">
-                    <strong>{optionTabsLabel}</strong>
-                    <span>분류를 먼저 고르세요</span>
+                    <strong>{localizeUi(optionTabsLabel)}</strong>
+                    <span><Translation id="app.chooseACategoryFirst" /></span>
                   </div>
                 ) : null}
                 <div
-                  aria-label={`${label} 분류`}
+                  aria-label={translateUi("app.value1Category", { value1: label })}
                   className="metronomeSelectOptionTabs stage3RecommendationTabs"
                 onKeyDown={(event) => {
                   if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
@@ -6381,7 +6390,7 @@ function MetronomeSelectControl({
                         tabIndex={isActiveTab ? 0 : -1}
                         type="button"
                       >
-                        <span>{tab.label}</span>
+                        <span>{localizeUi(tab.label)}</span>
                         {tab.showCount === false ? null : (
                           <small>{tab.count ?? options.filter((option) => String(option.tabId) === String(tab.id) && !option.disabled).length}</small>
                         )}
@@ -6393,8 +6402,8 @@ function MetronomeSelectControl({
             ) : null}
             {hasVisibleSelectionTools && managedListMode ? (
               managementEditing ? (
-                <div className="metronomeSelectManagementToolbar editing" role="toolbar" aria-label="저장 진행 선택 관리">
-                  <span>{selectedOptionCount ? `${selectedOptionCount}개 선택` : "진행 편집"}</span>
+                <div className="metronomeSelectManagementToolbar editing" role="toolbar" aria-label={translateUi("app.manageSavedProgressions")}>
+                  <span>{selectedOptionCount ? translateUi("app.value1Selected", { value1: selectedOptionCount }) : translateUi("app.editProgressions")}</span>
                   <button
                     disabled={!selectableOptionCount}
                     onClick={(event) => {
@@ -6402,9 +6411,7 @@ function MetronomeSelectControl({
                       onSelectAllOptions?.();
                     }}
                     type="button"
-                  >
-                    전체 선택
-                  </button>
+                  ><Translation id="app.selectAll" /></button>
                   <button
                     disabled={!selectedOptionCount}
                     onClick={(event) => {
@@ -6412,9 +6419,7 @@ function MetronomeSelectControl({
                       onClearSelectedOptions?.();
                     }}
                     type="button"
-                  >
-                    선택 해제
-                  </button>
+                  ><Translation id="app.deselectAll" /></button>
                   <button
                     className="danger"
                     disabled={!selectedOptionCount}
@@ -6424,9 +6429,7 @@ function MetronomeSelectControl({
                       setOpenImmediate(false);
                     }}
                     type="button"
-                  >
-                    선택 삭제
-                  </button>
+                  ><Translation id="app.deleteSelected" /></button>
                   <button
                     onClick={(event) => {
                       event.stopPropagation();
@@ -6434,13 +6437,11 @@ function MetronomeSelectControl({
                       setManagementEditing(false);
                     }}
                     type="button"
-                  >
-                    완료
-                  </button>
+                  ><Translation id="common.done" /></button>
                 </div>
               ) : (
-                <div className="metronomeSelectManagementToolbar idle" role="toolbar" aria-label="저장 진행 편집 열기">
-                  <span>저장한 진행</span>
+                <div className="metronomeSelectManagementToolbar idle" role="toolbar" aria-label={translateUi("app.editSavedProgressions")}>
+                  <span><Translation id="app.savedProgressions" /></span>
                   <button
                     onClick={(event) => {
                       event.stopPropagation();
@@ -6448,14 +6449,12 @@ function MetronomeSelectControl({
                       setManagementEditing(true);
                     }}
                     type="button"
-                  >
-                    편집
-                  </button>
+                  ><Translation id="common.edit" /></button>
                 </div>
               )
             ) : hasVisibleSelectionTools ? (
-              <div className="metronomeSelectManagementToolbar" role="toolbar" aria-label="저장 진행 선택 관리">
-                <span>{selectedOptionCount ? `${selectedOptionCount}개 선택` : "삭제할 진행 선택"}</span>
+              <div className="metronomeSelectManagementToolbar" role="toolbar" aria-label={translateUi("app.manageSavedProgressions")}>
+                <span>{selectedOptionCount ? translateUi("app.value1Selected", { value1: selectedOptionCount }) : translateUi("app.selectProgressionsToDelete")}</span>
                 <button
                   disabled={!selectedOptionCount}
                   onClick={(event) => {
@@ -6463,9 +6462,7 @@ function MetronomeSelectControl({
                     onClearSelectedOptions?.();
                   }}
                   type="button"
-                >
-                  선택 해제
-                </button>
+                ><Translation id="app.deselectAll" /></button>
                 <button
                   className="danger"
                   disabled={!selectedOptionCount}
@@ -6475,15 +6472,13 @@ function MetronomeSelectControl({
                     setOpenImmediate(false);
                   }}
                   type="button"
-                >
-                  선택 삭제
-                </button>
+                ><Translation id="app.deleteSelected" /></button>
               </div>
             ) : null}
             {optionListLabel ? (
               <div className="metronomeSelectSectionLabel metronomeSelectListLabel">
-                <strong>{optionListLabel}</strong>
-                <span>항목을 눌러 적용</span>
+                <strong>{localizeUi(optionListLabel)}</strong>
+                <span><Translation id="app.tapAnItemToApply" /></span>
               </div>
             ) : null}
             {gridOptions.map((option) => {
@@ -6502,7 +6497,7 @@ function MetronomeSelectControl({
               );
               const optionButton = (
                 <button
-                  aria-label={option.longLabel || option.label || String(option.id)}
+                  aria-label={localizeUi(option.longLabel || option.label || String(option.id))}
                   aria-selected={isSelected}
                   className={`metronomeSelectOption ${isSelected ? "selected" : ""} ${hasRowActions ? "metronomeSelectOption--managed" : ""}`}
                   disabled={option.disabled}
@@ -6522,9 +6517,9 @@ function MetronomeSelectControl({
                 >
                   {!managedListMode && !hasSelectionControl && canDelete ? <span aria-hidden="true" className="metronomeSelectOptionIndicator" /> : null}
                   <span className="metronomeSelectOptionText">
-                    {renderMetronomeOptionLabel(option, option.id)}
+                    {localizeUi(renderMetronomeOptionLabel(option, option.id))}
                     {option.description ? (
-                      <small className="metronomeSelectOptionDescription">{option.description}</small>
+                      <small className="metronomeSelectOptionDescription">{localizeUi(option.description)}</small>
                     ) : null}
                   </span>
                 </button>
@@ -6599,12 +6594,12 @@ function MetronomeSelectControl({
                   >
                     <div
                       aria-hidden={revealedOptionId === optionId ? undefined : "true"}
-                      aria-label="개별 진행 관리"
+                      aria-label={translateUi("app.manageProgression")}
                       className="metronomeSelectOptionActionRail"
                     >
                       {onToggleOptionLock ? (
                         <button
-                          aria-label={`${option.longLabel || option.label || optionId} ${isLocked ? "잠금 해제" : "잠금"}`}
+                          aria-label={localizeUi(`${option.longLabel || option.label || optionId} ${isLocked ? translateUi("app.unlock") : translateUi("app.lock")}`)}
                           aria-pressed={isLocked}
                           className={`metronomeSelectOptionLock ${isLocked ? "selected" : ""}`}
                           onClick={(event) => {
@@ -6612,7 +6607,7 @@ function MetronomeSelectControl({
                             onToggleOptionLock(option.id);
                             setRevealedOptionId("");
                           }}
-                          title={isLocked ? "잠금 해제" : "삭제 방지 잠금"}
+                          title={isLocked ? translateUi("app.unlock") : translateUi("app.protectFromDeletion")}
                           tabIndex={revealedOptionId === optionId ? undefined : -1}
                           type="button"
                         >
@@ -6621,7 +6616,7 @@ function MetronomeSelectControl({
                       ) : null}
                       {onDeleteOption ? (
                         <button
-                          aria-label={`${option.longLabel || option.label || optionId} 삭제`}
+                          aria-label={localizeUi(translateUi("app.deleteValue1", { value1: option.longLabel || option.label || optionId }))}
                           className="metronomeSelectOptionDelete"
                           disabled={!canDelete}
                           onClick={(event) => {
@@ -6630,7 +6625,7 @@ function MetronomeSelectControl({
                             onDeleteOption(option.id);
                             setOpenImmediate(false);
                           }}
-                          title={isLocked ? "잠금을 해제해야 삭제할 수 있습니다" : "사용자 설정 삭제"}
+                          title={isLocked ? translateUi("app.unlockBeforeDeleting") : translateUi("app.deleteCustomPreset")}
                           tabIndex={revealedOptionId === optionId ? undefined : -1}
                           type="button"
                         >
@@ -6642,7 +6637,7 @@ function MetronomeSelectControl({
                       {hasSelectionControl ? (
                         <button
                           aria-checked={isBulkSelected}
-                          aria-label={`${option.longLabel || option.label || optionId} ${isBulkSelected ? "선택 해제" : "삭제 선택"}`}
+                          aria-label={localizeUi(`${option.longLabel || option.label || optionId} ${isBulkSelected ? translateUi("app.deselectAll") : translateUi("app.selectForDeletion")}`)}
                           className={`metronomeSelectOptionIndicator ${isBulkSelected ? "selected" : ""}`}
                           disabled={isLocked}
                           onClick={(event) => {
@@ -6650,7 +6645,7 @@ function MetronomeSelectControl({
                             if (!isLocked) onToggleOptionSelection(option.id);
                           }}
                           role="checkbox"
-                          title={isLocked ? "잠금을 해제한 뒤 선택할 수 있습니다" : "선택 삭제에 포함"}
+                          title={isLocked ? translateUi("app.unlockBeforeSelecting") : translateUi("app.includeInSelection")}
                           type="button"
                         >
                           {isBulkSelected ? <span aria-hidden="true">✓</span> : null}
@@ -6667,7 +6662,7 @@ function MetronomeSelectControl({
                   {hasSelectionControl ? (
                     <button
                       aria-checked={isBulkSelected}
-                      aria-label={`${option.longLabel || option.label || String(option.id)} ${isBulkSelected ? "선택 해제" : "삭제 선택"}`}
+                      aria-label={localizeUi(`${option.longLabel || option.label || String(option.id)} ${isBulkSelected ? translateUi("app.deselectAll") : translateUi("app.selectForDeletion")}`)}
                       className={`metronomeSelectOptionIndicator ${isBulkSelected ? "selected" : ""}`}
                       disabled={isLocked}
                       onClick={(event) => {
@@ -6675,7 +6670,7 @@ function MetronomeSelectControl({
                         if (!isLocked) onToggleOptionSelection(option.id);
                       }}
                       role="checkbox"
-                      title={isLocked ? "잠금을 해제한 뒤 선택할 수 있습니다" : "선택 삭제에 포함"}
+                      title={isLocked ? translateUi("app.unlockBeforeSelecting") : translateUi("app.includeInSelection")}
                       type="button"
                     >
                       {isBulkSelected ? <span aria-hidden="true">✓</span> : null}
@@ -6684,14 +6679,14 @@ function MetronomeSelectControl({
                   {optionButton}
                   {onToggleOptionLock ? (
                     <button
-                      aria-label={`${option.longLabel || option.label || String(option.id)} ${isLocked ? "잠금 해제" : "잠금"}`}
+                      aria-label={localizeUi(`${option.longLabel || option.label || String(option.id)} ${isLocked ? translateUi("app.unlock") : translateUi("app.lock")}`)}
                       aria-pressed={isLocked}
                       className={`metronomeSelectOptionLock ${isLocked ? "selected" : ""}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         onToggleOptionLock(option.id);
                       }}
-                      title={isLocked ? "잠금 해제" : "삭제 방지 잠금"}
+                      title={isLocked ? translateUi("app.unlock") : translateUi("app.protectFromDeletion")}
                       type="button"
                     >
                       {isLocked ? <Lock aria-hidden="true" size={13} /> : <LockOpen aria-hidden="true" size={13} />}
@@ -6699,7 +6694,7 @@ function MetronomeSelectControl({
                   ) : null}
                   {onDeleteOption ? (
                     <button
-                      aria-label={`${option.longLabel || option.label || String(option.id)} 삭제`}
+                      aria-label={localizeUi(translateUi("app.deleteValue1", { value1: option.longLabel || option.label || String(option.id) }))}
                       className="metronomeSelectOptionDelete"
                       disabled={!canDelete}
                       onClick={(event) => {
@@ -6708,7 +6703,7 @@ function MetronomeSelectControl({
                         onDeleteOption(option.id);
                         setOpenImmediate(false);
                       }}
-                      title={isLocked ? "잠금을 해제해야 삭제할 수 있습니다" : "사용자 설정 삭제"}
+                      title={isLocked ? translateUi("app.unlockBeforeDeleting") : translateUi("app.deleteCustomPreset")}
                       type="button"
                     >
                       <X aria-hidden="true" size={14} />
@@ -6743,7 +6738,7 @@ function MetronomeControl({
   onTimeSignatureChange = () => {},
   onToneChange = () => {},
   onWeakToneChange = () => {},
-  optionsCollapseLabel = "매트로놈 설정",
+  optionsCollapseLabel = ko["app.metronomeSettings"],
   optionsCollapsed = false,
   optionsHeaderToggle = false,
   repeatEnabled = false,
@@ -6758,6 +6753,7 @@ function MetronomeControl({
   toneControlsAfterSubdivision = false,
   weakTone = "tick",
 }) {
+  useLanguage();
   const [draftBpm, setDraftBpm] = useState(String(bpm));
   const [swipePreviewBpm, setSwipePreviewBpm] = useState(null);
   const bpmSwipeStartRef = useRef(null);
@@ -6919,7 +6915,7 @@ function MetronomeControl({
       <div className={`metronomeTopLine ${showBpmControls ? "" : "metronomeTopLine--togglesOnly"}`}>
         {showBpmControls ? (
           <>
-            <label className="metronomeBpmLabel" htmlFor={`${inputId}-input`}>BPM</label>
+            <label className="metronomeBpmLabel" htmlFor={`${inputId}-input`}><Translation id="originalUi.bpm" /></label>
             <div className="metronomeBpmCombo">
       <div
         className={`metronomeBpmInputShell ${enableBpmSwipePreview ? "metronomeBpmInputShell--liveSwipe" : ""}`}
@@ -6929,7 +6925,7 @@ function MetronomeControl({
                 onPointerUp={handleBpmPointerEnd}
               >
                 <input
-                  aria-label="BPM"
+                  aria-label={translateUi("originalUi.bpm")}
                   id={`${inputId}-input`}
                   inputMode="numeric"
                   max={MAX_BPM}
@@ -6952,65 +6948,63 @@ function MetronomeControl({
                 <span aria-hidden="true" className="metronomeBpmLiveValue" ref={bpmPreviewDisplayRef}>
                   {visibleBpmValue}
                 </span>
-                <div className="metronomeBpmSpinner" aria-label="BPM 미세 조절">
-                  <button aria-label="BPM 1 올리기" className="metronomeBpmStep metronomeBpmStep--up" onClick={() => stepBpm(1)} type="button">
+                <div className="metronomeBpmSpinner" aria-label={translateUi("app.fineTuneBpm")}>
+                  <button aria-label={translateUi("app.increaseBpmBy1")} className="metronomeBpmStep metronomeBpmStep--up" onClick={() => stepBpm(1)} type="button">
                     +
                   </button>
                   {compactToggleLabels ? (
-                    <button aria-label="BPM 10 올리기" className="metronomeBpmStep metronomeBpmStep--upTen" onClick={() => stepBpm(10)} type="button">
+                    <button aria-label={translateUi("app.increaseBpmBy10")} className="metronomeBpmStep metronomeBpmStep--upTen" onClick={() => stepBpm(10)} type="button">
                       10+
                     </button>
                   ) : null}
                   {compactToggleLabels ? (
-                    <button aria-label="BPM 10 낮추기" className="metronomeBpmStep metronomeBpmStep--downTen" onClick={() => stepBpm(-10)} type="button">
+                    <button aria-label={translateUi("app.decreaseBpmBy10")} className="metronomeBpmStep metronomeBpmStep--downTen" onClick={() => stepBpm(-10)} type="button">
                       10-
                     </button>
                   ) : null}
-                  <button aria-label="BPM 1 낮추기" className="metronomeBpmStep metronomeBpmStep--down" onClick={() => stepBpm(-1)} type="button">
+                  <button aria-label={translateUi("app.decreaseBpmBy1")} className="metronomeBpmStep metronomeBpmStep--down" onClick={() => stepBpm(-1)} type="button">
                     -
                   </button>
                 </div>
               </div>
               <button
-                aria-label="BPM 빠른 선택"
+                aria-label={translateUi("app.quickBpmPresets")}
                 className="metronomeBpmPresetSelect"
                 onClick={applyNextBpmPreset}
                 type="button"
-              >
-                빠른
-              </button>
+              ><Translation id="app.quick" /></button>
             </div>
           </>
         ) : null}
         <div className="metronomeToggleRow">
           {showAccent ? (
             <button
-              aria-pressed={accentEnabled}
+              aria-label={translateUi("app.accent")} title={translateUi("app.accent")} aria-pressed={accentEnabled}
               className={accentEnabled ? "selected" : ""}
               onClick={() => onAccentChange(!accentEnabled)}
               type="button"
             >
-              {compactToggleLabels ? "강박" : `강박 ${accentEnabled ? "ON" : "OFF"}`}
+              {compactToggleLabels ? translateUi("app.accent") : translateUi("metronome.accentStateCompact", { value1: accentEnabled ? translateUi("metronome.enabledCompact") : translateUi("metronome.disabledCompact") })}
             </button>
           ) : null}
           {showCountIn ? (
             <button
-              aria-pressed={countInEnabled}
+              aria-label={translateUi("pdf.countIn")} title={translateUi("pdf.countIn")} aria-pressed={countInEnabled}
               className={countInEnabled ? "selected" : ""}
               onClick={() => onCountInChange(!countInEnabled)}
               type="button"
             >
-              {compactToggleLabels ? "Count" : `카운트인 ${countInEnabled ? "ON" : "OFF"}`}
+              {compactToggleLabels ? "Count" : translateUi("metronome.countInStateCompact", { value1: countInEnabled ? translateUi("metronome.enabledCompact") : translateUi("metronome.disabledCompact") })}
             </button>
           ) : null}
           {showRepeat ? (
             <button
-              aria-pressed={repeatEnabled}
+              aria-label={translateUi("app.repeat")} title={translateUi("app.repeat")} aria-pressed={repeatEnabled}
               className={repeatEnabled ? "selected" : ""}
               onClick={() => onRepeatChange(!repeatEnabled)}
               type="button"
             >
-              {compactToggleLabels ? "반복" : `반복 ${repeatEnabled ? "ON" : "OFF"}`}
+              {compactToggleLabels ? translateUi("app.repeat") : translateUi("metronome.repeatStateCompact", { value1: repeatEnabled ? translateUi("metronome.enabledCompact") : translateUi("metronome.disabledCompact") })}
             </button>
           ) : null}
         </div>
@@ -7031,36 +7025,36 @@ function MetronomeControl({
           <button
             aria-controls={`${inputId}-options`}
             aria-expanded={!optionsCollapsed}
-            aria-label={`${optionsCollapseLabel} ${optionsCollapsed ? "펼치기" : "접기"}`}
+            aria-label={`${optionsCollapseLabel} ${optionsCollapsed ? translateUi("app.expand") : translateUi("app.collapse")}`}
             className="metronomeOptionsHeaderButton"
             onClick={() => onOptionsCollapseChange(!optionsCollapsed)}
             type="button"
           >
-            <strong>{optionsCollapseLabel}</strong>
+            <strong>{localizeUi(optionsCollapseLabel)}</strong>
             <b aria-hidden="true">{optionsCollapsed ? "⌄" : "⌃"}</b>
           </button>
         ) : null}
         {optionsCollapsed ? (
           optionsHeaderToggle
             ? null
-            : <strong className="metronomeOptionsCollapsedTitle">{optionsCollapseLabel}</strong>
+            : <strong className="metronomeOptionsCollapsedTitle">{localizeUi(optionsCollapseLabel)}</strong>
         ) : (
           <MetronomeSettingsPanel
             renderOption={renderMetronomeOptionLabel}
             fields={[
-              { id: "meter", label: "박자", options: TIME_SIGNATURE_OPTIONS, value: timeSignature, onChange: onTimeSignatureChange },
-              ...(splitToneControls ? [{ id: "accent", label: "음색 1박", ariaLabel: "1박 음색", dot: "strong", tone: true, options: METRONOME_TONE_OPTIONS, value: accentTone, onChange: onAccentToneChange }] : []),
-              { id: "subdivision", label: "세분", options: SUBDIVISION_OPTIONS, value: subdivision, onChange: onSubdivisionChange },
+              { id: "meter", label: ko["app.meter"], options: TIME_SIGNATURE_OPTIONS, value: timeSignature, onChange: onTimeSignatureChange },
+              ...(splitToneControls ? [{ id: "accent", label: ko["app.beat1Sound"], ariaLabel: ko["app.firstBeatSound"], dot: "strong", tone: true, options: METRONOME_TONE_OPTIONS, value: accentTone, onChange: onAccentToneChange }] : []),
+              { id: "subdivision", label: ko["app.subdivision"], options: SUBDIVISION_OPTIONS, value: subdivision, onChange: onSubdivisionChange },
               splitToneControls
-                ? { id: "weak", label: "음색 2박", ariaLabel: "나머지 박 음색", dot: "weak", tone: true, options: METRONOME_TONE_OPTIONS, value: weakTone, onChange: onWeakToneChange }
-                : { id: "tone", label: "음색", tone: true, options: METRONOME_TONE_OPTIONS, value: tone, onChange: onToneChange },
+                ? { id: "weak", label: ko["app.otherBeatSound"], ariaLabel: ko["app.remainingBeatsSound"], dot: "weak", tone: true, options: METRONOME_TONE_OPTIONS, value: weakTone, onChange: onWeakToneChange }
+                : { id: "tone", label: ko["app.sound"], tone: true, options: METRONOME_TONE_OPTIONS, value: tone, onChange: onToneChange },
             ]}
           />        )}
         {onOptionsCollapseChange && !optionsHeaderToggle ? (
           <button
             aria-controls={`${inputId}-options`}
             aria-expanded={!optionsCollapsed}
-            aria-label={`${optionsCollapseLabel} ${optionsCollapsed ? "펼치기" : "접기"}`}
+            aria-label={`${optionsCollapseLabel} ${optionsCollapsed ? translateUi("app.expand") : translateUi("app.collapse")}`}
             className="metronomeOptionsCollapseButton"
             onClick={(event) => {
               event.stopPropagation();
@@ -7068,7 +7062,7 @@ function MetronomeControl({
             }}
             type="button"
           >
-            {optionsCollapsed ? "펼침" : "접기"}
+            {optionsCollapsed ? translateUi("app.expanded") : translateUi("app.collapse")}
           </button>
         ) : null}
       </div>
@@ -7089,6 +7083,7 @@ function MetronomeTimeline({
   runnerLabel,
   timeSignature = "4/4",
 }) {
+  useLanguage();
   const markers = Array.from({ length: beatsPerMeasure }, (_, index) => index);
   const dots = Array.from({ length: beatsPerMeasure }, (_, index) => index);
   const normalizedBeatPattern = normalizeMetronomeBeatPattern(beatPattern, beatsPerMeasure);
@@ -7105,12 +7100,12 @@ function MetronomeTimeline({
   return (
     <div
       className={`chordTimeline metronomeTimeline metronomeTimeline--beats-${beatsPerMeasure} ${isCompoundTimeline ? "metronomeTimeline--compound" : ""}`}
-      aria-label={`${timeSignature} 메트로놈 진행`}
+      aria-label={translateUi("app.value1MetronomeProgress", { value1: timeSignature })}
       style={{ "--beat-count": beatsPerMeasure }}
     >
       <div className="chordTimelineLabels">
-        <strong>{currentLabel}</strong>
-        <span>{timeSignature} 진행</span>
+        <strong>{localizeUi(currentLabel)}</strong>
+        <span>{timeSignature}<Translation id="app.progress" /></span>
       </div>
       <div className="chordTimelineTrack">
         <span
@@ -7121,7 +7116,7 @@ function MetronomeTimeline({
           className="chordTimelineRunner"
           style={{ left: `${progress * 100}%` }}
         >
-          {runnerLabel ?? currentLabel}
+          {localizeUi(runnerLabel ?? currentLabel)}
         </i>
         {markers.map((beatNumber) => (
           <b
@@ -7131,19 +7126,19 @@ function MetronomeTimeline({
           />
         ))}
       </div>
-      <div className={`mobileBeatDots mobileBeatDots--beats-${beatsPerMeasure} ${compact ? "mobileBeatDots--compact" : ""}`} aria-label={`${timeSignature} 박자 점자`}>
+      <div className={`mobileBeatDots mobileBeatDots--beats-${beatsPerMeasure} ${compact ? "mobileBeatDots--compact" : ""}`} aria-label={translateUi("app.value1BeatDots", { value1: timeSignature })}>
         {dots.map((beatNumber) => (
       <BeatDot
         active={beat === beatNumber && isPlaying}
         className={dotClassName}
         key={beatNumber}
-        label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+        label={translateUi("app.beatValue1Value2", { value1: beatNumber + 1, value2: METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]] })}
             onClick={onBeatClick ? (event) => {
               event.stopPropagation();
               onBeatClick(beatNumber);
             } : undefined}
             state={normalizedBeatPattern[beatNumber]}
-            title={`${beatNumber + 1}박: ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+            title={translateUi("app.beatValue1Value2App", { value1: beatNumber + 1, value2: METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]] })}
           />
         ))}
       </div>
@@ -7182,6 +7177,7 @@ function getWheelPointerSamples(event, sampledAt) {
 }
 
 const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onDetent, onInteractionStart, options, value }) {
+  useLanguage();
   const selectedIndex = Math.max(0, options.findIndex((option) => Number(option.value) === Number(value)));
   const [settledIndex, setSettledIndex] = useState(selectedIndex);
   const frameRef = useRef(null);
@@ -7500,9 +7496,9 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
 
   return (
     <label className="metronomeWheelColumn">
-      <span>{label}</span>
+      <span>{localizeUi(label)}</span>
       <div
-        aria-label={`${label} wheel picker`}
+        aria-label={localizeUi(`${label} wheel picker`)}
         className="metronomeWheelColumnViewport"
         onKeyDown={handleKeyDown}
         onLostPointerCapture={handlePointerCancel}
@@ -7529,7 +7525,7 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
               style={{ transform: `translate3d(0, ${optionIndex * WHEEL_PICKER_ITEM_HEIGHT}px, 0)` }}
               type="button"
             >
-              {option.label}
+              {localizeUi(option.label)}
             </button>
           ))}
         </div>
@@ -7539,6 +7535,7 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
 });
 
 function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onDetent, onInteractionStart, onMinutesChange, onSecondsChange, secondOptions, seconds }) {
+  useLanguage();
   const handleMinutesPreviewChange = useCallback((nextMinutes) => {
     onMinutesChange(nextMinutes);
   }, [onMinutesChange]);
@@ -7548,7 +7545,7 @@ function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onDetent, onI
   }, [onSecondsChange]);
 
   return (
-    <div className="metronomeTimerWheelPicker" aria-label={ariaLabel}>
+    <div className="metronomeTimerWheelPicker" aria-label={localizeUi(ariaLabel)}>
       <WheelPickerColumn label="Minutes" onChange={handleMinutesPreviewChange} onDetent={onDetent} onInteractionStart={onInteractionStart} options={minuteOptions} value={minutes} />
       <WheelPickerColumn label="Seconds" onChange={handleSecondsPreviewChange} onDetent={onDetent} onInteractionStart={onInteractionStart} options={secondOptions} value={seconds} />
       <div aria-hidden="true" className="metronomeWheelSelectionOverlay" />
@@ -7557,6 +7554,7 @@ function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onDetent, onI
 }
 
 function TrainingPanelHeader({ collapsed, content = null, onToggle, title }) {
+  useLanguage();
   return (
     <div className="trainingDetailHeaderRow trainingPanelHeader">
       {content ?? <span className="trainingDetailTitle">{title}</span>}
@@ -7566,7 +7564,7 @@ function TrainingPanelHeader({ collapsed, content = null, onToggle, title }) {
           onClick={onToggle}
           type="button"
         >
-          <span>설정 {collapsed ? "펼치기" : "접기"}</span>
+          <span><Translation id="app.settings" />{collapsed ? translateUi("app.expand") : translateUi("app.collapse")}</span>
           <b aria-hidden="true">{collapsed ? "⌄" : "⌃"}</b>
         </button>
       ) : null}
@@ -7575,24 +7573,26 @@ function TrainingPanelHeader({ collapsed, content = null, onToggle, title }) {
 }
 
 function TrainingNoteGuideToggle({ enabled, onChange }) {
+  useLanguage();
   return (
     <button
-      aria-label={`현재 음 표시 ${enabled ? "끄기" : "켜기"}`}
+      aria-label={localizeUi(translateUi("app.currentNoteDisplayValue1", { value1: enabled ? ko["app.off"] : ko["app.on"] }))}
       aria-pressed={enabled}
       className={`trainingNoteGuideToggle ${enabled ? "selected" : ""}`}
       onClick={() => onChange(!enabled)}
       type="button"
     >
-      <span>진행</span>
+      <span><Translation id="practice.noteGuide" /></span>
       <b>{enabled ? "ON" : "OFF"}</b>
     </button>
   );
 }
 
 function CountInToggleButton({ className = "", disabled = false, enabled = false, onChange = () => {} }) {
+  useLanguage();
   return (
     <button
-      aria-label={`카운트인 ${enabled ? "끄기" : "켜기"}`}
+      aria-label={localizeUi(translateUi("app.countInValue1", { value1: enabled ? ko["app.off"] : ko["app.on"] }))}
       aria-pressed={enabled}
       className={`countInToggleButton ${enabled ? "selected" : ""} ${className}`.trim()}
       disabled={disabled}
@@ -7635,6 +7635,7 @@ function normalizeStrumPatternGroups(pattern) {
 }
 
 function StrumPattern({ onStepClick, pattern = DEFAULT_STRUM_PATTERN }) {
+  useLanguage();
   const steps = normalizeStrumPattern(pattern);
   if (!steps.length) return null;
   const compactStepSize = Math.max(9, Math.min(16, Math.floor(132 / Math.max(steps.length, 1))));
@@ -7643,7 +7644,7 @@ function StrumPattern({ onStepClick, pattern = DEFAULT_STRUM_PATTERN }) {
   return (
     <div
       className="strumPattern"
-      aria-label="주법 패턴"
+      aria-label={translateUi("app.playingPattern")}
       style={{
         "--strum-count": steps.length,
         "--strum-font-size": `${compactFontSize}px`,
@@ -7654,15 +7655,13 @@ function StrumPattern({ onStepClick, pattern = DEFAULT_STRUM_PATTERN }) {
       {steps.map((step, index) => (
         step.type === "repeat" ? (
           <span
-            aria-label={`${index + 1}번째 주법 X2`}
+            aria-label={translateUi("app.patternValue1X2", { value1: index + 1 })}
             className="strumPatternStep repeat"
             key={`repeat-${index}`}
-          >
-            X2
-          </span>
+          ><Translation id="originalUi.x2" /></span>
         ) : onStepClick ? (
           <button
-            aria-label={`${index + 1}번째 주법 ${step.hit ? "헛스트럼으로 변경" : "실제 스트럼으로 변경"}`}
+            aria-label={localizeUi(translateUi("app.patternValue1Value2", { value1: index + 1, value2: step.hit ? ko["app.changeToGhostStrum"] : ko["app.changeToSoundingStrum"] }))}
             className={`strumPatternStep ${step.hit ? "hit" : "ghost"} editable`}
             key={`${step.direction}-${step.hit ? "hit" : "ghost"}-${index}`}
             onClick={() => onStepClick(index)}
@@ -7693,20 +7692,22 @@ function StrumPatternRows({ pattern = DEFAULT_STRUM_PATTERN }) {
 }
 
 function ContentTitle({ subtitle, title }) {
+  useLanguage();
   return (
     <div className="contentTitle">
-      <strong>{title}</strong>
-      {subtitle ? <small>{subtitle}</small> : null}
+      <strong>{localizeUi(title)}</strong>
+      {subtitle ? <small>{localizeUi(subtitle)}</small> : null}
     </div>
   );
 }
 
 function TrainingCard({ category, index, isSelected, onClick }) {
+  useLanguage();
   const stageNumber = String(category.stageLabel?.replace(/\D/g, "") || index + 1).padStart(2, "0");
 
   return (
     <button
-      aria-label={`${category.title} 연습 시작`}
+      aria-label={translateUi("app.startValue1Practice", { value1: category.title })}
       className={`trainingCard stageMenuCard ${isSelected ? "selected" : ""}`}
       disabled={category.unavailable}
       onClick={onClick}
@@ -7714,9 +7715,9 @@ function TrainingCard({ category, index, isSelected, onClick }) {
     >
       <span className="stageMenuCard__step"><b>{stageNumber}</b></span>
       <span className="stageMenuCard__content">
-        <strong className="stageMenuCard__title">{category.title}</strong>
-        <small className="stageMenuCard__desc">{category.subtitle}</small>
-        <em className="stageMenuCard__tag">{category.modeLabel}</em>
+        <strong className="stageMenuCard__title">{localizeUi(category.title)}</strong>
+        <small className="stageMenuCard__desc">{localizeUi(category.subtitle)}</small>
+        <em className="stageMenuCard__tag">{localizeUi(category.modeLabel)}</em>
       </span>
       <span className="stageMenuCard__arrow" aria-hidden="true">❯</span>
     </button>
@@ -7724,46 +7725,46 @@ function TrainingCard({ category, index, isSelected, onClick }) {
 }
 
 const LOGO_V11_VARIANT_DEFINITIONS = [
-  ["001", "R Anchor Plate", "첫 R을 명판의 시작 앵커처럼 디자인한 시안"],
-  ["002", "RI Lockup Plate", "RI를 작은 브랜드 심볼처럼 묶은 구조"],
-  ["003", "RIFF Focus Plate", "RIFF 단어를 훈련 핵심 키워드로 강조"],
-  ["004", "FF String Signature", "FF를 기타 줄 연결부처럼 처리한 시그니처"],
-  ["005", "Opening R Cut", "첫 R의 다리를 절단면처럼 다듬은 고급 명판"],
-  ["006", "Final B Seal", "끝 B를 완성 도장처럼 살린 마스터리 컨셉"],
-  ["007", "Mini R Badge", "좌측 [R] 보조 심볼과 풀네임을 결합"],
-  ["008", "Slogan Rail", "슬로건을 레일처럼 분리해 철학을 강조"],
-  ["009", "Double Frame Plate", "이중 프레임으로 장비 명판감을 강화"],
-  ["010", "Laser Engraved", "레이저 각인처럼 얇고 정밀한 워드마크"],
-  ["011", "Black Metal Plate", "블랙 메탈 플레이트 위 금박 로고"],
-  ["012", "Studio Console", "레코딩 콘솔 라벨과 계측 장비 분위기"],
-  ["013", "Vintage Amp Badge", "빈티지 기타 앰프 명판 방향"],
-  ["014", "Stage Gear Plate", "공연 장비에 붙은 브랜드 플레이트"],
-  ["015", "Boutique Guitar Brand", "프리미엄 악기 브랜드 로고 감각"],
-  ["016", "Headstock Plate", "기타 헤드스톡 비율을 프레임에 반영"],
-  ["017", "Pick Shield Plate", "피크 실루엣을 명판 중심 구조로 활용"],
-  ["018", "Riff Pattern Rail", "리프 반복 패턴을 라인 구조로 표현"],
-  ["019", "Repeat Meter", "반복 훈련을 계기판 눈금처럼 시각화"],
-  ["020", "Mastery Seal", "숙련 인증 마크처럼 완성감 있는 구조"],
-  ["021", "Audio Hardware", "하이엔드 오디오 장비 전면 패널 컨셉"],
-  ["022", "Analog Meter Plate", "아날로그 미터와 정밀 계측 느낌"],
-  ["023", "Instrument Serial", "악기 시리얼 플레이트 같은 정보 구조"],
-  ["024", "Art Deco Corner", "아르데코 코너 구조가 눈에 띄는 시안"],
-  ["025", "Foil Stamp", "고급 인쇄물의 금박 압인 느낌"],
-  ["026", "Engraved Outline", "외곽선 문자와 각인 프레임 중심"],
-  ["027", "Riffline Wordmark", "워드마크를 관통하는 리프 라인"],
-  ["028", "Training Mark", "훈련 체크포인트를 명판 구조에 결합"],
-  ["029", "Focus Aperture", "중앙 집중을 조리개형 프레임으로 표현"],
-  ["030", "Heritage Instrument", "오래 쓰는 악기 브랜드의 헤리티지 감각"],
-  ["031", "Lab Plate", "연구실 라벨과 음악 장비의 결합"],
-  ["032", "String Divider", "글자 사이를 기타 줄 분할선으로 정리"],
-  ["033", "Precision Stamp", "정밀 측정 장비의 스탬프형 로고"],
-  ["034", "Rivet Plate", "리벳 구조가 명확한 하드웨어 명판"],
-  ["035", "Minimal Luxury", "덜어낸 고급 명판과 넓은 여백"],
-  ["036", "Concert Nameplate", "무대 중앙 이름표 같은 구조"],
-  ["037", "Amp Control Label", "앰프 컨트롤 패널 라벨 컨셉"],
-  ["038", "Guitar Shop Sign", "부티크 기타샵 간판 같은 워드마크"],
-  ["039", "Master Line", "숙련을 한 줄의 골드 라인으로 표현"],
-  ["040", "FRETIVA LAB Seal", "최종 브랜드 도장 후보처럼 구성"],
+  ["001", "R Anchor Plate", ko["app.aHeaderDesignUsingTheInitialRAsANameplateAnchor"]],
+  ["002", "RI Lockup Plate", ko["appJsx.riCombinedIntoACompactBrandSymbol"]],
+  ["003", "RIFF Focus Plate", ko["appJsx.riffHighlightedAsTheCorePracticeConcept"]],
+  ["004", "FF String Signature", ko["appJsx.aSignatureFfInspiredByStringConnections"]],
+  ["005", "Opening R Cut", ko["appJsx.aPremiumNameplateWithASharplyFinishedRLeg"]],
+  ["006", "Final B Seal", ko["appJsx.aMasteryConceptWithTheFinalBAsASeal"]],
+  ["007", "Mini R Badge", ko["appJsx.theFullNamePairedWithAnRSymbolOnTheLeft"]],
+  ["008", "Slogan Rail", ko["appJsx.aSeparateSloganRailEmphasizesTheBrandPhilosophy"]],
+  ["009", "Double Frame Plate", ko["appJsx.aDoubleFrameEvokesAnEquipmentNameplate"]],
+  ["010", "Laser Engraved", ko["appJsx.aFinePreciseWordmarkInspiredByLaserEngraving"]],
+  ["011", "Black Metal Plate", ko["appJsx.aGoldLogoOnABlackMetalPlate"]],
+  ["012", "Studio Console", ko["appJsx.inspiredByRecordingConsoleLabelsAndMeasurementEquipment"]],
+  ["013", "Vintage Amp Badge", ko["appJsx.aVintageGuitarAmplifierNameplate"]],
+  ["014", "Stage Gear Plate", ko["appJsx.aBrandPlateForStageEquipment"]],
+  ["015", "Boutique Guitar Brand", ko["appJsx.theFeelOfAPremiumInstrumentBrand"]],
+  ["016", "Headstock Plate", ko["appJsx.aFrameInspiredByHeadstockProportions"]],
+  ["017", "Pick Shield Plate", ko["appJsx.aPickSilhouetteAnchorsTheNameplate"]],
+  ["018", "Riff Pattern Rail", ko["appJsx.repeatingRiffPatternsExpressedThroughLines"]],
+  ["019", "Repeat Meter", ko["appJsx.repeatedPracticeVisualizedAsInstrumentMarkings"]],
+  ["020", "Mastery Seal", ko["appJsx.aPolishedStructureResemblingAMasteryCertification"]],
+  ["021", "Audio Hardware", ko["appJsx.aHighEndAudioFrontPanelConcept"]],
+  ["022", "Analog Meter Plate", ko["appJsx.inspiredByAnalogMetersAndPrecisionInstruments"]],
+  ["023", "Instrument Serial", ko["appJsx.anInformationLayoutResemblingAnInstrumentSerialPlate"]],
+  ["024", "Art Deco Corner", ko["appJsx.aDesignWithDistinctiveArtDecoCorners"]],
+  ["025", "Foil Stamp", ko["appJsx.theFeelOfEmbossedGoldFoilOnFinePrint"]],
+  ["026", "Engraved Outline", ko["appJsx.outlinedLetteringAndAnEngravedFrame"]],
+  ["027", "Riffline Wordmark", ko["appJsx.aRiffLinePassingThroughTheWordmark"]],
+  ["028", "Training Mark", ko["appJsx.practiceCheckpointsIntegratedIntoANameplate"]],
+  ["029", "Focus Aperture", ko["appJsx.anApertureFrameDrawsFocusToTheCenter"]],
+  ["030", "Heritage Instrument", ko["appJsx.theHeritageFeelOfALastingInstrumentBrand"]],
+  ["031", "Lab Plate", ko["appJsx.laboratoryLabelsMeetMusicEquipment"]],
+  ["032", "String Divider", ko["appJsx.guitarStringDividersOrganizeTheLetterSpacing"]],
+  ["033", "Precision Stamp", ko["appJsx.aStampStyleLogoInspiredByPrecisionInstruments"]],
+  ["034", "Rivet Plate", ko["appJsx.aHardwareNameplateWithPronouncedRivets"]],
+  ["035", "Minimal Luxury", ko["appJsx.aRestrainedPremiumNameplateWithGenerousSpace"]],
+  ["036", "Concert Nameplate", ko["appJsx.aNameplateFitForCenterStage"]],
+  ["037", "Amp Control Label", ko["appJsx.anAmplifierControlPanelLabelConcept"]],
+  ["038", "Guitar Shop Sign", ko["appJsx.aWordmarkInspiredByBoutiqueGuitarShopSigns"]],
+  ["039", "Master Line", ko["appJsx.masteryExpressedInASingleGoldLine"]],
+  ["040", "FRETIVA LAB Seal", ko["appJsx.aCandidateForTheFinalBrandSeal"]],
 ];
 const createLogoV11Variants = () =>
   LOGO_V11_VARIANT_DEFINITIONS.map(([serial, name, description]) => ({
@@ -7787,25 +7788,25 @@ const LEGACY_HEADER_VARIANT_MAP = {
   "plate-v4": "v10",
 };
 const APP_ICON_VARIANTS = [
-  { id: "icon-v1", title: "App Icon V1", description: "FRETIVA LAB 전체 워드마크" },
-  { id: "icon-v2", title: "App Icon V2", description: "RIFF 반복 포인트" },
+  { id: "icon-v1", title: "App Icon V1", description: ko["appJsx.fullFretivaLabWordmark"] },
+  { id: "icon-v2", title: "App Icon V2", description: ko["appJsx.riffRepetitionAccent"] },
 ];
 const ARCHIVED_APP_ICON_VARIANTS = [];
 const DESIGN_LAB_APP_ICON_STORAGE_KEY = "rifflab-design-lab-app-icon";
 const APP_ICON_VARIANT_IDS = new Set(APP_ICON_VARIANTS.map((variant) => variant.id));
 const DESIGN_LAB_SECTIONS = [
-  { id: "logo", label: "로고" },
-  { id: "app-icon", label: "앱아이콘" },
+  { id: "logo", label: ko["app.logo"] },
+  { id: "app-icon", label: ko["app.appIcon"] },
   { id: "character", label: "Guitar" },
   { id: "test", label: "TEST" },
-  { id: "archive", label: "아카이브" },
+  { id: "archive", label: ko["app.archive"] },
 ];
 const SHOOTER_HIT_SOUND_CANDIDATES = [
   {
     id: "chime-crash-clean",
-    label: "챙 A",
-    title: "챙-팍",
-    description: "밝은 금속성 + 짧은 클랩 조합",
+    label: ko["appJsx.clangA"],
+    title: ko["appJsx.clangAndClap"],
+    description: ko["appJsx.brightMetallicSoundWithAShortClap"],
     chime: [2850, 4150, 6120],
     clap: 3300,
     hat: 8400,
@@ -7818,9 +7819,9 @@ const SHOOTER_HIT_SOUND_CANDIDATES = [
   },
   {
     id: "chime-crash-bright",
-    label: "챙 B",
-    title: "쨍그랑",
-    description: "하이햇과 스파클이 더 화려한 후보",
+    label: ko["appJsx.clangB"],
+    title: ko["appJsx.shimmer"],
+    description: ko["appJsx.aBrighterMixOfHiHatAndSparkle"],
     chime: [3200, 5200, 7600],
     clap: 3800,
     hat: 9600,
@@ -7833,9 +7834,9 @@ const SHOOTER_HIT_SOUND_CANDIDATES = [
   },
   {
     id: "chime-crash-clap",
-    label: "챙 C",
-    title: "클랩 챙",
-    description: "클랩을 중심으로 금속음을 얹은 후보",
+    label: ko["appJsx.clangC"],
+    title: ko["appJsx.metallicClap"],
+    description: ko["appJsx.aClapAccentedWithMetallicTones"],
     chime: [2450, 3900, 6900],
     clap: 3000,
     hat: 7200,
@@ -7848,9 +7849,9 @@ const SHOOTER_HIT_SOUND_CANDIDATES = [
   },
   {
     id: "chime-crash-combo",
-    label: "챙 D",
-    title: "콤보 챙그랑",
-    description: "콤보용으로 더 넓고 화려한 후보",
+    label: ko["appJsx.clangD"],
+    title: ko["appJsx.comboShimmer"],
+    description: ko["appJsx.aWiderBrighterSoundForCombos"],
     chime: [2800, 4700, 8100, 12400],
     clap: 3600,
     hat: 10200,
@@ -7884,180 +7885,180 @@ const GUITAR_LAB_DELETED_STORAGE_KEY = "rifflabGuitarLabDeletedIds";
 const GUITAR_LAB_PURGED_STORAGE_KEY = "rifflabGuitarLabPurgedIds";
 const SHOOTER_PLAYER_SLOTS_STORAGE_KEY = "shooterPlayerSlots";
 const RIFFLAB_GUITAR_DESIGN_RULES = [
-  "헤드는 전체 길이의 약 16~20% 안에서 위를 향하고, 튜닝 포스트 6개는 헤드 중앙축을 기준으로 정렬한다.",
-  "튜닝 버튼은 헤드 양측에 두되, 줄의 시작점처럼 보이지 않게 포스트와 짧은 암으로 연결한다.",
-  "줄 경로는 튜닝 포스트 -> 너트 -> 지판 -> 새들 -> 브릿지핀 순서로 연결한다.",
-  "너트는 헤드와 지판의 경계이며, 모든 줄은 너트를 통과한 뒤 지판 위를 지나간다.",
-  "지판은 헤드에서 바디까지 정돈된 11자 형태를 유지하고, 프렛은 지판 내부에만 수평으로 배치한다.",
-  "사운드홀은 바디 상단 중앙, 브릿지는 사운드홀 아래, 새들은 브릿지 내부 상단, 브릿지핀 6개는 새들 아래에 둔다.",
-  "픽가드는 사운드홀 우측에 두고, 뾰족한 끝은 사운드홀 외곽을 향해 자연스럽게 붙인다.",
-  "바디는 어깨 -> 허리 -> 하부 바디가 끊기지 않는 연속 곡선이며, 컷어웨이는 우측 어깨에만 부드럽게 적용한다.",
-  "하부 바디는 Martin/Gibson 계열처럼 넓되 과하게 부풀리지 않고, 최하단은 평평함이나 각 없이 하나의 연속 곡률로 닫는다.",
+  ko["appJsx.theHeadstockPointsUpwardAndOccupiesAbout1620OfTheTotal"],
+  ko["appJsx.placeTuningButtonsOnBothSidesOfTheHeadstockConnectedToThe"],
+  ko["appJsx.routeEachStringFromTuningPostToNutFretboardSaddleAndBridge"],
+  ko["appJsx.theNutMarksTheHeadstockFretboardBoundaryAllStringsPassOverIt"],
+  ko["appJsx.keepTheFretboardEdgesParallelFromHeadstockToBodyWithHorizontalFrets"],
+  ko["appJsx.placeTheSoundHoleAtTheUpperCenterOfTheBodyThe"],
+  ko["appJsx.placeThePickguardToTheRightOfTheSoundHoleWithIts"],
+  ko["appJsx.useAContinuousCurveFromShouldersThroughWaistToLowerBoutWith"],
+  ko["appJsx.useABroadMartinGibsonStyleLowerBoutWithoutOverinflatingItClose"],
 ];
 const GUITAR_LAB_VARIANTS = [
-  ["acoustic-dreadnought", "Acoustic", "Dreadnought", "큰 바디와 강한 존재감의 기본 어쿠스틱 플레이어", "#b87936", "#2f1a0b", "round"],
-  ["acoustic-om", "Acoustic", "OM", "균형 잡힌 허리선과 민첩한 이동감을 가진 어쿠스틱", "#c98b43", "#332012", "waist"],
-  ["acoustic-000", "Acoustic", "000", "컴팩트한 바디와 선명한 실루엣의 빈티지 어쿠스틱", "#d49a52", "#3a2413", "compact"],
-  ["acoustic-jumbo", "Acoustic", "Jumbo", "넓은 하단 바디로 탄환 발사감이 강한 점보", "#b66d2b", "#25150b", "jumbo"],
-  ["acoustic-mini", "Acoustic", "Mini", "작은 모바일 화면에서 빠르게 읽히는 미니 기타", "#d9aa55", "#2a1b0d", "mini"],
-  ["classical-natural", "Classical", "Natural", "부드러운 나일론 감성의 내추럴 클래식", "#d9a65c", "#3b2512", "classical"],
-  ["classical-cedar", "Classical", "Cedar", "따뜻한 시더 상판과 진한 중앙 사운드홀", "#a86434", "#2a160d", "classical"],
-  ["classical-rosewood", "Classical", "Rosewood", "로즈우드 톤의 깊은 브라운 클래식", "#7a3f2a", "#1c0f0a", "classical"],
-  ["classical-black", "Classical", "Black", "블랙 바디와 골드 구조선의 프리미엄 클래식", "#121212", "#d9aa55", "classical"],
-  ["classical-vintage", "Classical", "Vintage", "오래된 악기점 느낌의 빈티지 클래식", "#c38b45", "#2e1b0d", "classical"],
-  ["electric-strat", "Electric", "Strat", "픽가드와 3픽업 구조가 보이는 스트랫형", "#d8d2bd", "#151515", "strat"],
-  ["electric-tele", "Electric", "Tele", "각진 싱글컷 바디와 브릿지 플레이트가 강한 텔레형", "#d49a37", "#17110a", "tele"],
-  ["electric-lp", "Electric", "LP Style", "두꺼운 싱글컷 바디와 험버커 코어의 LP 스타일", "#8d251d", "#1a0907", "lp"],
-  ["electric-super-strat", "Electric", "Super Strat", "날카로운 컷어웨이와 빠른 슈터 실루엣", "#1c2f48", "#d9aa55", "super"],
-  ["electric-metal", "Electric", "Metal Style", "메탈 리프용 날카로운 바디와 공격형 헤드", "#0c0c0e", "#c7c9d1", "metal"],
-  ["acoustic-riff-scout", "Acoustic", "Riff Scout", "둥근 헤드와 작은 바디 포인트가 귀여운 정찰형 기타 플레이어", "#c77f34", "#f1ca7a", "cute-dread"],
-  ["acoustic-gold-pilot", "Acoustic", "Gold Pilot", "골드 상판과 또렷한 중앙축을 가진 기본 주력 후보", "#d9aa55", "#4a2b12", "stage-dread"],
-  ["acoustic-stage-buddy", "Acoustic", "Stage Buddy", "작은 무대 조명감과 부드러운 어깨선을 가진 버디형", "#b96f2c", "#e6b86a", "buddy-dread"],
-  ["acoustic-pick-guard", "Acoustic", "Pick Guard", "픽가드 실루엣이 캐릭터 표정처럼 읽히는 플레이어 후보", "#a86434", "#f1ca7a", "guard-dread"],
-  ["acoustic-mini-ace", "Acoustic", "Mini Ace", "작지만 헤드와 줄 구조가 선명한 빠른 기동형 후보", "#d39b4d", "#2a1b0d", "ace-mini"],
-  ["acoustic-auditorium", "Acoustic", "Auditorium", "허리선이 정돈된 균형형 오디토리엄 후보", "#c9873e", "#2b190c", "auditorium"],
-  ["acoustic-grand-auditorium", "Acoustic", "Grand Auditorium", "넓은 하단과 얇은 허리선의 그랜드 오디토리엄", "#d39a4b", "#321d0d", "grand-auditorium"],
-  ["acoustic-soft-cutaway", "Acoustic", "Soft Cutaway", "부드러운 상단 컷어웨이가 있는 모던 어쿠스틱", "#be7a34", "#f1ca7a", "soft-cutaway"],
-  ["acoustic-modern-cutaway", "Acoustic", "Modern Cutaway", "날렵한 싱글 컷어웨이와 무대형 실루엣", "#d09a55", "#2a1608", "modern-cutaway"],
-  ["acoustic-slope-shoulder", "Acoustic", "Slope Shoulder", "빈티지 슬로프 숄더 감성의 둥근 어깨형", "#b87533", "#3a2110", "slope-shoulder"],
-  ["acoustic-parlor", "Acoustic", "Parlor", "작고 선명한 실루엣의 팔러 기타 후보", "#d4a15c", "#28170c", "parlor"],
-  ["acoustic-premium-dread", "Acoustic", "Premium Dread", "정통 드레드넛 비율에 골드 엣지를 더한 프리미엄형", "#a85f2b", "#f1ca7a", "premium-dread"],
-  ["acoustic-vintage-amber", "Acoustic", "Vintage Amber", "오래된 앰버 톤과 클래식 픽가드의 빈티지 후보", "#c27a2f", "#2d190b", "vintage-amber"],
-  ["acoustic-black-cutaway", "Acoustic", "Black Cutaway", "블랙 상판과 정교한 컷어웨이를 가진 고급형", "#11100d", "#d9aa55", "soft-cutaway"],
-  ["acoustic-maple-jumbo", "Acoustic", "Maple Jumbo", "밝은 메이플 톤의 넓은 점보 바디", "#e2b76c", "#42240e", "jumbo"],
-  ["classical-premium-black", "Classical", "Premium Black", "블랙 나일론 바디와 정돈된 클래식 헤드", "#0d0d0c", "#d9aa55", "classical-premium"],
-  ["classical-flamenco", "Classical", "Flamenco", "얇고 밝은 바디의 플라멩코 스타일 후보", "#e0b46c", "#2f1b0c", "flamenco"],
-  ["classical-concert", "Classical", "Concert", "콘서트 클래식 비율을 강조한 정갈한 후보", "#c98f4a", "#3b230e", "concert-classical"],
-  ["classical-dark-rose", "Classical", "Dark Rose", "다크 로즈우드 톤의 고급 클래식 후보", "#5f2e24", "#d9aa55", "classical-premium"],
-  ["electric-single-cut-gold", "Electric", "Single Cut Gold", "LP 계열을 더 단순화한 골드 싱글컷", "#c18a35", "#120a06", "lp"],
-  ["electric-offset-blue", "Electric", "Offset Blue", "오프셋 바디와 블루 스테이지 톤의 일렉 후보", "#244c64", "#d9aa55", "offset"],
-  ["electric-arcade-red", "Electric", "Arcade Red", "슈팅게임에서 읽히는 강한 레드 바디 후보", "#9a2c22", "#f1ca7a", "super"],
-  ["electric-hollow-gold", "Electric", "Hollow Gold", "세미할로우 느낌을 줄인 골드 일렉 후보", "#b87936", "#17110a", "hollow"],
-  ["electric-shadow-metal", "Electric", "Shadow Metal", "날렵한 메탈 헤드와 블랙 바디의 공격형", "#101114", "#c7c9d1", "metal"],
-  ["electric-tele-deluxe", "Electric", "Tele Deluxe", "각진 텔레 바디에 더 넓은 픽가드를 더한 후보", "#d0a05a", "#17110a", "tele-deluxe"],
-  ["acoustic-dreadnought-refined", "Acoustic", "Dreadnought Refined", "정통 드레드넛 비율과 정렬된 헤드 구조를 강화한 후보", "#c9843d", "#2a1709", "dreadnought-refined"],
-  ["acoustic-om-refined", "Acoustic", "OM Refined", "작은 허리선과 안정적인 지판 비율의 OM 개선형", "#d19a55", "#301c0d", "om-refined"],
-  ["acoustic-grand-concert", "Acoustic", "Grand Concert", "바디가 작고 균형 잡힌 그랜드 콘서트형", "#d6a15a", "#2b190d", "grand-concert"],
-  ["acoustic-jumbo-balanced", "Acoustic", "Jumbo Balanced", "넓은 하단 바디를 대칭적으로 정리한 점보형", "#b86f2e", "#f1ca7a", "jumbo-balanced"],
-  ["acoustic-venetian-cutaway", "Acoustic", "Venetian Cutaway", "우측 어깨에 부드러운 베네시안 컷어웨이를 적용한 후보", "#c58235", "#f1ca7a", "venetian-cutaway"],
-  ["acoustic-modern-venetian", "Acoustic", "Modern Venetian", "모던 컷어웨이를 과하지 않게 다듬은 무대형 후보", "#d0964f", "#2b1608", "modern-venetian"],
-  ["acoustic-deep-waist", "Acoustic", "Deep Waist", "허리 라인이 선명하지만 전체 대칭이 유지되는 후보", "#b76d32", "#f1ca7a", "deep-waist"],
-  ["acoustic-travel-plus", "Acoustic", "Travel Plus", "작은 바디와 선명한 헤드 디테일을 가진 트래블형", "#d8aa62", "#2a1a0d", "travel-plus"],
-  ["acoustic-12fret-heritage", "Acoustic", "12-Fret Heritage", "빈티지 12프렛 감성의 짧은 넥 비율 후보", "#c28b46", "#2f1c0e", "twelve-fret"],
-  ["acoustic-archtop-gold", "Acoustic", "Archtop Gold", "아치탑 실루엣을 어쿠스틱 플레이어로 재해석한 후보", "#c99448", "#1d1208", "archtop"],
-  ["acoustic-all-solid", "Acoustic", "All Solid", "고급 원목 질감과 정돈된 브릿지 구조를 강조한 후보", "#bf7b35", "#f1ca7a", "all-solid"],
-  ["acoustic-concert-cutaway", "Acoustic", "Concert Cutaway", "콘서트 바디에 작은 컷어웨이를 더한 후보", "#d6a260", "#28170c", "concert-cutaway"],
-  ["acoustic-slope-modern", "Acoustic", "Slope Modern", "슬로프 숄더를 현대적으로 정리한 후보", "#b97939", "#2f1a0c", "slope-modern"],
-  ["acoustic-thin-body", "Acoustic", "Thin Body", "얇은 바디 느낌과 모바일 식별성을 강화한 후보", "#a9672d", "#f1ca7a", "thin-body"],
-  ["acoustic-baritone", "Acoustic", "Baritone", "긴 넥과 안정적인 하단 바디를 가진 바리톤 감성 후보", "#8f5228", "#d9aa55", "baritone"],
-  ["acoustic-rosewood-grand", "Acoustic", "Rosewood Grand", "짙은 로즈우드 톤과 큰 바디의 프리미엄 후보", "#683322", "#d9aa55", "rosewood-grand"],
-  ["acoustic-maple-stage", "Acoustic", "Maple Stage", "밝은 메이플 상판과 무대용 픽가드 배치를 가진 후보", "#e1b96d", "#37200e", "maple-stage"],
-  ["acoustic-cedar-om", "Acoustic", "Cedar OM", "시더 톤 OM 바디와 부드러운 곡선의 후보", "#ad6534", "#f1ca7a", "cedar-om"],
-  ["acoustic-black-bird", "Acoustic", "Black Bird", "블랙 상판 위 새 인레이가 또렷한 프리미엄 후보", "#11100d", "#d9aa55", "black-bird"],
-  ["acoustic-sunburst-cutaway", "Acoustic", "Sunburst Cutaway", "선버스트 톤과 우측 컷어웨이를 결합한 후보", "#c06f24", "#1a0e06", "sunburst-cutaway"],
-  ["acoustic-orchestra-luxe", "Acoustic", "Orchestra Luxe", "작은 허리와 정돈된 상하 비례를 가진 오케스트라형 신규 후보", "#cf9450", "#2b1709", "orchestra-luxe"],
-  ["acoustic-heritage-dread", "Acoustic", "Heritage Dread", "정통 드레드넛을 더 각진 헤드와 안정적인 바디로 다듬은 신규 후보", "#b96f32", "#f1ca7a", "heritage-dread"],
-  ["acoustic-studio-cut", "Acoustic", "Studio Cut", "스튜디오 세션용처럼 얇고 부드러운 우측 컷어웨이 신규 후보", "#d5a05c", "#251409", "studio-cut"],
-  ["acoustic-boutique-cedar", "Acoustic", "Boutique Cedar", "부티크 악기점 감성의 시더 톤과 깊은 허리선을 가진 신규 후보", "#a95f35", "#f1ca7a", "boutique-cedar"],
-  ["acoustic-wide-stage", "Acoustic", "Wide Stage", "무대 위 플레이어처럼 하단이 넓고 중심축이 또렷한 신규 후보", "#d9aa55", "#3b210e", "wide-stage"],
-  ["acoustic-north-dread", "Acoustic", "North Dread", "넓은 어깨와 부드러운 허리 곡선을 정리한 정통 드레드넛 신규 후보", "#c47f37", "#f1ca7a", "north-dread"],
-  ["acoustic-ember-om", "Acoustic", "Ember OM", "작은 허리와 자연스러운 상부 바디 비율의 OM 신규 후보", "#d09248", "#2a1709", "ember-om"],
-  ["acoustic-royal-auditorium", "Acoustic", "Royal Auditorium", "오디토리엄 바디의 연속 곡선과 고급 골드 엣지를 강조한 후보", "#d7a55d", "#3a210f", "royal-auditorium"],
-  ["acoustic-crescent-cutaway", "Acoustic", "Crescent Cutaway", "사운드홀을 향해 열리는 부드러운 우측 컷어웨이 신규 후보", "#b96d31", "#f1ca7a", "crescent-cutaway"],
-  ["acoustic-rose-stage", "Acoustic", "Rose Stage", "로즈 브라운 톤과 실제 픽가드 방향을 강조한 스테이지형 신규 후보", "#7b3f29", "#d9aa55", "rose-stage"],
-  ["real-martin-d28", "Acoustic", "Real D-28 Line", "Martin D-28 계열의 정통 드레드넛 비율을 단순화한 실제 구조 기반 라인", "#c7843c", "#f1ca7a", "real-d28"],
-  ["real-martin-d18", "Acoustic", "Real D-18 Line", "D-18 계열의 단정한 어깨와 선명한 브릿지핀 구조를 반영한 후보", "#d59b4f", "#3a210f", "real-d18"],
-  ["real-martin-hd28", "Acoustic", "Real HD-28 Line", "HD-28 스타일의 넓은 하부 바디와 프리미엄 엣지를 반영한 후보", "#b97834", "#f1ca7a", "real-hd28"],
-  ["real-gibson-j45", "Acoustic", "Real J-45 Slope", "Gibson J-45 계열의 슬로프 숄더와 안정적인 허리선을 참고한 후보", "#9b5428", "#f1ca7a", "real-j45"],
-  ["real-gibson-hummingbird", "Acoustic", "Real Hummingbird", "스퀘어 숄더와 큰 픽가드 영역을 단순화한 허밍버드 방향 후보", "#c66d25", "#2a1608", "real-hummingbird"],
-  ["real-taylor-814ce", "Acoustic", "Real 814ce Cut", "Taylor 814ce 계열의 그랜드 오디토리엄 컷어웨이 비율을 반영한 후보", "#d6a66a", "#2b1709", "real-814ce"],
-  ["real-taylor-314ce", "Acoustic", "Real 314ce Cut", "314ce 계열의 밝은 상판과 부드러운 Venetian 컷어웨이를 참고한 후보", "#d8ac66", "#30200e", "real-314ce"],
-  ["real-taylor-214ce", "Acoustic", "Real 214ce Cut", "214ce 계열의 얇고 읽기 쉬운 컷어웨이 실루엣을 반영한 후보", "#d09a55", "#f1ca7a", "real-214ce"],
-  ["real-yamaha-fg5", "Acoustic", "Real FG5 Dread", "Yamaha FG5 계열의 직관적인 드레드넛 바디와 브릿지 구조 후보", "#c98b43", "#2d190b", "real-fg5"],
-  ["real-yamaha-ll16", "Acoustic", "Real LL16 Jumbo", "Yamaha LL16 계열의 넓은 하부와 긴 라인감을 단순화한 후보", "#d29a50", "#2a1709", "real-ll16"],
-  ["real-vintage-dread", "Acoustic", "Real Vintage Dread", "빈티지 드레드넛의 둥근 어깨와 실제 핀 브릿지를 강조한 후보", "#b56a2d", "#f1ca7a", "real-vintage-dread"],
-  ["real-modern-dread", "Acoustic", "Real Modern Dread", "현대 드레드넛의 정돈된 상하 비율과 직선적인 지판 구조 후보", "#d09a4f", "#2a1709", "real-modern-dread"],
-  ["real-om-rosewood", "Acoustic", "Real OM Rosewood", "OM 계열의 작은 허리와 로즈우드 톤을 반영한 실제 비율 후보", "#70402b", "#d9aa55", "real-om-rosewood"],
-  ["real-auditorium-cedar", "Acoustic", "Real Auditorium Cedar", "오디토리엄 바디와 시더 톤 상판을 참고한 균형형 후보", "#a96737", "#f1ca7a", "real-auditorium-cedar"],
-  ["real-grand-auditorium", "Acoustic", "Real Grand Auditorium", "그랜드 오디토리엄의 하부 볼륨과 사운드홀 위치를 반영한 후보", "#d6a25b", "#30200e", "real-grand-auditorium"],
-  ["real-single-cutaway", "Acoustic", "Real Single Cutaway", "우측 어깨 컷어웨이를 실제 연주기타 비율로 절제한 후보", "#c17a35", "#f1ca7a", "real-single-cutaway"],
-  ["real-soft-cutaway", "Acoustic", "Real Soft Cutaway", "부드러운 컷어웨이와 어쿠스틱 바디 대칭감을 함께 유지한 후보", "#d2a05c", "#2a1709", "real-soft-cutaway"],
-  ["real-modern-cutaway", "Acoustic", "Real Modern Cutaway", "모던 컷어웨이를 과장 없이 정리한 무대용 어쿠스틱 후보", "#b96f34", "#f1ca7a", "real-modern-cutaway"],
-  ["real-jumbo-maple", "Acoustic", "Real Jumbo Maple", "점보 바디의 넓은 하부와 메이플 계열 밝은 상판 후보", "#e1b96d", "#3b210e", "real-jumbo-maple"],
-  ["real-square-shoulder", "Acoustic", "Real Square Shoulder", "Gibson Hummingbird 계열의 스퀘어 숄더를 단순화한 후보", "#b86727", "#f1ca7a", "real-square-shoulder"],
-  ["fresh-d28-bloom", "Acoustic", "D28 Bloom", "상부 어깨와 허리, 하부 바디가 한 흐름으로 이어지는 새 드레드넛 라인", "#c9823a", "#f1ca7a", "fresh-dread"],
-  ["fresh-d18-honey", "Acoustic", "D18 Honey", "꿀빛 상판과 절제된 하단 곡률을 가진 정통 어쿠스틱 후보", "#d79b4d", "#3a210f", "fresh-d18"],
-  ["fresh-fg5-root", "Acoustic", "FG5 Root", "Yamaha FG5 계열의 직관적인 어깨와 둥근 하부를 재해석한 후보", "#c88b43", "#2d190b", "fresh-fg5"],
-  ["fresh-j45-slope", "Acoustic", "J45 Slope", "슬로프 숄더와 자연스러운 허리선을 가진 빈티지 후보", "#a75d2d", "#f1ca7a", "fresh-j45"],
-  ["fresh-humming-gold", "Acoustic", "Humming Gold", "스퀘어 숄더 계열을 부드러운 하부 곡률로 정리한 후보", "#c66e28", "#2a1608", "fresh-humming"],
-  ["fresh-om-clear", "Acoustic", "OM Clear", "작은 허리와 선명한 사운드홀 비율의 OM 후보", "#d39a55", "#2f1b0d", "fresh-om"],
-  ["fresh-000-amber", "Acoustic", "000 Amber", "컴팩트한 바디에 하단 연속 곡선을 강조한 000 후보", "#d49b52", "#332012", "fresh-000"],
-  ["fresh-auditorium-arc", "Acoustic", "Auditorium Arc", "오디토리엄 바디의 상하 균형과 유기적 하단 곡선을 다듬은 후보", "#d2a05b", "#30200e", "fresh-auditorium"],
-  ["fresh-grand-stage", "Acoustic", "Grand Stage", "무대용 그랜드 오디토리엄 비율과 골드 로제트가 돋보이는 후보", "#d9aa55", "#3b210e", "fresh-grand"],
-  ["fresh-soft-cut", "Acoustic", "Soft Cut", "우측 어깨 컷어웨이를 실제 기타처럼 부드럽게 제한한 후보", "#c37a36", "#f1ca7a", "fresh-soft-cut"],
-  ["fresh-venetian", "Acoustic", "Venetian", "사운드홀과 픽가드 방향이 정돈된 베네시안 컷어웨이 후보", "#d29a4f", "#2a1709", "fresh-venetian"],
-  ["fresh-cedar-room", "Acoustic", "Cedar Room", "시더 톤과 차분한 하단 볼륨을 가진 연습실형 후보", "#a96737", "#f1ca7a", "fresh-cedar"],
-  ["fresh-rosewood-room", "Acoustic", "Rosewood Room", "짙은 로즈우드 톤과 자개 로제트를 강조한 고급 후보", "#70402b", "#d9aa55", "fresh-rosewood"],
-  ["fresh-maple-luxe", "Acoustic", "Maple Luxe", "밝은 메이플 톤과 균형 잡힌 하부 바디를 가진 후보", "#e1b96d", "#3b210e", "fresh-maple"],
-  ["fresh-black-pearl", "Acoustic", "Black Pearl", "블랙 바디와 자개 로제트 대비가 강한 프리미엄 후보", "#11100d", "#d9aa55", "fresh-black"],
-  ["fresh-sunburst-dread", "Acoustic", "Sunburst Dread", "선버스트 톤과 실제 드레드넛 실루엣을 조합한 후보", "#c06f24", "#1a0e06", "fresh-sunburst"],
-  ["fresh-boutique-om", "Acoustic", "Boutique OM", "부티크 기타샵 감성의 작고 정교한 OM 후보", "#c88443", "#f1ca7a", "fresh-boutique"],
-  ["fresh-studio-dread", "Acoustic", "Studio Dread", "녹음실용처럼 차분한 바디와 얇은 골드 엣지를 가진 후보", "#b96f32", "#f1ca7a", "fresh-studio"],
-  ["fresh-jumbo-tame", "Acoustic", "Jumbo Tame", "점보 느낌은 남기되 돼지배처럼 부풀지 않게 절제한 후보", "#d0a05c", "#28170c", "fresh-jumbo"],
-  ["fresh-heritage-bird", "Acoustic", "Heritage Bird", "새 인레이와 자개 로제트를 고급스럽게 정리한 헤리티지 후보", "#b86727", "#f1ca7a", "fresh-heritage"],
-  ["fresh-d15m-mahogany", "Acoustic", "D15M Mahogany", "Martin D-15M 참고 비율의 올마호가니 드레드넛 후보", "#8f4f2d", "#f1ca7a", "fresh-d15m-mahogany"],
-  ["fresh-d15m-satin", "Acoustic", "D15M Satin", "새틴 마호가니 질감과 단정한 스퀘어 숄더 실루엣 후보", "#9a5a35", "#d9aa55", "fresh-d15m-satin"],
-  ["fresh-d15m-studio", "Acoustic", "D15M Studio", "상부 어깨와 하부 곡률을 D 바디 기준으로 정리한 스튜디오 후보", "#7b452c", "#f1ca7a", "fresh-d15m-studio"],
-  ["fresh-d15m-shadow", "Acoustic", "D15M Shadow", "어두운 마호가니 바디와 절제된 골드 엣지를 가진 D 바디 후보", "#5f3325", "#d9aa55", "fresh-d15m-shadow"],
-  ["fresh-d15m-stage", "Acoustic", "D15M Stage", "무대용 플레이어로 읽히도록 D-15M 실루엣을 선명하게 다듬은 후보", "#a96537", "#f8e8b0", "fresh-d15m-stage"],
-  ["fresh-cutaway-814ce", "Acoustic", "814ce Flow", "Taylor 814ce 계열의 우측 어깨 컷어웨이 흐름을 참고한 후보", "#d6a15c", "#2a1709", "fresh-cutaway-814ce"],
-  ["fresh-cutaway-314ce", "Acoustic", "314ce Flow", "그랜드 오디토리엄 컷어웨이를 더 담백하게 단순화한 후보", "#c98b43", "#f1ca7a", "fresh-cutaway-314ce"],
-  ["fresh-cutaway-214ce", "Acoustic", "214ce Flow", "부드러운 고음현 컷어웨이와 낮은 하단 곡률을 가진 후보", "#d09a4f", "#2d190b", "fresh-cutaway-214ce"],
-  ["fresh-cutaway-grand", "Acoustic", "Grand Cutaway", "넓은 하부 바디와 유려한 베네시안 컷어웨이를 조합한 후보", "#d9aa55", "#3b210e", "fresh-cutaway-grand"],
-  ["fresh-cutaway-auditorium", "Acoustic", "Auditorium Cut", "오디토리엄 비율에 자연스러운 우측 어깨 파임을 더한 후보", "#c58235", "#f1ca7a", "fresh-cutaway-auditorium"],
-  ["fresh-cutaway-dread", "Acoustic", "Dread Cutaway", "드레드넛 바디를 유지하면서 컷어웨이를 과하지 않게 넣은 후보", "#b96f32", "#f1ca7a", "fresh-cutaway-dread"],
-  ["fresh-cutaway-mahogany", "Acoustic", "Mahogany Cut", "마호가니 톤과 D 바디 컷어웨이를 결합한 후보", "#8f4f2d", "#d9aa55", "fresh-cutaway-mahogany"],
-  ["fresh-cutaway-rosewood", "Acoustic", "Rosewood Cut", "짙은 로즈우드 톤과 자개 로제트가 어울리는 컷어웨이 후보", "#70402b", "#d9aa55", "fresh-cutaway-rosewood"],
-  ["fresh-cutaway-maple", "Acoustic", "Maple Cut", "밝은 메이플 톤과 선명한 고음현 컷어웨이를 가진 후보", "#e1b96d", "#3b210e", "fresh-cutaway-maple"],
-  ["fresh-cutaway-black", "Acoustic", "Black Cut", "블랙 바디에서 컷어웨이 실루엣이 또렷하게 읽히는 후보", "#11100d", "#d9aa55", "fresh-cutaway-black"],
-  ["fresh-cutaway-sunburst", "Acoustic", "Sunburst Cut", "선버스트 바디와 부드러운 우측 어깨 라인의 후보", "#c06f24", "#1a0e06", "fresh-cutaway-sunburst"],
-  ["fresh-cutaway-cedar", "Acoustic", "Cedar Cut", "시더 상판 느낌의 차분한 컷어웨이 후보", "#a96737", "#f1ca7a", "fresh-cutaway-cedar"],
-  ["fresh-cutaway-stage", "Acoustic", "Stage Cut", "슈팅게임 플레이어로 읽히도록 컷어웨이 실루엣을 선명하게 만든 후보", "#c37a36", "#f8e8b0", "fresh-cutaway-stage"],
-  ["fresh-cutaway-venetian", "Acoustic", "Venetian Flow", "급격한 각 없이 둥글게 파인 베네시안 컷어웨이 후보", "#d29a4f", "#2a1709", "fresh-cutaway-venetian"],
-  ["fresh-cutaway-soft", "Acoustic", "Soft Flow", "상부 바디에서 허리까지 한 흐름으로 이어지는 소프트 컷어웨이 후보", "#d2a05b", "#30200e", "fresh-cutaway-soft"],
-  ["fresh-cutaway-modern", "Acoustic", "Modern Flow", "모던한 컷어웨이를 직선 없이 유기적인 곡선으로 정리한 후보", "#b87533", "#f1ca7a", "fresh-cutaway-modern"],
-  ["fresh-cutaway-boutique", "Acoustic", "Boutique Cut", "부티크 기타샵 감성의 얇은 허리와 컷어웨이 후보", "#c88443", "#f1ca7a", "fresh-cutaway-boutique"],
-  ["fresh-cutaway-pearl", "Acoustic", "Pearl Cut", "자개 로제트와 고급 컷어웨이 실루엣을 강조한 후보", "#5f3325", "#f8e8b0", "fresh-cutaway-pearl"],
-  ["fresh-cutaway-honey", "Acoustic", "Honey Cut", "꿀빛 상판과 자연스러운 하단 연속 곡률의 컷어웨이 후보", "#d79b4d", "#3a210f", "fresh-cutaway-honey"],
-  ["fresh-cutaway-reference", "Acoustic", "Reference Cut", "첨부 레퍼런스 라인의 측면 흐름과 하단 곡률을 기준으로 만든 후보", "#c9823a", "#f1ca7a", "fresh-cutaway-reference"],
-  ["acoustic-real-trace", "Acoustic", "Just Play", "첨부한 Just Play / JP 드레드넛 원본을 그대로 사용한 기본 플레이어 기타", "#d79b4d", "#3a210f", "image-real-trace", "/images/shooter-acoustic-real-trace.png"],
-  ["jp-d-black", "Acoustic", "JP D. Black", "첨부한 Just Play / JP 블랙 컷어웨이 어쿠스틱 기타 원본을 그대로 사용한 플레이어 기타", "#090a0b", "#d8a33b", "image-jp-d-black", "/images/shooter-jp-d-black.png"],
-  ["jp-c-mahogany", "Acoustic", "JP C. MAHOGANY", "첨부한 Just Play / JP 컷어웨이 마호가니 어쿠스틱 기타 원본을 그대로 사용한 플레이어 기타", "#6f1f0d", "#d8a33b", "image-jp-c-mahogany", "/images/shooter-jp-c-mahogany.png"],
-  ["jp-c-green", "Acoustic", "JP C. GREEN", "첨부한 Just Play / JP 에메랄드 그린 컷어웨이 어쿠스틱 기타 원본을 그대로 사용한 플레이어 기타", "#006b50", "#d8a33b", "image-jp-c-green", "/images/shooter-jp-c-green.png"],
-  ["jp-d-bloom", "Acoustic", "JP D. BLOOM", "첨부한 Just Play / JP 플로럴 벌새 드레드넛 어쿠스틱 기타 원본을 그대로 사용한 플레이어 기타", "#e2aa50", "#1b140c", "image-jp-d-bloom", "/images/shooter-jp-d-bloom.png"],
-  ["jp-d-phoenix", "Acoustic", "JP D. PHOENIX", "첨부한 Just Play / JP 불사조 아트 드레드넛 어쿠스틱 기타 원본을 그대로 사용한 플레이어 기타", "#b73910", "#d8a33b", "image-jp-d-phoenix", "/images/shooter-jp-d-phoenix.png"],
-  ["jp-d-celestial", "Acoustic", "JP D. CELESTIAL", "첨부한 화이트 펄·골드·자개 봉황 장식 드레드넛 어쿠스틱 기타 원본을 그대로 사용한 플레이어 기타", "#f2eee4", "#d8a33b", "image-jp-d-celestial", "/images/shooter-jp-d-celestial.png"],
-  ["jp-sunburst-classic", "Electric", "JP SUNBURST CLASSIC", "첨부한 Just Play / JP 선버스트 클래식 일렉 기타 원본을 그대로 사용한 플레이어 기타", "#cf5816", "#d8a33b", "image-jp-sunburst-classic", "/images/shooter-jp-sunburst-classic.png"],
-  ["jp-e-black-gold", "Electric", "JP E. Black Gold", "첨부한 블랙 우드 그레인·골드 하드웨어 싱글컷 일렉 기타 원본을 그대로 사용한 플레이어 기타", "#111217", "#d8a33b", "image-jp-e-black-gold", "/images/shooter-jp-e-black-gold.png"],
-  ["jp-e-natural-wood", "Electric", "JP E. Natural Wood", "첨부한 내추럴 피겨드 우드·버드 인레이 더블컷 일렉 기타 원본을 그대로 사용한 플레이어 기타", "#8b4f25", "#d8c2a4", "image-jp-e-natural-wood", "/images/shooter-jp-e-natural-wood.png"],
-  ["jp-jazz", "Electric", "JP Jazz", "첨부한 Just Play / JP 아치탑 재즈 기타 원본을 그대로 사용한 플레이어 기타", "#e0a03a", "#1b140c", "image-jp-jazz", "/images/shooter-jp-jazz.png"],
-  ["jp-resonator", "Electric", "JP Resonator", "첨부한 Just Play / JP 선버스트 리조네이터 기타 원본을 그대로 사용한 플레이어 기타", "#9a4f1f", "#d7c6aa", "image-jp-resonator", "/images/shooter-jp-resonator.png"],
-  ["jp-phoenix", "Electric", "JP PHOENIX", "첨부한 Just Play / JP 봉황·자개 장식 아치탑 기타 원본을 그대로 사용한 플레이어 기타", "#d49a43", "#2a87a5", "image-jp-phoenix", "/images/shooter-jp-phoenix.png"],
-  ["jp-sunburst-gold-bass", "Bass", "JP SUNBURST GOLD", "첨부한 Just Play / JP 선버스트 골드 베이스 원본을 그대로 사용한 플레이어 베이스", "#e77719", "#d8a33b", "image-jp-sunburst-gold-bass", "/images/shooter-jp-sunburst-gold-bass.png"],
-  ["jp-aqua-blue", "Bass", "JP Aqua Blue", "첨부한 아쿠아 블루·펄 픽가드 4현 베이스 원본을 그대로 사용한 플레이어 베이스", "#2b9fbd", "#e9e9e5", "image-jp-aqua-blue", "/images/shooter-jp-aqua-blue.png"],
-  ["jp-b-red", "Bass", "JP B. RED", "첨부한 딥 레드 피겨드 우드·블랙 카본 픽가드·골드 하드웨어 4현 베이스 원본을 그대로 사용한 플레이어 베이스", "#a40022", "#d8a33b", "image-jp-b-red", "/images/shooter-jp-b-red.png"],
-  ["rifflab-common-cutaway", "Acoustic", "Common Cutaway", "JUST PLAY 로고를 헤드와 사운드홀 라벨에 넣은 일반 컷어웨이 슈팅 기타", "#9b4c24", "#f1ca7a", "image-rifflab-common-cutaway", RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC],
-  ["acoustic-epic-trace", "Acoustic", "Sunburst", "같은 통기타 라인에 레드 선버스트 톤을 입힌 기본 PNG 후보", "#c74323", "#ff8a2a", "image-epic-trace", "/images/shooter-acoustic-epic-trace.png"],
-  ["acoustic-legendary-core-trace", "Acoustic", "Pearl Clean", "기존 화이트 골드 펄 톤의 기본 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-core-trace", "/images/shooter-acoustic-legendary-trace.png"],
-  ["rifflab-legendary-cutaway", "Acoustic", "Phoenix Harmony", "피닉스 금장 문양을 가진 컷어웨이 슈팅 기타 PNG", "#7c241b", "#d8a64a", "image-rifflab-legendary-cutaway", "/images/rifflab-legendary-cutaway-sprite-tight.png"],
-  ["rifflab-epic-cutaway", "Acoustic", "Azure Bloom", "내추럴 우드와 블루 골드 장식을 가진 컷어웨이 슈팅 기타 PNG", "#d8aa66", "#2f63b8", "image-rifflab-epic-cutaway", "/images/rifflab-epic-cutaway-sprite-tight.png"],
-  ["rifflab-onyx-pearl-dreadnought", "Acoustic", "Onyx Pearl", "검정 드레드넛 바디와 자개 바인딩을 가진 에픽 슈팅 기타 PNG", "#080909", "#c7d7d4", "image-rifflab-onyx-pearl-dreadnought", "/images/rifflab-onyx-pearl-dreadnought-sprite-tight.png"],
-  ["rifflab-astral-relic-cutaway", "Acoustic", "Astral Relic", "블랙 바디와 금장 별 문양을 가진 고대 유물풍 컷어웨이 슈팅 기타 PNG", "#0f0d09", "#d8a64a", "image-rifflab-astral-relic-cutaway", "/images/rifflab-astral-relic-cutaway-sprite-tight.png"],
-  ["rifflab-temple-grace-cutaway", "Acoustic", "Temple Grace", "아이보리 화이트 바디와 골드 문양을 가진 성역풍 컷어웨이 슈팅 기타 PNG", "#f4efe2", "#d6a13b", "image-rifflab-temple-grace-cutaway", "/images/rifflab-temple-grace-cutaway-sprite-tight.png"],
-  ["rifflab-frost-spirit-cutaway", "Acoustic", "Frost Spirit", "겨울밤과 달빛 서리 문양을 가진 얼음 정령풍 컷어웨이 슈팅 기타 PNG", "#082c3f", "#bdefff", "image-rifflab-frost-spirit-cutaway", "/images/rifflab-frost-spirit-cutaway-sprite-tight.png"],
-  ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", "진한 자개 로제트와 위로 정리된 브릿지 위치를 적용한 기본 드레드넛 후보", "#b97836", "#f1ca7a", "core-dread-01"],
-  ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", "마호가니 톤을 유지하면서 사운드홀과 브릿지 간격을 좁힌 후보", "#8f5230", "#f8e8b0", "core-dread-02"],
-  ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", "선버스트 깊이감과 진한 자개 사운드홀을 더한 스테이지용 후보", "#c06f24", "#1a0e06", "core-dread-03"],
+  ["acoustic-dreadnought", "Acoustic", "Dreadnought", ko["appJsx.aStandardAcousticPlayerWithALargeBodyAndStrongPresence"], "#b87936", "#2f1a0b", "round"],
+  ["acoustic-om", "Acoustic", "OM", ko["appJsx.anAcousticWithABalancedWaistAndAnAgileFeel"], "#c98b43", "#332012", "waist"],
+  ["acoustic-000", "Acoustic", "000", ko["appJsx.aCompactVintageAcousticWithAClearSilhouette"], "#d49a52", "#3a2413", "compact"],
+  ["acoustic-jumbo", "Acoustic", "Jumbo", ko["appJsx.aBroadJumboBodyWithAPowerfulFiringFeel"], "#b66d2b", "#25150b", "jumbo"],
+  ["acoustic-mini", "Acoustic", "Mini", ko["appJsx.aMiniGuitarThatReadsClearlyOnSmallMobileScreens"], "#d9aa55", "#2a1b0d", "mini"],
+  ["classical-natural", "Classical", "Natural", ko["appJsx.aNaturalClassicalGuitarWithASoftNylonStringFeel"], "#d9a65c", "#3b2512", "classical"],
+  ["classical-cedar", "Classical", "Cedar", ko["appJsx.aWarmCedarTopWithADarkCentralSoundHole"], "#a86434", "#2a160d", "classical"],
+  ["classical-rosewood", "Classical", "Rosewood", ko["appJsx.aDeepBrownClassicalGuitarInRosewoodTones"], "#7a3f2a", "#1c0f0a", "classical"],
+  ["classical-black", "Classical", "Black", ko["appJsx.aPremiumClassicalGuitarWithABlackBodyAndGoldAccents"], "#121212", "#d9aa55", "classical"],
+  ["classical-vintage", "Classical", "Vintage", ko["appJsx.aVintageClassicalGuitarWithAnOldMusicShopFeel"], "#c38b45", "#2e1b0d", "classical"],
+  ["electric-strat", "Electric", "Strat", ko["appJsx.aStratStyleGuitarWithAVisiblePickguardAndThreePickups"], "#d8d2bd", "#151515", "strat"],
+  ["electric-tele", "Electric", "Tele", ko["appJsx.aTeleStyleGuitarWithAnAngularSingleCutBodyAndProminent"], "#d49a37", "#17110a", "tele"],
+  ["electric-lp", "Electric", "LP Style", ko["appJsx.anLpStyleGuitarWithAThickSingleCutBodyAndHumbuckers"], "#8d251d", "#1a0907", "lp"],
+  ["electric-super-strat", "Electric", "Super Strat", ko["appJsx.aSharpCutawayAndAFastShooterSilhouette"], "#1c2f48", "#d9aa55", "super"],
+  ["electric-metal", "Electric", "Metal Style", ko["appJsx.anAggressiveHeadstockAndSharpBodyForMetalRiffs"], "#0c0c0e", "#c7c9d1", "metal"],
+  ["acoustic-riff-scout", "Acoustic", "Riff Scout", ko["appJsx.aScoutGuitarPlayerWithARoundedHeadstockAndASmallPlayful"], "#c77f34", "#f1ca7a", "cute-dread"],
+  ["acoustic-gold-pilot", "Acoustic", "Gold Pilot", ko["appJsx.aMainPlayerCandidateWithAGoldTopAndAClearCenterline"], "#d9aa55", "#4a2b12", "stage-dread"],
+  ["acoustic-stage-buddy", "Acoustic", "Stage Buddy", ko["appJsx.aCompanionDesignWithSoftShouldersAndSubtleStageLighting"], "#b96f2c", "#e6b86a", "buddy-dread"],
+  ["acoustic-pick-guard", "Acoustic", "Pick Guard", ko["appJsx.aPlayerCandidateWhosePickguardSuggestsACharacterSExpression"], "#a86434", "#f1ca7a", "guard-dread"],
+  ["acoustic-mini-ace", "Acoustic", "Mini Ace", ko["appJsx.aFastCompactPlayerWithClearlyDefinedHeadstockAndStrings"], "#d39b4d", "#2a1b0d", "ace-mini"],
+  ["acoustic-auditorium", "Acoustic", "Auditorium", ko["appJsx.aBalancedAuditoriumCandidateWithARefinedWaist"], "#c9873e", "#2b190c", "auditorium"],
+  ["acoustic-grand-auditorium", "Acoustic", "Grand Auditorium", ko["appJsx.aGrandAuditoriumWithABroadLowerBoutAndNarrowWaist"], "#d39a4b", "#321d0d", "grand-auditorium"],
+  ["acoustic-soft-cutaway", "Acoustic", "Soft Cutaway", ko["appJsx.aModernAcousticWithAGentleUpperCutaway"], "#be7a34", "#f1ca7a", "soft-cutaway"],
+  ["acoustic-modern-cutaway", "Acoustic", "Modern Cutaway", ko["appJsx.aSleekSingleCutawayWithAStageReadySilhouette"], "#d09a55", "#2a1608", "modern-cutaway"],
+  ["acoustic-slope-shoulder", "Acoustic", "Slope Shoulder", ko["appJsx.aRoundedVintageSlopeShoulderDesign"], "#b87533", "#3a2110", "slope-shoulder"],
+  ["acoustic-parlor", "Acoustic", "Parlor", ko["appJsx.aSmallParlorGuitarWithADistinctSilhouette"], "#d4a15c", "#28170c", "parlor"],
+  ["acoustic-premium-dread", "Acoustic", "Premium Dread", ko["appJsx.aPremiumTraditionalDreadnoughtWithGoldEdging"], "#a85f2b", "#f1ca7a", "premium-dread"],
+  ["acoustic-vintage-amber", "Acoustic", "Vintage Amber", ko["appJsx.aVintageCandidateWithAgedAmberTonesAndAClassicPickguard"], "#c27a2f", "#2d190b", "vintage-amber"],
+  ["acoustic-black-cutaway", "Acoustic", "Black Cutaway", ko["appJsx.aPremiumBlackTopWithARefinedCutaway"], "#11100d", "#d9aa55", "soft-cutaway"],
+  ["acoustic-maple-jumbo", "Acoustic", "Maple Jumbo", ko["appJsx.aBroadJumboBodyInBrightMapleTones"], "#e2b76c", "#42240e", "jumbo"],
+  ["classical-premium-black", "Classical", "Premium Black", ko["appJsx.aBlackNylonStringBodyWithARefinedClassicalHeadstock"], "#0d0d0c", "#d9aa55", "classical-premium"],
+  ["classical-flamenco", "Classical", "Flamenco", ko["appJsx.aFlamencoStyleCandidateWithASlimBrightBody"], "#e0b46c", "#2f1b0c", "flamenco"],
+  ["classical-concert", "Classical", "Concert", ko["appJsx.aCleanDesignEmphasizingConcertClassicalProportions"], "#c98f4a", "#3b230e", "concert-classical"],
+  ["classical-dark-rose", "Classical", "Dark Rose", ko["appJsx.aPremiumClassicalCandidateInDarkRosewoodTones"], "#5f2e24", "#d9aa55", "classical-premium"],
+  ["electric-single-cut-gold", "Electric", "Single Cut Gold", ko["appJsx.aSimplifiedLpStyleGoldSingleCutGuitar"], "#c18a35", "#120a06", "lp"],
+  ["electric-offset-blue", "Electric", "Offset Blue", ko["appJsx.anOffsetElectricCandidateInStageBlue"], "#244c64", "#d9aa55", "offset"],
+  ["electric-arcade-red", "Electric", "Arcade Red", ko["appJsx.aBoldRedBodyThatStandsOutInTheShooter"], "#9a2c22", "#f1ca7a", "super"],
+  ["electric-hollow-gold", "Electric", "Hollow Gold", ko["appJsx.aGoldElectricCandidateWithASubtleSemiHollowCharacter"], "#b87936", "#17110a", "hollow"],
+  ["electric-shadow-metal", "Electric", "Shadow Metal", ko["appJsx.anAggressiveBlackBodyWithASleekMetalHeadstock"], "#101114", "#c7c9d1", "metal"],
+  ["electric-tele-deluxe", "Electric", "Tele Deluxe", ko["appJsx.anAngularTeleStyleBodyWithAWiderPickguard"], "#d0a05a", "#17110a", "tele-deluxe"],
+  ["acoustic-dreadnought-refined", "Acoustic", "Dreadnought Refined", ko["appJsx.traditionalDreadnoughtProportionsWithAPreciselyAlignedHeadstock"], "#c9843d", "#2a1709", "dreadnought-refined"],
+  ["acoustic-om-refined", "Acoustic", "OM Refined", ko["appJsx.anImprovedOmDesignWithANarrowWaistAndBalancedFretboard"], "#d19a55", "#301c0d", "om-refined"],
+  ["acoustic-grand-concert", "Acoustic", "Grand Concert", ko["appJsx.aSmallBalancedGrandConcertBody"], "#d6a15a", "#2b190d", "grand-concert"],
+  ["acoustic-jumbo-balanced", "Acoustic", "Jumbo Balanced", ko["appJsx.aJumboWithABroadSymmetricalLowerBout"], "#b86f2e", "#f1ca7a", "jumbo-balanced"],
+  ["acoustic-venetian-cutaway", "Acoustic", "Venetian Cutaway", ko["appJsx.aGentleVenetianCutawayOnTheRightShoulder"], "#c58235", "#f1ca7a", "venetian-cutaway"],
+  ["acoustic-modern-venetian", "Acoustic", "Modern Venetian", ko["appJsx.aStageReadyDesignWithARestrainedModernCutaway"], "#d0964f", "#2b1608", "modern-venetian"],
+  ["acoustic-deep-waist", "Acoustic", "Deep Waist", ko["appJsx.aDefinedWaistWithOverallSymmetry"], "#b76d32", "#f1ca7a", "deep-waist"],
+  ["acoustic-travel-plus", "Acoustic", "Travel Plus", ko["appJsx.aTravelGuitarWithASmallBodyAndClearHeadstockDetails"], "#d8aa62", "#2a1a0d", "travel-plus"],
+  ["acoustic-12fret-heritage", "Acoustic", "12-Fret Heritage", ko["appJsx.aShortNeckDesignWithAVintage12FretFeel"], "#c28b46", "#2f1c0e", "twelve-fret"],
+  ["acoustic-archtop-gold", "Acoustic", "Archtop Gold", ko["appJsx.anArchtopSilhouetteReinterpretedAsAnAcousticPlayer"], "#c99448", "#1d1208", "archtop"],
+  ["acoustic-all-solid", "Acoustic", "All Solid", ko["appJsx.fineWoodTextureWithARefinedBridge"], "#bf7b35", "#f1ca7a", "all-solid"],
+  ["acoustic-concert-cutaway", "Acoustic", "Concert Cutaway", ko["appJsx.aConcertBodyWithASmallCutaway"], "#d6a260", "#28170c", "concert-cutaway"],
+  ["acoustic-slope-modern", "Acoustic", "Slope Modern", ko["appJsx.aModernInterpretationOfSlopeShoulders"], "#b97939", "#2f1a0c", "slope-modern"],
+  ["acoustic-thin-body", "Acoustic", "Thin Body", ko["appJsx.aSlimBodyDesignedToReadClearlyOnMobile"], "#a9672d", "#f1ca7a", "thin-body"],
+  ["acoustic-baritone", "Acoustic", "Baritone", ko["appJsx.aBaritoneInspiredDesignWithALongNeckAndBalancedLowerBout"], "#8f5228", "#d9aa55", "baritone"],
+  ["acoustic-rosewood-grand", "Acoustic", "Rosewood Grand", ko["appJsx.aPremiumLargeBodyInDeepRosewoodTones"], "#683322", "#d9aa55", "rosewood-grand"],
+  ["acoustic-maple-stage", "Acoustic", "Maple Stage", ko["appJsx.aBrightMapleTopWithAStageReadyPickguard"], "#e1b96d", "#37200e", "maple-stage"],
+  ["acoustic-cedar-om", "Acoustic", "Cedar OM", ko["appJsx.aCedarToneOmBodyWithSoftCurves"], "#ad6534", "#f1ca7a", "cedar-om"],
+  ["acoustic-black-bird", "Acoustic", "Black Bird", ko["appJsx.aPremiumBlackTopWithDistinctiveBirdInlays"], "#11100d", "#d9aa55", "black-bird"],
+  ["acoustic-sunburst-cutaway", "Acoustic", "Sunburst Cutaway", ko["appJsx.sunburstTonesPairedWithARightSideCutaway"], "#c06f24", "#1a0e06", "sunburst-cutaway"],
+  ["acoustic-orchestra-luxe", "Acoustic", "Orchestra Luxe", ko["appJsx.aNewOrchestraDesignWithANarrowWaistAndBalancedProportions"], "#cf9450", "#2b1709", "orchestra-luxe"],
+  ["acoustic-heritage-dread", "Acoustic", "Heritage Dread", ko["appJsx.aNewTraditionalDreadnoughtWithAMoreAngularHeadstockAndBalancedBody"], "#b96f32", "#f1ca7a", "heritage-dread"],
+  ["acoustic-studio-cut", "Acoustic", "Studio Cut", ko["appJsx.aNewStudioInspiredDesignWithASlimGentleRightSideCutaway"], "#d5a05c", "#251409", "studio-cut"],
+  ["acoustic-boutique-cedar", "Acoustic", "Boutique Cedar", ko["appJsx.aNewBoutiqueInspiredCedarDesignWithADeepWaist"], "#a95f35", "#f1ca7a", "boutique-cedar"],
+  ["acoustic-wide-stage", "Acoustic", "Wide Stage", ko["appJsx.aNewStagePlayerWithABroadLowerBoutAndClearCenterline"], "#d9aa55", "#3b210e", "wide-stage"],
+  ["acoustic-north-dread", "Acoustic", "North Dread", ko["appJsx.aNewTraditionalDreadnoughtWithBroadShouldersAndAGentlyCurvedWaist"], "#c47f37", "#f1ca7a", "north-dread"],
+  ["acoustic-ember-om", "Acoustic", "Ember OM", ko["appJsx.aNewOmDesignWithANarrowWaistAndNaturalUpperBout"], "#d09248", "#2a1709", "ember-om"],
+  ["acoustic-royal-auditorium", "Acoustic", "Royal Auditorium", ko["appJsx.anAuditoriumDesignWithContinuousCurvesAndFineGoldEdging"], "#d7a55d", "#3a210f", "royal-auditorium"],
+  ["acoustic-crescent-cutaway", "Acoustic", "Crescent Cutaway", ko["appJsx.aNewGentleRightSideCutawayOpeningTowardTheSoundHole"], "#b96d31", "#f1ca7a", "crescent-cutaway"],
+  ["acoustic-rose-stage", "Acoustic", "Rose Stage", ko["appJsx.aNewStageDesignWithRoseBrownTonesAndRealisticPickguardPlacement"], "#7b3f29", "#d9aa55", "rose-stage"],
+  ["real-martin-d28", "Acoustic", "Real D-28 Line", ko["appJsx.aSimplifiedStructurallyGroundedDesignBasedOnMartinD28DreadnoughtProportions"], "#c7843c", "#f1ca7a", "real-d28"],
+  ["real-martin-d18", "Acoustic", "Real D-18 Line", ko["appJsx.aCandidateReflectingD18StyleShouldersAndClearlyDefinedBridgePins"], "#d59b4f", "#3a210f", "real-d18"],
+  ["real-martin-hd28", "Acoustic", "Real HD-28 Line", ko["appJsx.aCandidateWithAnHd28StyleBroadLowerBoutAndPremium"], "#b97834", "#f1ca7a", "real-hd28"],
+  ["real-gibson-j45", "Acoustic", "Real J-45 Slope", ko["appJsx.aCandidateInspiredByGibsonJ45SlopeShouldersAndABalanced"], "#9b5428", "#f1ca7a", "real-j45"],
+  ["real-gibson-hummingbird", "Acoustic", "Real Hummingbird", ko["appJsx.aHummingbirdInspiredDesignSimplifyingSquareShouldersAndALargePickguard"], "#c66d25", "#2a1608", "real-hummingbird"],
+  ["real-taylor-814ce", "Acoustic", "Real 814ce Cut", ko["appJsx.aCandidateReflectingTaylor814ceGrandAuditoriumCutawayProportions"], "#d6a66a", "#2b1709", "real-814ce"],
+  ["real-taylor-314ce", "Acoustic", "Real 314ce Cut", ko["appJsx.aCandidateInspiredByThe314ceSBrightTopAndGentleVenetian"], "#d8ac66", "#30200e", "real-314ce"],
+  ["real-taylor-214ce", "Acoustic", "Real 214ce Cut", ko["appJsx.aSlimLegibleCutawaySilhouetteInspiredByThe214ce"], "#d09a55", "#f1ca7a", "real-214ce"],
+  ["real-yamaha-fg5", "Acoustic", "Real FG5 Dread", ko["appJsx.aCandidateWithAYamahaFg5StyleDreadnoughtBodyAndBridge"], "#c98b43", "#2d190b", "real-fg5"],
+  ["real-yamaha-ll16", "Acoustic", "Real LL16 Jumbo", ko["appJsx.aSimplifiedYamahaLl16InspiredBroadLowerBoutAndElongatedLines"], "#d29a50", "#2a1709", "real-ll16"],
+  ["real-vintage-dread", "Acoustic", "Real Vintage Dread", ko["appJsx.aVintageDreadnoughtEmphasizingRoundedShouldersAndARealisticPinBridge"], "#b56a2d", "#f1ca7a", "real-vintage-dread"],
+  ["real-modern-dread", "Acoustic", "Real Modern Dread", ko["appJsx.aModernDreadnoughtWithBalancedProportionsAndAStraightFretboard"], "#d09a4f", "#2a1709", "real-modern-dread"],
+  ["real-om-rosewood", "Acoustic", "Real OM Rosewood", ko["appJsx.aRealisticallyProportionedOmDesignWithANarrowWaistAndRosewoodTones"], "#70402b", "#d9aa55", "real-om-rosewood"],
+  ["real-auditorium-cedar", "Acoustic", "Real Auditorium Cedar", ko["appJsx.aBalancedCandidateInspiredByAnAuditoriumBodyAndCedarTop"], "#a96737", "#f1ca7a", "real-auditorium-cedar"],
+  ["real-grand-auditorium", "Acoustic", "Real Grand Auditorium", ko["appJsx.aCandidateReflectingGrandAuditoriumLowerBoutVolumeAndSoundHolePlacement"], "#d6a25b", "#30200e", "real-grand-auditorium"],
+  ["real-single-cutaway", "Acoustic", "Real Single Cutaway", ko["appJsx.aRestrainedRightShoulderCutawayWithRealisticGuitarProportions"], "#c17a35", "#f1ca7a", "real-single-cutaway"],
+  ["real-soft-cutaway", "Acoustic", "Real Soft Cutaway", ko["appJsx.aGentleCutawayThatPreservesAcousticBodyBalance"], "#d2a05c", "#2a1709", "real-soft-cutaway"],
+  ["real-modern-cutaway", "Acoustic", "Real Modern Cutaway", ko["appJsx.aStageAcousticWithAnUnderstatedModernCutaway"], "#b96f34", "#f1ca7a", "real-modern-cutaway"],
+  ["real-jumbo-maple", "Acoustic", "Real Jumbo Maple", ko["appJsx.aBroadJumboLowerBoutWithABrightMapleStyleTop"], "#e1b96d", "#3b210e", "real-jumbo-maple"],
+  ["real-square-shoulder", "Acoustic", "Real Square Shoulder", ko["appJsx.aSimplifiedGibsonHummingbirdInspiredSquareShoulderDesign"], "#b86727", "#f1ca7a", "real-square-shoulder"],
+  ["fresh-d28-bloom", "Acoustic", "D28 Bloom", ko["appJsx.aNewDreadnoughtLineWithAContinuousFlowFromShouldersThroughWaist"], "#c9823a", "#f1ca7a", "fresh-dread"],
+  ["fresh-d18-honey", "Acoustic", "D18 Honey", ko["appJsx.aTraditionalAcousticWithAHoneyColoredTopAndRestrainedLowerCurve"], "#d79b4d", "#3a210f", "fresh-d18"],
+  ["fresh-fg5-root", "Acoustic", "FG5 Root", ko["appJsx.aReinterpretationOfYamahaFg5StyleShouldersAndRoundedLowerBout"], "#c88b43", "#2d190b", "fresh-fg5"],
+  ["fresh-j45-slope", "Acoustic", "J45 Slope", ko["appJsx.aVintageDesignWithSlopeShouldersAndANaturalWaist"], "#a75d2d", "#f1ca7a", "fresh-j45"],
+  ["fresh-humming-gold", "Acoustic", "Humming Gold", ko["appJsx.aSquareShoulderDesignWithASoftlyCurvedLowerBout"], "#c66e28", "#2a1608", "fresh-humming"],
+  ["fresh-om-clear", "Acoustic", "OM Clear", ko["appJsx.anOmCandidateWithANarrowWaistAndDistinctSoundHoleProportions"], "#d39a55", "#2f1b0d", "fresh-om"],
+  ["fresh-000-amber", "Acoustic", "000 Amber", ko["appJsx.aCompact000BodyWithAContinuousLowerCurve"], "#d49b52", "#332012", "fresh-000"],
+  ["fresh-auditorium-arc", "Acoustic", "Auditorium Arc", ko["appJsx.anAuditoriumCandidateWithBalancedProportionsAndAnOrganicLowerCurve"], "#d2a05b", "#30200e", "fresh-auditorium"],
+  ["fresh-grand-stage", "Acoustic", "Grand Stage", ko["appJsx.aStageReadyGrandAuditoriumDesignWithAGoldRosette"], "#d9aa55", "#3b210e", "fresh-grand"],
+  ["fresh-soft-cut", "Acoustic", "Soft Cut", ko["appJsx.aGentleRealisticRightShoulderCutaway"], "#c37a36", "#f1ca7a", "fresh-soft-cut"],
+  ["fresh-venetian", "Acoustic", "Venetian", ko["appJsx.aVenetianCutawayWithCarefullyAlignedSoundHoleAndPickguard"], "#d29a4f", "#2a1709", "fresh-venetian"],
+  ["fresh-cedar-room", "Acoustic", "Cedar Room", ko["appJsx.aPracticeRoomDesignWithCedarTonesAndARestrainedLowerBout"], "#a96737", "#f1ca7a", "fresh-cedar"],
+  ["fresh-rosewood-room", "Acoustic", "Rosewood Room", ko["appJsx.aPremiumCandidateWithDeepRosewoodTonesAndAMotherOfPearl"], "#70402b", "#d9aa55", "fresh-rosewood"],
+  ["fresh-maple-luxe", "Acoustic", "Maple Luxe", ko["appJsx.aCandidateWithBrightMapleTonesAndABalancedLowerBout"], "#e1b96d", "#3b210e", "fresh-maple"],
+  ["fresh-black-pearl", "Acoustic", "Black Pearl", ko["appJsx.aPremiumBlackBodyContrastingWithAMotherOfPearlRosette"], "#11100d", "#d9aa55", "fresh-black"],
+  ["fresh-sunburst-dread", "Acoustic", "Sunburst Dread", ko["appJsx.sunburstTonesCombinedWithARealisticDreadnoughtSilhouette"], "#c06f24", "#1a0e06", "fresh-sunburst"],
+  ["fresh-boutique-om", "Acoustic", "Boutique OM", ko["appJsx.aSmallRefinedOmDesignWithABoutiqueGuitarShopFeel"], "#c88443", "#f1ca7a", "fresh-boutique"],
+  ["fresh-studio-dread", "Acoustic", "Studio Dread", ko["appJsx.aStudioInspiredBodyWithThinGoldEdging"], "#b96f32", "#f1ca7a", "fresh-studio"],
+  ["fresh-jumbo-tame", "Acoustic", "Jumbo Tame", ko["appJsx.aRestrainedJumboDesignWithNoExaggeratedLowerBoutBulge"], "#d0a05c", "#28170c", "fresh-jumbo"],
+  ["fresh-heritage-bird", "Acoustic", "Heritage Bird", ko["appJsx.aHeritageDesignWithRefinedBirdInlaysAndAMotherOfPearl"], "#b86727", "#f1ca7a", "fresh-heritage"],
+  ["fresh-d15m-mahogany", "Acoustic", "D15M Mahogany", ko["appJsx.anAllMahoganyDreadnoughtBasedOnMartinD15mProportions"], "#8f4f2d", "#f1ca7a", "fresh-d15m-mahogany"],
+  ["fresh-d15m-satin", "Acoustic", "D15M Satin", ko["appJsx.satinMahoganyTextureWithACleanSquareShoulderSilhouette"], "#9a5a35", "#d9aa55", "fresh-d15m-satin"],
+  ["fresh-d15m-studio", "Acoustic", "D15M Studio", ko["appJsx.aStudioCandidateWithDBodyShouldersAndLowerCurves"], "#7b452c", "#f1ca7a", "fresh-d15m-studio"],
+  ["fresh-d15m-shadow", "Acoustic", "D15M Shadow", ko["appJsx.aDarkMahoganyDBodyCandidateWithRestrainedGoldEdging"], "#5f3325", "#d9aa55", "fresh-d15m-shadow"],
+  ["fresh-d15m-stage", "Acoustic", "D15M Stage", ko["appJsx.aDefinedD15mSilhouetteDesignedToReadAsAStagePlayer"], "#a96537", "#f8e8b0", "fresh-d15m-stage"],
+  ["fresh-cutaway-814ce", "Acoustic", "814ce Flow", ko["appJsx.aCandidateInspiredByTheTaylor814ceSRightShoulderCutaway"], "#d6a15c", "#2a1709", "fresh-cutaway-814ce"],
+  ["fresh-cutaway-314ce", "Acoustic", "314ce Flow", ko["appJsx.aSimplerGrandAuditoriumCutaway"], "#c98b43", "#f1ca7a", "fresh-cutaway-314ce"],
+  ["fresh-cutaway-214ce", "Acoustic", "214ce Flow", ko["appJsx.aGentleTrebleSideCutawayWithAShallowLowerCurve"], "#d09a4f", "#2d190b", "fresh-cutaway-214ce"],
+  ["fresh-cutaway-grand", "Acoustic", "Grand Cutaway", ko["appJsx.aBroadLowerBoutPairedWithAFlowingVenetianCutaway"], "#d9aa55", "#3b210e", "fresh-cutaway-grand"],
+  ["fresh-cutaway-auditorium", "Acoustic", "Auditorium Cut", ko["appJsx.auditoriumProportionsWithANaturalRightShoulderCutaway"], "#c58235", "#f1ca7a", "fresh-cutaway-auditorium"],
+  ["fresh-cutaway-dread", "Acoustic", "Dread Cutaway", ko["appJsx.aRestrainedCutawayThatPreservesTheDreadnoughtBody"], "#b96f32", "#f1ca7a", "fresh-cutaway-dread"],
+  ["fresh-cutaway-mahogany", "Acoustic", "Mahogany Cut", ko["appJsx.mahoganyTonesPairedWithADBodyCutaway"], "#8f4f2d", "#d9aa55", "fresh-cutaway-mahogany"],
+  ["fresh-cutaway-rosewood", "Acoustic", "Rosewood Cut", ko["appJsx.aCutawayWithDarkRosewoodTonesAndAMotherOfPearlRosette"], "#70402b", "#d9aa55", "fresh-cutaway-rosewood"],
+  ["fresh-cutaway-maple", "Acoustic", "Maple Cut", ko["appJsx.brightMapleTonesWithAClearlyDefinedTrebleSideCutaway"], "#e1b96d", "#3b210e", "fresh-cutaway-maple"],
+  ["fresh-cutaway-black", "Acoustic", "Black Cut", ko["appJsx.aBlackBodyWithADistinctiveCutawaySilhouette"], "#11100d", "#d9aa55", "fresh-cutaway-black"],
+  ["fresh-cutaway-sunburst", "Acoustic", "Sunburst Cut", ko["appJsx.aSunburstBodyWithAGentleRightShoulder"], "#c06f24", "#1a0e06", "fresh-cutaway-sunburst"],
+  ["fresh-cutaway-cedar", "Acoustic", "Cedar Cut", ko["appJsx.aRestrainedCutawayWithACedarTopFeel"], "#a96737", "#f1ca7a", "fresh-cutaway-cedar"],
+  ["fresh-cutaway-stage", "Acoustic", "Stage Cut", ko["appJsx.aClearCutawaySilhouetteDesignedForTheShooterPlayer"], "#c37a36", "#f8e8b0", "fresh-cutaway-stage"],
+  ["fresh-cutaway-venetian", "Acoustic", "Venetian Flow", ko["appJsx.aRoundedVenetianCutawayWithNoSharpAngles"], "#d29a4f", "#2a1709", "fresh-cutaway-venetian"],
+  ["fresh-cutaway-soft", "Acoustic", "Soft Flow", ko["appJsx.aSoftCutawayFlowingContinuouslyFromUpperBoutToWaist"], "#d2a05b", "#30200e", "fresh-cutaway-soft"],
+  ["fresh-cutaway-modern", "Acoustic", "Modern Flow", ko["appJsx.anOrganicModernCutawayWithNoStraightEdges"], "#b87533", "#f1ca7a", "fresh-cutaway-modern"],
+  ["fresh-cutaway-boutique", "Acoustic", "Boutique Cut", ko["appJsx.aBoutiqueInspiredNarrowWaistAndCutaway"], "#c88443", "#f1ca7a", "fresh-cutaway-boutique"],
+  ["fresh-cutaway-pearl", "Acoustic", "Pearl Cut", ko["appJsx.aMotherOfPearlRosetteAndPremiumCutawaySilhouette"], "#5f3325", "#f8e8b0", "fresh-cutaway-pearl"],
+  ["fresh-cutaway-honey", "Acoustic", "Honey Cut", ko["appJsx.aCutawayWithAHoneyColoredTopAndAContinuousLowerCurve"], "#d79b4d", "#3a210f", "fresh-cutaway-honey"],
+  ["fresh-cutaway-reference", "Acoustic", "Reference Cut", ko["appJsx.aCandidateBasedOnTheSideProfileAndLowerCurveOfThe"], "#c9823a", "#f1ca7a", "fresh-cutaway-reference"],
+  ["acoustic-real-trace", "Acoustic", "Just Play", ko["appJsx.aStandardPlayerGuitarUsingTheSuppliedJustPlayJpDreadnoughtImage"], "#d79b4d", "#3a210f", "image-real-trace", "/images/shooter-acoustic-real-trace.png"],
+  ["jp-d-black", "Acoustic", "JP D. Black", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpBlackCutawayAcoustic"], "#090a0b", "#d8a33b", "image-jp-d-black", "/images/shooter-jp-d-black.png"],
+  ["jp-c-mahogany", "Acoustic", "JP C. MAHOGANY", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpMahoganyCutawayAcoustic"], "#6f1f0d", "#d8a33b", "image-jp-c-mahogany", "/images/shooter-jp-c-mahogany.png"],
+  ["jp-c-green", "Acoustic", "JP C. GREEN", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpEmeraldGreenCutaway"], "#006b50", "#d8a33b", "image-jp-c-green", "/images/shooter-jp-c-green.png"],
+  ["jp-d-bloom", "Acoustic", "JP D. BLOOM", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpFloralHummingbirdDreadnought"], "#e2aa50", "#1b140c", "image-jp-d-bloom", "/images/shooter-jp-d-bloom.png"],
+  ["jp-d-phoenix", "Acoustic", "JP D. PHOENIX", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpPhoenixArtDreadnought"], "#b73910", "#d8a33b", "image-jp-d-phoenix", "/images/shooter-jp-d-phoenix.png"],
+  ["jp-d-celestial", "Acoustic", "JP D. CELESTIAL", ko["appJsx.aPlayerGuitarUsingTheSuppliedWhitePearlDreadnoughtWithGoldAnd"], "#f2eee4", "#d8a33b", "image-jp-d-celestial", "/images/shooter-jp-d-celestial.png"],
+  ["jp-sunburst-classic", "Electric", "JP SUNBURST CLASSIC", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpSunburstClassicElectric"], "#cf5816", "#d8a33b", "image-jp-sunburst-classic", "/images/shooter-jp-sunburst-classic.png"],
+  ["jp-e-black-gold", "Electric", "JP E. Black Gold", ko["appJsx.aPlayerGuitarUsingTheSuppliedBlackWoodGrainSingleCutElectric"], "#111217", "#d8a33b", "image-jp-e-black-gold", "/images/shooter-jp-e-black-gold.png"],
+  ["jp-e-natural-wood", "Electric", "JP E. Natural Wood", ko["appJsx.aPlayerGuitarUsingTheSuppliedFiguredWoodDoubleCutElectricWith"], "#8b4f25", "#d8c2a4", "image-jp-e-natural-wood", "/images/shooter-jp-e-natural-wood.png"],
+  ["jp-jazz", "Electric", "JP Jazz", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpArchtopJazzGuitar"], "#e0a03a", "#1b140c", "image-jp-jazz", "/images/shooter-jp-jazz.png"],
+  ["jp-resonator", "Electric", "JP Resonator", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpSunburstResonatorImage"], "#9a4f1f", "#d7c6aa", "image-jp-resonator", "/images/shooter-jp-resonator.png"],
+  ["jp-phoenix", "Electric", "JP PHOENIX", ko["appJsx.aPlayerGuitarUsingTheSuppliedJustPlayJpArchtopWithPhoenix"], "#d49a43", "#2a87a5", "image-jp-phoenix", "/images/shooter-jp-phoenix.png"],
+  ["jp-sunburst-gold-bass", "Bass", "JP SUNBURST GOLD", ko["appJsx.aPlayerBassUsingTheSuppliedJustPlayJpSunburstGoldBass"], "#e77719", "#d8a33b", "image-jp-sunburst-gold-bass", "/images/shooter-jp-sunburst-gold-bass.png"],
+  ["jp-aqua-blue", "Bass", "JP Aqua Blue", ko["appJsx.aPlayerBassUsingTheSuppliedAquaBlueFourStringBassWith"], "#2b9fbd", "#e9e9e5", "image-jp-aqua-blue", "/images/shooter-jp-aqua-blue.png"],
+  ["jp-b-red", "Bass", "JP B. RED", ko["appJsx.aPlayerBassUsingTheSuppliedDeepRedFiguredWoodFourString"], "#a40022", "#d8a33b", "image-jp-b-red", "/images/shooter-jp-b-red.png"],
+  ["rifflab-common-cutaway", "Acoustic", "Common Cutaway", ko["appJsx.aStandardCutawayShooterGuitarWithJustPlayLogosOnTheHeadstock"], "#9b4c24", "#f1ca7a", "image-rifflab-common-cutaway", RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC],
+  ["acoustic-epic-trace", "Acoustic", "Sunburst", ko["appJsx.aStandardPngCandidateWithARedSunburstFinishOnTheSame"], "#c74323", "#ff8a2a", "image-epic-trace", "/images/shooter-acoustic-epic-trace.png"],
+  ["acoustic-legendary-core-trace", "Acoustic", "Pearl Clean", ko["appJsx.aStandardPngCandidateInTheExistingWhiteGoldPearlFinish"], "#f4d58a", "#ffcf52", "image-legendary-core-trace", "/images/shooter-acoustic-legendary-trace.png"],
+  ["rifflab-legendary-cutaway", "Acoustic", "Phoenix Harmony", ko["appJsx.aCutawayShooterGuitarPngWithGoldPhoenixArtwork"], "#7c241b", "#d8a64a", "image-rifflab-legendary-cutaway", "/images/rifflab-legendary-cutaway-sprite-tight.png"],
+  ["rifflab-epic-cutaway", "Acoustic", "Azure Bloom", ko["appJsx.aCutawayShooterGuitarPngWithNaturalWoodAndBlueGoldDetails"], "#d8aa66", "#2f63b8", "image-rifflab-epic-cutaway", "/images/rifflab-epic-cutaway-sprite-tight.png"],
+  ["rifflab-onyx-pearl-dreadnought", "Acoustic", "Onyx Pearl", ko["appJsx.anEpicShooterGuitarPngWithABlackDreadnoughtBodyAndMother"], "#080909", "#c7d7d4", "image-rifflab-onyx-pearl-dreadnought", "/images/rifflab-onyx-pearl-dreadnought-sprite-tight.png"],
+  ["rifflab-astral-relic-cutaway", "Acoustic", "Astral Relic", ko["appJsx.anAncientRelicCutawayShooterGuitarPngWithABlackBodyAnd"], "#0f0d09", "#d8a64a", "image-rifflab-astral-relic-cutaway", "/images/rifflab-astral-relic-cutaway-sprite-tight.png"],
+  ["rifflab-temple-grace-cutaway", "Acoustic", "Temple Grace", ko["appJsx.aSanctuaryInspiredCutawayShooterGuitarPngWithAnIvoryWhiteBody"], "#f4efe2", "#d6a13b", "image-rifflab-temple-grace-cutaway", "/images/rifflab-temple-grace-cutaway-sprite-tight.png"],
+  ["rifflab-frost-spirit-cutaway", "Acoustic", "Frost Spirit", ko["appJsx.anIceSpiritCutawayShooterGuitarPngWithWinterNightAndMoonlit"], "#082c3f", "#bdefff", "image-rifflab-frost-spirit-cutaway", "/images/rifflab-frost-spirit-cutaway-sprite-tight.png"],
+  ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", ko["appJsx.aStandardDreadnoughtWithADarkMotherOfPearlRosetteAndA"], "#b97836", "#f1ca7a", "core-dread-01"],
+  ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", ko["appJsx.aMahoganyCandidateWithReducedSpacingBetweenSoundHoleAndBridge"], "#8f5230", "#f8e8b0", "core-dread-02"],
+  ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", ko["appJsx.aStageCandidateWithDeepSunburstTonesAndADarkMotherOf"], "#c06f24", "#1a0e06", "core-dread-03"],
   ...FRETIVA_INSTRUMENT_SKIN_PACK_V1.map((skin) => [
     skin.id,
     skin.pack,
@@ -8325,16 +8326,16 @@ const SHOOTER_GUITAR_CATEGORIES = {
   BASS: "bass",
 };
 const SHOOTER_GUITAR_CATEGORY_OPTIONS = [
-  { id: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC, label: "어쿠스틱" },
-  { id: SHOOTER_GUITAR_CATEGORIES.ELECTRIC, label: "일렉" },
-  { id: SHOOTER_GUITAR_CATEGORIES.BASS, label: "베이스" },
+  { id: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC, label: ko["appJsx.acoustic"] },
+  { id: SHOOTER_GUITAR_CATEGORIES.ELECTRIC, label: ko["appJsx.electric"] },
+  { id: SHOOTER_GUITAR_CATEGORIES.BASS, label: ko["tuner.bass"] },
 ];
 const SHOOTER_SKIN_TABS = [
-  { id: "guitar", label: "기타" },
-  { id: "effect", label: "이펙트" },
-  { id: "pet", label: "펫" },
-  { id: "map", label: "맵" },
-  { id: "pick", label: "피크" },
+  { id: "guitar", label: ko["app.guitar"] },
+  { id: "effect", label: ko["appJsx.effects"] },
+  { id: "pet", label: ko["appJsx.pets"] },
+  { id: "map", label: ko["appJsx.maps"] },
+  { id: "pick", label: ko["appJsx.picks"] },
 ];
 
 const shooterScrollHintFrames = new WeakMap();
@@ -8420,31 +8421,31 @@ function ShooterSkinTabController({ children, initialTab = SHOOTER_SKIN_TABS[0].
 }
 
 const SHOOTER_PICK_SKINS = [
-  { id: "leather-black", label: "Leather Black Pick", description: "블랙 레더 질감 피크", assetSrc: "/images/shooter-pick-leather-black.png" },
-  { id: "tortoise-shell", label: "Tortoise Shell Pick", description: "토터스 쉘 패턴 피크", assetSrc: "/images/shooter-pick-tortoise-shell.png" },
-  { id: "walnut-wood", label: "Walnut Wood Pick", description: "우드 그레인 피크", assetSrc: "/images/shooter-pick-walnut-wood.png" },
-  { id: "pearl-ivory", label: "Pearl Ivory Pick", description: "진주빛 아이보리 피크", assetSrc: "/images/shooter-pick-pearl-ivory.png" },
-  { id: "brushed-gold", label: "Brushed Gold Pick", description: "브러시드 골드 피크", assetSrc: "/images/shooter-pick-brushed-gold.png" },
-  { id: "brushed-silver", label: "Brushed Silver Pick", description: "브러시드 실버 피크", assetSrc: "/images/shooter-pick-brushed-silver.png" },
-  { id: "sapphire-gem", label: "Sapphire Gem Pick", description: "블루 사파이어 보석 피크", assetSrc: "/images/shooter-pick-sapphire-gem.png" },
-  { id: "amethyst-gem", label: "Amethyst Gem Pick", description: "퍼플 애메시스트 보석 피크", assetSrc: "/images/shooter-pick-amethyst-gem.png" },
-  { id: "carbon-fiber", label: "Carbon Fiber Pick", description: "카본 파이버 피크", assetSrc: "/images/shooter-pick-carbon-fiber.png" },
-  { id: "neon-pink", label: "Neon Pink Pick", description: "핑크 네온 피크", assetSrc: "/images/shooter-pick-neon-pink.png" },
-  { id: "neon-cyan", label: "Neon Cyan Pick", description: "시안 네온 피크", assetSrc: "/images/shooter-pick-neon-cyan.png" },
-  { id: "lava-rock", label: "Lava Rock Pick", description: "용암 균열 피크", assetSrc: "/images/shooter-pick-lava-rock.png" },
-  { id: "ice-crystal", label: "Ice Crystal Pick", description: "서리빛 얼음 결정 피크", assetSrc: "/images/shooter-pick-ice-crystal.png" },
-  { id: "leaf-green", label: "Leaf Green Pick", description: "초록 잎맥 피크", assetSrc: "/images/shooter-pick-leaf-green.png" },
-  { id: "galaxy", label: "Galaxy Pick", description: "보랏빛 은하 피크", assetSrc: "/images/shooter-pick-galaxy.png" },
-  { id: "antique-bronze", label: "Antique Bronze Pick", description: "앤티크 브론즈 피크", assetSrc: "/images/shooter-pick-antique-bronze.png" },
-  { id: "rose-gold", label: "Rose Gold Pick", description: "로즈 골드 피크", assetSrc: "/images/shooter-pick-rose-gold.png" },
-  { id: "black-obsidian", label: "Black Obsidian Pick", description: "검은 흑요석 피크", assetSrc: "/images/shooter-pick-black-obsidian.png" },
-  { id: "prism-opal", label: "Prism Opal Pick", description: "무지갯빛 프리즘 오팔 피크", assetSrc: "/images/shooter-pick-prism-opal.png" },
-  { id: "aqua-wave", label: "Aqua Wave Pick", description: "청록빛 물결 피크", assetSrc: "/images/shooter-pick-aqua-wave.png" },
+  { id: "leather-black", label: "Leather Black Pick", description: ko["appJsx.blackLeatherPick"], assetSrc: "/images/shooter-pick-leather-black.png" },
+  { id: "tortoise-shell", label: "Tortoise Shell Pick", description: ko["appJsx.tortoiseshellPick"], assetSrc: "/images/shooter-pick-tortoise-shell.png" },
+  { id: "walnut-wood", label: "Walnut Wood Pick", description: ko["appJsx.woodGrainPick"], assetSrc: "/images/shooter-pick-walnut-wood.png" },
+  { id: "pearl-ivory", label: "Pearl Ivory Pick", description: ko["appJsx.pearlIvoryPick"], assetSrc: "/images/shooter-pick-pearl-ivory.png" },
+  { id: "brushed-gold", label: "Brushed Gold Pick", description: ko["appJsx.brushedGoldPick"], assetSrc: "/images/shooter-pick-brushed-gold.png" },
+  { id: "brushed-silver", label: "Brushed Silver Pick", description: ko["appJsx.brushedSilverPick"], assetSrc: "/images/shooter-pick-brushed-silver.png" },
+  { id: "sapphire-gem", label: "Sapphire Gem Pick", description: ko["appJsx.blueSapphirePick"], assetSrc: "/images/shooter-pick-sapphire-gem.png" },
+  { id: "amethyst-gem", label: "Amethyst Gem Pick", description: ko["appJsx.purpleAmethystPick"], assetSrc: "/images/shooter-pick-amethyst-gem.png" },
+  { id: "carbon-fiber", label: "Carbon Fiber Pick", description: ko["appJsx.carbonFiberPick"], assetSrc: "/images/shooter-pick-carbon-fiber.png" },
+  { id: "neon-pink", label: "Neon Pink Pick", description: ko["appJsx.neonPinkPick"], assetSrc: "/images/shooter-pick-neon-pink.png" },
+  { id: "neon-cyan", label: "Neon Cyan Pick", description: ko["appJsx.neonCyanPick"], assetSrc: "/images/shooter-pick-neon-cyan.png" },
+  { id: "lava-rock", label: "Lava Rock Pick", description: ko["appJsx.crackedLavaPick"], assetSrc: "/images/shooter-pick-lava-rock.png" },
+  { id: "ice-crystal", label: "Ice Crystal Pick", description: ko["appJsx.frostedIceCrystalPick"], assetSrc: "/images/shooter-pick-ice-crystal.png" },
+  { id: "leaf-green", label: "Leaf Green Pick", description: ko["appJsx.greenLeafVeinPick"], assetSrc: "/images/shooter-pick-leaf-green.png" },
+  { id: "galaxy", label: "Galaxy Pick", description: ko["appJsx.purpleGalaxyPick"], assetSrc: "/images/shooter-pick-galaxy.png" },
+  { id: "antique-bronze", label: "Antique Bronze Pick", description: ko["appJsx.antiqueBronzePick"], assetSrc: "/images/shooter-pick-antique-bronze.png" },
+  { id: "rose-gold", label: "Rose Gold Pick", description: ko["appJsx.roseGoldPick"], assetSrc: "/images/shooter-pick-rose-gold.png" },
+  { id: "black-obsidian", label: "Black Obsidian Pick", description: ko["appJsx.blackObsidianPick"], assetSrc: "/images/shooter-pick-black-obsidian.png" },
+  { id: "prism-opal", label: "Prism Opal Pick", description: ko["appJsx.iridescentPrismOpalPick"], assetSrc: "/images/shooter-pick-prism-opal.png" },
+  { id: "aqua-wave", label: "Aqua Wave Pick", description: ko["appJsx.turquoiseWavePick"], assetSrc: "/images/shooter-pick-aqua-wave.png" },
 ];
 const SHOOTER_RANDOM_MAP_OPTION = {
   id: SHOOTER_RANDOM_MAP_ID,
-  label: "랜덤",
-  description: "슈팅게임에 다시 들어올 때 무작위 맵 선택",
+  label: ko["app.random"],
+  description: ko["appJsx.chooseARandomMapEachTimeYouEnterTheShooter"],
 };
 const SHOOTER_MAP_OPTIONS = [
   ...LAYERED_SHOOTER_MAP_SKINS,
@@ -8470,21 +8471,21 @@ const SHOOTER_EFFECT_EQUIPMENT_SLOTS = {
 const SHOOTER_EFFECT_SECTION_OPTIONS = [
   {
     id: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
-    label: "AURA · 기타 주변",
-    description: "기타 주변에 배치되는 독립 이펙트",
+    label: ko["appJsx.auraAroundTheGuitar"],
+    description: ko["appJsx.independentEffectsPlacedAroundTheGuitar"],
   },
   {
     id: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
-    label: "FLOOR · 바닥",
-    description: "기타가 서 있는 지면 전용 이펙트",
+    label: ko["appJsx.floorGround"],
+    description: ko["appJsx.effectsForTheGroundBeneathTheGuitar"],
   },
 ];
 const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "none",
     name: "None",
-    label: "없음",
-    description: "추가 기타 효과 없음",
+    label: ko["app.none"],
+    description: ko["appJsx.noAdditionalGuitarEffects"],
     rarity: "common",
     type: "static",
     image: "",
@@ -8494,8 +8495,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "legendary-violet",
     name: "Legendary Violet Set",
-    label: "레전더리 바이올렛 세트",
-    description: "룬 마법진, 상승 아우라, 별빛 파티클",
+    label: ko["appJsx.legendaryVioletSet"],
+    description: ko["appJsx.runeCircleRisingAuraAndStarlightParticles"],
     rarity: "legendary",
     type: "animated",
     image: "/assets/effects/legendary-violet-reference.png",
@@ -8506,8 +8507,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "aura-blue",
     name: "Blue Aura",
-    label: "은은한 블루 아우라",
-    description: "기타 주변에 푸른 오라",
+    label: ko["appJsx.softBlueAura"],
+    description: ko["appJsx.aBlueAuraAroundTheGuitar"],
     rarity: "rare",
     type: "animated",
     image: "/assets/effects/sheet-aura-blue.png",
@@ -8517,8 +8518,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "nature-aura",
     name: "Nature Aura",
-    label: "네이처 아우라",
-    description: "초록빛 잎사귀 오라",
+    label: ko["appJsx.natureAura"],
+    description: ko["appJsx.aGreenLeafAura"],
     rarity: "rare",
     type: "animated",
     image: "/assets/effects/sheet-aura-nature.png",
@@ -8528,8 +8529,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "mystic-aura",
     name: "Mystic Aura",
-    label: "미스틱 아우라",
-    description: "보랏빛 마법 오라",
+    label: ko["appJsx.mysticAura"],
+    description: ko["appJsx.aPurpleMagicalAura"],
     rarity: "epic",
     type: "animated",
     image: "/assets/effects/sheet-aura-mystic.png",
@@ -8539,8 +8540,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "legendary-aura",
     name: "Legendary Aura",
-    label: "레전더리 오라",
-    description: "붉은 레전더리 기타 오라",
+    label: ko["appJsx.legendaryAura"],
+    description: ko["appJsx.aRedLegendaryGuitarAura"],
     rarity: "legendary",
     type: "animated",
     image: "/assets/effects/sheet-aura-legendary.png",
@@ -8550,8 +8551,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "floor-light",
     name: "Blue Light",
-    label: "블루 라이트",
-    description: "기타 아래 푸른 마법진",
+    label: ko["appJsx.blueLight"],
+    description: ko["appJsx.aBlueMagicCircleBeneathTheGuitar"],
     rarity: "common",
     type: "animated",
     image: "/assets/effects/sheet-floor-blue-light.png",
@@ -8561,8 +8562,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "nature-circle",
     name: "Nature Circle",
-    label: "네이처 서클",
-    description: "초록빛 자연 마법진",
+    label: ko["appJsx.natureCircle"],
+    description: ko["appJsx.aGreenNatureMagicCircle"],
     rarity: "rare",
     type: "animated",
     image: "/assets/effects/sheet-floor-nature-circle.png",
@@ -8572,8 +8573,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "mystic-circle",
     name: "Mystic Circle",
-    label: "미스틱 서클",
-    description: "보랏빛 미스틱 마법진",
+    label: ko["appJsx.mysticCircle"],
+    description: ko["appJsx.aPurpleMysticMagicCircle"],
     rarity: "epic",
     type: "animated",
     image: "/assets/effects/sheet-floor-mystic-circle.png",
@@ -8583,8 +8584,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "legendary-circle",
     name: "Legendary Circle",
-    label: "레전더리 서클",
-    description: "붉은 레전더리 마법진",
+    label: ko["appJsx.legendaryCircle"],
+    description: ko["appJsx.aRedLegendaryMagicCircle"],
     rarity: "legendary",
     type: "animated",
     image: "/assets/effects/sheet-floor-legendary-circle.png",
@@ -8594,8 +8595,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "floating-leaf",
     name: "Floating Leaf",
-    label: "플로팅 리프",
-    description: "기타 주변을 도는 잎사귀",
+    label: ko["appJsx.floatingLeaves"],
+    description: ko["appJsx.leavesOrbitingTheGuitar"],
     rarity: "rare",
     type: "animated",
     image: "/assets/effects/sheet-particles-floating-leaf.png",
@@ -8605,8 +8606,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "mystic-shards",
     name: "Mystic Shards",
-    label: "미스틱 파편",
-    description: "보랏빛 파편 장식",
+    label: ko["appJsx.mysticShards"],
+    description: ko["appJsx.purpleDecorativeShards"],
     rarity: "epic",
     type: "animated",
     image: "/assets/effects/sheet-particles-mystic-shards.png",
@@ -8616,8 +8617,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "shard-boost",
     name: "Legendary Shards",
-    label: "레전더리 파편",
-    description: "붉은 파편과 피격 파편 강화",
+    label: ko["appJsx.legendaryShards"],
+    description: ko["appJsx.redShardsWithEnhancedHitFragments"],
     rarity: "legendary",
     type: "animated",
     image: "/assets/effects/sheet-particles-legendary-shards.png",
@@ -8627,8 +8628,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "subtle-aura",
     name: "Subtle Aura",
-    label: "숨결 아우라",
-    description: "은은하게 번지는 하단 오라",
+    label: ko["appJsx.breathingAura"],
+    description: ko["appJsx.aSoftlySpreadingLowerAura"],
     rarity: "rare",
     type: "animated",
     image: "/assets/effects/sheet-special-subtle-aura.png",
@@ -8638,8 +8639,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "flame-aura",
     name: "Flame Aura",
-    label: "불꽃 아우라",
-    description: "기타 아래에서 타오르는 불꽃",
+    label: ko["appJsx.flameAura"],
+    description: ko["appJsx.flamesRisingBeneathTheGuitar"],
     rarity: "epic",
     type: "animated",
     image: "/assets/effects/sheet-special-flame-aura.png",
@@ -8649,8 +8650,8 @@ const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "eclipse-aura",
     name: "Eclipse Aura",
-    label: "이클립스 오라",
-    description: "강한 붉은 이클립스 오라",
+    label: ko["appJsx.eclipseAura"],
+    description: ko["appJsx.anIntenseRedEclipseAura"],
     rarity: "legendary",
     type: "animated",
     image: "/assets/effects/sheet-special-eclipse-aura.png",
@@ -8766,7 +8767,7 @@ const SHOOTER_INDEPENDENT_AURA_V2_OPTIONS = FRETIVA_INDEPENDENT_AURA_V2_ITEMS.ma
   id: aura.id,
   name: aura.displayTitle,
   label: aura.displayTitle,
-  description: `${aura.displayTitle} 8프레임 아우라`,
+  description: formatMessage(ko["appJsx.value8FrameAura"], { value1: aura.displayTitle }),
   asset: aura.asset,
   type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
   anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.AURA_CENTER_BOTTOM,
@@ -8799,7 +8800,7 @@ const SHOOTER_INDEPENDENT_FLOOR_V2_OPTIONS = FRETIVA_INDEPENDENT_FLOOR_V2_ITEMS.
   id: floor.id,
   name: floor.displayTitle,
   label: floor.displayTitle,
-  description: `${floor.displayTitle} 고정 플로어`,
+  description: formatMessage(ko["appJsx.valueStaticFloor"], { value1: floor.displayTitle }),
   asset: floor.asset,
   type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
   anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
@@ -8832,7 +8833,7 @@ const SHOOTER_LOW_PROFILE_STAND_OPTIONS = FRETIVA_LOW_PROFILE_GUITAR_STAND_V1_IT
   id: stand.id,
   name: stand.displayTitle,
   label: stand.displayTitle,
-  description: `${stand.displayTitle} 고정 기타 스탠드`,
+  description: formatMessage(ko["appJsx.valueStaticGuitarStand"], { value1: stand.displayTitle }),
   asset: stand.asset,
   type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
   width: SHOOTER_LOW_PROFILE_STAND_WIDTH,
@@ -8857,8 +8858,8 @@ const SHOOTER_AURA_EFFECT_OPTIONS = [
   {
     id: "none",
     name: "NONE",
-    label: "없음",
-    description: "기타 주변 아우라 사용 안 함",
+    label: ko["app.none"],
+    description: ko["appJsx.noAuraAroundTheGuitar"],
     asset: "",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
     layers: [],
@@ -8866,8 +8867,8 @@ const SHOOTER_AURA_EFFECT_OPTIONS = [
   {
     id: "fire-lava-aura",
     name: "Fire Lava Aura",
-    label: "불꽃 용암 아우라",
-    description: "기타 양옆을 은은하게 휘감는 불꽃 용암",
+    label: ko["appJsx.lavaFlameAura"],
+    description: ko["appJsx.softLavaFlamesCurlAroundBothSidesOfTheGuitar"],
     asset: "/assets/effects/fire-lava-aura.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
     scale: 1,
@@ -8901,8 +8902,8 @@ const SHOOTER_AURA_EFFECT_OPTIONS = [
   {
     id: "moonlight-aura",
     name: "Moonlight Aura",
-    label: "달빛 아우라",
-    description: "초승달과 별빛이 기타 양옆을 감싸는 푸른 달빛 아우라",
+    label: ko["appJsx.moonlightAura"],
+    description: ko["appJsx.aBlueMoonlightAuraWithCrescentMoonsAndStarsAroundTheGuitar"],
     asset: "/assets/effects/moonlight-aura.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.AURA_CENTER_BOTTOM,
@@ -8936,8 +8937,8 @@ const SHOOTER_AURA_EFFECT_OPTIONS = [
   {
     id: "galactic-orbital-aura",
     name: "Galactic Orbital Aura",
-    label: "은하 오비탈 아우라",
-    description: "행성과 은하 궤도가 기타 양옆을 휘감는 보랏빛 우주 아우라",
+    label: ko["appJsx.galaxyOrbitalAura"],
+    description: ko["appJsx.aPurpleCosmicAuraWithPlanetsAndGalaxyOrbitsAroundTheGuitar"],
     asset: "/assets/effects/galactic-orbital-aura.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.AURA_CENTER_BOTTOM,
@@ -8965,8 +8966,8 @@ const SHOOTER_AURA_EFFECT_OPTIONS = [
   {
     id: "enchanted-vine-aura",
     name: "Enchanted Vine Aura",
-    label: "숲 넝쿨 아우라",
-    description: "푸른 정령빛과 초록 넝쿨이 기타 양옆에서 자라나는 숲의 아우라",
+    label: ko["appJsx.forestVineAura"],
+    description: ko["appJsx.aForestAuraWithBlueSpiritLightsAndGreenVinesGrowingBeside"],
     asset: "/assets/effects/enchanted-vine-aura.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.AURA_CENTER_BOTTOM,
@@ -8994,8 +8995,8 @@ const SHOOTER_AURA_EFFECT_OPTIONS = [
   {
     id: "frost-snowflake-aura",
     name: "Frost Snowflake Aura",
-    label: "서리 눈꽃 아우라",
-    description: "서리 덩굴과 눈꽃 결정이 기타 양옆을 밝히는 푸른 얼음 아우라",
+    label: ko["appJsx.frostSnowflakeAura"],
+    description: ko["appJsx.aBlueIceAuraWithFrostVinesAndSnowflakesIlluminatingBothSides"],
     asset: "/assets/effects/frost-snowflake-aura.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.AURA_CENTER_BOTTOM,
@@ -9026,8 +9027,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "none",
     name: "NONE",
-    label: "없음",
-    description: "기타 아래 바닥 효과 사용 안 함",
+    label: ko["app.none"],
+    description: ko["appJsx.noFloorEffectBeneathTheGuitar"],
     asset: "",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     layers: [],
@@ -9035,8 +9036,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "fire-portal",
     name: "Fire Portal",
-    label: "불타는 포탈",
-    description: "기타 바로 아래에 깔리는 불타는 포탈",
+    label: ko["appJsx.burningPortal"],
+    description: ko["appJsx.aBurningPortalDirectlyBeneathTheGuitar"],
     asset: "/assets/effects/fire-portal-floor.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     scale: 1,
@@ -9068,8 +9069,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "moonlight-floor",
     name: "Moonlight Floor",
-    label: "달빛 플로어",
-    description: "별자리 문양이 새겨진 푸른 달빛 마법진",
+    label: ko["appJsx.moonlightFloor"],
+    description: ko["appJsx.aBlueMoonlightMagicCircleEngravedWithConstellations"],
     asset: "/assets/effects/moonlight-floor.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
@@ -9102,8 +9103,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "galactic-orbital-floor",
     name: "Galactic Orbital Floor",
-    label: "은하 오비탈 플로어",
-    description: "회전하는 은하와 행성 궤도가 펼쳐진 우주 오비탈 받침",
+    label: ko["appJsx.galaxyOrbitalFloor"],
+    description: ko["appJsx.aCosmicBaseWithARotatingGalaxyAndPlanetaryOrbits"],
     asset: "/assets/effects/galactic-orbital-floor.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
@@ -9130,8 +9131,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "enchanted-vine-floor",
     name: "Enchanted Vine Floor",
-    label: "숲 넝쿨 플로어",
-    description: "이끼 낀 바위와 푸른 숲 문양으로 이루어진 마법 받침",
+    label: ko["appJsx.forestVineFloor"],
+    description: ko["appJsx.aMagicalBaseOfMossyRocksAndBlueForestPatterns"],
     asset: "/assets/effects/enchanted-vine-floor.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
@@ -9158,8 +9159,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "frost-snowflake-floor",
     name: "Frost Snowflake Floor",
-    label: "서리 눈꽃 플로어",
-    description: "푸른 얼음 결정과 눈꽃 문양이 펼쳐지는 서리 마법진",
+    label: ko["appJsx.frostSnowflakeFloor"],
+    description: ko["appJsx.aFrostMagicCircleWithBlueIceCrystalsAndSnowflakePatterns"],
     asset: "/assets/effects/frost-snowflake-floor.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
@@ -9187,8 +9188,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "jp-tropical-stand",
     name: "Tropical Guitar Stand",
-    label: "트로피컬 기타 받침",
-    description: "기타가 원형 우드 데크 위에 서는 전용 받침",
+    label: ko["appJsx.tropicalGuitarStand"],
+    description: ko["appJsx.aDedicatedCircularWoodenDeckForTheGuitar"],
     asset: "/assets/effects/jp-tropical-guitar-stand-v2.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     scale: 1,
@@ -9210,8 +9211,8 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
     id: "concert-stage-floor",
     name: "Concert Stage Floor",
-    label: "라이브 콘서트 스테이지",
-    description: "앰프와 조명 타워가 둘러싼 원형 우드 라이브 스테이지",
+    label: ko["appJsx.liveConcertStage"],
+    description: ko["appJsx.aCircularWoodenStageSurroundedByAmplifiersAndLightingTowers"],
     asset: "/assets/effects/concert-stage-floor.png",
     type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
     anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
@@ -9235,12 +9236,12 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   ...SHOOTER_LOW_PROFILE_STAND_OPTIONS,
 ];
 const SHOOTER_EFFECT_SET_PAIRS = [
-  { id: "none", label: "없음", auraId: "none", floorId: "none" },
-  { id: "fire", label: "불꽃", auraId: "fire-lava-aura", floorId: "fire-portal" },
-  { id: "moonlight", label: "달빛", auraId: "moonlight-aura", floorId: "moonlight-floor" },
-  { id: "galactic", label: "은하", auraId: "galactic-orbital-aura", floorId: "galactic-orbital-floor" },
-  { id: "vine", label: "넝쿨", auraId: "enchanted-vine-aura", floorId: "enchanted-vine-floor" },
-  { id: "frost", label: "서리", auraId: "frost-snowflake-aura", floorId: "frost-snowflake-floor" },
+  { id: "none", label: ko["app.none"], auraId: "none", floorId: "none" },
+  { id: "fire", label: ko["appJsx.flame"], auraId: "fire-lava-aura", floorId: "fire-portal" },
+  { id: "moonlight", label: ko["appJsx.moonlight"], auraId: "moonlight-aura", floorId: "moonlight-floor" },
+  { id: "galactic", label: ko["appJsx.galaxy"], auraId: "galactic-orbital-aura", floorId: "galactic-orbital-floor" },
+  { id: "vine", label: ko["appJsx.vine"], auraId: "enchanted-vine-aura", floorId: "enchanted-vine-floor" },
+  { id: "frost", label: ko["appJsx.frost"], auraId: "frost-snowflake-aura", floorId: "frost-snowflake-floor" },
   ...FRETIVA_INDEPENDENT_FLOOR_AURA_PACK_V2.items.map((item) => ({
     id: `independent-v2-${item.sortOrder}`,
     label: item.pairLabel,
@@ -9548,6 +9549,7 @@ function ShooterEffectLayerMedia({ animateSprite = false, layer }) {
 }
 
 function ShooterEffectOptionButton({ className = "", effect, isSelected, onSelect }) {
+  useLanguage();
   if (!effect) return null;
   const effectPreviewLayers = getShooterEffectLayers(effect);
 
@@ -9579,11 +9581,11 @@ function ShooterEffectOptionButton({ className = "", effect, isSelected, onSelec
           ))}
         </span>
       ) : null}
-      <strong>{effect.label}</strong>
+      <strong>{localizeUi(effect.label)}</strong>
       {effect.id !== "none" ? (
         <>
-          <small>{effect.description}</small>
-          <em>{isSelected ? "선택됨" : "선택"}</em>
+          <small>{localizeUi(effect.description)}</small>
+          <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
         </>
       ) : null}
     </button>
@@ -9687,7 +9689,7 @@ const DEFAULT_SHOOTER_PLAYER_SLOTS = {
 const SHOOTER_PLAYER_SLOT_KEYS = ["slot1", "slot2", "slot3"];
 function MetronomeVisualLabDot({ activeBeat, beatPattern, isPlaying }) {
   return (
-    <div className="metronomeVisualLabDot" aria-label="Dot Mode visual preview">
+    <div className="metronomeVisualLabDot" aria-label={translateUi("originalUi.dotModeVisualPreview")}>
       {beatPattern.map((beatState, index) => (
         <BeatDot
           active={isPlaying && activeBeat === index}
@@ -9717,10 +9719,11 @@ function BeatDot({
   style,
   title,
 }) {
+  useLanguage();
   const lastPointerActivationRef = useRef(0);
   const dotState = getBeatDotState(state);
   const Component = onClick ? "button" : "span";
-  const stateLabel = dotState === "strong" ? "1박" : dotState === "mute" ? "무음" : "나머지 박";
+  const stateLabel = dotState === "strong" ? ko["app.firstBeat2"] : dotState === "mute" ? ko["app.silent"] : ko["app.otherBeats"];
   const isTrainingDot = className.split(" ").includes("trainingBeatDot");
   const handleClick = onClick
     ? (event) => {
@@ -9744,12 +9747,12 @@ function BeatDot({
   if (isTrainingDot) {
     return (
       <Component
-        aria-label={label ?? stateLabel}
+        aria-label={localizeUi(label ?? stateLabel)}
         className={`trainingBeatDotPlain ${active ? "active" : ""} ${className}`}
         onClick={handleClick}
         onPointerUp={handlePointerUp}
         style={style}
-        title={title ?? stateLabel}
+        title={localizeUi(title ?? stateLabel)}
         type={onClick ? "button" : undefined}
       >
         <span className="trainingBeatDotPlain__dot" aria-hidden="true" />
@@ -9759,12 +9762,12 @@ function BeatDot({
 
   return (
     <Component
-      aria-label={label ?? stateLabel}
+      aria-label={localizeUi(label ?? stateLabel)}
       className={`beatDot beatDot--${dotState} ${active ? "active" : ""} ${className}`}
       onClick={handleClick}
       onPointerUp={handlePointerUp}
       style={style}
-      title={title ?? stateLabel}
+      title={localizeUi(title ?? stateLabel)}
       type={onClick ? "button" : undefined}
     >
       <span className="beatDot__glyph" aria-hidden="true">
@@ -9778,7 +9781,7 @@ function MetronomeVisualLabLine({ activeBeat, beatPattern, isPlaying }) {
   const beatCount = Math.max(1, beatPattern.length);
 
   return (
-    <div className="metronomeVisualLabLine" aria-label="Rhythm Line Mode visual preview">
+    <div className="metronomeVisualLabLine" aria-label={translateUi("originalUi.rhythmLineModeVisualPreview")}>
       <div className="metronomeVisualLabLineTrack">
         {beatPattern.map((beatState, index) => (
           <BeatDot
@@ -9800,11 +9803,11 @@ function MetronomeVisualLabCircle({ activeBeat, beatPattern, isPlaying }) {
   const orbitRadius = beatCount >= 7 ? 83 : beatCount >= 5 ? 78 : 72;
 
   return (
-    <div className="metronomeVisualLabCircle" aria-label="Circle Mode visual preview" style={{ "--circle-beat-count": beatCount }}>
+    <div className="metronomeVisualLabCircle" aria-label={translateUi("originalUi.circleModeVisualPreview")} style={{ "--circle-beat-count": beatCount }}>
       <div className="metronomeVisualLabCircleOrbit" style={{ "--circle-orbit-radius": `${orbitRadius}px` }}>
         <span className="metronomeVisualLabCircleCenter">
           <strong>{beatCount}</strong>
-          <small>BEATS</small>
+          <small><Translation id="originalUi.beats" /></small>
         </span>
         {beatPattern.map((beatState, index) => (
           <BeatDot
@@ -9817,7 +9820,7 @@ function MetronomeVisualLabCircle({ activeBeat, beatPattern, isPlaying }) {
           />
         ))}
       </div>
-      <p className="metronomeVisualLabCircleHint">Circle Mode · official candidate · editable beat states ready</p>
+      <p className="metronomeVisualLabCircleHint"><Translation id="originalUi.circleModeOfficialCandidateEditableBeatStatesReady" /></p>
     </div>
   );
 }
@@ -9847,6 +9850,7 @@ function StandaloneMetronomeVisual({
   swipeActive = false,
   swipeOffset = 0,
 }) {
+  useLanguage();
   const beatCount = Math.max(1, beatPattern.length);
   const selectedMode = normalizeMetronomeDisplayMode(mode);
   const safeBeatMs = Math.max(120, Number(beatMs) || 600);
@@ -9855,17 +9859,17 @@ function StandaloneMetronomeVisual({
       active={isPlaying && activeBeat === index}
       className={className}
       key={`standalone-${selectedMode}-${index}`}
-      label={`${index + 1}박 ${METRONOME_BEAT_STATE_LABELS[beatState]}, 터치하면 다음 상태로 변경`}
+      label={translateUi("app.beatValue1Value2TapToCycle", { value1: index + 1, value2: METRONOME_BEAT_STATE_LABELS[beatState] })}
       onClick={() => onBeatClick(index)}
       state={beatState}
       style={style}
-      title={`${index + 1}박: ${METRONOME_BEAT_STATE_LABELS[beatState]}`}
+      title={translateUi("app.beatValue1Value2App", { value1: index + 1, value2: METRONOME_BEAT_STATE_LABELS[beatState] })}
     />
   );
 
   return (
     <div
-      aria-label={`${METRONOME_DISPLAY_MODES.find((item) => item.id === selectedMode)?.label ?? "Metronome Mode"} 박자 표시 영역. 좌우 스와이프는 표시 모드만 전환합니다`}
+      aria-label={translateUi("app.value1BeatDisplaySwipeLeftOrRightToChangeTheDisplayMode", { value1: METRONOME_DISPLAY_MODES.find((item) => item.id === selectedMode)?.label ?? "Metronome Mode" })}
       className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode} metronomeBeatMatrix--beats-${beatCount} ${swipeActive ? "metronomeBeatMatrix--swiping" : ""} ${optionsOpen ? "metronomeBeatMatrix--options-open" : ""}`}
       data-metronome-mode-swipe-zone="true"
       onPointerCancel={onPointerCancel}
@@ -9908,9 +9912,9 @@ function StandaloneMetronomeVisual({
         <div className="metronomeVisualOptionsHandle" aria-hidden="true">
           <span />
         </div>
-        <div className="metronomeVisualOptionsToggles" aria-label="메트로놈 확장 옵션">
+        <div className="metronomeVisualOptionsToggles" aria-label={translateUi("app.moreMetronomeOptions")}>
           <button
-            aria-label="점자 표시 켜기 또는 끄기"
+            aria-label={translateUi("app.toggleBeatDots")}
             aria-pressed={dotsEnabled}
             className={dotsEnabled ? "selected" : ""}
             onClick={() => onDotsEnabledChange?.(!dotsEnabled)}
@@ -9923,7 +9927,7 @@ function StandaloneMetronomeVisual({
             </span>
           </button>
           <button
-            aria-label="세로 리듬바 켜기 또는 끄기"
+            aria-label={translateUi("app.toggleVerticalRhythmBar")}
             aria-pressed={barEnabled}
             className={barEnabled ? "selected" : ""}
             onClick={() => onBarEnabledChange?.(!barEnabled)}
@@ -9934,7 +9938,7 @@ function StandaloneMetronomeVisual({
             </span>
           </button>
           <button
-            aria-label="강박 플래쉬 켜기 또는 끄기"
+            aria-label={translateUi("app.toggleAccentFlash")}
             aria-pressed={flashEnabled}
             className={flashEnabled ? "selected" : ""}
             onClick={() => onFlashEnabledChange?.(!flashEnabled)}
@@ -9977,6 +9981,7 @@ function TapTempoGlyph() {
 }
 
 function MiniChordBarCountInput({ disabled, max, min, onCommit, value }) {
+  useLanguage();
   const [draft, setDraft] = useState(String(value));
 
   useEffect(() => {
@@ -9996,7 +10001,7 @@ function MiniChordBarCountInput({ disabled, max, min, onCommit, value }) {
 
   return (
     <input
-      aria-label="마디 수 직접 입력"
+      aria-label={translateUi("app.enterBarCount")}
       className="miniChordBarCountInput"
       disabled={disabled}
       inputMode="numeric"
@@ -10021,6 +10026,7 @@ function MiniChordBarCountInput({ disabled, max, min, onCommit, value }) {
 }
 
 function MiniChordDeleteConfirmDialog({ items, onCancel, onConfirm }) {
+  useLanguage();
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") onCancel();
@@ -10046,15 +10052,15 @@ function MiniChordDeleteConfirmDialog({ items, onCancel, onConfirm }) {
             <div>
               <strong id="mini-chord-delete-dialog-title">
                 {selectedCount > 1
-                  ? `선택한 미니코드 ${selectedCount}개를 삭제할까요?`
-                  : `“${items[0]?.title || "선택한 미니코드"}”를 삭제할까요?`}
+                  ? translateUi("app.deleteValue1SelectedMiniChordItems", { value1: selectedCount })
+                  : translateUi("app.deleteValue1App", { value1: items[0]?.title || ko["app.selectedMiniChordItems"] })}
               </strong>
-              <span>저장 목록에서 삭제되며 이 작업은 되돌릴 수 없어요.</span>
+              <span><Translation id="app.thisWillRemoveThemFromYourSavedItemsThisCannotBeUndone" /></span>
             </div>
           </div>
           <div className="backingLoopDialogActions">
-            <button onClick={onCancel} type="button">취소</button>
-            <button className="danger" onClick={onConfirm} type="button">삭제</button>
+            <button onClick={onCancel} type="button"><Translation id="common.cancel" /></button>
+            <button className="danger" onClick={onConfirm} type="button"><Translation id="common.delete" /></button>
           </div>
         </section>
       </div>
@@ -10064,6 +10070,7 @@ function MiniChordDeleteConfirmDialog({ items, onCancel, onConfirm }) {
 }
 
 function MiniChordSaveConfirmDialog({ onCancel, onConfirm, title }) {
+  useLanguage();
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") onCancel();
@@ -10087,14 +10094,13 @@ function MiniChordSaveConfirmDialog({ onCancel, onConfirm, title }) {
           <div className="backingLoopDialogHeading backingLoopDialogHeading--confirm">
             <div>
               <strong id="mini-chord-save-confirm-title">
-                “{title.trim() || "내 미니코드"}”을 저장하시겠습니까?
-              </strong>
-              <span>현재 코드 진행과 설정이 저장 목록에 추가됩니다.</span>
+                “{title.trim() || translateUi("app.myMiniChords")}<Translation id="app.saveThisProgression" /></strong>
+              <span><Translation id="app.theCurrentChordProgressionAndSettingsWillBeAddedToYourSaved" /></span>
             </div>
           </div>
           <div className="backingLoopDialogActions">
-            <button onClick={onCancel} type="button">취소</button>
-            <button className="primary" onClick={onConfirm} type="button">저장</button>
+            <button onClick={onCancel} type="button"><Translation id="common.cancel" /></button>
+            <button className="primary" onClick={onConfirm} type="button"><Translation id="common.save" /></button>
           </div>
         </section>
       </div>
@@ -10104,6 +10110,7 @@ function MiniChordSaveConfirmDialog({ onCancel, onConfirm, title }) {
 }
 
 function Stage3StorageSaveTitleDialog({ defaultTitle, onCancel, onConfirm, onTitleChange, title }) {
+  useLanguage();
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") onCancel();
@@ -10135,14 +10142,14 @@ function Stage3StorageSaveTitleDialog({ defaultTitle, onCancel, onConfirm, onTit
         <div className="stage3StorageSaveTitleHeading">
           <Music2 aria-hidden="true" size={18} />
           <div>
-            <strong id="stage3-storage-save-title">저장 제목 설정</strong>
-            <span>이 진행을 구분할 제목을 입력하세요.</span>
+            <strong id="stage3-storage-save-title"><Translation id="app.saveTitle" /></strong>
+            <span><Translation id="app.enterATitleForThisProgression" /></span>
           </div>
         </div>
         <label className="stage3StorageSaveTitleField">
-          <span>제목</span>
+          <span><Translation id="app.title" /></span>
           <input
-            aria-label="저장할 코드 진행 제목"
+            aria-label={translateUi("app.chordProgressionTitle")}
             autoFocus
             maxLength={60}
             onChange={(event) => onTitleChange(event.target.value)}
@@ -10150,11 +10157,11 @@ function Stage3StorageSaveTitleDialog({ defaultTitle, onCancel, onConfirm, onTit
             type="text"
             value={title}
           />
-          <small>입력하지 않으면 흐리게 표시된 코드 진행으로 저장됩니다.</small>
+          <small><Translation id="app.leaveBlankToUseTheChordProgressionShownAsThePlaceholder" /></small>
         </label>
         <div className="stage3StorageSaveTitleActions">
-          <button onClick={onCancel} type="button">취소</button>
-          <button className="primary" type="submit">저장</button>
+          <button onClick={onCancel} type="button"><Translation id="common.cancel" /></button>
+          <button className="primary" type="submit"><Translation id="common.save" /></button>
         </div>
       </form>
     </div>,
@@ -10173,8 +10180,8 @@ function Stage3SavedProgressionDeleteConfirmDialog({ items, onCancel, onConfirm 
 
   if (typeof document === "undefined" || !items.length) return null;
   const title = items.length === 1
-    ? `“${getStage3SavedTitle(items[0])}”을 삭제하시겠습니까?`
-    : `선택한 ${items.length}개의 진행을 삭제하시겠습니까?`;
+    ? formatMessage(ko["app.deleteValue12"], { value1: getStage3SavedTitle(items[0]) })
+    : formatMessage(ko["app.deleteValue1SelectedProgressions"], { value1: items.length });
 
   return createPortal(
     <div
@@ -10194,12 +10201,12 @@ function Stage3SavedProgressionDeleteConfirmDialog({ items, onCancel, onConfirm 
           <Trash2 aria-hidden="true" size={18} />
           <div>
             <strong id="stage3-saved-delete-confirm-title">{title}</strong>
-            <span>삭제한 진행과 편집 지판은 복구할 수 없습니다.</span>
+            <span><Translation id="app.deletedProgressionsAndEditedFretboardsCannotBeRestored" /></span>
           </div>
         </div>
         <div className="stage3SavedDeleteConfirmActions">
-          <button autoFocus onClick={onCancel} type="button">취소</button>
-          <button className="danger" onClick={onConfirm} type="button">삭제</button>
+          <button autoFocus onClick={onCancel} type="button"><Translation id="common.cancel" /></button>
+          <button className="danger" onClick={onConfirm} type="button"><Translation id="common.delete" /></button>
         </div>
       </section>
     </div>,
@@ -10216,6 +10223,7 @@ function MiniChordResetDialog({
   onResetStructure,
   onRequestAll,
 }) {
+  useLanguage();
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key !== "Escape") return;
@@ -10242,42 +10250,42 @@ function MiniChordResetDialog({
         <section className="backingLoopDialog miniChordResetDialog">
           <div className="backingLoopDialogHeading">
             <div>
-              <strong id="mini-chord-reset-title">{confirmAllOpen ? "전체 초기화" : "미니코드 초기화"}</strong>
-              <span>{confirmAllOpen ? "코드와 구조/기호를 함께 삭제" : "초기화할 정보만 선택"}</span>
+              <strong id="mini-chord-reset-title">{confirmAllOpen ? translateUi("app.resetAll") : translateUi("app.resetMiniChord")}</strong>
+              <span>{confirmAllOpen ? translateUi("app.clearChordsAndStructureSymbols") : translateUi("app.chooseWhatToReset")}</span>
             </div>
-            <button aria-label="미니코드 초기화 닫기" onClick={onClose} type="button">
+            <button aria-label={translateUi("app.closeMiniChordReset")} onClick={onClose} type="button">
               <X size={15} />
             </button>
           </div>
           {confirmAllOpen ? (
             <div className="miniChordResetWarning">
-              <p>전체 마디의 코드와 도돌이·엔딩·이동 기호를 모두 삭제합니다.</p>
-              <small>BPM, 전체 이조, 편곡 설정과 저장된 미니코드 곡은 유지됩니다. 실행 후 Undo로 복구할 수 있습니다.</small>
+              <p><Translation id="app.clearAllChordsRepeatsEndingsAndNavigationSymbols" /></p>
+              <small><Translation id="app.bpmTranspositionArrangementSettingsAndSavedMiniChordSongsAreKeptUse" /></small>
             </div>
           ) : (
             <div className="miniChordResetChoices">
               <button onClick={onResetCodes} type="button">
-                <strong>코드 초기화</strong>
-                <span>코드만 삭제하고 구조/기호는 유지</span>
+                <strong><Translation id="app.resetChords" /></strong>
+                <span><Translation id="app.clearChordsKeepStructureSymbols" /></span>
               </button>
               <button onClick={onResetStructure} type="button">
-                <strong>구조/기호 초기화</strong>
-                <span>도돌이·엔딩·이동 기호만 삭제</span>
+                <strong><Translation id="app.resetStructureSymbols" /></strong>
+                <span><Translation id="app.clearRepeatsEndingsAndNavigationSymbolsOnly" /></span>
               </button>
               <button className="is-destructive" onClick={onRequestAll} type="button">
-                <strong>전체 초기화</strong>
-                <span>코드와 구조/기호를 함께 삭제</span>
+                <strong><Translation id="app.resetAll" /></strong>
+                <span><Translation id="app.clearChordsAndStructureSymbols" /></span>
               </button>
             </div>
           )}
           <div className="backingLoopDialogActions miniChordResetActions">
             {confirmAllOpen ? (
               <>
-                <button onClick={onCancelAll} type="button">취소</button>
-                <button className="primary miniChordResetAllButton" onClick={onResetAll} type="button">전체 초기화</button>
+                <button onClick={onCancelAll} type="button"><Translation id="common.cancel" /></button>
+                <button className="primary miniChordResetAllButton" onClick={onResetAll} type="button"><Translation id="app.resetAll" /></button>
               </>
             ) : (
-              <button onClick={onClose} type="button">닫기</button>
+              <button onClick={onClose} type="button"><Translation id="common.close" /></button>
             )}
           </div>
         </section>
@@ -10299,6 +10307,7 @@ function MiniChordGrooveEditorDialog({
   onPreview,
   previewDisabled = false,
 }) {
+  useLanguage();
   const isDrumEditor = part === "drum";
   const [pattern, setPattern] = useState(initialPattern);
   const [isLandscapeExpanded, setIsLandscapeExpanded] = useState(false);
@@ -10394,13 +10403,13 @@ function MiniChordGrooveEditorDialog({
     : isUserDefaultEditor
       ? ` · ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId] ?? presetId}`
       : "";
-  const editorName = isDrumEditor ? "DRUM 패턴" : part === "bass" ? "BASS 패턴" : "PIANO 패턴";
+  const editorName = isDrumEditor ? ko["app.drumPattern"] : part === "bass" ? ko["app.bassPattern"] : ko["app.pianoPattern"];
   const title = `${editorName}${scopeLabel}`;
   const helpText = part === "drum"
-    ? "Hat 하이햇 · Shaker 퍼커션 · 드래그로 연속 입력"
+    ? ko["app.hatHiHatShakerPercussionDragToFill"]
     : part === "bass"
-      ? "R 근음 · 3/5/8 음정 · - 쉼"
-      : "Chord 동시 · Stab 짧게 · Arp ↑/↓ 분산";
+      ? ko["app.rRoot358IntervalsRest"]
+      : ko["app.chordTogetherStabShortArpBroken"];
   const getStepClasses = (stepIndex, selectedClass = "") => [
     selectedClass,
     stepIndex % 4 === 0 ? "is-downbeat" : "",
@@ -10606,7 +10615,7 @@ function MiniChordGrooveEditorDialog({
     const meta = { instrumentId: instrument.id, key: `${instrument.id}-${stepIndex}`, stepIndex };
     return (
       <button
-        aria-label={`${instrument.name} ${MINI_CHORD_GROOVE_STEP_LABELS[stepIndex]} ${active ? "끄기" : "켜기"}`}
+        aria-label={`${instrument.name} ${MINI_CHORD_GROOVE_STEP_LABELS[stepIndex]} ${active ? translateUi("app.off") : translateUi("app.on")}`}
         aria-pressed={active}
         className={getStepClasses(stepIndex, active ? "selected" : "")}
         data-groove-part={part}
@@ -10652,7 +10661,7 @@ function MiniChordGrooveEditorDialog({
         </div>
         {MINI_CHORD_DRUM_INSTRUMENTS.map((instrument) => (
           <div className="miniChordDrumEditorRow" key={instrument.id}>
-            <strong title={instrument.name}>{instrument.label}</strong>
+            <strong title={instrument.name}>{localizeUi(instrument.label)}</strong>
             {beatGroups.map((steps, beatIndex) => (
               <div className="miniChordDrumBeatGroup" key={`${instrument.id}-beat-${beatIndex}`}>
                 {steps.map((stepIndex) => renderDrumStepButton(normalized, instrument, stepIndex))}
@@ -10677,16 +10686,16 @@ function MiniChordGrooveEditorDialog({
       >
         {beatGroups.map((steps, beatIndex) => (
           <section
-            aria-label={`${beatIndex + 1} Beat 편집`}
+            aria-label={translateUi("app.editValue1Beat", { value1: beatIndex + 1 })}
             className="miniChordDrumPortraitBeat"
             key={`portrait-drum-beat-${beatIndex}`}
           >
             <div className="miniChordDrumPortraitBeatHeading">
-              <strong>{beatIndex + 1} Beat</strong>
-              <span>1 · e · &amp; · a</span>
+              <strong>{beatIndex + 1}<Translation id="originalUi.beat" /></strong>
+              <span><Translation id="originalUi.1EA" /></span>
             </div>
             <div className="miniChordDrumPortraitStepHeader" aria-hidden="true">
-              <span>Part</span>
+              <span><Translation id="originalUi.part" /></span>
               {steps.map((stepIndex, stepInBeat) => (
                 <b className={stepInBeat === 0 ? "is-downbeat" : ""} key={`portrait-label-${stepIndex}`}>
                   {stepInBeat === 0 ? beatIndex + 1 : ["e", "&", "a"][stepInBeat - 1]}
@@ -10695,7 +10704,7 @@ function MiniChordGrooveEditorDialog({
             </div>
             {MINI_CHORD_DRUM_INSTRUMENTS.map((instrument) => (
               <div className="miniChordDrumPortraitRow" key={`portrait-${instrument.id}-${beatIndex}`}>
-                <strong title={instrument.name}>{instrument.label}</strong>
+                <strong title={instrument.name}>{localizeUi(instrument.label)}</strong>
                 {steps.map((stepIndex) => renderDrumStepButton(normalized, instrument, stepIndex))}
               </div>
             ))}
@@ -10715,8 +10724,8 @@ function MiniChordGrooveEditorDialog({
         onPointerUp={finishStepPaint}
       >
         {beatGroups.map((steps, beatIndex) => (
-          <section aria-label={`${beatIndex + 1}박`} className="miniChordGrooveBeatRow" key={`bass-beat-${beatIndex}`}>
-            <span><b>{beatIndex + 1}박</b><small>e & a</small></span>
+          <section aria-label={translateUi("app.beatValue1", { value1: beatIndex + 1 })} className="miniChordGrooveBeatRow" key={`bass-beat-${beatIndex}`}>
+            <span><b>{beatIndex + 1}<Translation id="app.beat" /></b><small><Translation id="originalUi.eA" /></small></span>
             <div className="miniChordGrooveBeatSteps">
               {steps.map((stepIndex, stepInBeat) => {
                 const label = MINI_CHORD_GROOVE_STEP_LABELS[stepIndex];
@@ -10725,7 +10734,7 @@ function MiniChordGrooveEditorDialog({
                 const meta = { key: `bass-${stepIndex}`, stepIndex };
                 return (
                   <button
-                    aria-label={`${label} ${option.ariaLabel}`}
+                    aria-label={localizeUi(`${label} ${option.ariaLabel}`)}
                     className={getStepClasses(stepIndex, value !== "rest" ? "selected" : "")}
                     data-groove-part={part}
                     data-groove-step-key={meta.key}
@@ -10737,7 +10746,7 @@ function MiniChordGrooveEditorDialog({
                     type="button"
                   >
                     <small>{stepInBeat === 0 ? beatIndex + 1 : ["e", "&", "a"][stepInBeat - 1]}</small>
-                    <strong>{option.label}</strong>
+                    <strong>{localizeUi(option.label)}</strong>
                   </button>
                 );
               })}
@@ -10758,8 +10767,8 @@ function MiniChordGrooveEditorDialog({
         onPointerUp={finishStepPaint}
       >
         {beatGroups.map((steps, beatIndex) => (
-          <section aria-label={`${beatIndex + 1}박`} className="miniChordGrooveBeatRow" key={`piano-beat-${beatIndex}`}>
-            <span><b>{beatIndex + 1}박</b><small>e & a</small></span>
+          <section aria-label={translateUi("app.beatValue1", { value1: beatIndex + 1 })} className="miniChordGrooveBeatRow" key={`piano-beat-${beatIndex}`}>
+            <span><b>{beatIndex + 1}<Translation id="app.beat" /></b><small><Translation id="originalUi.eA" /></small></span>
             <div className="miniChordGrooveBeatSteps">
               {steps.map((stepIndex, stepInBeat) => {
                 const label = MINI_CHORD_GROOVE_STEP_LABELS[stepIndex];
@@ -10768,7 +10777,7 @@ function MiniChordGrooveEditorDialog({
                 const meta = { key: `piano-${stepIndex}`, stepIndex };
                 return (
                   <button
-                    aria-label={`${label} ${step.active ? styleOption.label : "쉼"}`}
+                    aria-label={localizeUi(`${label} ${step.active ? styleOption.label : translateUi("app.rest")}`)}
                     className={getStepClasses(stepIndex, step.active ? `selected style-${step.style}` : "")}
                     data-groove-part={part}
                     data-groove-step-key={meta.key}
@@ -10780,7 +10789,7 @@ function MiniChordGrooveEditorDialog({
                     type="button"
                   >
                     <small>{stepInBeat === 0 ? beatIndex + 1 : ["e", "&", "a"][stepInBeat - 1]}</small>
-                    <strong>{step.active ? styleOption.displayLabel ?? styleOption.label : "-"}</strong>
+                    <strong>{localizeUi(step.active ? styleOption.displayLabel ?? styleOption.label : "-")}</strong>
                   </button>
                 );
               })}
@@ -10806,27 +10815,27 @@ function MiniChordGrooveEditorDialog({
               <div className="miniChordDrumEditorTitle">
                 <strong id="mini-chord-groove-title">{title}</strong>
                 <span>{isLandscapeExpanded
-                  ? "가로 정밀 편집 · 16 Step · 1 e & a / 2 e & a / 3 e & a / 4 e & a"
-                  : "세로 기본 편집 · Beat별 4 Step"}</span>
+                  ? translateUi("app.detailedHorizontalEditor16Steps1EA2EA3")
+                  : translateUi("app.basicVerticalEditor4StepsPerBeat")}</span>
               </div>
               <div className="miniChordDrumEditorTopbarActions">
                 {isLandscapeExpanded ? (
                   <button
-                    aria-label="세로 기본 편집으로 돌아가기"
+                    aria-label={translateUi("app.backToBasicVerticalEditor")}
                     className="miniChordGrooveViewToggle miniChordGrooveViewToggle--collapse"
                     onClick={() => returnToPortraitEditor()}
-                    title="세로 기본 편집으로 돌아가기"
+                    title={translateUi("app.backToBasicVerticalEditor")}
                     type="button"
                   >
                     <Minimize2 aria-hidden="true" size={15} />
-                    <span>세로</span>
+                    <span><Translation id="app.vertical" /></span>
                   </button>
                 ) : (
                   <button
-                    aria-label="가로 정밀 편집으로 확장"
+                    aria-label={translateUi("app.openDetailedHorizontalEditor")}
                     className="miniChordGrooveViewToggle miniChordGrooveViewToggle--expand"
                     onClick={openLandscapeEditor}
-                    title="가로 화면으로 크게 보기"
+                    title={translateUi("app.expandToLandscapeView")}
                     type="button"
                   >
                     <span className="miniChordGrooveRotateIcon" aria-hidden="true">
@@ -10837,7 +10846,7 @@ function MiniChordGrooveEditorDialog({
                   </button>
                 )}
                 <button
-                  aria-label={isLandscapeExpanded ? "세로 기본 편집으로 돌아가기" : "패턴 편집 닫기"}
+                  aria-label={isLandscapeExpanded ? translateUi("app.backToBasicVerticalEditor") : translateUi("app.closePatternEditor")}
                   className="miniChordDrumEditorCloseButton"
                   onClick={requestEditorClose}
                   type="button"
@@ -10851,9 +10860,9 @@ function MiniChordGrooveEditorDialog({
               <div className="backingLoopDialogHeading">
                 <div>
                   <strong id="mini-chord-groove-title">{title}</strong>
-                  <span>16 Step · 1 e & a / 2 e & a / 3 e & a / 4 e & a</span>
+                  <span><Translation id="originalUi.16Step1EA2EA3EA4EA" /></span>
                 </div>
-                <button aria-label="패턴 편집 닫기" onClick={requestEditorClose} type="button">
+                <button aria-label={translateUi("app.closePatternEditor")} onClick={requestEditorClose} type="button">
                   <X size={15} />
                 </button>
               </div>
@@ -10864,20 +10873,20 @@ function MiniChordGrooveEditorDialog({
             : part === "bass"
               ? renderBassGrid()
               : renderPianoGrid()}
-          {isDrumEditor && isLandscapeExpanded ? null : <p className="miniChordGrooveHelp">{helpText}</p>}
+          {isDrumEditor && isLandscapeExpanded ? null : <p className="miniChordGrooveHelp">{localizeUi(helpText)}</p>}
           <div className={`backingLoopDialogActions miniChordGrooveActions ${isDrumEditor ? `miniChordGrooveActions--drum ${isLandscapeExpanded ? "miniChordGrooveActions--landscape" : "miniChordGrooveActions--portrait"}` : ""}`}>
             <button
               className={isPreviewing ? "selected" : ""}
               disabled={previewDisabled}
               onClick={() => onPreview(patternRef.current)}
-              title={previewDisabled ? "메인 반주를 정지한 뒤 미리듣기 할 수 있습니다" : undefined}
+              title={previewDisabled ? translateUi("app.stopTheBackingTrackBeforePreviewing") : undefined}
               type="button"
             >
-              {isPreviewing ? "■ 정지" : "▶ 미리듣기"}
+              {isPreviewing ? translateUi("app.stop") : translateUi("app.preview")}
             </button>
-            <button onClick={requestEditorClose} type="button">취소</button>
+            <button onClick={requestEditorClose} type="button"><Translation id="common.cancel" /></button>
             <button className="primary" onClick={() => onApply(patternRef.current)} type="button">
-              {isUserDefaultEditor ? "패턴 저장" : isSectionEditor ? "Section에 적용" : "적용"}
+              {isUserDefaultEditor ? translateUi("app.savePattern") : isSectionEditor ? translateUi("app.applyToSection") : translateUi("app.apply")}
             </button>
           </div>
         </section>
@@ -10899,6 +10908,7 @@ function MiniChordRhythmSettingsDialog({
   previewDisabled = false,
   previewMode = "",
 }) {
+  useLanguage();
   const [resetRequest, setResetRequest] = useState(null);
   const closeButtonRef = useRef(null);
   const restoreFocusOnCloseRef = useRef(true);
@@ -10966,10 +10976,10 @@ function MiniChordRhythmSettingsDialog({
     !== getMiniChordPatternKey(normalizeMiniChordPatternForPart(part, defaults?.[part]?.[presetId]))
   );
   const resetPartLabel = resetRequest?.part === "drum"
-    ? "드럼"
+    ? ko["app.drums"]
     : resetRequest?.part === "bass"
-      ? "베이스"
-      : "피아노";
+      ? ko["tuner.bass"]
+      : ko["etudes.piano"];
   const confirmReset = () => {
     if (!resetRequest) return;
     if (resetRequest.scope === "all") {
@@ -11006,16 +11016,14 @@ function MiniChordRhythmSettingsDialog({
         <section className="backingLoopDialog miniChordRhythmSettingsDialog">
           <div className="backingLoopDialogHeading">
             <div>
-              <strong id="mini-chord-rhythm-settings-title">리듬 사용자 설정</strong>
-              <span>앱 공통 사용자 리듬</span>
+              <strong id="mini-chord-rhythm-settings-title"><Translation id="app.customRhythms" /></strong>
+              <span><Translation id="app.sharedCustomRhythms" /></span>
             </div>
-            <button aria-label="리듬 사용자 설정 닫기" onClick={onClose} ref={closeButtonRef} type="button">
+            <button aria-label={translateUi("app.closeCustomRhythms")} onClick={onClose} ref={closeButtonRef} type="button">
               <X size={15} />
             </button>
           </div>
-          <p className="miniChordRhythmSettingsIntro">
-            각 패턴의 사용자 설정을 편집하고 미리듣습니다. 여기서 선택한 편집 대상은 현재 반주 리듬을 변경하지 않습니다.
-          </p>
+          <p className="miniChordRhythmSettingsIntro"><Translation id="app.editAndPreviewEachCustomPatternSelectingAPatternHereDoesNot" /></p>
           <div className="miniChordRhythmSettingsParts">
             {MINI_CHORD_RHYTHM_SETTINGS_PARTS.map((part) => {
               const partModified = MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS.some((presetId) => isModified(part.id, presetId));
@@ -11024,30 +11032,26 @@ function MiniChordRhythmSettingsDialog({
               return (
                 <section key={part.id}>
                   <header>
-                    <strong>{part.label}</strong>
+                    <strong>{localizeUi(part.label)}</strong>
                     <div className="miniChordRhythmPartHeaderActions">
                       <button
-                        aria-label={`${part.label} 선택한 ${MINI_CHORD_COMPACT_PATTERN_LABELS[selectedPresetId]} 패턴 편집`}
+                        aria-label={localizeUi(translateUi("app.editSelectedValue1Value2Pattern", { value1: part.label, value2: MINI_CHORD_COMPACT_PATTERN_LABELS[selectedPresetId] }))}
                         className="miniChordRhythmEditSelectedButton"
                         onClick={() => {
                           restoreFocusOnCloseRef.current = false;
                           onEdit(part.id, selectedPresetId);
                         }}
-                        title={`선택한 ${MINI_CHORD_COMPACT_PATTERN_LABELS[selectedPresetId]} 패턴 편집`}
+                        title={translateUi("app.editSelectedValue1Pattern", { value1: MINI_CHORD_COMPACT_PATTERN_LABELS[selectedPresetId] })}
                         type="button"
                       >
-                        <Settings aria-hidden="true" size={11} />
-                        선택 편집
-                      </button>
+                        <Settings aria-hidden="true" size={11} /><Translation id="app.editSelection" /></button>
                       <button
-                        aria-label={`${part.label} 리듬 설정 초기화`}
+                        aria-label={localizeUi(translateUi("app.resetValue1RhythmSettings", { value1: part.label }))}
                         disabled={!partHasGlobalChanges}
                         onClick={() => setResetRequest({ scope: "part", part: part.id })}
                         type="button"
                       >
-                        <RotateCcw aria-hidden="true" size={11} />
-                        초기화
-                      </button>
+                        <RotateCcw aria-hidden="true" size={11} /><Translation id="app.reset" /></button>
                     </div>
                   </header>
                   <div className="miniChordRhythmPresetCards">
@@ -11055,7 +11059,7 @@ function MiniChordRhythmSettingsDialog({
                       const modified = isModified(part.id, presetId);
                       return (
                         <button
-                          aria-label={`${part.label} ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]} 편집 대상 선택`}
+                          aria-label={localizeUi(translateUi("app.selectValue1Value2ToEdit", { value1: part.label, value2: MINI_CHORD_COMPACT_PATTERN_LABELS[presetId] }))}
                           aria-pressed={selectedPresetId === presetId}
                           className={`${selectedPresetId === presetId ? "selected" : ""} ${modified ? "is-modified" : ""}`}
                           key={presetId}
@@ -11063,17 +11067,17 @@ function MiniChordRhythmSettingsDialog({
                           type="button"
                         >
                           <b>{MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]}</b>
-                          {modified ? <i aria-label="사용자 수정됨">수정</i> : null}
+                          {modified ? <i aria-label={translateUi("app.customized")}><Translation id="app.modified" /></i> : null}
                         </button>
                       );
                     })}
                     <button
-                      aria-label={`${part.label}만 미리듣기`}
+                      aria-label={localizeUi(translateUi("app.previewValue1Only", { value1: part.label }))}
                       aria-pressed={previewMode === part.id}
                       className={`miniChordRhythmPartPreviewButton ${previewMode === part.id ? "selected" : ""}`}
                       disabled={previewDisabled}
                       onClick={() => onPreview(part.id, selectedPatterns)}
-                      title={previewDisabled ? "메인 반주를 정지한 뒤 미리듣기 할 수 있습니다" : `${part.label}만 미리듣기`}
+                      title={localizeUi(previewDisabled ? translateUi("app.stopTheBackingTrackBeforePreviewing") : translateUi("app.previewValue1Only", { value1: part.label }))}
                       type="button"
                     >
                       {previewMode === part.id ? <Square aria-hidden="true" size={10} /> : <Play aria-hidden="true" size={12} />}
@@ -11089,17 +11093,15 @@ function MiniChordRhythmSettingsDialog({
               className={previewMode === "all" ? "selected" : ""}
               disabled={previewDisabled}
               onClick={() => onPreview("all", selectedPatterns)}
-              title={previewDisabled ? "메인 반주를 정지한 뒤 미리듣기 할 수 있습니다" : undefined}
+              title={previewDisabled ? translateUi("app.stopTheBackingTrackBeforePreviewing") : undefined}
               type="button"
             >
               {previewMode === "all" ? <Square aria-hidden="true" size={11} /> : <Play aria-hidden="true" size={13} />}
-              {previewMode === "all" ? "정지" : "전체 미리듣기"}
+              {previewMode === "all" ? translateUi("app.stopApp") : translateUi("app.previewAll")}
             </button>
             <button onClick={() => setResetRequest({ scope: "all" })} type="button">
-              <RotateCcw aria-hidden="true" size={13} />
-              전체 기본값 복원
-            </button>
-            <button className="primary" onClick={onClose} type="button">닫기</button>
+              <RotateCcw aria-hidden="true" size={13} /><Translation id="app.restoreAllDefaults" /></button>
+            <button className="primary" onClick={onClose} type="button"><Translation id="common.close" /></button>
           </div>
         </section>
       </div>
@@ -11119,20 +11121,20 @@ function MiniChordRhythmSettingsDialog({
             role="alertdialog"
           >
             <strong id="mini-chord-rhythm-reset-title">
-              {resetRequest.scope === "all" ? "전체 리듬 설정 초기화" : `${resetPartLabel} 설정 초기화`}
+              {resetRequest.scope === "all" ? translateUi("app.resetAllRhythmSettings") : translateUi("app.resetValue1Settings", { value1: resetPartLabel })}
             </strong>
             <div id="mini-chord-rhythm-reset-description">
               <p>
                 {resetRequest.scope === "all"
-                  ? "드럼, 베이스, 피아노의 모든 사용자 리듬 설정을 FRETIVA LAB 기본값으로 되돌립니다."
-                  : `${resetPartLabel}의 리듬 설정을 기본값으로 되돌릴까요?`}
+                  ? translateUi("app.restoreAllCustomDrumBassAndPianoRhythmsToFretivaLabDefaults")
+                  : translateUi("app.resetValue1RhythmSettingsToDefaults", { value1: resetPartLabel })}
               </p>
-              {resetRequest.scope === "all" ? <small>저장한 사용자 설정은 복구할 수 없습니다.</small> : null}
+              {resetRequest.scope === "all" ? <small><Translation id="app.savedCustomSettingsCannotBeRestored" /></small> : null}
             </div>
             <div>
-              <button autoFocus onClick={() => setResetRequest(null)} type="button">취소</button>
+              <button autoFocus onClick={() => setResetRequest(null)} type="button"><Translation id="common.cancel" /></button>
               <button className="primary miniChordRhythmResetConfirmButton" onClick={confirmReset} type="button">
-                {resetRequest.scope === "all" ? "전체 초기화" : "초기화"}
+                {resetRequest.scope === "all" ? translateUi("app.resetAll") : translateUi("app.reset")}
               </button>
             </div>
           </section>
@@ -11157,6 +11159,7 @@ function MiniChordArrangementEditorDialog({
   onEditPattern,
   onPreview,
 }) {
+  useLanguage();
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") onClose();
@@ -11182,21 +11185,21 @@ function MiniChordArrangementEditorDialog({
         <section className="backingLoopDialog miniChordArrangementDialog">
           <div className="backingLoopDialogHeading">
             <div>
-              <strong id="mini-chord-arrangement-title">Section 편곡</strong>
-              <span>{draft.startBar + 1}–{draft.endBar + 1}마디</span>
+              <strong id="mini-chord-arrangement-title"><Translation id="app.sectionArrangement" /></strong>
+              <span>{draft.startBar + 1}–{draft.endBar + 1}<Translation id="app.bar" /></span>
             </div>
-            <button aria-label="편곡 설정 닫기" onClick={onClose} type="button">
+            <button aria-label={translateUi("app.closeArrangementSettings")} onClick={onClose} type="button">
               <X size={15} />
             </button>
           </div>
           <div className="miniChordArrangementRows">
             <section className="miniChordArrangementSectionFields">
-              <span>Section</span>
+              <span><Translation id="originalUi.section" /></span>
               <div>
                 <label>
-                  <small>Section 종류</small>
+                  <small><Translation id="app.sectionType" /></small>
                   <select
-                    aria-label="Section 종류"
+                    aria-label={translateUi("app.sectionType")}
                     onChange={(event) => {
                       const sectionType = event.currentTarget.value;
                       const sectionName = sectionType === "custom"
@@ -11217,14 +11220,14 @@ function MiniChordArrangementEditorDialog({
                     value={draft.sectionType}
                   >
                     {MINI_CHORD_SECTION_TYPE_OPTIONS.map((option) => (
-                      <option key={option.id} value={option.id}>{option.label}</option>
+                      <option key={option.id} value={option.id}>{localizeUi(option.label)}</option>
                     ))}
                   </select>
                 </label>
                 <label>
-                  <small>Section 이름</small>
+                  <small><Translation id="app.sectionName" /></small>
                   <input
-                    aria-label="Section 이름"
+                    aria-label={translateUi("app.sectionName")}
                     maxLength="28"
                     onChange={(event) => {
                       const sectionName = event.currentTarget.value;
@@ -11246,9 +11249,9 @@ function MiniChordArrangementEditorDialog({
               </div>
               <div className="miniChordArrangementBarFields">
                 <label>
-                  <small>시작 마디</small>
+                  <small><Translation id="app.startBar" /></small>
                   <input
-                    aria-label="Section 시작 마디"
+                    aria-label={translateUi("app.sectionStartBar")}
                     max={draft.endBar + 1}
                     min="1"
                     onChange={(event) => updateDraft({ startBar: Number(event.currentTarget.value) - 1 })}
@@ -11258,9 +11261,9 @@ function MiniChordArrangementEditorDialog({
                 </label>
                 <span aria-hidden="true">–</span>
                 <label>
-                  <small>끝 마디</small>
+                  <small><Translation id="app.endBar" /></small>
                   <input
-                    aria-label="Section 끝 마디"
+                    aria-label={translateUi("app.sectionEndBar")}
                     max={barCount}
                     min={draft.startBar + 1}
                     onChange={(event) => updateDraft({ endBar: Number(event.currentTarget.value) - 1 })}
@@ -11281,7 +11284,7 @@ function MiniChordArrangementEditorDialog({
                   <div
                     className="miniChordArrangementBeatChoices"
                     role="group"
-                    aria-label={`${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]} 편곡 선택`}
+                    aria-label={translateUi("app.selectValue1Arrangement", { value1: MINI_CHORD_ARRANGEMENT_PART_LABELS[key] })}
                   >
                     {options.map((option) => {
                       const label = MINI_CHORD_COMPACT_PATTERN_LABELS[option.id] ?? option.label;
@@ -11306,25 +11309,23 @@ function MiniChordArrangementEditorDialog({
                           }}
                           type="button"
                         >
-                          {label}
+                          {localizeUi(label)}
                         </button>
                       );
                     })}
                     <button
-                      aria-label={`${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]} 선택한 패턴 편집`}
+                      aria-label={translateUi("app.editSelectedValue1PatternApp", { value1: MINI_CHORD_ARRANGEMENT_PART_LABELS[key] })}
                       className={`miniChordArrangementEditPatternButton ${draft.rhythmOverrides?.[part] ? "is-section-custom" : ""}`}
                       onClick={() => onEditPattern?.(part, selectedPresetId)}
                       type="button"
-                    >
-                      선택 편집
-                    </button>
+                    ><Translation id="app.editSelection" /></button>
                     <button
-                      aria-label={`${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]}만 미리듣기`}
+                      aria-label={translateUi("app.previewValue1Only", { value1: MINI_CHORD_ARRANGEMENT_PART_LABELS[key] })}
                       aria-pressed={previewMode === part}
                       className={`miniChordArrangementSoloButton ${previewMode === part ? "selected" : ""}`}
                       disabled={previewDisabled}
                       onClick={() => onPreview(part)}
-                      title={previewDisabled ? "메인 반주를 정지한 뒤 Preview할 수 있습니다" : `${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]} Solo Preview`}
+                      title={previewDisabled ? translateUi("app.stopTheBackingTrackBeforePreviewingApp") : `${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]} Solo Preview`}
                       type="button"
                     >
                       {previewMode === part ? "■" : "▶"}
@@ -11339,9 +11340,7 @@ function MiniChordArrangementEditorDialog({
                   checked={draft.tempoOverrideEnabled}
                   onChange={(event) => updateDraft({ tempoOverrideEnabled: event.currentTarget.checked })}
                   type="checkbox"
-                />
-                구간 BPM
-              </label>
+                /><Translation id="app.sectionBpm" /></label>
               <input
                 disabled={!draft.tempoOverrideEnabled}
                 max="240"
@@ -11357,14 +11356,14 @@ function MiniChordArrangementEditorDialog({
               className={previewMode === "all" ? "selected" : ""}
               disabled={previewDisabled}
               onClick={() => onPreview("all")}
-              title={previewDisabled ? "메인 반주를 정지한 뒤 Preview할 수 있습니다" : undefined}
+              title={previewDisabled ? translateUi("app.stopTheBackingTrackBeforePreviewingApp") : undefined}
               type="button"
             >
-              {previewMode === "all" ? "■ 정지" : "▶ 미리듣기"}
+              {previewMode === "all" ? translateUi("app.stop") : translateUi("app.preview")}
             </button>
-            <button className="is-destructive-secondary" onClick={onClear} type="button">Section 삭제</button>
-            <button onClick={onClose} type="button">취소</button>
-            <button className="primary" onClick={onApply} type="button">적용</button>
+            <button className="is-destructive-secondary" onClick={onClear} type="button"><Translation id="app.deleteSection" /></button>
+            <button onClick={onClose} type="button"><Translation id="common.cancel" /></button>
+            <button className="primary" onClick={onApply} type="button"><Translation id="app.apply" /></button>
           </div>
         </section>
       </div>
@@ -11374,7 +11373,7 @@ function MiniChordArrangementEditorDialog({
 }
 
 function MetronomeTransportCard({
-  actionAriaLabel = "메트로놈 실행과 탭 템포",
+  actionAriaLabel = ko["app.metronomePlaybackAndTapTempo"],
   actionOrder = "play-tap",
   actionPanelClassName = "",
   ariaLabel,
@@ -11408,18 +11407,19 @@ function MetronomeTransportCard({
   playDisabled = false,
   playIdleText = "PLAY",
   playPending = false,
-  playPendingText = "준비중",
-  playStartLabel = "메트로놈 시작",
-  playStopLabel = "메트로놈 정지",
-  pauseLabel = "일시정지",
-  resumeLabel = "계속",
+  playPendingText = ko["app.comingSoon"],
+  playStartLabel = ko["app.startMetronome"],
+  playStopLabel = ko["app.stopMetronome"],
+  pauseLabel = ko["app.pause"],
+  resumeLabel = ko["app.resume"],
   showCountIn = false,
   showPause = false,
   swipeEnabled = false,
   tapTempoDisabled = false,
-  tapTempoLabel = "탭 템포로 BPM 설정",
+  tapTempoLabel = ko["app.tapToSetBpm"],
   tapTempoPressTick = 0,
 }) {
+  useLanguage();
   const playbackSessionActive = isPlaying || isPaused;
   const pauseVisible = showPause && playbackSessionActive;
   const changeBpmBy = (delta, controlId, event) => {
@@ -11436,7 +11436,7 @@ function MetronomeTransportCard({
   const playButton = (
     <button
       aria-busy={playPending || undefined}
-      aria-label={playbackSessionActive ? playStopLabel : playStartLabel}
+      aria-label={localizeUi(playbackSessionActive ? playStopLabel : playStartLabel)}
       className={`metronomeHeroPlayButton ${playButtonClassName} ${playbackSessionActive ? "reset" : "primary"} ${
         playPending ? "preparing" : ""
       }`.trim()}
@@ -11461,14 +11461,14 @@ function MetronomeTransportCard({
         )}
       </span>
       <span className="metronomeHeroActionText">
-        {playbackSessionActive ? "STOP" : playPending ? playPendingText : playIdleText}
+        {localizeUi(playbackSessionActive ? "STOP" : playPending ? playPendingText : playIdleText)}
       </span>
     </button>
   );
 
   const pauseButton = pauseVisible ? (
     <button
-      aria-label={isPaused ? resumeLabel : pauseLabel}
+      aria-label={localizeUi(isPaused ? resumeLabel : pauseLabel)}
       aria-pressed={isPaused}
       className={`metronomeHeroPauseButton ${isPaused ? "paused" : ""}`.trim()}
       disabled={!playbackSessionActive}
@@ -11485,13 +11485,13 @@ function MetronomeTransportCard({
       <span className="metronomeHeroActionIcon" aria-hidden="true">
         {isPaused ? <Play size={16} /> : <Pause size={15} />}
       </span>
-      <span className="metronomeHeroActionText">{isPaused ? resumeLabel : pauseLabel}</span>
+      <span className="metronomeHeroActionText">{localizeUi(isPaused ? resumeLabel : pauseLabel)}</span>
     </button>
   ) : null;
 
   const tapButton = (
     <button
-      aria-label={tapTempoLabel}
+      aria-label={localizeUi(tapTempoLabel)}
       className={`metronomeHeroTapTempoButton ${tapTempoPressTick > 0 ? "is-tapping" : ""}`}
       disabled={tapTempoDisabled}
       onClick={(event) => {
@@ -11509,13 +11509,13 @@ function MetronomeTransportCard({
       type="button"
     >
       <TapTempoGlyph />
-      <span className="metronomeHeroActionText">TAP</span>
+      <span className="metronomeHeroActionText"><Translation id="originalUi.tap" /></span>
     </button>
   );
 
   return (
     <div
-      aria-label={ariaLabel}
+      aria-label={localizeUi(ariaLabel)}
       className={`metronomeHeroCard metronomeHeroCard--interactive ${cardClassName}`.trim()}
       data-bpm-swipe-zone={swipeEnabled ? "true" : undefined}
       onPointerCancel={onCardPointerCancel}
@@ -11524,9 +11524,9 @@ function MetronomeTransportCard({
       onPointerUp={onCardPointerUp}
       role="group"
     >
-      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--down" aria-label="BPM 낮추기" role="group">
+      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--down" aria-label={translateUi("app.decreaseBpm")} role="group">
         <button
-          aria-label="BPM 1 낮추기"
+          aria-label={translateUi("app.decreaseBpmBy1")}
           className="metronomeHeroBpmButton"
           disabled={bpmControlsDisabled}
           onClick={(event) => changeBpmBy(-1, "bpm-down-1", event)}
@@ -11540,7 +11540,7 @@ function MetronomeTransportCard({
         </button>
         <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
         <button
-          aria-label="BPM 10 낮추기"
+          aria-label={translateUi("app.decreaseBpmBy10")}
           className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--down"
           disabled={bpmControlsDisabled}
           onClick={(event) => changeBpmBy(-10, "bpm-down-10", event)}
@@ -11554,12 +11554,12 @@ function MetronomeTransportCard({
         </button>
       </div>
       <div className="metronomeHeroBpmValue">
-        <span>BPM</span>
+        <span><Translation id="originalUi.bpm" /></span>
         <strong data-bpm-preview-value={bpmPreviewKey ?? (bpmPreview ? "true" : undefined)}>{bpm}</strong>
       </div>
-      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--up" aria-label="BPM 올리기" role="group">
+      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--up" aria-label={translateUi("app.increaseBpm")} role="group">
         <button
-          aria-label="BPM 1 올리기"
+          aria-label={translateUi("app.increaseBpmBy1")}
           className="metronomeHeroBpmButton"
           disabled={bpmControlsDisabled}
           onClick={(event) => changeBpmBy(1, "bpm-up-1", event)}
@@ -11573,7 +11573,7 @@ function MetronomeTransportCard({
         </button>
         <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
         <button
-          aria-label="BPM 10 올리기"
+          aria-label={translateUi("app.increaseBpmBy10")}
           className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--up"
           disabled={bpmControlsDisabled}
           onClick={(event) => changeBpmBy(10, "bpm-up-10", event)}
@@ -11590,7 +11590,7 @@ function MetronomeTransportCard({
         className={`metronomeHeroActionPanel ${actionPanelClassName} ${
           pauseVisible ? "metronomeHeroActionPanel--with-pause" : ""
         }`.trim()}
-        aria-label={actionAriaLabel}
+        aria-label={localizeUi(actionAriaLabel)}
       >
         {actionOrder === "tap-play" ? tapButton : playButton}
         {pauseButton}
@@ -11614,7 +11614,7 @@ function MetronomeVisualLabPickSwing({ activeBeat, beatPattern, isPlaying }) {
   const swingSize = beatState === METRONOME_BEAT_STATES.ACCENT ? 28 : beatState === METRONOME_BEAT_STATES.MUTE ? 10 : 18;
 
   return (
-    <div className="metronomeVisualLabPickSwing" aria-label="Pick Swing Mode visual preview">
+    <div className="metronomeVisualLabPickSwing" aria-label={translateUi("originalUi.pickSwingModeVisualPreview")}>
       <div className="metronomeVisualLabStringSet" aria-hidden="true">
         <span />
         <span />
@@ -11627,7 +11627,7 @@ function MetronomeVisualLabPickSwing({ activeBeat, beatPattern, isPlaying }) {
         className={`metronomeVisualLabPick metronomeVisualLabPick--${beatState} ${isPlaying ? "active" : ""}`}
         style={{ "--pick-angle": `${swingDirection * swingSize}deg` }}
       >
-        <span>R</span>
+        <span><Translation id="originalUi.r" /></span>
       </div>
       <div className="metronomeVisualLabPickCaption">
         {beatState === METRONOME_BEAT_STATES.ACCENT ? "Strong Swing" : beatState === METRONOME_BEAT_STATES.MUTE ? "Mute Pass" : "Weak Swing"}
@@ -11637,14 +11637,15 @@ function MetronomeVisualLabPickSwing({ activeBeat, beatPattern, isPlaying }) {
 }
 
 function MetronomeVisualLabPreview({ activeBeat, beatPattern, bpm, isPlaying, mode, timeSignature }) {
+  useLanguage();
   const selectedMode = METRONOME_VISUAL_LAB_MODES.find((item) => item.id === mode) ?? METRONOME_VISUAL_LAB_MODES[0];
 
   return (
     <article className={`headerPreviewCard metronomeVisualLabPreview metronomeVisualLabPreview--${mode}`}>
       <div className="headerPreviewMeta">
-        <span>{selectedMode.title}</span>
-        <small>{selectedMode.description}</small>
-        <em className="designLabStatus designLabStatus--draft">Experimental</em>
+        <span>{localizeUi(selectedMode.title)}</span>
+        <small>{localizeUi(selectedMode.description)}</small>
+        <em className="designLabStatus designLabStatus--draft"><Translation id="originalUi.experimental" /></em>
       </div>
       <div className="metronomeVisualLabStage">
         {mode === "line" ? (
@@ -11658,7 +11659,7 @@ function MetronomeVisualLabPreview({ activeBeat, beatPattern, bpm, isPlaying, mo
         )}
       </div>
       <div className="metronomeVisualLabReadout">
-        <span>{bpm} BPM</span>
+        <span>{bpm}<Translation id="originalUi.bpmApp" /></span>
         <span>{timeSignature}</span>
         <span>{isPlaying ? `Beat ${activeBeat + 1}` : "Ready"}</span>
       </div>
@@ -11872,7 +11873,7 @@ function RiffLoopLogoSvg({ candidate, compact = false }) {
     <svg
       className={`riffLoopLogoSvg ${compact ? "riffLoopLogoSvg--compact" : ""}`}
       role="img"
-      aria-label={`${candidate?.label ?? "Logo"} ${candidate?.title ?? "R Brand Symbol"}`}
+      aria-label={localizeUi(`${candidate?.label ?? "Logo"} ${candidate?.title ?? "R Brand Symbol"}`)}
       viewBox="0 0 100 100"
     >
       <defs>
@@ -11921,15 +11922,15 @@ function RiffLoopLogoSvg({ candidate, compact = false }) {
 
 function SvgLogoHeaderPreview({ candidate }) {
   return (
-    <div className="svgLogoHeaderPlate" aria-label="V11 header plate SVG logo preview">
+    <div className="svgLogoHeaderPlate" aria-label={translateUi("originalUi.v11HeaderPlateSvgLogoPreview")}>
       <span className="svgLogoHeaderPlate__screw svgLogoHeaderPlate__screw--left" aria-hidden="true" />
       <span className="svgLogoHeaderPlate__screw svgLogoHeaderPlate__screw--right" aria-hidden="true" />
       <div className="svgLogoHeaderPlate__mark">
         <RiffLoopLogoSvg candidate={candidate} compact />
       </div>
       <div className="svgLogoHeaderPlate__word">
-        <strong>FRETIVA LAB</strong>
-        <span>Repeat. Refine. Master.</span>
+        <strong><Translation id="originalUi.fretivaLab" /></strong>
+        <span><Translation id="originalUi.repeatRefineMaster" /></span>
       </div>
     </div>
   );
@@ -12153,24 +12154,25 @@ function getAppIconVariantLabel(variantId) {
 }
 
 function getHeaderLabStatus(variantId, state) {
-  if (variantId === state.activeHeader) return "운영중";
-  if (state.heldHeaders.includes(variantId)) return "잠금";
-  return "실험중";
+  if (variantId === state.activeHeader) return ko["app.live"];
+  if (state.heldHeaders.includes(variantId)) return ko["app.lock"];
+  return ko["app.experimental"];
 }
 
 function getAppIconLabStatus(variantId, state) {
-  if (variantId === state.activeIcon) return "운영중";
-  if (state.heldIcons.includes(variantId)) return "잠금";
-  return "실험중";
+  if (variantId === state.activeIcon) return ko["app.live"];
+  if (state.heldIcons.includes(variantId)) return ko["app.lock"];
+  return ko["app.experimental"];
 }
 
 function getHeaderLabStatusClass(status) {
-  if (status === "운영중") return "active";
-  if (status === "잠금") return "held";
+  if (status === ko["app.live"]) return "active";
+  if (status === ko["app.lock"]) return "held";
   return "draft";
 }
 
 function AppIconSvgPreview({ variantId }) {
+  useLanguage();
   const uniqueId = variantId.replace(/[^a-z0-9-]/gi, "");
   const variantNumber = Number(variantId.replace("icon-v", ""));
   const isHex = variantId === "icon-v11";
@@ -12202,7 +12204,7 @@ function AppIconSvgPreview({ variantId }) {
     const glowId = `${uniqueId}-philosophy-glow`;
 
     return (
-      <svg className="appIconSvgPreview appIconSvgPreview--philosophy" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+      <svg className="appIconSvgPreview appIconSvgPreview--philosophy" viewBox="0 0 120 120" role="img" aria-label={localizeUi(`${getAppIconVariantLabel(variantId)} SVG`)}>
         <defs>
           <linearGradient id={goldId} x1="20" x2="100" y1="12" y2="108" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor={p.fg} />
@@ -12251,7 +12253,7 @@ function AppIconSvgPreview({ variantId }) {
         {mode === 5 ? (
           <g>
             {[26, 36, 48, 60, 72, 84, 94].map((x, index) => <rect key={x} x={x} y={58 - [8, 18, 30, 42, 30, 18, 8][index] / 2} width="6" height={[8, 18, 30, 42, 30, 18, 8][index]} rx="3" fill={index === 3 ? p.accent : p.fg} opacity={index === 3 ? 1 : 0.82} />)}
-            <text x="60" y="96" textAnchor="middle" fill={p.fg} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2">RIFF</text>
+            <text x="60" y="96" textAnchor="middle" fill={p.fg} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2"><Translation id="originalUi.riff" /></text>
           </g>
         ) : null}
         {mode === 6 ? (
@@ -12400,7 +12402,7 @@ function AppIconSvgPreview({ variantId }) {
     };
 
     return (
-      <svg className="appIconSvgPreview appIconSvgPreview--premiumSymbol" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+      <svg className="appIconSvgPreview appIconSvgPreview--premiumSymbol" viewBox="0 0 120 120" role="img" aria-label={localizeUi(`${getAppIconVariantLabel(variantId)} SVG`)}>
         <defs>
           <linearGradient id={bgId} x1="14" x2="106" y1="9" y2="112" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor={p.bg1} />
@@ -12445,7 +12447,7 @@ function AppIconSvgPreview({ variantId }) {
     const rotate = [-10, 0, 9, -5][palette] ?? 0;
 
     return (
-      <svg className="appIconSvgPreview appIconSvgPreview--brandSymbol" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+      <svg className="appIconSvgPreview appIconSvgPreview--brandSymbol" viewBox="0 0 120 120" role="img" aria-label={localizeUi(`${getAppIconVariantLabel(variantId)} SVG`)}>
         <rect width="120" height="120" rx={palette === 1 ? 18 : 26} fill={bg} />
         {mode === 0 ? (
           <g transform={`rotate(${rotate} 60 60)`}>
@@ -12518,7 +12520,7 @@ function AppIconSvgPreview({ variantId }) {
     const accent = blue ? "#7bb7ff" : light ? "#050607" : "#d9a94f";
 
     return (
-      <svg className="appIconSvgPreview appIconSvgPreview--symbol" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+      <svg className="appIconSvgPreview appIconSvgPreview--symbol" viewBox="0 0 120 120" role="img" aria-label={localizeUi(`${getAppIconVariantLabel(variantId)} SVG`)}>
         <rect width="120" height="120" rx="26" fill={bg} />
         {variantNumber === 41 ? (
           <path d="M38 91 V25 H67 C84 25 94 35 94 50 C94 62 87 70 76 73 L95 91 H73 L55 74 H54 V91 Z M54 56 H66 C73 56 77 52 77 47 C77 42 73 39 66 39 H54 Z" fill={fg} />
@@ -12545,7 +12547,7 @@ function AppIconSvgPreview({ variantId }) {
         {variantNumber === 46 ? (
           <>
             <rect x="17" y="26" width="86" height="62" rx="18" fill={fg} />
-            <text x="60" y="68" textAnchor="middle" fill={bg} fontFamily="Arial Black, Arial, sans-serif" fontSize="23" fontWeight="900" letterSpacing="3">RIFF</text>
+            <text x="60" y="68" textAnchor="middle" fill={bg} fontFamily="Arial Black, Arial, sans-serif" fontSize="23" fontWeight="900" letterSpacing="3"><Translation id="originalUi.riff" /></text>
           </>
         ) : null}
         {variantNumber === 47 ? (
@@ -12647,7 +12649,7 @@ function AppIconSvgPreview({ variantId }) {
     const showRiff = [22, 24, 29, 33, 35, 36, 39].includes(variantNumber);
 
     return (
-      <svg className="appIconSvgPreview appIconSvgPreview--nextGen" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+      <svg className="appIconSvgPreview appIconSvgPreview--nextGen" viewBox="0 0 120 120" role="img" aria-label={localizeUi(`${getAppIconVariantLabel(variantId)} SVG`)}>
         <defs>
           <linearGradient id={`${uniqueId}-gold`} x1="20" x2="100" y1="14" y2="108" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor={warmBg ? "#5a3b17" : "#fff0bd"} />
@@ -12666,14 +12668,14 @@ function AppIconSvgPreview({ variantId }) {
         <rect width="120" height="120" rx={variantNumber === 30 ? 18 : 25} fill={`url(#${uniqueId}-spot)`} />
         {variantNumber === 21 ? (
           <>
-            <text x="60" y="52" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="20" fontWeight="900" letterSpacing="6">RIFF</text>
-            <text x="60" y="74" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="14" fontWeight="900" letterSpacing="5">LAB</text>
+            <text x="60" y="52" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="20" fontWeight="900" letterSpacing="6"><Translation id="originalUi.riff" /></text>
+            <text x="60" y="74" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="14" fontWeight="900" letterSpacing="5"><Translation id="originalUi.lab" /></text>
           </>
         ) : null}
         {variantNumber === 22 ? (
           <>
             <path d="M31 73 C42 40 62 33 88 39" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="9" strokeLinecap="round" />
-            <text x="60" y="75" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="22" fontWeight="900" letterSpacing="3">RIFF</text>
+            <text x="60" y="75" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="22" fontWeight="900" letterSpacing="3"><Translation id="originalUi.riff" /></text>
           </>
         ) : null}
         {variantNumber === 23 ? (
@@ -12681,35 +12683,35 @@ function AppIconSvgPreview({ variantId }) {
             {[28, 38, 48, 58, 68, 78, 88].map((x, index) => (
               <rect key={x} x={x} y={58 - [8, 18, 28, 36, 28, 18, 8][index] / 2} width="5" height={[8, 18, 28, 36, 28, 18, 8][index]} rx="3" fill={gold} />
             ))}
-            <text x="60" y="91" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="13" fontWeight="900" letterSpacing="3">FRETIVA LAB</text>
+            <text x="60" y="91" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="13" fontWeight="900" letterSpacing="3"><Translation id="originalUi.fretivaLab" /></text>
           </>
         ) : null}
         {variantNumber === 24 ? (
           <>
             <line x1="22" x2="98" y1="43" y2="43" stroke={gold} strokeWidth="3" strokeLinecap="round" />
             <line x1="22" x2="98" y1="63" y2="63" stroke={gold} strokeWidth="3" strokeLinecap="round" opacity="0.7" />
-            <text x="60" y="72" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="38" fontWeight="900" letterSpacing="2">FF</text>
+            <text x="60" y="72" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="38" fontWeight="900" letterSpacing="2"><Translation id="originalUi.ff" /></text>
           </>
         ) : null}
         {variantNumber === 25 ? (
           <>
             <rect x="21" y="28" width="78" height="58" rx="14" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="3" />
-            <text x="60" y="58" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="17" fontWeight="900" letterSpacing="4">RIFF</text>
-            <text x="60" y="78" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="12" fontWeight="900" letterSpacing="3">LAB</text>
+            <text x="60" y="58" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="17" fontWeight="900" letterSpacing="4"><Translation id="originalUi.riff" /></text>
+            <text x="60" y="78" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="12" fontWeight="900" letterSpacing="3"><Translation id="originalUi.lab" /></text>
           </>
         ) : null}
         {variantNumber === 26 ? (
           <>
             <path d="M60 16 C86 20 101 41 94 66 C88 88 72 103 60 108 C48 103 32 88 26 66 C19 41 34 20 60 16 Z" fill={`url(#${uniqueId}-gold)`} opacity="0.96" filter={`url(#${uniqueId}-soft)`} />
-            <text x="60" y="67" textAnchor="middle" fill="#080907" fontFamily="Georgia, Times New Roman, serif" fontSize="28" fontWeight="900">R</text>
+            <text x="60" y="67" textAnchor="middle" fill="#080907" fontFamily="Georgia, Times New Roman, serif" fontSize="28" fontWeight="900"><Translation id="originalUi.r" /></text>
             <line x1="47" x2="73" y1="75" y2="75" stroke="#080907" strokeWidth="2" opacity="0.5" />
           </>
         ) : null}
         {variantNumber === 27 ? (
           <>
             <rect x="17" y="28" width="86" height="58" rx="10" fill="rgba(255,244,210,0.04)" stroke={gold} strokeWidth="2" />
-            <text x="60" y="58" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="21" fontWeight="900" letterSpacing="6">RIFF</text>
-            <text x="60" y="75" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="3">REPEAT</text>
+            <text x="60" y="58" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="21" fontWeight="900" letterSpacing="6"><Translation id="originalUi.riff" /></text>
+            <text x="60" y="75" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="3"><Translation id="originalUi.repeat" /></text>
           </>
         ) : null}
         {variantNumber === 28 ? (
@@ -12717,7 +12719,7 @@ function AppIconSvgPreview({ variantId }) {
             {[30, 44, 58, 72, 86].map((x) => <line key={x} x1={x} x2={x} y1="22" y2="98" stroke={gold} strokeWidth="1.8" opacity="0.55" />)}
             {[39, 60, 81].map((y) => <line key={y} x1="23" x2="97" y1={y} y2={y} stroke={gold} strokeWidth="1.4" opacity="0.35" />)}
             <circle cx="72" cy="60" r="7" fill={gold} />
-            <text x="60" y="33" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="13" fontWeight="900" letterSpacing="3">RIFF</text>
+            <text x="60" y="33" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="13" fontWeight="900" letterSpacing="3"><Translation id="originalUi.riff" /></text>
           </>
         ) : null}
         {variantNumber === 29 ? (
@@ -12729,16 +12731,16 @@ function AppIconSvgPreview({ variantId }) {
         {variantNumber === 30 ? (
           <>
             <path d="M60 21 L88 37 L88 73 L60 91 L32 73 L32 37 Z" fill="none" stroke={gold} strokeWidth="3" />
-            <text x="60" y="62" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="24" fontWeight="900">LAB</text>
-            <text x="60" y="77" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2">RIFF</text>
+            <text x="60" y="62" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="24" fontWeight="900"><Translation id="originalUi.lab" /></text>
+            <text x="60" y="77" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2"><Translation id="originalUi.riff" /></text>
           </>
         ) : null}
         {variantNumber === 31 ? (
           <>
             <rect x="20" y="24" width="80" height="38" rx="13" fill={gold} />
             <rect x="20" y="62" width="80" height="30" rx="12" fill="rgba(255,244,210,0.08)" stroke={gold} strokeWidth="1.5" />
-            <text x="60" y="50" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontWeight="900" letterSpacing="4">RIFF</text>
-            <text x="60" y="82" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="16" fontWeight="900" letterSpacing="4">LAB</text>
+            <text x="60" y="50" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontWeight="900" letterSpacing="4"><Translation id="originalUi.riff" /></text>
+            <text x="60" y="82" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="16" fontWeight="900" letterSpacing="4"><Translation id="originalUi.lab" /></text>
           </>
         ) : null}
         {variantNumber === 32 ? (
@@ -12749,8 +12751,8 @@ function AppIconSvgPreview({ variantId }) {
         ) : null}
         {variantNumber === 33 ? (
           <>
-            <text x="43" y="75" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="50" fontWeight="900">F</text>
-            <text x="67" y="75" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="50" fontWeight="900">F</text>
+            <text x="43" y="75" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="50" fontWeight="900"><Translation id="originalUi.f" /></text>
+            <text x="67" y="75" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="50" fontWeight="900"><Translation id="originalUi.f" /></text>
             <line x1="20" x2="100" y1="88" y2="88" stroke={gold} strokeWidth="2" />
           </>
         ) : null}
@@ -12758,7 +12760,7 @@ function AppIconSvgPreview({ variantId }) {
           <>
             <path d="M60 17 L96 36 L89 82 L60 101 L31 82 L24 36 Z" fill="rgba(255,244,210,0.035)" stroke={gold} strokeWidth="3" />
             <path d="M43 72 C48 47 61 34 82 37" fill="none" stroke={gold} strokeWidth="8" strokeLinecap="round" />
-            <text x="60" y="88" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="9" fontWeight="900" letterSpacing="2">RIFF</text>
+            <text x="60" y="88" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="9" fontWeight="900" letterSpacing="2"><Translation id="originalUi.riff" /></text>
           </>
         ) : null}
         {variantNumber === 35 ? (
@@ -12769,21 +12771,21 @@ function AppIconSvgPreview({ variantId }) {
         {variantNumber === 36 ? (
           <>
             {[24, 36, 48, 60, 72, 84, 96].map((x, index) => <circle key={x} cx={x} cy={60 + (index % 2 ? -11 : 9)} r={index === 3 ? 8 : 5} fill={index === 3 ? gold : ink} opacity={index === 3 ? 1 : 0.85} />)}
-            <text x="60" y="92" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2">LAB</text>
+            <text x="60" y="92" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2"><Translation id="originalUi.lab" /></text>
           </>
         ) : null}
         {variantNumber === 37 ? (
           <>
             <rect x="28" y="24" width="64" height="68" rx="18" fill="rgba(255,244,210,0.045)" stroke={gold} strokeWidth="2" />
-            <text x="60" y="72" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="50" fontWeight="900">R</text>
+            <text x="60" y="72" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="50" fontWeight="900"><Translation id="originalUi.r" /></text>
             <circle cx="86" cy="30" r="4" fill={gold} />
           </>
         ) : null}
         {variantNumber === 38 ? (
           <>
-            <text x="60" y="47" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontWeight="900" letterSpacing="5">RIFF</text>
+            <text x="60" y="47" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontWeight="900" letterSpacing="5"><Translation id="originalUi.riff" /></text>
             <line x1="34" x2="86" y1="60" y2="60" stroke={gold} strokeWidth="2" />
-            <text x="60" y="82" textAnchor="middle" fill={gold} fontFamily="Georgia, Times New Roman, serif" fontSize="17" fontWeight="900" letterSpacing="4">LAB</text>
+            <text x="60" y="82" textAnchor="middle" fill={gold} fontFamily="Georgia, Times New Roman, serif" fontSize="17" fontWeight="900" letterSpacing="4"><Translation id="originalUi.lab" /></text>
           </>
         ) : null}
         {variantNumber === 39 ? (
@@ -12791,23 +12793,23 @@ function AppIconSvgPreview({ variantId }) {
             <path d="M22 22 L50 57" stroke={gold} strokeWidth="3" strokeLinecap="round" opacity="0.55" />
             <path d="M98 22 L70 57" stroke={gold} strokeWidth="3" strokeLinecap="round" opacity="0.55" />
             <ellipse cx="60" cy="62" rx="30" ry="21" fill="rgba(241,202,122,0.11)" />
-            <text x="60" y="68" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="22" fontWeight="900" letterSpacing="3">RIFF</text>
+            <text x="60" y="68" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="22" fontWeight="900" letterSpacing="3"><Translation id="originalUi.riff" /></text>
           </>
         ) : null}
         {variantNumber === 40 ? (
           <>
             <path d="M25 60 C35 34 48 28 60 42 C72 28 86 34 95 60 C86 86 72 92 60 78 C48 92 35 86 25 60 Z" fill={`url(#${uniqueId}-gold)`} opacity="0.94" />
-            <text x="60" y="66" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="16" fontWeight="900" letterSpacing="3">RIFF</text>
+            <text x="60" y="66" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="16" fontWeight="900" letterSpacing="3"><Translation id="originalUi.riff" /></text>
           </>
         ) : null}
-        {showWord ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2">FRETIVA LAB</text> : null}
-        {showRiff ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2">FRETIVA LAB</text> : null}
+        {showWord ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2"><Translation id="originalUi.fretivaLab" /></text> : null}
+        {showRiff ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2"><Translation id="originalUi.fretivaLab" /></text> : null}
       </svg>
     );
   }
 
   return (
-    <svg className="appIconSvgPreview" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+    <svg className="appIconSvgPreview" viewBox="0 0 120 120" role="img" aria-label={localizeUi(`${getAppIconVariantLabel(variantId)} SVG`)}>
       <defs>
         <linearGradient id={`${uniqueId}-gold`} x1="22" x2="98" y1="14" y2="106" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#fff1bd" />
@@ -12856,16 +12858,15 @@ function AppIconSvgPreview({ variantId }) {
         fontSize={isMinimal ? 76 : 70}
         fontWeight="900"
         letterSpacing="-3"
-      >
-        R
-      </text>
-      {isMono ? <text x="60" y="91" textAnchor="middle" fill="#fff0bd" fontSize="10" fontWeight="900" letterSpacing="3">RIFF</text> : null}
+      ><Translation id="originalUi.r" /></text>
+      {isMono ? <text x="60" y="91" textAnchor="middle" fill="#fff0bd" fontSize="10" fontWeight="900" letterSpacing="3"><Translation id="originalUi.riff" /></text> : null}
       {isPremium || isUltimate ? <circle cx="60" cy="60" r="54" fill="none" stroke="#fff0bd" strokeWidth="1" opacity="0.2" /> : null}
     </svg>
   );
 }
 
 function AppIconPreview({ variantId, size = "large" }) {
+  useLanguage();
   const variantNumber = Number(variantId.replace("icon-v", ""));
   const isWordmark = variantId === "icon-v1" || variantId === "icon-v2";
   const isSignature = false;
@@ -12874,21 +12875,21 @@ function AppIconPreview({ variantId, size = "large" }) {
   const isSymbol = variantNumber >= 41;
 
   return (
-    <div className={`appIconPreview appIconPreview--${variantId} appIconPreview--${size} ${isSymbol ? "appIconPreview--symbolic" : ""}`} aria-label={`${getAppIconVariantLabel(variantId)} preview`} role="img">
+    <div className={`appIconPreview appIconPreview--${variantId} appIconPreview--${size} ${isSymbol ? "appIconPreview--symbolic" : ""}`} aria-label={localizeUi(`${getAppIconVariantLabel(variantId)} preview`)} role="img">
       {isSvg ? <AppIconSvgPreview variantId={variantId} /> : null}
       {isWordmark ? (
         <span className="appIconPreview__wordmark">
-          <b>FRETIVA LAB</b>
-          {variantId === "icon-v2" ? <i>RIFF</i> : null}
+          <b><Translation id="originalUi.fretivaLab" /></b>
+          {variantId === "icon-v2" ? <i><Translation id="originalUi.riff" /></i> : null}
         </span>
       ) : null}
       {isSignature ? (
         <span className="appIconPreview__signature">
-          <b>R</b>
-          <small>FRETIVA LAB</small>
+          <b><Translation id="originalUi.r" /></b>
+          <small><Translation id="originalUi.fretivaLab" /></small>
         </span>
       ) : null}
-      {isR ? <span className="appIconPreview__visualR">R</span> : null}
+      {isR ? <span className="appIconPreview__visualR"><Translation id="originalUi.r" /></span> : null}
     </div>
   );
 }
@@ -13332,7 +13333,7 @@ function ShooterGuitarDisplay({
   return (
     <CabinetRoot
       {...(interactive ? {
-        "aria-label": isOpen ? "기타 캐비닛 유리문 닫기" : "기타 캐비닛 유리문 열기",
+        "aria-label": isOpen ? ko["app.closeGuitarCabinetGlassDoor"] : ko["app.openGuitarCabinetGlassDoor"],
         "aria-pressed": isOpen,
         "aria-disabled": !toggleEnabled,
         onClick: (event) => {
@@ -13378,6 +13379,7 @@ function ShooterGuitarCabinetOptionButton({
   selectedGuitar,
   selectedSkinId,
 }) {
+  useLanguage();
   const isSelected = selectedSkinId === cabinetSkin.id;
   return (
     <button
@@ -13395,23 +13397,24 @@ function ShooterGuitarCabinetOptionButton({
         />
       </span>
       <span>
-        <strong>{cabinetSkin.label}</strong>
-        <small>{cabinetSkin.description}</small>
+        <strong>{localizeUi(cabinetSkin.label)}</strong>
+        <small>{localizeUi(cabinetSkin.description)}</small>
       </span>
-      <em>{isSelected ? "선택됨" : "선택"}</em>
+      <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
     </button>
   );
 }
 
 function GuitarLabPreview({ variant, active = false }) {
-  const parts = ["헤드", "페그", "너트", "프렛보드", variant.pack === "Electric" ? "픽업" : "사운드홀", "브릿지", "새들", "줄", "바디"];
+  useLanguage();
+  const parts = [ko["app.headstock"], ko["app.tuningPeg"], ko["app.nut"], ko["app.fretboard2"], variant.pack === "Electric" ? ko["app.pickup"] : ko["app.soundhole"], ko["app.bridge"], ko["app.saddle"], ko["app.string2"], ko["app.body"]];
 
   return (
     <div className={`guitarLabPreview ${active ? "active" : ""}`}>
       <div className="guitarLabStage">
         <GuitarAssetSvg variant={variant} />
       </div>
-      <div className="guitarLabParts" aria-label={`${variant.title} 구조`}>
+      <div className="guitarLabParts" aria-label={translateUi("app.value1Structure", { value1: variant.title })}>
         {parts.map((part) => <span key={part}>{part}</span>)}
       </div>
     </div>
@@ -13425,7 +13428,7 @@ function getTrainingDetailTitle(category) {
     rhythm: 3,
   };
   const stageNumber = String(category?.stageLabel?.replace(/\D/g, "") || fallbackOrder[category?.id] || 1).padStart(2, "0");
-  return `${stageNumber} ${category?.title ?? ""}`.trim();
+  return `${stageNumber} ${localizeUi(category?.title ?? "")}`.trim();
 }
 
 function BeatIndicator({
@@ -13436,10 +13439,11 @@ function BeatIndicator({
   compact = false,
   dotClassName = "trainingBeatDot",
   isPlaying,
-  label = "현재 박자",
+  label = ko["app.currentBeat"],
   onBeatClick,
   timeSignature = "4/4",
 }) {
+  useLanguage();
   const dots = Array.from({ length: beatsPerMeasure }, (_, index) => index);
   const normalizedBeatPattern = normalizeMetronomeBeatPattern(beatPattern, beatsPerMeasure);
   const dotRows = beatsPerMeasure === 12
@@ -13453,20 +13457,20 @@ function BeatIndicator({
       active={beat === beatNumber && isPlaying}
       className={dotClassName}
       key={beatNumber}
-      label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+      label={translateUi("app.beatValue1Value2", { value1: beatNumber + 1, value2: METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]] })}
       onClick={onBeatClick ? (event) => {
         event.stopPropagation();
         onBeatClick(beatNumber);
       } : undefined}
       state={normalizedBeatPattern[beatNumber]}
-      title={`${beatNumber + 1}박: ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+      title={translateUi("app.beatValue1Value2App", { value1: beatNumber + 1, value2: METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]] })}
     />
   );
 
   return (
     <div
       className={`beatIndicator beatIndicator--beats-${beatsPerMeasure} ${compact ? "beatIndicator--compact" : ""}`}
-      aria-label={`${timeSignature} ${label}`}
+      aria-label={localizeUi(`${timeSignature} ${label}`)}
       style={{ "--beat-count": beatsPerMeasure }}
     >
       {dotRows.map((row, rowIndex) => (
@@ -13556,13 +13560,13 @@ function getMicrophoneSignalDisplayBand(level) {
   return "idle";
 }
 const RHYTHM_SUBDIVISIONS = {
-  One: { label: "1/4", hint: "한 박에 한 음", beats: 6, notesPerBeat: 1 },
-  Two: { label: "1/8", hint: "1 & 2 & 연속", beats: 6, notesPerBeat: 2 },
-  Four: { label: "1/16", hint: "촘촘한 연속 피킹", beats: 6, notesPerBeat: 4 },
-  Pair: { label: "2음/박", hint: "한 박에 두 음", beats: 6, notesPerBeat: 2, advanceEverySubdivision: true },
+  One: { label: "1/4", hint: ko["app.oneNotePerBeat"], beats: 6, notesPerBeat: 1 },
+  Two: { label: "1/8", hint: ko["app.continuous12"], beats: 6, notesPerBeat: 2 },
+  Four: { label: "1/16", hint: ko["app.continuousFastPicking"], beats: 6, notesPerBeat: 4 },
+  Pair: { label: ko["app.2NotesBeat"], hint: ko["app.twoNotesPerBeat"], beats: 6, notesPerBeat: 2, advanceEverySubdivision: true },
   Bounce: {
     label: "Bounce",
-    hint: "퐁당 리듬",
+    hint: ko["app.swingRhythm"],
     beats: 6,
     notesPerBeat: 2,
     advanceEverySubdivision: true,
@@ -13572,19 +13576,19 @@ const RHYTHM_SUBDIVISIONS = {
 const JUDGMENT_MODES = {
   PITCH: {
     id: "pitch",
-    label: "피치 매치 모드",
-    shortLabel: "피치 매치",
-    description: "같은 높이의 음이면 맞아요.",
+    label: ko["app.pitchMatchMode"],
+    shortLabel: ko["app.pitchMatch"],
+    description: ko["app.anyMatchingPitchCounts"],
   },
   POSITION: {
     id: "position",
-    label: "포지션 연습 모드",
-    shortLabel: "포지션 연습",
-    description: "표시된 줄과 프렛 위치로 연습하는 모드예요.",
+    label: ko["app.positionPracticeMode"],
+    shortLabel: ko["app.positionPractice"],
+    description: ko["app.practiceOnTheDisplayedStringAndFret"],
   },
 };
 const POSITION_MODE_WARNING =
-  "같은 음은 다른 위치에도 있을 수 있어요. 이 모드는 표시된 위치로 연습하는 것을 권장합니다.";
+  ko["app.theSamePitchCanAppearElsewhereInThisModeUseTheDisplayed"];
 const BPM_PRESETS = [40, 60, 80, 100, 120, 140, 160, 180];
 const SCALE_ASCENDING = ["A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4", "C5"];
 function createPingPongSequence(sequence) {
@@ -13611,19 +13615,19 @@ const FIRST_POSITION_SEQUENCE = createPingPongSequence(FIRST_POSITION_ASCENDING_
 const LEGACY_PRACTICE_CATEGORIES = [
   {
     id: "open",
-    title: "사용법 익히기",
-    subtitle: "개방현과 지판 표시를 확인해요",
+    title: ko["app.learnTheControls"],
+    subtitle: ko["app.exploreOpenStringsAndFretboardMarkers"],
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "A2", "D3", "G3", "B3", "E4"],
-    modeLabel: "개방현",
+    modeLabel: ko["app.openString"],
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
     tutorial: true,
   },
   {
     id: "first-position",
-    title: "단일 음 위치 익히기",
-    subtitle: "0~3프렛 음 위치 훈련",
+    title: ko["app.singleNotes"],
+    subtitle: ko["app.learnNotesOnFrets03"],
     notes: FIRST_POSITION_NOTES,
     sequence: FIRST_POSITION_SEQUENCE,
     modeLabel: "Low Position",
@@ -13632,8 +13636,8 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "scale-block",
-    title: "스케일 · 펜타토닉 · 릭",
-    subtitle: "스케일과 펜타토닉, 짧은 기타 프레이즈 훈련",
+    title: ko["app.scalesPentatonicsLicks"],
+    subtitle: ko["app.practiceScalesPentatonicsAndShortGuitarPhrases"],
     notes: NOTES,
     sequence: SCALE_ASCENDING,
     modeLabel: "Box Pattern",
@@ -13643,22 +13647,22 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "rhythm",
-    title: "코드 전환 훈련",
-    subtitle: "직접 설정한 코드 전환 훈련.",
+    title: ko["app.chordChangePractice"],
+    subtitle: ko["app.practiceYourOwnChordChanges"],
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "E2", "A2", "A2", "D3", "D3", "G3", "B3", "E4"],
-    modeLabel: "핵심 리듬",
+    modeLabel: ko["app.coreRhythms"],
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
-    stageLabel: "3단계",
+    stageLabel: ko["app.stage3"],
   },
   {
     id: "melody",
-    title: "준비 중",
-    subtitle: "다음 훈련 모드 준비 중",
+    title: ko["app.preparing"],
+    subtitle: ko["app.morePracticeModesComingSoon"],
     notes: FIRST_POSITION_NOTES,
     sequence: ["E2", "G2", "A2", "B2", "C3", "B2", "A2", "G2", "E2"],
-    modeLabel: "미구현",
+    modeLabel: ko["app.notImplemented"],
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
     unavailable: true,
@@ -13668,302 +13672,302 @@ const LEGACY_PRACTICE_CATEGORIES = [
 const HELP_GUIDE_SECTIONS = [
   {
     id: "welcome",
-    title: "👋 FRETIVA LAB에 오신 것을 환영합니다",
-    summary: "처음 연습할 때 알아둘 핵심만 빠르게 보기",
+    title: ko["app.welcomeToFretivaLab"],
+    summary: ko["app.theEssentialsForYourFirstPracticeSession"],
     group: "start",
     content: (
       <>
-        <p>FRETIVA LAB은 튜닝, 지판, 리듬, 에튀드·악보저장실, 반주와 녹음 도구를 한곳에 모은 <b>기타 연습 앱</b>입니다.</p>
-        <div className="helpFlow" aria-label="튜닝, 참고 지판, 메트로놈 순서로 시작">
-          <span>튜닝 확인</span><i aria-hidden="true">→</i><span>참고 지판 연습</span><i aria-hidden="true">→</i><span>메트로놈·반주 연결</span>
+        <p><Translation id="app.fretivaLabIsA" /><b><Translation id="app.guitarPracticeApp" /></b><Translation id="app.withATunerFretboardRhythmExercisesETudesScoreLibraryBackingTracks" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.startWithTuningTheFretboardAndTheMetronome")}>
+          <span><Translation id="app.checkYourTuning" /></span><i aria-hidden="true">→</i><span><Translation id="app.practiceWithTheFretboard" /></span><i aria-hidden="true">→</i><span><Translation id="app.addAMetronomeOrBackingTrack" /></span>
         </div>
-        <p>처음이라면 위 순서대로 시작하고, 익숙해지면 리듬 코드 전환·미니반주·슈팅게임을 더해보세요.</p>
-        <p className="helpClosingMessage">즐겁게 연습하세요. 🎸</p>
+        <p><Translation id="app.startWithTheseStepsThenExploreChordChangesMiniBackingAndThe" /></p>
+        <p className="helpClosingMessage"><Translation id="app.enjoyYourPractice" /></p>
       </>
     ),
   },
   {
     id: "shared-features",
-    title: "🧭 화면 이동과 공통 기능",
-    summary: "주요 도구와 연습 코스는 여기서 찾습니다",
+    title: ko["app.navigationAndSharedFeatures"],
+    summary: ko["app.findYourToolsAndPracticeCoursesHere"],
     group: "start",
     content: (
       <>
         <div className="helpFactCard">
-          <strong>주요 내비게이션</strong>
-          <p>데스크톱에서는 왼쪽 사이드바에서 모든 화면을 바로 열고, 모바일에서는 하단 내비게이션과 <b>메뉴</b>를 사용합니다.</p>
+          <strong><Translation id="app.mainNavigation" /></strong>
+          <p><Translation id="app.onDesktopOpenAnyScreenFromTheLeftSidebarOnMobileUse" /><b><Translation id="app.menu" /></b><Translation id="app.label" /></p>
         </div>
-        <div className="helpNavMap" aria-label="주요 내비게이션 안내">
-          <div><b>🎵 튜너</b><span>악기와 튜닝 선택</span></div>
-          <div><b>🗺️ 지판 보기</b><span>음·코드·스케일 확인</span></div>
-          <div><b>⏱️ 메트로놈</b><span>템포와 연습량 관리</span></div>
-          <div><b>👾 슈팅게임</b><span>기타 음으로 목표 맞히기</span></div>
-          <div><b>🧭 화면 메뉴</b><span>연습 코스·반주·편집·설정</span></div>
+        <div className="helpNavMap" aria-label={translateUi("app.mainNavigationGuide")}>
+          <div><b><Translation id="app.tuner" /></b><span><Translation id="app.chooseAnInstrumentAndTuning" /></span></div>
+          <div><b><Translation id="app.fretboard" /></b><span><Translation id="app.exploreNotesChordsAndScales" /></span></div>
+          <div><b><Translation id="app.metronome" /></b><span><Translation id="app.manageTempoAndPracticeTime" /></span></div>
+          <div><b><Translation id="app.noteShooter" /></b><span><Translation id="app.hitTargetsWithYourGuitar" /></span></div>
+          <div><b><Translation id="app.menuApp" /></b><span><Translation id="app.practiceBackingEditingSettings" /></span></div>
         </div>
-        <p className="helpInfoNote">모바일과 데스크톱은 화면 배치가 다를 수 있지만 <b>연습 데이터와 기능은 동일하게 동작</b>합니다.</p>
+        <p className="helpInfoNote"><Translation id="app.mobileAndDesktopLayoutsMayDifferBut" /><b><Translation id="app.practiceDataAndFeaturesWorkTheSameWay" /></b><Translation id="app.labelApp" /></p>
       </>
     ),
   },
   {
     id: "single-note",
-    title: "🎯 ① 단일 음 위치 익히기",
-    summary: "참고 지판을 보며 제로포지션 익히기",
+    title: ko["app.1SingleNotes"],
+    summary: ko["app.learnOpenPositionWithTheReferenceFretboard"],
     group: "practice",
-    badge: "초보 ★",
+    badge: ko["app.beginner"],
     badgeTone: "beginner",
     content: (
       <>
-        <p><b>개방현과 낮은 프렛의 음 위치</b>를 참고 지판으로 보면서 따라 연주하는 모드입니다.</p>
-        <div className="helpFlow" aria-label="단일음 연습 순서">
-          <span>단일음 열기</span><i aria-hidden="true">→</i><span>참고 지판 확인</span><i aria-hidden="true">→</i><span>BPM 설정 후 재생</span>
+        <p><b><Translation id="app.openStringAndLowerFretNotes" /></b><Translation id="app.areShownOnTheReferenceFretboardForYouToPlayAlong" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.singleNotePracticeSteps")}>
+          <span><Translation id="app.openSingleNotes" /></span><i aria-hidden="true">→</i><span><Translation id="app.checkTheReferenceFretboard" /></span><i aria-hidden="true">→</i><span><Translation id="app.setBpmAndPlay" /></span>
         </div>
-        <p>화면에 표시되는 음과 위치를 천천히 반복하세요. 이 모드는 마이크로 연주를 자동 채점하지 않습니다.</p>
+        <p><Translation id="app.repeatTheDisplayedNotesAndPositionsSlowlyThisModeDoesNotScore" /></p>
       </>
     ),
   },
   {
     id: "scale-pentatonic",
-    title: "🎸 ② 스케일 · 펜타토닉",
-    summary: "키·타입·박스를 고르고 참고 지판 따라가기",
+    title: ko["app.2ScalesPentatonics"],
+    summary: ko["app.chooseKeyTypeAndBoxThenFollowTheFretboard"],
     group: "practice",
     badge: "SOLO",
     badgeTone: "solo",
     content: (
       <>
-        <p>메이저·마이너 <b>스케일 또는 펜타토닉</b>의 위치를 참고 지판으로 보며 연습합니다.</p>
-        <div className="helpFlow" aria-label="스케일과 펜타토닉 연습 순서">
-          <span>키 선택</span><i aria-hidden="true">→</i><span>스케일·타입 선택</span><i aria-hidden="true">→</i><span>BOX 1~5 선택</span><i aria-hidden="true">→</i><span>지판 따라 연주</span>
+        <p><Translation id="app.majorAndMinor" /><b><Translation id="app.scalesAndPentatonics" /></b><Translation id="app.canBePracticedUsingTheReferenceFretboard" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.scaleAndPentatonicPracticeSteps")}>
+          <span><Translation id="app.chooseAKey" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseAScaleAndType" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseBox15" /></span><i aria-hidden="true">→</i><span><Translation id="app.followTheFretboard" /></span>
         </div>
-        <p>BPM과 메트로놈을 맞춘 뒤 반복하고, 필요하면 <b>Backing Loop</b>에 반주를 불러오거나 녹음해 함께 재생하세요. 이 모드도 자동 채점이 아닌 참고 지판 중심 연습입니다.</p>
+        <p><Translation id="app.setTheBpmAndMetronomeThenRepeatYouCanAlsoUse" /><b><Translation id="originalUi.backingLoop" /></b><Translation id="app.toImportOrRecordABackingTrackThisModeUsesAReference" /></p>
       </>
     ),
   },
   {
     id: "rhythm-chord",
-    title: "🔥 ③ 리듬 코드 전환",
-    summary: "코드·박 길이·쉼표를 조합해 전환 연습",
+    title: ko["app.3RhythmChords"],
+    summary: ko["app.combineChordsBeatLengthsAndRestsToPracticeChanges"],
     group: "practice",
     badge: "HOT •",
     badgeTone: "hot",
     content: (
       <>
-        <p>내가 만든 코드 진행을 화면과 참고 지판으로 보며 박자에 맞춰 전환하는 모드입니다.</p>
-        <div className="helpFlow" aria-label="리듬코드 사용 순서">
-          <span>LOAD 열기</span><i aria-hidden="true">→</i><span>코드·운지 선택</span><i aria-hidden="true">→</i><span>박 길이로 추가</span><i aria-hidden="true">→</i><span>저장 후 START</span>
+        <p><Translation id="app.followYourChordProgressionOnScreenAndOnTheReferenceFretboardChanging" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.rhythmChordsSteps")}>
+          <span><Translation id="app.openLoad" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseChordsAndFingerings" /></span><i aria-hidden="true">→</i><span><Translation id="app.addWithABeatLength" /></span><i aria-hidden="true">→</i><span><Translation id="app.saveAndStart" /></span>
         </div>
         <ul className="helpFactList">
-          <li>선택한 코드를 <b>1박·2박·4박</b> 길이로 추가하고, <b>1박 쉼</b>으로 쉼표를 넣습니다.</li>
-          <li>LOAD 화면의 미니 지판에서 음 위치를 편집한 뒤 추가하면 <b>편집한 운지도 진행과 함께 저장</b>됩니다.</li>
-          <li>제목을 붙여 저장하면 사용자 진행에서 다시 불러올 수 있습니다. 추천 진행도 바로 선택할 수 있습니다.</li>
+          <li><Translation id="app.addTheSelectedChordFor" /><b><Translation id="app.12Or4Beats" /></b><Translation id="app.orChoose" /><b><Translation id="app.1BeatRest" /></b><Translation id="app.toInsertARest" /></li>
+          <li><Translation id="app.editNotePositionsOnTheMiniFretboardInLoadBeforeAddingA" /><b><Translation id="app.yourEditedFingeringIsSavedWithTheProgression" /></b><Translation id="app.labelApp2" /></li>
+          <li><Translation id="app.saveWithATitleToRecallItFromCustomProgressionsYouCan" /></li>
         </ul>
       </>
     ),
   },
   {
     id: "etudes",
-    title: "🎼 에튀드 스튜디오",
-    summary: "연습곡을 고르고 오선보·TAB을 보며 반복 연습",
+    title: ko["app.scorePractice2"],
+    summary: ko["app.chooseAPieceAndPracticeWithStaffNotationAndTab"],
     group: "practice",
     content: (
       <>
-        <p>모바일은 <b>메뉴 → 에튀드 스튜디오</b>, 데스크톱은 왼쪽 메뉴에서 엽니다. 상단의 <b>에튀드</b> 탭은 앱 연습곡, <b>내 악보</b> 탭은 직접 보관한 악보를 보여줍니다.</p>
-        <div className="helpFlow" aria-label="에튀드 연습 순서">
-          <span>에튀드 탭</span><i aria-hidden="true">→</i><span>연습 유형·곡 선택</span><i aria-hidden="true">→</i><span>BPM 설정</span><i aria-hidden="true">→</i><span>재생하며 연습</span>
+        <p><Translation id="app.onMobileOpen" /><b><Translation id="app.menuScorePractice" /></b><Translation id="app.onDesktopUseTheLeftSidebarThe" /><b><Translation id="app.eTudes" /></b><Translation id="app.tabShowsBuiltInPracticePieces" /><b><Translation id="app.myScores" /></b><Translation id="app.showsYourSavedScores" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.eTudePracticeSteps")}>
+          <span><Translation id="app.openETudes" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseACategoryAndPiece" /></span><i aria-hidden="true">→</i><span><Translation id="app.setBpm" /></span><i aria-hidden="true">→</i><span><Translation id="app.playAlong" /></span>
         </div>
         <ul className="helpFactList">
-          <li><b>연습 유형</b>을 고르고 이전·다음 버튼으로 곡을 바꿉니다. <b>TIP · 연습 방법</b>에서 목표, 준비 사항과 연습 순서를 확인하세요.</li>
-          <li>오선보·TAB과 재생 위치를 보며 천천히 따라 연주합니다. <b>화면 따라가기</b>는 줄·마디전환·끔 중에서 고르고, <b>리듬 진행바</b>는 별도로 켜거나 끌 수 있습니다.</li>
-          <li>직접 저장한 편집 악보는 <b>내 저장 악보</b>에서 다시 선택해 연습할 수 있습니다. 악보 재생은 마이크를 이용한 자동 채점이 아닙니다.</li>
+          <li><b><Translation id="app.chooseAPracticeCategory" /></b><Translation id="app.andUsePreviousNextToSwitchPiecesOpen" /><b><Translation id="app.tipPracticeGuide" /></b><Translation id="app.forGoalsPreparationAndPracticeSteps" /></li>
+          <li><Translation id="app.followTheNotationTabAndPlayheadAtASlowTempo" /><b><Translation id="app.autoFollow" /></b><Translation id="app.offersLineBarOrOffThe" /><b><Translation id="app.rhythmProgressBar" /></b><Translation id="app.canBeToggledSeparately" /></li>
+          <li><Translation id="app.openYourEditedScoresFrom" /><b><Translation id="app.savedScores" /></b><Translation id="app.toPracticeAgainScorePlaybackDoesNotScoreYourPerformanceThroughThe" /></li>
         </ul>
       </>
     ),
   },
   {
     id: "score-library",
-    title: "📚 악보저장실 · 내 악보",
-    summary: "PDF 보관, 악보 만들기, 저장·불러오기와 백업",
+    title: ko["app.scoreLibraryMyScores"],
+    summary: ko["app.storePdfsCreateScoresSaveLoadAndBackUp"],
     group: "practice",
     content: (
       <>
-        <p><b>에튀드 스튜디오 → 내 악보</b>에서 PDF와 직접 만든 편집 악보를 함께 관리합니다. 제목·아티스트 검색과 정렬로 원하는 악보를 찾고, 목록에서 열어 연습하세요.</p>
-        <strong>PDF 악보 보관</strong>
-        <div className="helpFlow" aria-label="PDF 악보 저장 순서">
-          <span>PDF 불러오기</span><i aria-hidden="true">→</i><span>파일·곡 정보 확인</span><i aria-hidden="true">→</i><span>저장</span><i aria-hidden="true">→</i><span>목록에서 열기</span>
+        <p><b><Translation id="app.scorePracticeMyScores" /></b><Translation id="app.holdsPdfsAndYourEditedScoresSearchByTitleOrArtistSort" /></p>
+        <strong><Translation id="app.storePdfScores" /></strong>
+        <div className="helpFlow" aria-label={translateUi("app.saveAPdfScore")}>
+          <span><Translation id="app.importPdf" /></span><i aria-hidden="true">→</i><span><Translation id="app.checkFileAndSongDetails" /></span><i aria-hidden="true">→</i><span><Translation id="common.save" /></span><i aria-hidden="true">→</i><span><Translation id="app.openFromTheList" /></span>
         </div>
-        <p>PDF에는 여백 자르기·텍스트 메모·마디 위치와 반복 연습 설정을 사용할 수 있습니다. 인쇄된 음표나 마디가 자동으로 분석되는 것은 아니며, PDF가 편집 가능한 TAB으로 자동 변환되지는 않습니다.</p>
-        <strong>편집 악보 만들기와 다시 열기</strong>
+        <p><Translation id="app.pdfToolsIncludeMarginCroppingTextNotesBarMarkersAndPracticeLoops" /></p>
+        <strong><Translation id="app.createAndReopenAnEditableScore" /></strong>
         <ul className="helpFactList">
-          <li><b>악보 만들기</b>에서 음·쉼표와 마디를 입력하고 재생으로 확인합니다. <b>저장</b>을 눌러 제목·아티스트·BPM 등 곡 정보를 정한 뒤 저장하세요.</li>
-          <li>저장한 악보는 <b>내 악보</b>에서 다시 열어 연습하거나 편집합니다. 원본을 남기려면 편집기의 <b>다른 이름으로 저장 · 복사본</b>을 사용하세요.</li>
-          <li>편집기의 <b>파일 → 악보 JSON 내보내기</b>로 편집 가능한 백업을 보관합니다. 다시 가져올 때는 <b>악보 만들기 → 파일 → 불러오기…</b>에서 해당 파일을 선택하고 저장하세요.</li>
-          <li><b>PDF 내보내기 · 인쇄</b>는 인쇄 창에서 PDF로 저장하는 기능입니다. 이후에도 음표를 수정하려면 JSON 백업도 함께 보관하세요.</li>
+          <li><b><Translation id="app.createScore" /></b><Translation id="app.letsYouEnterNotesRestsAndBarsAndCheckThemWithPlayback" /><b><Translation id="common.save" /></b><Translation id="app.toSetTheTitleArtistBpmAndOtherDetailsBeforeSaving" /></li>
+          <li><Translation id="app.reopenSavedScoresIn" /><b><Translation id="app.myScores" /></b><Translation id="app.toPracticeOrEditToKeepTheOriginalChoose" /><b><Translation id="app.saveAsCopy" /></b><Translation id="app.labelApp3" /></li>
+          <li><Translation id="app.inTheEditorUse" /><b><Translation id="app.fileExportScoreJson" /></b><Translation id="app.toKeepAnEditableBackupToRestoreItOpen" /><b><Translation id="app.createScoreFileImport" /></b><Translation id="app.selectTheFileAndSave" /></li>
+          <li><b><Translation id="app.exportPdfPrint" /></b><Translation id="app.usesThePrintDialogToSaveAPdfKeepAJsonBackup" /></li>
         </ul>
-        <strong>기기 저장 · 백업</strong>
-        <p>악보는 <b>현재 기기·브라우저에 저장</b>되며 다른 기기로 자동 동기화되지 않습니다. <b>PDF 보관함 백업 / PDF 백업 복원</b>으로 원본과 메모·여백·연습 설정을 옮길 수 있습니다. 편집 악보는 별도로 JSON 파일을 내보내세요.</p>
-        <p className="helpInfoNote"><b>원본 PDF 내보내기</b>에는 여백 자르기와 메모가 포함되지 않습니다. 브라우저 데이터를 지우기 전에는 필요한 악보와 백업 파일을 따로 보관하세요.</p>
+        <strong><Translation id="app.localStorageAndBackups" /></strong>
+        <p><Translation id="app.scoresAre" /><b><Translation id="app.storedInThisBrowserOnThisDevice" /></b><Translation id="app.andDoNotSyncAutomaticallyUse" /><b><Translation id="app.backUpPdfLibraryRestorePdfBackup" /></b><Translation id="app.toTransferOriginalsNotesMarginsAndPracticeSettingsExportEditedScoresSeparately" /></p>
+        <p className="helpInfoNote"><b><Translation id="app.exportOriginalPdf" /></b><Translation id="app.doesNotIncludeMarginCroppingOrNotesSaveYourScoresAndBackup" /></p>
       </>
     ),
   },
   {
     id: "mini-backing",
-    title: "🎼 미니반주",
-    summary: "마디에 코드를 넣어 드럼·베이스·피아노 반주 만들기",
+    title: ko["app.miniBacking"],
+    summary: ko["app.enterChordsIntoBarsForDrumBassAndPianoBacking"],
     group: "arrangement",
-    badge: "진행 구성",
+    badge: ko["app.buildProgressions"],
     badgeTone: "arranger",
     content: (
       <>
-        <p>코드를 마디에 배치해 <b>드럼·베이스·피아노</b>가 연주하는 간단한 반주를 만듭니다.</p>
-        <div className="helpFlow" aria-label="미니반주 사용 순서">
-          <span>마디 수 선택</span><i aria-hidden="true">→</i><span>코드 입력</span><i aria-hidden="true">→</i><span>BPM·리듬 설정</span><i aria-hidden="true">→</i><span>재생·저장</span>
+        <p><Translation id="app.placeChordsIntoBarsToCreateABackingTrackWith" /><b><Translation id="app.drumsBassAndPiano" /></b><Translation id="app.labelApp4" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.miniBackingSteps")}>
+          <span><Translation id="app.chooseTheBarCount" /></span><i aria-hidden="true">→</i><span><Translation id="app.enterChords" /></span><i aria-hidden="true">→</i><span><Translation id="app.setBpmAndRhythm" /></span><i aria-hidden="true">→</i><span><Translation id="app.playAndSave" /></span>
         </div>
-        <p>필요하면 전체 이조, 도돌이·엔딩 기호와 <b>Section 편곡</b>으로 구간별 패턴을 다르게 설정하세요. 제목을 입력해 저장하면 불러오기에서 다시 열 수 있습니다.</p>
+        <p><Translation id="app.useTranspositionRepeatsEndingsAnd" /><b><Translation id="app.sectionArrangement" /></b><Translation id="app.toSetDifferentPatternsForEachSectionSaveWithATitleTo" /></p>
       </>
     ),
   },
   {
     id: "metronome",
-    title: "⏱️ 메트로놈",
-    summary: "BPM·자동 템포·연습량·백킹을 한 화면에서",
+    title: ko["app.metronome"],
+    summary: ko["app.bpmTempoAutomationPracticeTrackingAndBackingTogether"],
     group: "tools",
-    badge: "핵심",
+    badge: ko["app.essential"],
     badgeTone: "core",
     content: (
       <>
-        <p>BPM을 직접 조절하거나 <b>TAP</b>으로 템포를 잡은 뒤 박자·분할·음색을 설정하고 재생합니다.</p>
-        <div className="helpFlow" aria-label="메트로놈 사용 순서">
-          <span>BPM·TAP 설정</span><i aria-hidden="true">→</i><span>박자·분할 선택</span><i aria-hidden="true">→</i><span>AUTOMATOR·TRACKER</span><i aria-hidden="true">→</i><span>PLAY</span>
+        <p><Translation id="app.setBpmDirectlyOrUse" /><b><Translation id="originalUi.tap" /></b><Translation id="app.toTapTheTempoThenChooseTheMeterSubdivisionAndSoundAnd" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.metronomeSteps")}>
+          <span><Translation id="app.setBpmOrTap" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseMeterAndSubdivision" /></span><i aria-hidden="true">→</i><span><Translation id="originalUi.automatorTracker" /></span><i aria-hidden="true">→</i><span><Translation id="originalUi.play" /></span>
         </div>
         <ul className="helpFactList">
-          <li>박 표시를 누르면 <b>강박·일반·무음</b> 상태를 바꿀 수 있습니다.</li>
-          <li><b>AUTOMATOR</b>는 마디 또는 시간 간격마다 BPM을 단계적으로 올리거나 내립니다. Coach Mode에서는 소리·무음 마디를 번갈아 연습합니다.</li>
-          <li><b>TRACKER</b>는 마디 수 또는 시간을 기록하며, 목표 도달 시 정지·초기화 조건을 설정할 수 있습니다.</li>
-          <li>아래 <b>Backing Loop</b> 재생을 함께 사용해 반주와 클릭을 동시에 들을 수 있습니다.</li>
+          <li><Translation id="app.tapABeatIndicatorToCycleThrough" /><b><Translation id="app.accentedNormalAndSilent" /></b><Translation id="app.beats" /></li>
+          <li><b><Translation id="originalUi.automator" /></b><Translation id="app.raisesOrLowersBpmInStepsAtBarOrTimeIntervalsCoach" /></li>
+          <li><b><Translation id="originalUi.tracker" /></b><Translation id="app.countsBarsOrTimeWithOptionsToStopOrResetWhenYou" /></li>
+          <li><Translation id="app.useThe" /><b><Translation id="originalUi.backingLoop" /></b><Translation id="app.playerBelowToHearABackingTrackAlongsideTheClick" /></li>
         </ul>
       </>
     ),
   },
   {
     id: "backing-audio",
-    title: "🎛️ 오디오 스튜디오",
-    summary: "음원을 불러오고 녹음·반복·간편 편집·저장하기",
+    title: ko["app.audioStudio"],
+    summary: ko["app.importRecordLoopEditAndSaveAudio"],
     group: "arrangement",
-    badge: "간편 편집",
+    badge: ko["app.quickEditing"],
     badgeTone: "editor",
     content: (
       <>
-        <strong>Backing Loop</strong>
-        <div className="helpFlow" aria-label="백킹 루프 사용 순서">
-          <span>Playlist 열기</span><i aria-hidden="true">→</i><span>App·기기 파일 추가</span><i aria-hidden="true">→</i><span>재생 모드 선택</span>
+        <strong><Translation id="originalUi.backingLoop" /></strong>
+        <div className="helpFlow" aria-label={translateUi("app.backingLoopSteps")}>
+          <span><Translation id="app.openPlaylist" /></span><i aria-hidden="true">→</i><span><Translation id="app.addAppOrDeviceFiles" /></span><i aria-hidden="true">→</i><span><Translation id="app.choosePlaybackMode" /></span>
         </div>
-        <p>이전·재생·다음 버튼과 <b>전체 반복·한 곡 반복·셔플</b>을 사용할 수 있습니다. REC로 연주를 녹음하고, EDIT로 구간을 다듬은 뒤 SAVE로 보관하세요.</p>
-        <strong>Audio Studio</strong>
-        <div className="helpFlow" aria-label="오디오 스튜디오 사용 순서">
-          <span>편집실 열기</span><i aria-hidden="true">→</i><span>음원 추가</span><i aria-hidden="true">→</i><span>TRIM·배치·볼륨</span><i aria-hidden="true">→</i><span>하나로 저장</span>
+        <p><Translation id="app.usePreviousPlayNextAnd" /><b><Translation id="app.repeatAllRepeatOneOrShuffle" /></b><Translation id="app.recordWithRecTrimWithEditAndStoreWithSave" /></p>
+        <strong><Translation id="originalUi.audioStudio" /></strong>
+        <div className="helpFlow" aria-label={translateUi("app.audioStudioSteps")}>
+          <span><Translation id="app.openTheStudio" /></span><i aria-hidden="true">→</i><span><Translation id="app.addAudio" /></span><i aria-hidden="true">→</i><span><Translation id="app.trimPositionVolume" /></span><i aria-hidden="true">→</i><span><Translation id="app.saveAMix" /></span>
         </div>
-        <p>한 개 이상의 파일을 각 트랙에 불러와 구간과 템포를 다듬고, 파형 위치·볼륨·음소거를 조절합니다. 전체 재생으로 확인한 뒤 <b>WAV 완성 음원</b>으로 저장할 수 있습니다.</p>
+        <p><Translation id="app.importOneOrMoreFilesIntoTracksTrimAndAdjustTempoPosition" /><b><Translation id="app.finishedWavFile" /></b><Translation id="app.labelApp5" /></p>
       </>
     ),
   },
   {
     id: "shooter",
-    title: "👾 슈팅게임",
-    summary: "기타로 목표 음을 연주해 음표 맞히기",
+    title: ko["app.noteShooter"],
+    summary: ko["app.playTargetNotesOnYourGuitarToHitThem"],
     group: "tools",
-    badge: "핵심",
+    badge: ko["app.essential"],
     badgeTone: "core",
     content: (
       <>
-        <p>화면에 나타나는 <b>목표 음을 실제 기타로 연주</b>해 다가오는 음표를 맞히는 음 인식 게임입니다.</p>
-        <div className="helpFlow" aria-label="슈팅게임 사용 순서">
-          <span>START</span><i aria-hidden="true">→</i><span>마이크 허용</span><i aria-hidden="true">→</i><span>목표 음 확인</span><i aria-hidden="true">→</i><span>기타로 해당 음 연주</span>
+        <p><Translation id="app.thisPitchRecognitionGameAsksYouTo" /><b><Translation id="app.playTheTargetNoteOnYourGuitar" /></b><Translation id="app.toHitTheApproachingNotes" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.noteShooterSteps")}>
+          <span><Translation id="originalUi.start" /></span><i aria-hidden="true">→</i><span><Translation id="app.allowMicrophoneAccess" /></span><i aria-hidden="true">→</i><span><Translation id="app.checkTheTargetNote" /></span><i aria-hidden="true">→</i><span><Translation id="app.playItOnYourGuitar" /></span>
         </div>
-        <p>한 음씩 또렷하게 연주하세요. 하단 기타에서 나가는 피크가 네온 음표에 명중하면 해당 음표가 빛 조각으로 사라집니다.</p>
+        <p><Translation id="app.playOneClearNoteAtATimeWhenAPickFromThe" /></p>
         <ul className="helpFactList">
-          <li><b>난이도 버튼</b>을 누르면 바로 아래에 연습 설정이 열립니다. 쉬움·보통·어려움과 각 랜덤 모드를 고르고 설정 완료를 누르세요. 게임 중에는 변경할 수 없습니다.</li>
-          <li><b>하강 속도</b>는 0.75×·1×·1.25×·1.5× 중에서 선택합니다. 음표 등장 간격은 유지하고 내려오는 속도만 바꿉니다.</li>
-          <li>음표에는 음 이름과 옥타브가 표시됩니다. C·D·E·F·G·A·B의 네온색은 각각 고정되며, 언어·계이름 표시도 바꿀 수 있습니다.</li>
-          <li><b>스킨변경</b>에서 기타·이펙트·펫·맵·피크를 선택합니다. 몹은 공통 네온 디자인을 사용합니다.</li>
-          <li>처음 실행할 때 기본 맵은 <b>달빛 옥상</b>입니다. 맵 목록 왼쪽에는 달빛 옥상·푸른 바닷속·오로라 빙하·구름 위·은하수 사막·반딧불 숲이 세로로 배치됩니다. 이미 저장한 맵 선택은 유지됩니다.</li>
+          <li><b><Translation id="app.tapTheDifficultyButton" /></b><Translation id="app.toOpenPracticeSettingsBelowItChooseEasyNormalHardOrA" /></li>
+          <li><b><Translation id="app.fallSpeed" /></b><Translation id="app.offers0751125And15ItChangesHow" /></li>
+          <li><Translation id="app.notesShowTheirNameAndOctaveCBEachHaveAFixed" /></li>
+          <li><b><Translation id="app.changeSkin" /></b><Translation id="app.letsYouChooseAGuitarEffectPetMapAndPickAllTargets" /></li>
+          <li><Translation id="app.theDefaultMapOnFirstLaunchIs" /><b><Translation id="app.moonlitRooftop" /></b><Translation id="app.theLeftColumnListsMoonlitRooftopBlueOceanAuroraGlacierAboveThe" /></li>
         </ul>
-        <p>원하는 배경과 도움 표시를 고른 뒤 목표 음부터 천천히 익혀보세요.</p>
+        <p><Translation id="app.chooseABackgroundAndHintsThenTakeYourTimeLearningTheTarget" /></p>
       </>
     ),
   },
   {
     id: "tuner",
-    title: "🎵 튜너",
-    summary: "악기·튜닝과 AUTO·수동 줄을 선택해 조율",
+    title: ko["app.tuner"],
+    summary: ko["app.chooseInstrumentTuningAndAutoOrALockedString"],
     group: "tools",
     content: (
       <>
-        <p><b>기타·베이스·우쿨렐레</b> 중 악기를 고르고 해당 악기의 튜닝을 선택합니다.</p>
-        <div className="helpFlow" aria-label="튜너 사용 순서">
-          <span>악기 선택</span><i aria-hidden="true">→</i><span>튜닝 선택</span><i aria-hidden="true">→</i><span>마이크 허용</span><i aria-hidden="true">→</i><span>한 줄씩 연주</span>
+        <p><b><Translation id="app.chooseGuitarBassOrUkulele" /></b><Translation id="app.thenSelectItsTuning" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.tunerSteps")}>
+          <span><Translation id="app.chooseInstrument" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseTuning" /></span><i aria-hidden="true">→</i><span><Translation id="app.allowMicrophoneAccess" /></span><i aria-hidden="true">→</i><span><Translation id="app.playOneStringAtATime" /></span>
         </div>
         <ul className="helpFactList">
-          <li><b>AUTO</b>는 연주한 음을 자동으로 찾습니다. 헤드의 줄을 누르면 해당 줄만 보는 <b>MANUAL</b> 모드가 되며, 다시 누르면 AUTO로 돌아갑니다.</li>
-          <li>게이지의 <b>낮음·높음</b> 방향과 cents 차이를 보며 조율하고, 중앙의 <b>정확</b> 판정을 확인하세요.</li>
-          <li>처음 사용할 때 브라우저의 마이크 권한을 허용해야 합니다. 차단했다면 주소창의 사이트 권한을 바꾼 뒤 마이크 시작을 다시 누르세요.</li>
+          <li><b><Translation id="originalUi.auto" /></b><Translation id="app.automaticallyDetectsTheNoteYouPlayTapAStringOnTheHeadstock" /><b><Translation id="originalUi.manual" /></b><Translation id="app.modeForThatStringTapAgainToReturnToAuto" /></li>
+          <li><Translation id="app.watchTheGaugeS" /><b><Translation id="app.flatSharp" /></b><Translation id="app.directionAndCentsOffsetThenAimForTheCentered" /><b><Translation id="app.inTune" /></b><Translation id="app.indicator" /></li>
+          <li><Translation id="app.allowMicrophoneAccessInYourBrowserTheFirstTimeIfBlockedUpdate" /></li>
         </ul>
       </>
     ),
   },
   {
     id: "fretboard-viewer",
-    title: "🗺️ 지판 보기",
-    summary: "음표·코드·스케일 위치를 빠르게 확인",
+    title: ko["app.fretboard"],
+    summary: ko["app.quicklyFindNotesChordsAndScales"],
     group: "tools",
-    badge: "인기",
+    badge: ko["app.popular"],
     badgeTone: "hot",
     content: (
       <>
-        <p><b>음표·코드·스케일/펜타토닉</b> 탭에서 필요한 지판 위치를 찾아보는 참고 도구입니다.</p>
-        <div className="helpFlow" aria-label="지판 보기 사용 순서">
-          <span>탭 선택</span><i aria-hidden="true">→</i><span>음·코드·키 설정</span><i aria-hidden="true">→</i><span>지판 위치 확인</span>
+        <p><b><Translation id="app.notesChordsAndScalesPentatonics" /></b><Translation id="app.tabsHelpYouExploreFretboardPositions" /></p>
+        <div className="helpFlow" aria-label={translateUi("app.fretboardSteps")}>
+          <span><Translation id="app.chooseATab" /></span><i aria-hidden="true">→</i><span><Translation id="app.setANoteChordOrKey" /></span><i aria-hidden="true">→</i><span><Translation id="app.checkFretboardPositions" /></span>
         </div>
-        <p>코드는 운지 구간과 전체 코드표를, 스케일은 키·타입·박스를 바꿔가며 비교할 수 있습니다.</p>
+        <p><Translation id="app.compareChordFingeringsAndTheChordChartOrExploreScalesByChanging" /></p>
       </>
     ),
   },
   {
     id: "sound-rhythm",
-    title: "🎛️ 사운드 & 리듬 설정",
-    summary: "반주 악기와 공통 리듬을 한곳에서 관리하기",
+    title: ko["app.soundRhythm2"],
+    summary: ko["app.manageBackingInstrumentsAndSharedRhythms"],
     group: "settings",
     content: (
       <>
-        <p><b>메트로놈</b> 음량과 리듬코드·미니반주가 함께 사용하는 <b>드럼·베이스·피아노</b>의 켜기/끄기, 볼륨과 기본 리듬을 조절합니다.</p>
-        <p>메트로놈 음량은 일반 메트로놈과 에튀드 스튜디오에 함께 반영됩니다. 각 모드의 화면 배치는 달라도 사운드 설정은 공유됩니다.</p>
+        <p><b><Translation id="menu.metronome" /></b><Translation id="app.volumeAndTheSharedRhythmChordsMiniBackingParts" /><b><Translation id="app.drumsBassAndPiano" /></b><Translation id="app.haveOnOffVolumeAndDefaultRhythmControls" /></p>
+        <p><Translation id="app.metronomeVolumeIsSharedByTheStandaloneMetronomeAndScorePracticeSound" /></p>
       </>
     ),
   },
   {
     id: "usage-info",
-    title: "ℹ️ 이용 안내",
-    summary: "회원가입·개인정보·로컬 저장과 문의 안내",
+    title: ko["app.iAbout"],
+    summary: ko["app.accountsPrivacyLocalStorageAndContactInformation"],
     group: "settings",
     content: (
       <>
-        <p>FRETIVA LAB은 <b>회원가입과 결제를 사용하지 않습니다.</b></p>
+        <p><Translation id="app.fretivaLab" /><b><Translation id="app.requiresNoAccountOrPayment" /></b></p>
         <ul className="helpFactList">
-          <li>연습 기록, 불러온 음원과 녹음 파일은 <b>현재 기기의 브라우저 저장공간에만 보관</b>되며 개발자에게 전송되지 않습니다.</li>
-          <li>마이크는 튜너·기타 음 인식과 사용자가 직접 시작한 녹음 기능에서만 사용됩니다.</li>
-          <li>브라우저 데이터 삭제, 저장공간 정리 또는 기기 변경 시 로컬 데이터가 사라질 수 있습니다. 중요한 음원과 악보는 파일 내보내기·백업으로 별도 보관해주세요.</li>
-          <li>불러오는 음원은 본인이 이용 권한을 가진 파일만 사용해주세요.</li>
+          <li><Translation id="app.practiceHistoryImportedAudioAndRecordingsAre" /><b><Translation id="app.storedOnlyInThisBrowserOnThisDevice" /></b><Translation id="app.andAreNotSentToTheDeveloper" /></li>
+          <li><Translation id="app.theMicrophoneIsUsedOnlyForTuningGuitarPitchDetectionAndRecordings" /></li>
+          <li><Translation id="app.clearingBrowserDataFreeingStorageOrChangingDevicesCanRemoveLocalData" /></li>
+          <li><Translation id="app.onlyImportAudioYouHavePermissionToUse" /></li>
         </ul>
-        <strong>문의 및 피드백</strong>
+        <strong><Translation id="app.contactAndFeedback" /></strong>
         <a className="helpInstagramLink" href="https://www.instagram.com/sungsu91_/" rel="noreferrer" target="_blank">
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <rect x="4" y="4" width="16" height="16" rx="5" />
             <circle cx="12" cy="12" r="4" />
             <circle cx="17" cy="7" r="1.2" />
           </svg>
-          <span>Instagram @sungsu91_</span>
+          <span><Translation id="originalUi.instagramSungsu91" /></span>
         </a>
-        <div className="helpSignature" aria-label="FRETIVA LAB, Play Practice Enjoy">
-          <b>FRETIVA LAB</b>
-          <span>Play · Practice · Enjoy</span>
+        <div className="helpSignature" aria-label={translateUi("originalUi.fretivaLabPlayPracticeEnjoy")}>
+          <b><Translation id="originalUi.fretivaLab" /></b>
+          <span><Translation id="originalUi.playPracticeEnjoy" /></span>
         </div>
       </>
     ),
@@ -13989,11 +13993,11 @@ const HELP_GUIDE_SECTION_ORDER = [
 ];
 
 const HELP_GUIDE_GROUP_LABELS = {
-  start: "빠른 시작",
-  practice: "연습 코스",
-  arrangement: "반주 · 편집",
-  tools: "주요 도구",
-  settings: "설정과 이용 안내",
+  start: ko["app.quickStart"],
+  practice: ko["app.practiceCourses"],
+  arrangement: ko["app.backingEditing"],
+  tools: ko["app.mainTools"],
+  settings: ko["app.settingsAndInformation"],
 };
 
 const ORDERED_HELP_GUIDE_SECTIONS = HELP_GUIDE_SECTION_ORDER
@@ -14184,19 +14188,19 @@ const FRETBOARD_VIEWER_MODE_ORDER = [
 
 const CHORD_VIEWER_POSITION_ALL = "all";
 const CHORD_VIEWER_POSITIONS = [
-  { id: "position1", label: "1구간" },
-  { id: "position2", label: "2구간" },
-  { id: "position3", label: "3구간" },
-  { id: "position4", label: "4구간" },
-  { id: "position5", label: "5구간" },
+  { id: "position1", label: ko["app.position1"] },
+  { id: "position2", label: ko["app.position2"] },
+  { id: "position3", label: ko["app.position3"] },
+  { id: "position4", label: ko["app.position4"] },
+  { id: "position5", label: ko["app.position5"] },
 ];
 const NOTE_VIEWER_POSITIONS = [
-  { id: "position1", label: "1구간", range: [0, 3] },
-  { id: "position2", label: "2구간", range: [4, 6] },
-  { id: "position3", label: "3구간", range: [7, 9] },
-  { id: "position4", label: "4구간", range: [10, 12] },
-  { id: "position5", label: "5구간", range: [13, 15] },
-  { id: "all", label: "전체", range: [0, 15] },
+  { id: "position1", label: ko["app.position1"], range: [0, 3] },
+  { id: "position2", label: ko["app.position2"], range: [4, 6] },
+  { id: "position3", label: ko["app.position3"], range: [7, 9] },
+  { id: "position4", label: ko["app.position4"], range: [10, 12] },
+  { id: "position5", label: ko["app.position5"], range: [13, 15] },
+  { id: "all", label: ko["app.all"], range: [0, 15] },
 ];
 const CHORD_CATALOG_ALL = "all";
 const STAGE3_STORAGE_KEY = "guitarTrainer.stage3Settings.v1";
@@ -14211,7 +14215,7 @@ function getStage3DropdownLabel(item) {
     })
     .filter(Boolean)
     .join(" - ");
-  return progression || item?.title || "진행";
+  return progression || item?.title || ko["app.progression"];
 }
 
 function getStage3SavedTitle(item) {
@@ -14446,7 +14450,7 @@ function getStoredStage3QuickSlots() {
       .filter((slot) => !String(slot?.id ?? "").startsWith("preset-") && !String(slot?.id ?? "").startsWith("recommended-"))
       .map((slot, index) => makeStage3LibraryItem({
         id: slot?.id ?? `slot-${Date.now()}-${index}`,
-        title: slot?.title ?? slot?.name ?? (slot?.label?.includes("—") ? slot.label.split("—")[0].trim() : `내 진행 ${index + 1}`),
+        title: slot?.title ?? slot?.name ?? (slot?.label?.includes("—") ? slot.label.split("—")[0].trim() : formatMessage(ko["app.myProgressionValue1"], { value1: index + 1 })),
         chordIds: Array.isArray(slot?.chordIds) ? slot.chordIds : Array.isArray(slot?.chords) ? slot.chords : [],
         capo: slot?.capo,
         bpm: slot?.bpm,
@@ -14523,8 +14527,8 @@ const MINI_CHORD_MARK_POPOVER_SIZE = { width: 268, height: 300 };
 const MINI_CHORD_CHORD_POPOVER_SIZE = { width: 340, height: 400 };
 
 const MINI_CHORD_QUALITY_LABELS = {
-  major: "메이저",
-  minor: "마이너",
+  major: ko["app.major"],
+  minor: ko["app.minor"],
   dim: "dim",
   aug: "aug",
 };
@@ -14653,7 +14657,7 @@ function getMiniChordMarkerIconType(marker) {
 
 function getMiniChordCommandVisual(command, targetIndex = 1, barIndex = null) {
   const safeTargetIndex = normalizeMiniChordMarkerIndex(targetIndex);
-  const barPrefix = barIndex == null ? "" : `${barIndex + 1}마디 `;
+  const barPrefix = barIndex == null ? "" : formatMessage(ko["app.barValue1"], { value1: barIndex + 1 });
   const label = getMiniChordCommandLabel(command, safeTargetIndex);
   if (!label) return null;
   const common = {
@@ -14677,7 +14681,7 @@ function getMiniChordMarkerVisual(marker, markerIndex = 1, barIndex = null) {
   const safeMarkerIndex = normalizeMiniChordMarkerIndex(markerIndex);
   const label = getMiniChordLocationMarkerLabel(marker, safeMarkerIndex);
   if (!label) return null;
-  const barPrefix = barIndex == null ? "" : `${barIndex + 1}마디 `;
+  const barPrefix = barIndex == null ? "" : formatMessage(ko["app.barValue1"], { value1: barIndex + 1 });
   const common = {
     ariaLabel: `${barPrefix}${label}`,
     icon: getMiniChordMarkerIconType(marker),
@@ -14808,14 +14812,15 @@ function MiniChordRepeatBoundaryIcon({ side }) {
 }
 
 function MiniChordMarkVisual({ symbol }) {
+  useLanguage();
   if (!symbol) return null;
   const showIndex = Number(symbol.index) > 1 && (symbol.type === "segno" || symbol.type === "coda" || symbol.type === "toCoda");
   return (
     <span
-      aria-label={symbol.ariaLabel}
+      aria-label={localizeUi(symbol.ariaLabel)}
       className={`miniChordMarkBadge miniChordMarkBadge--${symbol.kind} miniChordMarkBadge--${symbol.type}`}
       role="img"
-      title={symbol.ariaLabel}
+      title={localizeUi(symbol.ariaLabel)}
     >
       {symbol.icon ? <MiniChordMusicSymbolIcon type={symbol.icon} /> : null}
       {symbol.text ? <span className="miniChordMarkBadgeText">{symbol.text}</span> : null}
@@ -14873,6 +14878,7 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
   resolveChord,
   slotIndex,
 }) {
+  useLanguage();
   const primarySlotIndex = slotIndex - (slotIndex % 2);
   const editorSlotIndexes = useMemo(
     () => [primarySlotIndex, primarySlotIndex + 1],
@@ -15097,7 +15103,7 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
 
   return (
     <div
-      aria-label={`${barNumber}마디 ${beatLabel} 코드 설정`}
+      aria-label={translateUi("app.barValue1Value2ChordSettings", { value1: barNumber, value2: beatLabel })}
       className="miniChordChordPopover miniChordFloatingChordPopover miniChordMeasureEditorPanel"
       data-placement={placement}
       onClick={(event) => event.stopPropagation()}
@@ -15111,7 +15117,7 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
     >
       <span aria-hidden="true" className="miniChordMeasureEditorAnchor" />
       <div
-        aria-label="코드 입력창 이동 핸들"
+        aria-label={translateUi("app.chordInputDragHandle")}
         className="miniChordPickerHeader miniChordPickerDragHandle"
         data-drag-handle="mini-chord-chord-picker"
         onDragStart={(event) => event.preventDefault()}
@@ -15120,14 +15126,14 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
         onPointerDown={startDrag}
         onPointerMove={moveDrag}
         onPointerUp={finishDrag}
-        title="드래그하여 코드 입력창 이동"
+        title={translateUi("app.dragToMoveChordInput")}
       >
         <span className="miniChordPickerHeaderCopy">
-          <small>{barNumber}마디 · {beatLabel}</small>
-          <b>코드 설정</b>
+          <small>{barNumber}<Translation id="app.barApp" />{localizeUi(beatLabel)}</small>
+          <b><Translation id="app.chordSettings" /></b>
         </span>
         {isSplit ? (
-          <div aria-label="분할된 두 박 선택" className="miniChordPickerSlotTabs" role="tablist">
+          <div aria-label={translateUi("app.selectTwoSplitBeats")} className="miniChordPickerSlotTabs" role="tablist">
             {editorSlotIndexes.map((targetSlotIndex) => {
               const targetValue = getEditorSlotValue(targetSlotIndex);
               const isRest = Boolean(targetValue) && isMiniChordRestValue(targetValue);
@@ -15144,7 +15150,7 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
                   role="tab"
                   type="button"
                 >
-                  <small>{targetSlotIndex % MINI_CHORD_SLOTS_PER_BAR + 1}박</small>
+                  <small>{targetSlotIndex % MINI_CHORD_SLOTS_PER_BAR + 1}<Translation id="app.beat" /></small>
                   <strong>
                     {isRest ? <MiniChordRestIcon /> : (targetValue || "—")}
                   </strong>
@@ -15154,16 +15160,16 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
           </div>
         ) : (
           <strong
-            aria-label={`선택 코드 ${selectedLabel}`}
+            aria-label={translateUi("app.selectedChordValue1", { value1: selectedLabel })}
             className="miniChordPickerSelectedChord"
-            title={`선택 코드 ${selectedLabel}`}
+            title={translateUi("app.selectedChordValue1", { value1: selectedLabel })}
           >
-            {selectedLabel}
+            {localizeUi(selectedLabel)}
           </strong>
         )}
         <div className="miniChordPickerHeaderActions">
           <button
-            aria-label={isSplit ? "분할된 1박 두 칸을 2박으로 다시 합치기" : "이 2박 칸을 1박씩 쪼개기"}
+            aria-label={isSplit ? translateUi("app.mergeTheseTwo1BeatCellsInto2Beats") : translateUi("app.splitThis2BeatCellInto1BeatCells")}
             aria-pressed={isSplit}
             className={`miniChordSplitButton ${isSplit ? "is-merge" : ""}`}
             onClick={(event) => {
@@ -15179,13 +15185,13 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
               onSplit?.(slotIndex);
             }}
             onPointerDown={(event) => event.stopPropagation()}
-            title={isSplit ? "선택한 박의 코드로 2박 합치기" : "1박 + 1박으로 쪼개기"}
+            title={isSplit ? translateUi("app.mergeInto2BeatsUsingTheSelectedChord") : translateUi("app.splitInto11Beats")}
             type="button"
           >
             <Columns2 aria-hidden="true" size={14} />
           </button>
           <button
-            aria-label="코드 설정 닫기"
+            aria-label={translateUi("app.closeChordSettings")}
             className="miniChordPopupCloseButton"
             onClick={(event) => {
               event.stopPropagation();
@@ -15200,8 +15206,8 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
       </div>
       <div className="miniChordBuilderMini">
         <section className="miniChordBuilderMiniSection">
-          <span>루트</span>
-          <div className="miniChordPickerRoots" aria-label="코드 루트 선택">
+          <span><Translation id="app.root" /></span>
+          <div className="miniChordPickerRoots" aria-label={translateUi("app.chooseChordRoot")}>
             {CHORD_NATURAL_ROOTS.map((root) => (
               <button
                 className={draft.baseRoot === root ? "selected" : ""}
@@ -15215,8 +15221,8 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
           </div>
         </section>
         <section className="miniChordBuilderMiniSection">
-          <span>변화표</span>
-          <div className="miniChordPickerSegment miniChordPickerSegment--accidental" role="group" aria-label="변화표 선택">
+          <span><Translation id="app.accidental" /></span>
+          <div className="miniChordPickerSegment miniChordPickerSegment--accidental" role="group" aria-label={translateUi("app.chooseAccidental")}>
             {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
               const isAvailable = Boolean(resolveChord(
                 draft.baseRoot,
@@ -15232,15 +15238,15 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
                   onClick={() => setDraft((current) => ({ ...current, accidental: accidental.id }))}
                   type="button"
                 >
-                  {accidental.id === "flat" ? "♭" : accidental.label}
+                  {localizeUi(accidental.id === "flat" ? "♭" : accidental.label,{[ko["app.default"]]:"chord.natural"})}
                 </button>
               );
             })}
           </div>
         </section>
         <section className="miniChordBuilderMiniSection">
-          <span>타입</span>
-          <div className="miniChordPickerQualities" role="group" aria-label="코드 타입 선택">
+          <span><Translation id="app.type" /></span>
+          <div className="miniChordPickerQualities" role="group" aria-label={translateUi("app.chooseChordType")}>
             {CHORD_QUALITY_OPTIONS.map((quality) => {
               const nextExtension = normalizeChordExtensionForQuality(quality.id, safeExtension);
               const isSupported = isChordViewerSelectionSupported(quality.id, nextExtension);
@@ -15256,15 +15262,15 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
                   }))}
                   type="button"
                 >
-                  {MINI_CHORD_QUALITY_LABELS[quality.id] ?? quality.label}
+                  {localizeUi(MINI_CHORD_QUALITY_LABELS[quality.id] ?? quality.label)}
                 </button>
               );
             })}
           </div>
         </section>
         <section className="miniChordBuilderMiniSection">
-          <span>확장</span>
-          <div className="miniChordPickerExtensions" role="group" aria-label="확장 코드 선택">
+          <span><Translation id="app.extension" /></span>
+          <div className="miniChordPickerExtensions" role="group" aria-label={translateUi("app.chooseChordExtension")}>
             {extensionOptions.map((extension) => (
               <button
                 className={safeExtension === extension.id ? "selected" : ""}
@@ -15273,7 +15279,7 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
                 onClick={() => setDraft((current) => ({ ...current, extension: extension.id }))}
                 type="button"
               >
-                {extension.label}
+                {localizeUi(extension.label,{[ko["app.default"]]:"chord.noExtension"})}
               </button>
             ))}
           </div>
@@ -15302,10 +15308,10 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
           }}
           type="button"
         >
-          {isSplit ? "두 박 적용" : "적용"}
+          {isSplit ? translateUi("app.applyToBothBeats") : translateUi("app.apply")}
         </button>
         <button
-          aria-label="쉼 설정"
+          aria-label={translateUi("app.setRest")}
           className="miniChordRestAction"
           onClick={() => {
             if (isSplit) {
@@ -15318,11 +15324,11 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
             }
             onCommit(slotIndex, MINI_CHORD_REST_LABEL);
           }}
-          title="쉼"
+          title={translateUi("app.rest")}
           type="button"
         >
           <MiniChordRestIcon />
-          <small>쉼</small>
+          <small><Translation id="app.rest" /></small>
         </button>
         <button
           onClick={() => {
@@ -15337,9 +15343,7 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
             onCommit(slotIndex, "");
           }}
           type="button"
-        >
-          삭제
-        </button>
+        ><Translation id="common.delete" /></button>
       </div>
     </div>
   );
@@ -15379,13 +15383,13 @@ function hasMiniChordMarkerTarget(marks = {}, marker = "", targetIndex = 1, barC
 }
 
 function getMiniChordMissingCodaTargetMessage(targetIndex = 1) {
-  return `${normalizeMiniChordMarkerIndex(targetIndex)}번 Coda 기호가 필요합니다`;
+  return formatMessage(ko["app.codaValue1MarkerRequired"], { value1: normalizeMiniChordMarkerIndex(targetIndex) });
 }
 
 function getMiniChordMissingRequirementMessage(label = "", missingLabels = []) {
   const cleanMissing = [...new Set(missingLabels.filter(Boolean))];
   if (!cleanMissing.length) return "";
-  return `${label ? `${label}: ` : ""}필요한 기호 ${cleanMissing.join(", ")}`;
+  return formatMessage(ko["app.value1RequiredSymbolValue2"], { value1: label ? `${label}: ` : "", value2: cleanMissing.join(", ") });
 }
 
 function getMiniChordMarkMissingRequirements(mark = {}, marks = {}, barCount = 4) {
@@ -15660,7 +15664,7 @@ function createMiniChordPlaybackSequence(barCount = 4, marks = {}) {
 function isMiniChordRestValue(value = "") {
   const token = String(value ?? "").trim();
   return !token
-    || token === "휴지"
+    || token === ko["app.restApp"]
     || token === "-"
     || token === MINI_CHORD_REST_SYMBOL
     || /^rest$/i.test(token)
@@ -15844,7 +15848,7 @@ function getMiniChordMarkersFromBarMarks(marks = {}, markerKey, barCount = 4) {
 function createDefaultMiniChordArrangement() {
   return {
     id: "draft",
-    title: "내 미니코드",
+    title: ko["app.myMiniChords"],
     barCount: 4,
     slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
     slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
@@ -16003,17 +16007,17 @@ const SCALE_DIRECTIONS = {
 };
 
 const SCALE_DIRECTION_OPTIONS = [
-  { id: SCALE_DIRECTIONS.ASC, label: "상행", hint: "낮은 음부터 위로" },
-  { id: SCALE_DIRECTIONS.LOOP, label: "왕복", hint: "상행 후 되돌아오기" },
-  { id: SCALE_DIRECTIONS.DESC, label: "하행", hint: "높은 음부터 아래로" },
+  { id: SCALE_DIRECTIONS.ASC, label: ko["app.ascending"], hint: ko["app.startLowAndAscend"] },
+  { id: SCALE_DIRECTIONS.LOOP, label: ko["app.upAndDown"], hint: ko["app.ascendThenReturn"] },
+  { id: SCALE_DIRECTIONS.DESC, label: ko["app.descending"], hint: ko["app.startHighAndDescend"] },
 ];
 
 const SHOOTER_LEVELS = [
-  { name: "레벨 1", unlockAt: 0, poolRatio: 0.34, randomness: 0.28, jumpBias: 0.12 },
-  { name: "레벨 2", unlockAt: 8, poolRatio: 0.55, randomness: 0.48, jumpBias: 0.28 },
-  { name: "레벨 3", unlockAt: 20, poolRatio: 0.78, randomness: 0.66, jumpBias: 0.48 },
-  { name: "레벨 4", unlockAt: 38, poolRatio: 1, randomness: 0.82, jumpBias: 0.66 },
-  { name: "레벨 5", unlockAt: 62, poolRatio: 1, randomness: 0.94, jumpBias: 0.82 },
+  { name: ko["app.level1"], unlockAt: 0, poolRatio: 0.34, randomness: 0.28, jumpBias: 0.12 },
+  { name: ko["app.level2"], unlockAt: 8, poolRatio: 0.55, randomness: 0.48, jumpBias: 0.28 },
+  { name: ko["app.level3"], unlockAt: 20, poolRatio: 0.78, randomness: 0.66, jumpBias: 0.48 },
+  { name: ko["app.level4"], unlockAt: 38, poolRatio: 1, randomness: 0.82, jumpBias: 0.66 },
+  { name: ko["app.level5"], unlockAt: 62, poolRatio: 1, randomness: 0.94, jumpBias: 0.82 },
 ];
 const SHOOTER_MAX_LIVES = 3;
 const SHOOTER_DIFFICULTIES = {
@@ -16025,12 +16029,12 @@ const SHOOTER_DIFFICULTIES = {
   DIFFICULT_RANDOM: "difficult-random",
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
-  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "0~3프렛 · 기초 순서 연습" },
-  { id: SHOOTER_DIFFICULTIES.EASY_RANDOM, label: "쉬움 랜덤", hint: SHOOTER_EASY_RANDOM_RANGE_LABEL },
-  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "5~10프렛 · 상행/하행" },
-  { id: SHOOTER_DIFFICULTIES.NORMAL_RANDOM, label: "보통 랜덤", hint: SHOOTER_NORMAL_RANDOM_RANGE_LABEL },
-  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "E2~E5 · E Major 왕복" },
-  { id: SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM, label: "어려움 랜덤", hint: "개방현~12프렛 · # 포함 랜덤" },
+  { id: SHOOTER_DIFFICULTIES.EASY, label: ko["app.easy"], hint: ko["app.frets03BasicSequence"] },
+  { id: SHOOTER_DIFFICULTIES.EASY_RANDOM, label: ko["app.easyRandom"], hint: SHOOTER_EASY_RANDOM_RANGE_LABEL },
+  { id: SHOOTER_DIFFICULTIES.NORMAL, label: ko["app.normal"], hint: ko["app.frets510AscendingDescending"] },
+  { id: SHOOTER_DIFFICULTIES.NORMAL_RANDOM, label: ko["app.normalRandom"], hint: SHOOTER_NORMAL_RANDOM_RANGE_LABEL },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: ko["app.hard"], hint: ko["app.e2E5EMajorUpDown"] },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM, label: ko["app.hardRandom"], hint: ko["app.openStringsFret12RandomIncludingSharps"] },
 ];
 const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
 const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 4;
@@ -16236,54 +16240,54 @@ function classNameFromLabel(label) {
 }
 
 const UI_LABELS = {
-  Perfect: "완벽",
-  Good: "좋음",
-  Miss: "실패",
-  Ready: "준비",
-  "Listen and play": "듣고 연주하세요",
-  "Shoot the notes": "목표 음을 연주하세요",
-  "Start Shooter": "슈팅게임 시작",
-  "Game Over": "게임 오버",
-  Success: "성공!",
-  Paused: "일시정지",
-  Play: "연주",
-  "Restart Practice": "연습 다시 시작",
-  Complete: "완료",
-  "Mic Stopped": "마이크 꺼짐",
-  "Choose a practice card": "연습 카드를 선택하세요",
-  "Permission Denied": "마이크 권한 거부",
-  "Mic Connected": "마이크 연결됨",
-  "MIDI Connected": "MIDI 연결됨",
-  "MIDI Disconnected": "MIDI 미연결",
-  "Device Disconnected": "오디오 장치 연결 해제",
-  "Input Error": "오디오 입력 연결 실패",
-  "Listening...": "감지 중",
-  "No Signal": "신호 없음",
-  curriculum: "연습 목차",
-  practice: "훈련장 트레이너",
-  tuner: "튜너",
-  shooter: "슈팅게임",
-  "fretboard-viewer": "지판 보기",
-  idle: "대기",
-  listening: "감지 중",
-  playing: "연습 중",
-  paused: "일시정지",
-  gameover: "종료",
+  Perfect: ko["app.perfect"],
+  Good: ko["app.good"],
+  Miss: ko["app.misses"],
+  Ready: ko["app.ready"],
+  "Listen and play": ko["app.listenAndPlay"],
+  "Shoot the notes": ko["app.playTheTargetNote"],
+  "Start Shooter": ko["app.startNoteShooter"],
+  "Game Over": ko["app.gameOver"],
+  Success: ko["app.success"],
+  Paused: ko["app.pause"],
+  Play: ko["app.play"],
+  "Restart Practice": ko["app.restartPractice"],
+  Complete: ko["common.done"],
+  "Mic Stopped": ko["app.microphoneOff"],
+  "Choose a practice card": ko["app.chooseAPracticeCard"],
+  "Permission Denied": ko["app.microphonePermissionDenied"],
+  "Mic Connected": ko["app.microphoneConnected"],
+  "MIDI Connected": ko["app.midiConnected"],
+  "MIDI Disconnected": ko["app.midiDisconnected"],
+  "Device Disconnected": ko["app.audioDeviceDisconnected"],
+  "Input Error": ko["shooter.audioInputConnectionFailed"],
+  "Listening...": ko["app.detecting"],
+  "No Signal": ko["app.noSignal"],
+  curriculum: ko["app.practiceContents"],
+  practice: ko["app.practiceTrainer"],
+  tuner: ko["menu.tuner"],
+  shooter: ko["menu.shooter"],
+  "fretboard-viewer": ko["menu.fretboard"],
+  idle: ko["app.waiting"],
+  listening: ko["app.detecting"],
+  playing: ko["app.practicing"],
+  paused: ko["app.pause"],
+  gameover: ko["app.exit"],
 };
 
 function t(label) {
-  return UI_LABELS[label] ?? label;
+  return localizeUi(UI_LABELS[label] ?? label);
 }
 
 function getFretLabel(note) {
   if (!note) return "";
   const fretNumber = Number(note.fretNumber ?? note.fret ?? 0);
-  return fretNumber === 0 ? "개방현" : `${fretNumber}프렛`;
+  return fretNumber === 0 ? ko["app.openString"] : formatMessage(ko["app.fretValue1"], { value1: fretNumber });
 }
 
 function getStringFretLabel(note) {
   if (!note) return "";
-  return `${note.stringNumber}번줄 ${getFretLabel(note)}`;
+  return formatMessage(ko["app.stringValue1Value2"], { value1: note.stringNumber, value2: getFretLabel(note) });
 }
 
 function getFretboardPositionsForPitch(pitch, maxFret = MAX_FRETBOARD_GUIDE_FRET) {
@@ -16324,7 +16328,7 @@ function getShooterDifficultyPhase(
   difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
 ) {
   if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM) {
-    return { label: "개방현~12프렛 · # 포함 랜덤", maxFret: 12, poolRatioFloor: 1, poolRatioCap: 1, randomnessBonus: 0, jumpBiasBonus: 0 };
+    return { label: ko["app.openStringsFret12RandomIncludingSharps"], maxFret: 12, poolRatioFloor: 1, poolRatioCap: 1, randomnessBonus: 0, jumpBiasBonus: 0 };
   }
   if (difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM) {
     return {
@@ -16408,7 +16412,7 @@ function getShooterEffectiveLevel(
   const maxTargets = Math.min(getShooterConcurrentTargetLimit(difficulty), SHOOTER_MAX_SIMULTANEOUS_TARGETS);
   if (isShooterRandomDifficulty(difficulty)) {
     return {
-      name: "랜덤",
+      name: ko["app.random"],
       phaseLabel: phase.label,
       maxTargets,
       poolRatio: 1,
@@ -16734,6 +16738,7 @@ function getJudgmentMode(modeId) {
 }
 
 function App({ onReady }) {
+  useLanguage();
   const isDesktopLayout = useDesktopLayout();
   const initialRouteRef = useLazyRef(getInitialAppRoute);
   const initialStage3SettingsRef = useLazyRef(getStoredStage3Settings);
@@ -16910,7 +16915,7 @@ function App({ onReady }) {
   const [stage3StorageSwipeOffset, setStage3StorageSwipeOffset] = useState(0);
   const [stage3StorageSwipeActive, setStage3StorageSwipeActive] = useState(false);
   const [stage3StorageSelectedId, setStage3StorageSelectedId] = useState(initialStage3QuickSlotsRef.current[0]?.id ?? "");
-  const [stage3StorageTitle, setStage3StorageTitle] = useState("내 진행");
+  const [stage3StorageTitle, setStage3StorageTitle] = useState(ko["app.myProgression"]);
   const [stage3StorageMemo, setStage3StorageMemo] = useState("");
   const [stage3StorageEditingId, setStage3StorageEditingId] = useState("");
   const [stage3StorageChordBaseRoot, setStage3StorageChordBaseRoot] = useState("C");
@@ -17561,7 +17566,7 @@ function App({ onReady }) {
 
   const deleteSvgLogoCandidate = useCallback((candidateId) => {
     if (candidateId === svgLogoLabState.activeLogo) {
-      window.alert?.("현재 선택된 SVG 로고는 삭제할 수 없습니다.");
+      window.alert?.(localizeUi(ko["app.theSelectedSvgLogoCannotBeDeleted"]));
       return;
     }
     updateSvgLogoLabState((current) => ({
@@ -17841,10 +17846,10 @@ function App({ onReady }) {
   const deleteGuitarLabVariant = useCallback((variantId) => {
     if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
     if (assignedGuitarVariantIds.has(variantId) || selectedGuitarVariantId === variantId) {
-      window.alert?.("현재 적용 중이거나 슈팅게임 슬롯에 저장된 기타는 삭제할 수 없습니다.");
+      window.alert?.(localizeUi(ko["app.guitarsCurrentlyInUseOrSavedInGameSlotsCannotBeDeleted"]));
       return;
     }
-    if (!window.confirm?.("삭제하시겠습니까?\n삭제한 디자인은 아카이브(휴지통)로 이동합니다.")) return;
+    if (!window.confirm?.(localizeUi(ko["app.deleteThisDesignItWillMoveToTheArchiveTrash"]))) return;
     persistGuitarLabDeletedIds([...guitarLabDeletedIds, variantId]);
   }, [assignedGuitarVariantIds, guitarLabDeletedIds, persistGuitarLabDeletedIds, selectedGuitarVariantId]);
 
@@ -17863,7 +17868,7 @@ function App({ onReady }) {
       (variantId) => !assignedGuitarVariantIds.has(variantId) && selectedGuitarVariantId !== variantId,
     );
     if (!deletableIds.length) return;
-    if (!window.confirm?.("선택한 디자인을 삭제하시겠습니까?\n삭제한 디자인은 아카이브(휴지통)로 이동합니다.")) return;
+    if (!window.confirm?.(localizeUi(ko["app.deleteTheSelectedDesignItWillMoveToTheArchiveTrash"]))) return;
     persistGuitarLabDeletedIds([...guitarLabDeletedIds, ...deletableIds]);
   }, [assignedGuitarVariantIds, guitarLabDeletedIds, guitarLabSelectedDeleteIds, persistGuitarLabDeletedIds, selectedGuitarVariantId]);
 
@@ -17872,7 +17877,7 @@ function App({ onReady }) {
       .map((variant) => variant.id)
       .filter((variantId) => !assignedGuitarVariantIds.has(variantId) && selectedGuitarVariantId !== variantId);
     if (!deletableIds.length) return;
-    if (!window.confirm?.("전체 디자인을 삭제하시겠습니까?\n적용 중인 디자인과 슈팅게임 슬롯에 저장된 디자인은 유지됩니다.")) return;
+    if (!window.confirm?.(localizeUi(ko["app.deleteAllDesignsActiveDesignsAndThoseSavedInGameSlotsWill"]))) return;
     persistGuitarLabDeletedIds([...guitarLabDeletedIds, ...deletableIds]);
   }, [assignedGuitarVariantIds, guitarLabDeletedIds, persistGuitarLabDeletedIds, selectedGuitarVariantId, visibleGuitarLabVariants]);
 
@@ -17883,14 +17888,14 @@ function App({ onReady }) {
 
   const permanentlyDeleteGuitarLabVariant = useCallback((variantId) => {
     if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
-    if (!window.confirm?.("영구 삭제하시겠습니까?\n이 작업은 복원할 수 없습니다.")) return;
+    if (!window.confirm?.(localizeUi(ko["app.deletePermanentlyThisCannotBeUndone"]))) return;
     persistGuitarLabPurgedIds([...guitarLabPurgedIds, variantId]);
   }, [guitarLabPurgedIds, persistGuitarLabPurgedIds]);
 
   const emptyGuitarLabArchive = useCallback(() => {
     const archiveIds = archivedGuitarLabVariants.map((variant) => variant.id);
     if (!archiveIds.length) return;
-    if (!window.confirm?.("휴지통을 비우고 영구 삭제하시겠습니까?\n이 작업은 복원할 수 없습니다.")) return;
+    if (!window.confirm?.(localizeUi(ko["app.emptyTrashAndDeletePermanentlyThisCannotBeUndone"]))) return;
     persistGuitarLabPurgedIds([...guitarLabPurgedIds, ...archiveIds]);
   }, [archivedGuitarLabVariants, guitarLabPurgedIds, persistGuitarLabPurgedIds]);
 
@@ -17904,7 +17909,7 @@ function App({ onReady }) {
   );
 
   const getDesignLabSectionLabel = useCallback((section) => (
-    section.id === "archive" ? `아카이브 (${archivedGuitarLabVariants.length})` : section.label
+    section.id === "archive" ? formatMessage(ko["app.archiveValue1"], { value1: archivedGuitarLabVariants.length }) : section.label
   ), [archivedGuitarLabVariants.length]);
 
   const selectedDesignLabSectionLabel = useMemo(
@@ -17975,16 +17980,16 @@ function App({ onReady }) {
 
   const deleteHeaderVariant = useCallback((variantId) => {
     if (variantId === designLabHeaderState.activeHeader) {
-      window.alert?.("현재 운영중인 시안은 삭제할 수 없습니다.");
+      window.alert?.(localizeUi(ko["app.theLiveDesignCannotBeDeleted"]));
       return;
     }
     if (designLabHeaderState.heldHeaders.includes(variantId)) {
-      window.alert?.("잠금된 시안은 삭제할 수 없습니다. 잠금 해제 후 삭제하세요.");
+      window.alert?.(localizeUi(ko["app.lockedDesignsCannotBeDeletedUnlockFirst"]));
       return;
     }
 
     const label = getHeaderVariantLabel(variantId);
-    if (!window.confirm?.(`${label} 시안을 Design Lab 목록에서 삭제할까요?`)) return;
+    if (!window.confirm?.(localizeUi(formatMessage(ko["app.deleteValue1FromDesignLab"], { value1: label })))) return;
 
     updateDesignLabHeaderState({
       ...designLabHeaderState,
@@ -18035,16 +18040,16 @@ function App({ onReady }) {
 
   const deleteAppIconVariant = useCallback((variantId) => {
     if (variantId === designLabAppIconState.activeIcon) {
-      window.alert?.("현재 운영중인 앱 아이콘은 삭제할 수 없습니다.");
+      window.alert?.(localizeUi(ko["app.theLiveAppIconCannotBeDeleted"]));
       return;
     }
     if (designLabAppIconState.heldIcons.includes(variantId)) {
-      window.alert?.("잠금된 앱 아이콘은 삭제할 수 없습니다. 잠금 해제 후 삭제하세요.");
+      window.alert?.(localizeUi(ko["app.lockedAppIconsCannotBeDeletedUnlockFirst"]));
       return;
     }
 
     const label = getAppIconVariantLabel(variantId);
-    if (!window.confirm?.(`${label} 시안을 App Icon Lab 목록에서 삭제할까요?`)) return;
+    if (!window.confirm?.(localizeUi(formatMessage(ko["app.deleteValue1FromAppIconLab"], { value1: label })))) return;
 
     updateDesignLabAppIconState({
       ...designLabAppIconState,
@@ -18491,7 +18496,7 @@ function App({ onReady }) {
   const selectedScaleDetailValue = isSelectedScaleLick
     ? safeSelectedScaleLick
     : selectedScaleBox;
-  const selectedScaleDetailLabel = "포지션";
+  const selectedScaleDetailLabel = ko["app.position"];
   const selectedPentatonicRef = useRef(selectedPentatonic);
   selectedPentatonicRef.current = selectedPentatonic;
   const viewerScaleTypeOptions =
@@ -18609,7 +18614,7 @@ function App({ onReady }) {
     chord: selectedBuiltChord,
   });
   const viewerTitle = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChordDebugInfo.generatedChordName : viewerScaleBlock.label;
-  const viewerHint = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.hint : "선택한 위치만 참고합니다";
+  const viewerHint = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.hint : ko["app.referenceTheSelectedPositionOnly"];
   const viewerMapFrets = useMemo(() => Array.from({ length: 16 }, (_, index) => index), []);
   const viewerNotePositionRange = NOTE_VIEWER_POSITIONS.at(-1).range;
   const viewerMapStrings = useMemo(() => [...STANDARD_TUNING].sort((a, b) => a.stringNumber - b.stringNumber), []);
@@ -18659,12 +18664,12 @@ function App({ onReady }) {
   }, [viewerChordPosition, viewerMapFrets, viewerMapPitchClasses, viewerMapStrings, viewerMode, viewerNotePositionRange]);
   const viewerMapTitle =
     viewerMode === FRETBOARD_VIEWER_MODES.NOTE
-      ? "전체 음표"
+      ? ko["app.allNotes"]
       : viewerMode === FRETBOARD_VIEWER_MODES.SCALE
         ? viewerScaleBlock.label
         : viewerMode === FRETBOARD_VIEWER_MODES.CHORD
           ? viewerChordDebugInfo.generatedChordName
-          : "기타 지판 정보";
+          : ko["app.guitarFretboardInformation"];
   const viewerChordPositionData = useMemo(() => {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return {};
     return buildChordReferencePositionMap({
@@ -18682,7 +18687,7 @@ function App({ onReady }) {
       : viewerChordPositionData[viewerChordPosition] ?? null;
   const viewerChordPositionLabel = CHORD_VIEWER_POSITIONS.find(
     (position) => position.id === viewerChordPosition,
-  )?.label ?? "1구간";
+  )?.label ?? ko["app.position1"];
   const viewerFretboardNotes = useMemo(() => {
     if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) return viewerScaleBlock.notes;
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return viewerMapNotes;
@@ -18738,7 +18743,7 @@ function App({ onReady }) {
     ),
     [getChordFromSelector, stage3StorageChordAccidental, stage3StorageChordBaseRoot, stage3StorageChordExtension, stage3StorageChordQuality],
   );
-  const stage3StorageSelectedChordName = stage3StorageSelectedChord?.displayName ?? "준비중";
+  const stage3StorageSelectedChordName = stage3StorageSelectedChord?.displayName ?? ko["app.comingSoon"];
   const stage3StorageAvailableExtensionOptions = useMemo(() => CHORD_EXTENSION_OPTIONS
     .filter((extension) => isChordExtensionAvailableForQuality(extension, stage3StorageChordQuality))
     .map((extension) => {
@@ -18770,7 +18775,7 @@ function App({ onReady }) {
   }, [stage3StorageSelectedChord, stage3StorageSelectedChordName]);
   const stage3StorageChordPositionLabel = CHORD_VIEWER_POSITIONS.find(
     (position) => position.id === stage3StorageChordPosition,
-  )?.label ?? "1구간";
+  )?.label ?? ko["app.position1"];
   const stage3StorageCurrentChordPosition = stage3StorageChordPositionData[stage3StorageChordPosition]
     ?? CHORD_VIEWER_POSITIONS
       .map((position) => stage3StorageChordPositionData[position.id])
@@ -18967,16 +18972,16 @@ function App({ onReady }) {
         return {
           barres: [],
           beatLength: 1,
-          displayName: "쉼",
+          displayName: ko["app.rest"],
           fretboard: { barres: [], notes: [], stringStates: {}, visibleFrets: [0, 3] },
-          fretboardDisplayName: "쉼",
+          fretboardDisplayName: ko["app.rest"],
           fretboardSignature: "rest",
           id: RHYTHM_CHORD_REST_ID,
           isEnharmonic: false,
           isRest: true,
           notes: [],
           positionId: "rest",
-          positionLabel: "쉼",
+          positionLabel: ko["app.rest"],
           quality: "rest",
           stringStates: {},
           visibleFrets: [0, 3],
@@ -19038,7 +19043,7 @@ function App({ onReady }) {
         positionId: resolvedPositionId,
         positionLabel: typeof entry === "object" && entry.positionLabel
           ? String(entry.positionLabel)
-          : CHORD_VIEWER_POSITIONS.find((item) => item.id === resolvedPositionId)?.label ?? "1구간",
+          : CHORD_VIEWER_POSITIONS.find((item) => item.id === resolvedPositionId)?.label ?? ko["app.position1"],
         strings: typeof entry === "object" && Array.isArray(entry.strings) ? [...entry.strings] : null,
         rootProvidedByBass: Boolean(typeof entry === "object" && entry.rootProvidedByBass),
         voicingType: typeof entry === "object" ? String(entry.voicingType || "") : "",
@@ -19103,7 +19108,7 @@ function App({ onReady }) {
   const stage3ProgressionLabel = useMemo(
     () => (hasChordTransitionProgression
       ? chordTransitionProgression.map((chord) => chord.displayName).join(" - ")
-      : "진행 없음"),
+      : ko["app.noProgression"]),
     [chordTransitionProgression, hasChordTransitionProgression],
   );
   const stage3RecommendedSlots = useMemo(() => getStage3RecommendedSlots(), []);
@@ -19119,8 +19124,8 @@ function App({ onReady }) {
     .map((id) => stage3QuickSlots.find((slot) => slot.id === id))
     .filter(Boolean);
   const stage3CurrentProgressionTitle = hasChordTransitionProgression
-    ? loadedStage3LibraryItem?.title || selectedStage3LibraryItem?.title || "사용자 진행"
-    : "진행을 선택해주세요";
+    ? loadedStage3LibraryItem?.title || selectedStage3LibraryItem?.title || ko["app.customProgressions"]
+    : ko["app.chooseAProgression"];
   const isStage3RecommendedItem = useCallback((itemOrId) => {
     const id = typeof itemOrId === "string" ? itemOrId : itemOrId?.id;
     return stage3RecommendedSlots.some((item) => item.id === id);
@@ -19233,7 +19238,7 @@ function App({ onReady }) {
     setStage3StorageSaveRequest(null);
     setStage3StorageSaveTitleDraft("");
     setStage3StorageSelectedId("");
-    setStage3StorageTitle(`내 진행 ${stage3QuickSlots.length + 1}`);
+    setStage3StorageTitle(formatMessage(ko["app.myProgressionValue1"], { value1: stage3QuickSlots.length + 1 }));
     setStage3StorageMemo("");
     setStage3StorageEditingId("");
     setStage3StorageChordIds([]);
@@ -19293,7 +19298,7 @@ function App({ onReady }) {
         beatLength: 1,
         id: RHYTHM_CHORD_REST_ID,
         isRest: true,
-        label: "쉼",
+        label: ko["app.rest"],
       },
     ]);
     setStage3StorageChordEditingIndex(null);
@@ -19301,7 +19306,7 @@ function App({ onReady }) {
   const resetStage3StorageComposer = useCallback(() => {
     stage3StorageEditorSessionRef.current += 1;
     setStage3StorageSelectedId("");
-    setStage3StorageTitle(`내 진행 ${stage3QuickSlots.length + 1}`);
+    setStage3StorageTitle(formatMessage(ko["app.myProgressionValue1"], { value1: stage3QuickSlots.length + 1 }));
     setStage3StorageMemo("");
     setStage3StorageEditingId("");
     setStage3StorageChordIds([]);
@@ -19324,7 +19329,7 @@ function App({ onReady }) {
         ? stage3StorageStrumPatternRef.current
         : stage3StorageStrumPattern,
     );
-    const defaultTitle = getChordProgressionText(chordIdsForSave) || "내 진행";
+    const defaultTitle = getChordProgressionText(chordIdsForSave) || ko["app.myProgression"];
     const saveData = makeStage3LibraryItem({
       id,
       title: String(title || "").trim() || defaultTitle,
@@ -19367,7 +19372,7 @@ function App({ onReady }) {
   const requestSaveStage3StorageItem = useCallback(() => {
     if (!hasStage3StorageProgression) return;
     const chordIds = getStage3StorageChordIdsWithActiveDraft();
-    const defaultTitle = getChordProgressionText(chordIds) || "내 진행";
+    const defaultTitle = getChordProgressionText(chordIds) || ko["app.myProgression"];
     const existingItem = stage3QuickSlots.find((slot) => slot.id === stage3StorageEditingId) ?? null;
     const existingTitle = String(existingItem?.title || "").trim();
     const existingAutoTitle = existingItem
@@ -19432,7 +19437,7 @@ function App({ onReady }) {
     const copied = makeStage3LibraryItem({
       ...item,
       id: `slot-${Date.now()}`,
-      title: `${item.title} 복사`,
+      title: formatMessage(ko["app.value1Copy"], { value1: item.title }),
       chordIds: item.chordIds,
       locked: false,
     });
@@ -19478,7 +19483,7 @@ function App({ onReady }) {
     }
     if (deletableIds.has(String(stage3StorageEditingId))) {
       setStage3StorageEditingId("");
-      setStage3StorageTitle("내 진행");
+      setStage3StorageTitle(ko["app.myProgression"]);
       setStage3StorageMemo("");
       setStage3StorageChordIds([]);
       setStage3StorageChordEditingIndex(null);
@@ -19637,8 +19642,8 @@ function App({ onReady }) {
     if (safeCategory.id !== "scale-block") return safeCategory;
     return {
       ...safeCategory,
-      title: "포지션 기반 지판 훈련",
-      subtitle: "선택한 블록을 연습해요",
+      title: ko["app.positionBasedFretboardPractice"],
+      subtitle: ko["app.practiceTheSelectedBox"],
       modeLabel: selectedPentatonic.label,
       notes: selectedPentatonic.notes,
       sequence: selectedPentatonic.sequence,
@@ -21657,7 +21662,7 @@ function App({ onReady }) {
       lives: shooterLivesRef.current,
     });
     const missedPositions = stats.missedSteps.map((step) => (
-      `${step.pitch} · ${step.stringNumber}번줄 ${step.fretNumber === 0 ? "개방현" : `${step.fretNumber}프렛`}`
+      formatMessage(ko["app.value1StringValue2Value3"], { value1: step.pitch, value2: step.stringNumber, value3: step.fretNumber === 0 ? ko["app.openString"] : formatMessage(ko["app.fretValue1"], { value1: step.fretNumber }) })
     ));
     setShooterScenarioRoundSummary({
       difficulty,
@@ -23058,7 +23063,7 @@ function App({ onReady }) {
         ? (patternRef.current + 1) % sequence.length
         : Math.min(patternRef.current + 1, sequence.length - 1);
       setReferenceStepTick((value) => value + 1);
-      setFeedback("다음 음");
+      setFeedback(ko["app.nextNote"]);
     },
     [playCountInVoice, playPatternTick, selectedCategory.sequence, setState],
   );
@@ -23688,7 +23693,7 @@ function App({ onReady }) {
     const requestVersion = ++micRequestVersionRef.current;
     const showPermissionGuide = () => {
       if (quiet) return;
-      window.alert(mediaPermissionGuide({ mobile: isMobileLayout }));
+      window.alert(localizeUi(mediaPermissionGuide({ mobile: isMobileLayout })));
     };
 
     try {
@@ -23698,7 +23703,7 @@ function App({ onReady }) {
           if (permission.state === "denied") {
             publishAudioInput({ status: "denied" });
             setMicStatus("Permission Denied");
-            setFeedback("마이크 권한 필요");
+            setFeedback(ko["app.microphonePermissionRequired"]);
             showPermissionGuide();
             return false;
           }
@@ -23735,11 +23740,11 @@ function App({ onReady }) {
       if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getAudioInputSelection().shooterSource !== "audio") return false;
       const inputError = audioInputError(error);
       setMicStatus(inputError === 'denied' ? 'Permission Denied' : inputError === 'disconnected' ? 'Device Disconnected' : 'Input Error');
-      setFeedback(inputError === 'denied' ? '마이크 권한 필요' : inputError === 'disconnected' ? '입력 장치 연결 해제' : '입력 연결 실패');
+      setFeedback(inputError === 'denied' ? ko["app.microphonePermissionRequired"] : inputError === 'disconnected' ? ko["app.inputDeviceDisconnected"] : ko["app.inputConnectionFailed"]);
       if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
         showPermissionGuide();
       } else {
-        if (!quiet) window.alert("마이크를 시작할 수 없습니다.\n\n새로고침 후 다시 시도해주세요.");
+        if (!quiet) window.alert(localizeUi(ko["app.couldnTStartTheMicrophoneRefreshAndTryAgain"]));
       }
       console.error(error);
       return false;
@@ -23754,7 +23759,7 @@ function App({ onReady }) {
       onHidden: () => {
         if (gameStateRef.current === GAME_STATES.PLAYING) {
           setState(GAME_STATES.PAUSED);
-          setFeedback("돌아오면 계속 버튼을 눌러주세요.");
+          setFeedback(ko["app.pressResumeWhenYouReturn"]);
         }
       },
     });
@@ -23799,12 +23804,12 @@ function App({ onReady }) {
     if (safeCategory.id === "rhythm") {
       const audioReady = await warmCoreAudioEngine({ resumeAudio: true });
       if (!audioReady) {
-        setFeedback("오디오 준비 필요");
+        setFeedback(ko["app.audioSetupRequired"]);
         return;
       }
       const preparedSession = await prepareStage3BackingSession({ preloadAudio: false });
       if (!preparedSession?.events?.length) {
-        setFeedback("반주 준비 필요");
+        setFeedback(ko["app.backingSetupRequired"]);
         return;
       }
       setStage3StorageOpen(false);
@@ -23849,13 +23854,13 @@ function App({ onReady }) {
     }
     const audio = ensureAudioContext();
     if (!audio) {
-      setFeedback("오디오 준비 필요");
+      setFeedback(ko["app.audioSetupRequired"]);
       return;
     }
     ensureMetronomeOutput(audio);
     const audioReady = await ensureAudioReady();
     if (!audioReady) {
-      setFeedback("오디오 준비 필요");
+      setFeedback(ko["app.audioSetupRequired"]);
       return;
     }
     await loadMetronomeSamples(audioRef.current || audio);
@@ -23947,7 +23952,7 @@ function App({ onReady }) {
         resumeDetectorReady = await startMic();
       }
       if (!resumeDetectorReady) {
-        setFeedback(getAudioInputSelection().shooterSource === "midi" ? "MIDI 장치 연결 필요" : "오디오 입력 필요");
+        setFeedback(getAudioInputSelection().shooterSource === "midi" ? ko["app.connectAMidiDevice"] : ko["app.audioInputRequired"]);
         setState(GAME_STATES.LISTENING);
         return;
       }
@@ -23977,7 +23982,7 @@ function App({ onReady }) {
     );
 
     if (!detectorReady) {
-      setFeedback(getAudioInputSelection().shooterSource === "midi" ? "MIDI 장치 연결 필요" : "오디오 입력 필요");
+      setFeedback(getAudioInputSelection().shooterSource === "midi" ? ko["app.connectAMidiDevice"] : ko["app.audioInputRequired"]);
       setState(GAME_STATES.LISTENING);
       return;
     }
@@ -24205,7 +24210,7 @@ function App({ onReady }) {
 
   const requestMobileShooterLandscape = useCallback(async () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
-    setShooterLandscapeHint("휴대폰을 가로로 돌려주세요.");
+    setShooterLandscapeHint(ko["app.rotateYourPhoneToLandscape"]);
     try {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         await document.documentElement.requestFullscreen();
@@ -24214,7 +24219,7 @@ function App({ onReady }) {
       const orientation = window.screen?.orientation;
       if (orientation?.lock) await orientation.lock("landscape");
     } catch {
-      setShooterLandscapeHint("회전 잠금을 풀고 휴대폰을 직접 가로로 돌려주세요.");
+      setShooterLandscapeHint(ko["app.unlockScreenRotationAndTurnYourPhoneToLandscape"]);
     }
   }, []);
 
@@ -27381,7 +27386,7 @@ function App({ onReady }) {
   const displayedReferencePrompt = showTrainingNoteGuide ? referenceDisplayPrompt : null;
   const referencePromptDisplayLabel = displayedReferencePrompt
     ? `${displayedReferencePrompt.solfege ?? getSolfege(displayedReferencePrompt.pitch)} / ${displayedReferencePrompt.pitch}`
-    : showTrainingNoteGuide ? "준비" : "진행 OFF";
+    : showTrainingNoteGuide ? ko["app.ready"] : ko["app.progressOff"];
   const referenceNextPrompt =
     nextNotes.find(
       (note) =>
@@ -27432,7 +27437,7 @@ function App({ onReady }) {
     return [0, 3];
   }, [selectedCategory.id, selectedPentatonic.visibleFrets]);
   const getReferenceStageValue = useCallback((note) => {
-    if (!note) return "준비";
+    if (!note) return ko["app.ready"];
     return note.noteName ?? getPitchClass(note.pitch) ?? note.pitch;
   }, []);
   const scaleReferenceTitle = useMemo(() => {
@@ -27444,15 +27449,15 @@ function App({ onReady }) {
     return `${rootLabel} ${type.label} ${family.label} BOX${selectedScaleBox}`;
   }, [isSelectedScaleLick, selectedPentatonic.label, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
   const referenceCurrentLabel = selectedCategory.tutorial
-    ? "현재 연습"
+    ? ko["app.currentExercise"]
     : selectedCategory.id === "scale-block"
-      ? "현재 음"
-      : "현재 음표";
+      ? ko["app.currentNote"]
+      : ko["app.currentNote2"];
   const referenceNextLabel = selectedCategory.tutorial
-    ? "다음 연습"
+    ? ko["app.nextExercise"]
     : selectedCategory.id === "scale-block"
-      ? "다음 음"
-      : "다음 음표";
+      ? ko["app.nextNote"]
+      : ko["app.nextNote2"];
   const detectedReferenceScaleNote = detectedScaleNote;
   const debugTargetNote =
     appMode === APP_MODES.SHOOTER
@@ -27515,7 +27520,7 @@ function App({ onReady }) {
   const shooterPhaseDisplayLabel = isShooterScriptedDifficulty(shooterDifficulty)
     ? `${shooterLevel.phaseLabel} · ${shooterScenarioDisplayBpm} BPM`
     : shooterLevel.phaseLabel;
-  const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? "쉬움";
+  const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? ko["app.easy"];
   const shooterTotalAccuracy = shooterRecords.totals.shots > 0
     ? Math.round((shooterRecords.totals.hits / shooterRecords.totals.shots) * 100)
     : 0;
@@ -27524,7 +27529,7 @@ function App({ onReady }) {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    if (hours > 0) return `${hours}시간 ${minutes}분`;
+    if (hours > 0) return formatMessage(ko["app.value1HValue2Min"], { value1: hours, value2: minutes });
     return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   };
   const formatShooterRecordDate = (timestamp) => {
@@ -27700,10 +27705,10 @@ function App({ onReady }) {
     return start != null && end != null ? { start, end } : null;
   }, [miniChordRepeatEndsFromMarks, miniChordRepeatStartsFromMarks]);
   const miniChordSelectedRangeLabel = miniChordSelectedRange
-    ? `${miniChordSelectedRange.startBar + 1}-${miniChordSelectedRange.endBar + 1}마디`
+    ? formatMessage(ko["app.barsValue1Value2"], { value1: miniChordSelectedRange.startBar + 1, value2: miniChordSelectedRange.endBar + 1 })
     : miniChordRangeStartBar != null
-      ? `${miniChordRangeStartBar + 1}마디부터`
-      : "범위 없음";
+      ? formatMessage(ko["app.fromBarValue1"], { value1: miniChordRangeStartBar + 1 })
+      : ko["app.noRange"];
   const miniChordArrangementCount = normalizedMiniChordArrangementOverrides.length;
   const miniChordArrangementManagerEntries = normalizedMiniChordArrangementOverrides
     .map((override, arrangementIndex) => ({ arrangementIndex, override }))
@@ -27727,7 +27732,7 @@ function App({ onReady }) {
       miniChordOperationFrameRef.current = null;
     }
     if (miniChordOperationLabelRef.current) {
-      miniChordOperationLabelRef.current.textContent = String(label || "처리 중");
+      miniChordOperationLabelRef.current.textContent = String(label || ko["app.processing"]);
     }
     if (miniChordOperationIndicatorRef.current) {
       miniChordOperationIndicatorRef.current.hidden = false;
@@ -27813,10 +27818,10 @@ function App({ onReady }) {
     setMiniChordGrooveEditorScope("global");
     setMiniChordGrooveDraftPattern(null);
     setMiniChordNotice(target
-      ? `${target.duplicate ? "복제할 Section" : `Section ${nextArrangementNumber}`}의 새 시작 마디를 선택하세요 · 리듬 값 유지`
+      ? formatMessage(ko["app.chooseANewStartBarForValue1RhythmKept"], { value1: target.duplicate ? ko["app.sectionToDuplicate"] : `Section ${nextArrangementNumber}` })
       : miniChordArrangementCount > 0
-        ? `Section ${nextArrangementNumber} 시작 마디를 선택하세요 · 기존 ${miniChordArrangementCount}개 Section 유지`
-        : "첫 Section 시작 마디를 선택하세요");
+        ? formatMessage(ko["app.chooseSectionValue1StartKeepValue2ExistingSections"], { value1: nextArrangementNumber, value2: miniChordArrangementCount })
+        : ko["app.chooseTheFirstSectionSStartBar"]);
   }, [miniChordArrangementCount]);
 
   const createMiniChordArrangementDraftForRange = useCallback((range, seedPatch = {}) => {
@@ -27876,7 +27881,7 @@ function App({ onReady }) {
     );
     const nextDraft = createMiniChordArrangementDraftForRange(range, seedPatch);
     if (!nextDraft) {
-      setMiniChordNotice("편곡할 시작 마디와 끝 마디를 선택하세요");
+      setMiniChordNotice(ko["app.chooseTheArrangementSStartAndEndBars"]);
       return;
     }
     setMiniChordArrangementDraft(nextDraft);
@@ -27899,7 +27904,7 @@ function App({ onReady }) {
       if (startBar == null) {
         setMiniChordArrangementConfirmOpen(false);
         setMiniChordSelectedRange({ startBar: safeBarIndex, endBar: safeBarIndex });
-        setMiniChordNotice(`${safeBarIndex + 1}마디 시작 · 끝 마디를 선택하세요`);
+        setMiniChordNotice(formatMessage(ko["app.startsAtBarValue1ChooseTheEndBar"], { value1: safeBarIndex + 1 }));
         return safeBarIndex;
       }
       const nextRange = {
@@ -27908,7 +27913,7 @@ function App({ onReady }) {
       };
       setMiniChordSelectedRange(nextRange);
       setMiniChordArrangementConfirmOpen(true);
-      setMiniChordNotice(`${nextRange.startBar + 1}-${nextRange.endBar + 1}마디 범위를 확인하세요`);
+      setMiniChordNotice(formatMessage(ko["app.checkBarsValue1Value2"], { value1: nextRange.startBar + 1, value2: nextRange.endBar + 1 }));
       return null;
     });
   }, [miniChordBarCount]);
@@ -28036,8 +28041,8 @@ function App({ onReady }) {
     setMiniChordSelectedRange(null);
     setMiniChordArrangementManagerTarget(null);
     setMiniChordNotice(appliedArrangementNumber > 0
-      ? `${nextDraft.sectionName} · ${nextDraft.startBar + 1}-${nextDraft.endBar + 1}마디 편곡 적용`
-      : `${nextDraft.startBar + 1}-${nextDraft.endBar + 1}마디는 기본 반주 설정을 사용합니다`);
+      ? formatMessage(ko["app.value1ApplyArrangementToBarsValue2Value3"], { value1: nextDraft.sectionName, value2: nextDraft.startBar + 1, value3: nextDraft.endBar + 1 })
+      : formatMessage(ko["app.barsValue1Value2UseTheDefaultBackingSettings"], { value1: nextDraft.startBar + 1, value2: nextDraft.endBar + 1 }));
   }, [miniChordArrangementDraft, miniChordArrangementReselectTarget, miniChordBarCount]);
 
   const clearMiniChordSelectedRangeArrangement = useCallback(() => {
@@ -28061,7 +28066,7 @@ function App({ onReady }) {
       setMiniChordArrangementDraft(null);
       setMiniChordRangeStartBar(null);
       setMiniChordSelectedRange(null);
-      setMiniChordNotice("Section 복제를 취소했습니다");
+      setMiniChordNotice(ko["app.sectionDuplicationCanceled"]);
       return;
     }
     const nextOverrides = miniChordArrangementReselectTarget
@@ -28092,8 +28097,8 @@ function App({ onReady }) {
     setMiniChordRangeStartBar(null);
     setMiniChordSelectedRange(null);
     setMiniChordNotice(nextOverrides.length > 0
-      ? `Section 삭제 · ${nextOverrides.length}개 Section 유지`
-      : "Section을 삭제했습니다");
+      ? formatMessage(ko["app.sectionDeletedValue1SectionsKept"], { value1: nextOverrides.length })
+      : ko["app.sectionDeleted"]);
   }, [
     miniChordArrangementDraft,
     miniChordArrangementReselectTarget,
@@ -28119,8 +28124,8 @@ function App({ onReady }) {
     setMiniChordArrangementManagerTarget(null);
     setMiniChordArrangementReselectTarget(null);
     setMiniChordNotice(nextOverrides.length > 0
-      ? `Section ${arrangementNumber} 삭제 · ${nextOverrides.length}개 Section 유지`
-      : `Section ${arrangementNumber} 삭제`);
+      ? formatMessage(ko["app.sectionValue1DeletedValue2SectionsKept"], { value1: arrangementNumber, value2: nextOverrides.length })
+      : formatMessage(ko["app.sectionValue1Deleted"], { value1: arrangementNumber }));
   }, [miniChordBarCount]);
 
   const getMiniChordFloatingPosition = useCallback((rect, size = {}) => {
@@ -28206,7 +28211,7 @@ function App({ onReady }) {
     const nextTranspose = clampMiniChordTranspose(miniChordTransposeSemitonesRef.current + step);
     if (nextTranspose === miniChordTransposeSemitonesRef.current) return;
     miniChordTransposeSemitonesRef.current = nextTranspose;
-    runMiniChordOperation("키 변경 중", () => {
+    runMiniChordOperation(ko["app.changingKey"], () => {
       setMiniChordNotice("");
       setMiniChordTransposeSemitones(nextTranspose);
     });
@@ -28215,7 +28220,7 @@ function App({ onReady }) {
   const resetMiniChordTranspose = useCallback(() => {
     if (miniChordTransposeSemitonesRef.current === 0) return;
     miniChordTransposeSemitonesRef.current = 0;
-    runMiniChordOperation("원래 키로 복귀 중", () => {
+    runMiniChordOperation(ko["app.returningToOriginalKey"], () => {
       setMiniChordNotice("");
       setMiniChordTransposeSemitones(0);
     });
@@ -28239,7 +28244,7 @@ function App({ onReady }) {
       slotIndex,
       miniChordBarCount,
     );
-    setMiniChordNotice("2박 칸을 각각 편집할 수 있는 1박 두 칸으로 나눴습니다");
+    setMiniChordNotice(ko["app.splitThe2BeatCellIntoTwoEditable1BeatCells"]);
     setMiniChordSlots(result.slots);
     setMiniChordSplitSlots(result.splitSlots);
     setMiniChordActiveSlot(result.primarySlotIndex);
@@ -28253,7 +28258,7 @@ function App({ onReady }) {
       miniChordBarCount,
       { preferredSlotIndex, preferredValue },
     );
-    setMiniChordNotice("선택한 박의 코드를 유지하고 1박 두 칸을 2박 칸으로 합쳤습니다");
+    setMiniChordNotice(ko["app.mergedTwo1BeatCellsInto2BeatsKeepingTheSelectedChord"]);
     setMiniChordSlots(result.slots);
     setMiniChordSplitSlots(result.splitSlots);
     setMiniChordActiveSlot(result.primarySlotIndex);
@@ -28584,7 +28589,7 @@ function App({ onReady }) {
     setMiniChordEndingPopoverPosition(null);
     setMiniChordChordPickerPosition(null);
     setMiniChordNotice(isRecommendedProgression
-      ? "자유롭게 편집하세요 · 저장하면 내 반주로 추가되며 원본은 유지됩니다"
+      ? ko["app.editFreelySavingAddsYourOwnCopyAndKeepsTheOriginal"]
       : "");
     miniChordPlaybackStoreRef.current.setPosition();
     setMiniChordIsPlaying(false);
@@ -28593,7 +28598,7 @@ function App({ onReady }) {
   }, [stopBackingScheduler]);
 
   const saveMiniChordArrangement = useCallback(() => {
-    runMiniChordOperation("저장 중", () => {
+    runMiniChordOperation(ko["app.saving"], () => {
       const current = getCurrentMiniChordArrangement();
       setMiniChordSavedItems((items) => {
         const recommendedProgressions = items.filter((item) => item.builtIn);
@@ -28601,7 +28606,7 @@ function App({ onReady }) {
         return [...recommendedProgressions, current, ...userItems].slice(0, recommendedProgressions.length + 24);
       });
       setMiniChordRecommendedProgressionId("");
-      setMiniChordNotice("내 반주에 새 사본을 저장했습니다");
+      setMiniChordNotice(ko["app.savedANewCopyToMyBacking"]);
       setMiniChordLoadSelectedIds([]);
       setMiniChordDeleteConfirmOpen(false);
       setMiniChordSaveConfirmOpen(false);
@@ -28624,7 +28629,7 @@ function App({ onReady }) {
     setMiniChordHistoryRenderVersion((version) => version + 1);
     setMiniChordResetOpen(false);
     setMiniChordResetAllConfirmOpen(false);
-    setMiniChordNotice(direction === "redo" ? "다시 실행했습니다" : "이전 편집 상태로 되돌렸습니다");
+    setMiniChordNotice(direction === "redo" ? ko["app.redone"] : ko["app.restoredPreviousEdit"]);
   }, [applyMiniChordEditSnapshot]);
 
   const resetMiniChordCodes = useCallback(() => {
@@ -28635,7 +28640,7 @@ function App({ onReady }) {
     setMiniChordChordPickerSlot(null);
     setMiniChordChordPickerPosition(null);
     setMiniChordResetOpen(false);
-    setMiniChordNotice("전체 마디의 코드만 초기화했습니다");
+    setMiniChordNotice(ko["app.clearedChordsInAllBars"]);
   }, [miniChordBarCount]);
 
   const resetMiniChordStructure = useCallback(() => {
@@ -28646,7 +28651,7 @@ function App({ onReady }) {
     setMiniChordActiveBarIndex(null);
     setMiniChordEndingPopoverPosition(null);
     setMiniChordResetOpen(false);
-    setMiniChordNotice("도돌이와 엔딩, 이동 기호만 초기화했습니다");
+    setMiniChordNotice(ko["app.clearedRepeatEndingAndNavigationSymbols"]);
   }, []);
 
   const resetAllMiniChordEdits = useCallback(() => {
@@ -28665,7 +28670,7 @@ function App({ onReady }) {
     setMiniChordChordPickerPosition(null);
     setMiniChordResetOpen(false);
     setMiniChordResetAllConfirmOpen(false);
-    setMiniChordNotice("코드와 구조/기호를 모두 초기화했습니다");
+    setMiniChordNotice(ko["app.clearedChordsAndStructureSymbols"]);
   }, [miniChordBarCount]);
 
   const getMiniChordBackingPlaybackData = useCallback((globalArrangementOverride = {}) => {
@@ -28829,7 +28834,7 @@ function App({ onReady }) {
         };
     const sequenceIndex = findMiniChordPlaybackSequenceIndexForBar(playbackPlan, barIndex);
     if (sequenceIndex < 0) {
-      setMiniChordNotice(`${barIndex + 1}마디는 현재 재생 경로에 포함되지 않습니다`);
+      setMiniChordNotice(formatMessage(ko["app.barValue1IsNotInTheCurrentPlaybackPath"], { value1: barIndex + 1 }));
       return;
     }
 
@@ -28840,7 +28845,7 @@ function App({ onReady }) {
     miniChordPlayheadRef.current = slotIndex;
     miniChordPlaybackStoreRef.current.setPosition({ barIndex, slotIndex });
     setMiniChordPageIndex(getMiniChordPageIndexForBar(barIndex));
-    setMiniChordNotice(`${barIndex + 1}마디부터 재생`);
+    setMiniChordNotice(formatMessage(ko["app.playFromBarValue1"], { value1: barIndex + 1 }));
     miniChordProgressAnimationRef.current?.animation.cancel();
     miniChordProgressAnimationRef.current = null;
     if (!miniChordPlaybackFrameRef.current) {
@@ -28880,7 +28885,7 @@ function App({ onReady }) {
     if (miniChordStartTokenRef.current !== startToken || appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) return;
     if (!audioReady || !audioRef.current) {
       setMiniChordIsStarting(false);
-      setMiniChordNotice("오디오를 시작할 수 없습니다");
+      setMiniChordNotice(ko["app.couldnTStartAudio"]);
       return;
     }
 
@@ -28902,7 +28907,7 @@ function App({ onReady }) {
       if (miniChordStartTokenRef.current !== startToken || appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) return;
       if (!session?.events?.length) {
         setMiniChordIsStarting(false);
-        setMiniChordNotice("반주할 마디가 없습니다");
+        setMiniChordNotice(ko["app.noBarsToPlay"]);
         return;
       }
       const beginMiniChordPlayback = () => {
@@ -28953,7 +28958,7 @@ function App({ onReady }) {
     } catch (error) {
       console.warn("Mini chord backing start failed.", error);
       stopMiniChordPreview();
-      setMiniChordNotice("반주 준비 중 문제가 발생했습니다");
+      setMiniChordNotice(ko["app.couldnTPrepareTheBackingTrack"]);
     }
   }, [
     ensureAudioReady,
@@ -29169,7 +29174,7 @@ function App({ onReady }) {
   const loadSelectedMiniChordArrangement = useCallback((itemId) => {
     const item = miniChordLoadLibrary.itemsById.get(itemId);
     if (!item) return;
-    runMiniChordOperation("불러오는 중", () => loadMiniChordArrangement(item));
+    runMiniChordOperation(ko["app.loading"], () => loadMiniChordArrangement(item));
   }, [loadMiniChordArrangement, miniChordLoadLibrary, runMiniChordOperation]);
 
   const requestDeleteMiniChordSavedItem = useCallback((itemId = "") => {
@@ -29225,22 +29230,22 @@ function App({ onReady }) {
   }, [appMode, closeMiniChordFloatingEditors, miniChordActiveBarIndex, miniChordChordPickerSlot]);
 
   const contentHeader = appMode === APP_MODES.ETUDES
-      ? { title: "에튀드 스튜디오", subtitle: "오선보 · TAB으로 연습하는 기타 테크닉" }
+      ? { title: ko["app.scorePractice"], subtitle: ko["app.notationTabPhrasePractice"] }
     : appMode === APP_MODES.FRETBOARD_VIEWER
-      ? { title: "지판보기", subtitle: "음표와 코드 위치를 빠르게 확인" }
+      ? { title: ko["app.fretboardApp"], subtitle: ko["app.quicklyFindNotesAndChordPositions"] }
     : appMode === APP_MODES.MINI_CHORD_MAKER
-      ? { title: "미니코드 반주", subtitle: `최대 ${MINI_CHORD_MAX_BARS}마디 코드 타임라인` }
+      ? { title: ko["app.miniChordBacking"], subtitle: formatMessage(ko["app.chordTimelineWithUpToValue1Bars"], { value1: MINI_CHORD_MAX_BARS }) }
     : appMode === APP_MODES.METRONOME
-      ? { title: "메트로놈", subtitle: "템포와 박자를 빠르게 맞추는 독립 리듬 기준" }
+      ? { title: ko["menu.metronome"], subtitle: ko["app.aStandaloneReferenceForTempoAndMeter"] }
     : appMode === APP_MODES.SHOOTER
-      ? { title: "슈팅게임", subtitle: "리듬 반응을 게임처럼 반복 훈련" }
+      ? { title: ko["menu.shooter"], subtitle: ko["app.practiceRhythmResponseThroughPlay"] }
     : selectedCategory.id === "rhythm" && appMode === APP_MODES.PRACTICE
-      ? { title: "리듬 · 코드 전환", subtitle: "메트로놈 기반 코드 전환 훈련" }
+      ? { title: ko["app.rhythmChordChanges"], subtitle: ko["app.practiceChordChangesWithAMetronome"] }
     : selectedCategory.id === "scale-block" && appMode === APP_MODES.PRACTICE
-      ? { title: "스케일 · 펜타토닉 · 릭", subtitle: "박스 패턴과 짧은 기타 프레이즈 훈련" }
+      ? { title: ko["app.scalesPentatonicsLicks"], subtitle: ko["app.practiceBoxPatternsAndShortGuitarPhrases"] }
     : selectedCategory.id === "first-position" && appMode === APP_MODES.PRACTICE
-      ? { title: "제로포지션 기본", subtitle: "개방현과 저포지션 음 위치 훈련" }
-    : { title: "리듬 & 코드", subtitle: "메트로놈 기반 기타 리듬 트레이닝" };
+      ? { title: ko["app.openPositionBasics"], subtitle: ko["app.learnOpenStringAndLowerPositionNotes"] }
+    : { title: ko["app.rhythmChords2"], subtitle: ko["app.metronomeBasedGuitarRhythmTraining"] };
 
   const getBackingVolumeValue = (part) => {
     if (part === "bass") return backingBassVolume;
@@ -29532,7 +29537,7 @@ function App({ onReady }) {
           }, miniChordBarCount, normalizedMiniChordArrangementPatterns, miniChordArrangementCount)
         : draft));
       closeMiniChordGrooveEditor();
-      setMiniChordNotice(`${MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part} Section 리듬을 적용했습니다`);
+      setMiniChordNotice(formatMessage(ko["app.appliedValue1SectionRhythm"], { value1: MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part }));
       return;
     }
     const currentPatterns = miniChordUserDefaultPatternsRef.current;
@@ -29547,7 +29552,7 @@ function App({ onReady }) {
     setMiniChordUserDefaultPatterns(nextPatterns);
     requestGlobalAccompanimentPatternChange({}, { forceSessionUpdate: true });
     closeMiniChordGrooveEditor();
-    setMiniChordNotice(`${MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part} ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]} Pattern을 저장했습니다`);
+    setMiniChordNotice(formatMessage(ko["app.savedValue1Value2Pattern"], { value1: MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part, value2: MINI_CHORD_COMPACT_PATTERN_LABELS[presetId] }));
   };
 
   const previewMiniChordGrooveDraft = async (draftPattern = miniChordGrooveDraftPattern) => {
@@ -29557,7 +29562,7 @@ function App({ onReady }) {
       return;
     }
     if (miniChordIsPlayingRef.current || gameStateRef.current === GAME_STATES.PLAYING) {
-      setMiniChordNotice("메인 반주를 정지한 뒤 Preview를 사용해주세요");
+      setMiniChordNotice(ko["app.stopTheMainBackingTrackBeforeUsingPreview"]);
       return;
     }
     stopMiniChordConfigurationPreview();
@@ -29680,7 +29685,7 @@ function App({ onReady }) {
       return;
     }
     if (miniChordIsPlayingRef.current || gameStateRef.current === GAME_STATES.PLAYING) {
-      setMiniChordNotice("메인 반주를 정지한 뒤 미리듣기를 사용해주세요");
+      setMiniChordNotice(ko["app.stopTheMainBackingTrackBeforePreviewing"]);
       return;
     }
     stopMiniChordConfigurationPreview();
@@ -29751,7 +29756,7 @@ function App({ onReady }) {
       return;
     }
     if (miniChordIsPlayingRef.current) {
-      setMiniChordNotice("메인 반주를 정지한 뒤 Preview를 사용해주세요");
+      setMiniChordNotice(ko["app.stopTheMainBackingTrackBeforeUsingPreview"]);
       return;
     }
     stopMiniChordConfigurationPreview();
@@ -29831,7 +29836,7 @@ function App({ onReady }) {
     miniChordUserDefaultPatternsRef.current = nextPatterns;
     setMiniChordUserDefaultPatterns(nextPatterns);
     requestGlobalAccompanimentPatternChange({}, { forceSessionUpdate: true });
-    setMiniChordNotice(`${MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part} 기본 리듬을 복원했습니다`);
+    setMiniChordNotice(formatMessage(ko["app.restoredValue1DefaultRhythm"], { value1: MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part }));
   };
 
   const resetAllMiniChordUserDefaultPatterns = () => {
@@ -29840,7 +29845,7 @@ function App({ onReady }) {
     miniChordUserDefaultPatternsRef.current = defaults;
     setMiniChordUserDefaultPatterns(defaults);
     requestGlobalAccompanimentPatternChange({}, { forceSessionUpdate: true });
-    setMiniChordNotice("전체 기본 리듬을 FRETIVA LAB 기본값으로 복원했습니다");
+    setMiniChordNotice(ko["app.restoredAllFretivaLabDefaultRhythms"]);
   };
 
   useEffect(() => {
@@ -29867,7 +29872,7 @@ function App({ onReady }) {
   const sharedAccompanimentParts = [
     {
       id: "drum",
-      label: "드럼",
+      label: ko["app.drums"],
       beatValue: backingRhythmPattern,
       enabled: backingDrumEnabled,
       volume: backingDrumVolume,
@@ -29879,7 +29884,7 @@ function App({ onReady }) {
     },
     {
       id: "bass",
-      label: "베이스",
+      label: ko["tuner.bass"],
       beatValue: backingBassBeat,
       enabled: backingBassEnabled,
       volume: backingBassVolume,
@@ -29891,7 +29896,7 @@ function App({ onReady }) {
     },
     {
       id: "piano",
-      label: "피아노",
+      label: ko["etudes.piano"],
       beatValue: backingPianoBeat,
       enabled: backingPianoEnabled,
       volume: backingPianoVolume,
@@ -30036,10 +30041,10 @@ function App({ onReady }) {
 
   const stage3StorageLoadSelect = (
     <MetronomeSelectControl
-      ariaLabel="저장된 코드 진행 불러오기"
+      ariaLabel={translateUi("app.loadSavedChordProgression")}
       className="stage3StorageLoadSelect"
       dropdownDirection="down"
-      label="사용자 진행 선택"
+      label={translateUi("app.selectCustomProgression")}
       matchTriggerWidth
       onChange={(slotId) => {
         const item = stage3QuickSlots.find((slot) => slot.id === slotId);
@@ -30047,7 +30052,7 @@ function App({ onReady }) {
         editStage3StorageItem(item);
       }}
       options={[
-        { id: "", label: "사용자 진행 선택", disabled: true },
+        { id: "", label: ko["app.selectCustomProgression"], disabled: true },
         ...stage3QuickSlots.map((item) => ({
           id: item.id,
           label: getStage3SavedTitle(item),
@@ -30059,10 +30064,8 @@ function App({ onReady }) {
   );
 
   const stage3StorageComposerActions = (
-    <div aria-label="저장 진행 작업" className="stage3StorageComposerActions stage3StorageActionSegment">
-      <button className="stage3StoragePrimaryAction" disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button">
-        저장
-      </button>
+    <div aria-label={translateUi("app.savedProgressionActions")} className="stage3StorageComposerActions stage3StorageActionSegment">
+      <button className="stage3StoragePrimaryAction" disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button"><Translation id="common.save" /></button>
       <button
         disabled={
           !stage3StorageEditingId
@@ -30071,18 +30074,14 @@ function App({ onReady }) {
         }
         onClick={() => requestDeleteStage3StorageItem(stage3StorageEditingId || stage3StorageSelectedId)}
         type="button"
-      >
-        삭제
-      </button>
-      <button onClick={resetStage3StorageComposer} type="button">
-        초기화
-      </button>
+      ><Translation id="common.delete" /></button>
+      <button onClick={resetStage3StorageComposer} type="button"><Translation id="app.reset" /></button>
     </div>
   );
 
   const stage3DesktopMetronomeSoundToggle = (
     <button
-      aria-label={`리듬 코드 메트로놈 사운드 ${stage3MetronomeSoundOn ? "끄기" : "켜기"}`}
+      aria-label={localizeUi(translateUi("app.rhythmChordsMetronomeSoundValue1", { value1: stage3MetronomeSoundOn ? ko["app.off"] : ko["app.on"] }))}
       aria-pressed={stage3MetronomeSoundOn}
       aria-controls="stage3-metronome-options-options"
       className={`stage3MetronomeSoundToggle stage3MetronomeSoundToggle--desktop ${
@@ -30092,7 +30091,7 @@ function App({ onReady }) {
       type="button"
     >
       {stage3MetronomeSoundOn ? <Volume2 aria-hidden="true" size={16} /> : <VolumeX aria-hidden="true" size={16} />}
-      <span>매트로놈</span>
+      <span><Translation id="app.metronomeApp" /></span>
       <b>{stage3MetronomeSoundOn ? "ON" : "OFF"}</b>
     </button>
   );
@@ -30117,10 +30116,10 @@ function App({ onReady }) {
   const stage3LandscapeLoadToolbar = (
     <div className="stage3LoadToolbar">
       <MetronomeSelectControl
-        ariaLabel="보이싱 이동 학습 코스"
+        ariaLabel={translateUi("app.voiceLeadingCourse")}
         className="stage3LoadSelect stage3RecommendedLoadSelect stage3VoicingCourseSelect"
         dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
-        label="보이싱 이동 학습"
+        label={translateUi("app.voiceLeading")}
         matchTriggerWidth
         onChange={(slotId) => {
           const item = stage3VoicingMovementSlots.find((slot) => slot.id === slotId);
@@ -30130,26 +30129,26 @@ function App({ onReady }) {
         options={stage3VoicingMovementSlots.map((item) => ({
           id: item.id,
           tabId: item.courseNumber,
-          label: item.title || "보이싱 이동 학습",
+          label: item.title || ko["app.voiceLeading"],
           description: item.description,
         }))}
         optionTabs={Array.from(new Set(stage3VoicingMovementSlots.map((item) => item.courseNumber)))
           .filter(Boolean)
           .map((courseNumber) => ({
             id: courseNumber,
-            label: `코스 ${courseNumber}`,
+            label: formatMessage(ko["app.courseValue1"], { value1: courseNumber }),
             showCount: false,
           }))}
-        optionTabsLabel="코스 선택"
-        optionListLabel="연습 진행"
+        optionTabsLabel={translateUi("app.chooseCourse")}
+        optionListLabel={translateUi("app.practiceProgression")}
         showLabel={false}
         value={isStage3VoicingMovementItem(selectedStage3LibraryItem) ? selectedStage3LibraryItem.id : ""}
       />
       <MetronomeSelectControl
-        ariaLabel="추천 진행 및 사용자 진행 선택"
+        ariaLabel={translateUi("app.chooseRecommendedOrCustomProgression")}
         className="stage3LoadSelect stage3UserLoadSelect stage3RecommendedLoadSelect"
         dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
-        label="진행 선택"
+        label={translateUi("app.chooseProgression")}
         matchTriggerWidth
         onChange={(slotId) => {
           const item = [...stage3RecommendedSlots, ...stage3QuickSlots]
@@ -30166,13 +30165,13 @@ function App({ onReady }) {
         options={[
           ...stage3RecommendedSlots.map((item) => ({
             id: item.id,
-            label: item.title || "추천 진행",
+            label: item.title || ko["app.recommendedProgressions"],
             description: item.description,
             tabId: "recommended",
           })),
           ...(stage3QuickSlots.length ? [] : [{
             id: "__empty-user-progressions__",
-            label: "저장된 사용자 진행 없음",
+            label: ko["app.noSavedCustomProgressions"],
             disabled: true,
             tabId: "user",
           }]),
@@ -30185,11 +30184,11 @@ function App({ onReady }) {
           })),
         ]}
         optionTabs={[
-          { id: "recommended", label: "추천 진행", count: stage3RecommendedSlots.length },
-          { id: "user", label: "사용자 진행", count: stage3QuickSlots.length },
+          { id: "recommended", label: ko["app.recommendedProgressions"], count: stage3RecommendedSlots.length },
+          { id: "user", label: ko["app.customProgressions"], count: stage3QuickSlots.length },
         ]}
-        optionTabsLabel="보관함 선택"
-        optionListLabel="진행 목록"
+        optionTabsLabel={translateUi("app.chooseCollection")}
+        optionListLabel={translateUi("app.progressionList")}
         managedListMode
         panelDirectionIndicator
         selectedOptionIds={stage3UserSelectedIds}
@@ -30203,14 +30202,12 @@ function App({ onReady }) {
         onClick={showStage3StorageRoom}
         type="button"
       >
-        <FolderOpen size={14} />
-        LOAD
-      </button>
+        <FolderOpen size={14} /><Translation id="originalUi.load" /></button>
     </div>
   );
 
   const referenceLandscapeBeatStrip = (
-    <div className="referenceBeatMetronomeStrip" aria-label="점자 메트로놈">
+    <div className="referenceBeatMetronomeStrip" aria-label={translateUi("app.beatDotMetronome")}>
       <BeatIndicator
         beat={beat}
         beatPattern={standaloneBeatPattern}
@@ -30218,7 +30215,7 @@ function App({ onReady }) {
         compact
         dotClassName="referenceBeatMetronomeDot"
         isPlaying={gameState === GAME_STATES.PLAYING}
-        label="점자 메트로놈"
+        label={translateUi("app.beatDotMetronome")}
         onBeatClick={cycleStandaloneBeatState}
         timeSignature={metronomeTimeSignature}
       />
@@ -30295,7 +30292,7 @@ function App({ onReady }) {
         <UtilityMenuSurface theme={appTheme} onClose={closeUtilityMenu}>
         <div className="utilityMenuLayer" role="presentation">
           <button
-            aria-label="메뉴 닫기"
+            aria-label={translateUi("app.closeMenu")}
             className="utilityMenuDim"
             onClick={closeUtilityMenu}
             type="button"
@@ -30303,16 +30300,16 @@ function App({ onReady }) {
           <aside
             role="dialog"
             aria-modal="true"
-            aria-label="메뉴"
+            aria-label={translateUi("app.menu")}
             className="utilityMenuPanel"
             id="utility-menu-panel"
           >
             <div className="utilityMenuHeader">
               <div>
-                <strong>메뉴</strong>
+                <strong><Translation id="app.menu" /></strong>
               </div>
               <button
-                aria-label="메뉴 닫기"
+                aria-label={translateUi("app.closeMenu")}
                 onClick={closeUtilityMenu}
                 type="button"
               >
@@ -30320,15 +30317,16 @@ function App({ onReady }) {
               </button>
             </div>
             <div className="utilityMenuBody">
+            <LanguageSettings />
             {themeMenuVisible ? (
-              <section className="utilityThemePanel" aria-label="테마 설정">
+              <section className="utilityThemePanel" aria-label={translateUi("app.themeSettings")}>
                 <div className="utilityThemeHeader">
                   <div>
-                    <strong>테마</strong>
-                    <p>화면 색상 선택</p>
+                    <strong><Translation id="app.theme" /></strong>
+                    <p><Translation id="app.chooseDisplayColors" /></p>
                   </div>
                 </div>
-                <div className="utilityThemeOptions" role="radiogroup" aria-label="테마">
+                <div className="utilityThemeOptions" role="radiogroup" aria-label={translateUi("app.theme")}>
                   {themeOptions.map((option) => (
                     <button
                       aria-checked={appTheme === option.id}
@@ -30342,16 +30340,16 @@ function App({ onReady }) {
                       <span className="utilityThemeIcon" aria-hidden="true">
                         {option.id === APP_THEMES.LIGHT ? <Sun size={19} /> : <Moon size={19} />}
                       </span>
-                      <strong>{option.label}</strong>
+                      <strong>{localizeUi(option.label)}</strong>
                     </button>
                   ))}
                 </div>
               </section>
             ) : null}
-            <nav className="utilityMenuList" aria-label="부가 기능 목록">
+            <nav className="utilityMenuList" aria-label={translateUi("app.moreFeatures")}>
               <button aria-current={desktopSidebarActiveKey === "etudes" ? "page" : undefined} className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive" onClick={showEtudes} type="button">
                 <span className="utilityMenuIcon" aria-hidden="true"><Music2 size={19} /></span>
-                <div className="utilityMenuText"><strong className="utilityMenuTitle"><span className="utilityMenuTitleLabel">에튀드 스튜디오</span><span className="etudeProMark">PRO</span></strong><small>오선보 · TAB · 포지션 연결 훈련</small></div>
+                <div className="utilityMenuText"><strong className="utilityMenuTitle"><span className="utilityMenuTitleLabel"><Translation id="app.scorePractice" /></span><span className="etudeProMark"><Translation id="originalUi.pro" /></span></strong><small><Translation id="app.notationTabPhrasePractice" /></small></div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
               <button
@@ -30362,8 +30360,8 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">1</span>
                 <div className="utilityMenuText">
-                  <UtilityMenuTitle status="BEGINNER">단일 음 위치 익히기</UtilityMenuTitle>
-                  <small>C ~ 3코드 기준 음 위치를 찾는 훈련</small>
+                  <UtilityMenuTitle status="BEGINNER"><Translation id="app.singleNotes" /></UtilityMenuTitle>
+                  <small><Translation id="app.learnNotePositionsFromCThroughThreeChordPractice" /></small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
@@ -30375,8 +30373,8 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">2</span>
                 <div className="utilityMenuText">
-                  <UtilityMenuTitle status="SOLO">스케일 · 펜타토닉</UtilityMenuTitle>
-                  <small>구간별 위치 · 프레이즈 연습</small>
+                  <UtilityMenuTitle status="SOLO"><Translation id="app.scalesPentatonics" /></UtilityMenuTitle>
+                  <small><Translation id="app.positionsPhrasePractice" /></small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
@@ -30388,8 +30386,8 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">3</span>
                 <div className="utilityMenuText">
-                  <UtilityMenuTitle status="HOT">리듬 &amp; 코드</UtilityMenuTitle>
-                  <small>메트로놈 기반 코드 전환 훈련</small>
+                  <UtilityMenuTitle status="HOT"><Translation id="app.rhythmChords" /></UtilityMenuTitle>
+                  <small><Translation id="app.practiceChordChangesWithAMetronome" /></small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
@@ -30401,8 +30399,8 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">4</span>
                 <div className="utilityMenuText">
-                  <UtilityMenuTitle status="DEV">미니반주</UtilityMenuTitle>
-                  <small>코드 진행과 반주를 빠르게 만들기</small>
+                  <UtilityMenuTitle status="DEV"><Translation id="menu.miniBacking" /></UtilityMenuTitle>
+                  <small><Translation id="app.buildChordProgressionsAndBackingTracks" /></small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
@@ -30415,21 +30413,21 @@ function App({ onReady }) {
                 >
                   <span className="utilityMenuIcon" aria-hidden="true"><AudioLines size={19} /></span>
                   <div className="utilityMenuText">
-                    <UtilityMenuTitle status="DEV">오디오 스튜디오</UtilityMenuTitle>
-                    <small>MIX &amp; AUDIO LIBRARY</small>
+                    <UtilityMenuTitle status="DEV"><Translation id="menu.audioStudio" /></UtilityMenuTitle>
+                    <small><Translation id="originalUi.mixAudioLibrary" /></small>
                   </div>
                   <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
                 </button>
               ) : null}
-              <section className="utilitySoundPanel" aria-label="사운드 및 리듬 설정">
+              <section className="utilitySoundPanel" aria-label={translateUi("app.soundRhythm")}>
                 <details className="utilitySoundDetails">
                   <summary>
                     <span className="utilityMenuIcon" aria-hidden="true">
                       <Volume2 size={16} />
                     </span>
                     <div className="utilityMenuText">
-                      <strong>사운드 및 리듬 설정</strong>
-                      <small>메트로놈·반주·공통 리듬 관리</small>
+                      <strong><Translation id="app.soundRhythm" /></strong>
+                      <small><Translation id="app.metronomeBackingTracksAndSharedRhythms" /></small>
                     </div>
                     <span className="utilityMenuChevron" aria-hidden="true"><ChevronDown size={18} /></span>
                   </summary>
@@ -30442,11 +30440,11 @@ function App({ onReady }) {
                       return (
                         <label className="utilitySoundSliderRow" key={control.id}>
                           <span>
-                            <strong>{control.label}</strong>
+                            <strong>{localizeUi(control.label)}</strong>
                             <b data-backing-volume-value>{value}</b>
                           </span>
                           <input
-                            aria-label={`${control.label} 볼륨`}
+                            aria-label={localizeUi(translateUi("app.value1Volume", { value1: control.label }))}
                             data-backing-volume-part={control.id}
                             defaultValue={value}
                             disabled={stage3RecommendedAccompanimentLocked}
@@ -30471,17 +30469,13 @@ function App({ onReady }) {
                       }}
                       type="button"
                     >
-                      <Settings aria-hidden="true" size={14} />
-                      리듬 사용자 설정
-                    </button>
+                      <Settings aria-hidden="true" size={14} /><Translation id="app.customRhythms" /></button>
                     <button
                       className="utilitySoundResetButton"
                       disabled={stage3RecommendedAccompanimentLocked}
                       onClick={resetSoundSettings}
                       type="button"
-                    >
-                      사운드 초기화
-                    </button>
+                    ><Translation id="app.resetSound" /></button>
                   </div>
                 </details>
               </section>
@@ -30496,8 +30490,8 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon" aria-hidden="true"><CircleHelp size={19} /></span>
                 <div className="utilityMenuText">
-                  <strong>사용설명서 & 도움말</strong>
-                  <small>훈련 기능과 사용 방법 안내</small>
+                  <strong><Translation id="app.guideHelp" /></strong>
+                  <small><Translation id="app.practiceFeaturesAndInstructions" /></small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
@@ -30508,7 +30502,7 @@ function App({ onReady }) {
                 disabled={shooterRecordingActive || (appMode === APP_MODES.SHOOTER && (gameState === GAME_STATES.PLAYING || shooterCountInLabel !== null))}
               >
                 <span className="utilityMenuIcon" aria-hidden="true"><RotateCw size={19} /></span>
-                <div className="utilityMenuText"><strong>새로고침</strong><small>현재 화면 다시 불러오기</small></div>
+                <div className="utilityMenuText"><strong><Translation id="app.refresh" /></strong><small><Translation id="app.reloadThisScreen" /></small></div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button> : null}
               <a
@@ -30525,15 +30519,14 @@ function App({ onReady }) {
                   </svg>
                 </span>
                 <div className="utilityMenuText">
-                  <strong>문의하기</strong>
-                  <small>Instagram @sungsu91_</small>
+                  <strong><Translation id="app.contact" /></strong>
+                  <small><Translation id="originalUi.instagramSungsu91" /></small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </a>
               <ShooterShareButton menu score={appMode === APP_MODES.SHOOTER ? score : shooterRecords.recent[0]?.score ?? 0} bestScore={shooterRecords.best.score} />
             </nav>
-            <p className="utilityMenuVersion" aria-label={`앱 ${APP_VERSION_LABEL}`}>
-              FRETIVA LAB {APP_VERSION_LABEL}
+            <p className="utilityMenuVersion" aria-label={translateUi("app.appValue1", { value1: APP_VERSION_LABEL })}><Translation id="originalUi.fretivaLabApp" />{APP_VERSION_LABEL}
             </p>
             </div>
           </aside>
@@ -30546,7 +30539,7 @@ function App({ onReady }) {
       {helpGuideOpen ? (
         <div className="helpGuideLayer" role="presentation">
           <button
-            aria-label="사용설명서 닫기"
+            aria-label={translateUi("app.closeUserGuide")}
             className="helpGuideDim"
             onClick={() => {
               setHelpGuideOpen(false);
@@ -30554,15 +30547,15 @@ function App({ onReady }) {
             }}
             type="button"
           />
-          <section className="helpGuidePanel" aria-label="사용설명서 및 도움말">
+          <section className="helpGuidePanel" aria-label={translateUi("app.userGuideHelp")}>
             <div className="helpGuideHeader">
               <div>
-                <span>FRETIVA LAB Guide</span>
-                <strong>사용설명서 & 도움말</strong>
-                <small>화면 안내부터 추천 연습 흐름까지</small>
+                <span><Translation id="originalUi.fretivaLabGuide" /></span>
+                <strong><Translation id="app.guideHelp" /></strong>
+                <small><Translation id="app.screenGuidesAndPracticeWorkflows" /></small>
               </div>
               <button
-                aria-label="닫기"
+                aria-label={translateUi("common.close")}
                 onClick={() => {
                   setHelpGuideOpen(false);
                   setOpenHelpSectionId("");
@@ -30596,7 +30589,7 @@ function App({ onReady }) {
                         </span>
                         <span className="helpAccordionCopy">
                           <span className="helpAccordionTitle">
-                            <strong>{section.title}</strong>
+                            <strong>{localizeUi(section.title)}</strong>
                             {section.badge ? <em className={`helpAccordionBadge helpAccordionBadge--${section.badgeTone ?? "default"}`}>{section.badge}</em> : null}
                           </span>
                           <small>{section.summary}</small>
@@ -30634,27 +30627,21 @@ function App({ onReady }) {
             onClick={showTunerMode}
             type="button"
           >
-            <Radio size={17} aria-hidden="true" />
-            튜너
-          </button>
+            <Radio size={17} aria-hidden="true" /><Translation id="menu.tuner" /></button>
           <button
             aria-pressed={appMode === APP_MODES.FRETBOARD_VIEWER}
             className={appMode === APP_MODES.FRETBOARD_VIEWER ? "selected" : ""}
             onClick={showFretboardViewer}
             type="button"
           >
-            <Grid3X3 size={17} aria-hidden="true" />
-            지판 보기
-          </button>
+            <Grid3X3 size={17} aria-hidden="true" /><Translation id="menu.fretboard" /></button>
           <button
             aria-pressed={appMode === APP_MODES.METRONOME}
             className={appMode === APP_MODES.METRONOME ? "selected" : ""}
             onClick={showMetronomeMode}
             type="button"
           >
-            <Timer size={17} aria-hidden="true" />
-            메트로놈
-          </button>
+            <Timer size={17} aria-hidden="true" /><Translation id="menu.metronome" /></button>
           <button
             aria-pressed={appMode === APP_MODES.SHOOTER}
             className={appMode === APP_MODES.SHOOTER ? "selected" : ""}
@@ -30662,24 +30649,20 @@ function App({ onReady }) {
             translate="no"
             type="button"
           >
-            <Gamepad2 size={17} aria-hidden="true" />
-            슈팅게임
-          </button>
+            <Gamepad2 size={17} aria-hidden="true" /><Translation id="menu.shooter" /></button>
           <button
             aria-controls="utility-menu-panel"
             aria-expanded={utilityMenuOpen}
-            aria-label={utilityMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+            aria-label={utilityMenuOpen ? translateUi("app.closeMenu") : translateUi("app.openMenu")}
             className={utilityMenuOpen ? "selected" : ""}
             onClick={toggleUtilityMenu}
             type="button"
           >
-            <Settings size={17} aria-hidden="true" />
-            메뉴
-          </button>
+            <Settings size={17} aria-hidden="true" /><Translation id="app.menu" /></button>
         </BottomNavigation>
       </section></MobileNavigationSurface>}
 
-      {appMode === APP_MODES.ETUDES ? <Suspense fallback={<p>악보 연습실 준비 중…</p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense> : null}
+      {appMode === APP_MODES.ETUDES ? <Suspense fallback={<p><Translation id="app.preparingScorePractice" /></p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense> : null}
 
       {isAppModeMounted(APP_MODES.TUNER) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.TUNER)}>
@@ -30697,7 +30680,7 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.MENU) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.MENU)}>
         {renderAppMode(APP_MODES.MENU, () => (
-        <section className="mainHub notranslate" aria-label="Main menu" translate="no">
+        <section className="mainHub notranslate" aria-label={translateUi("originalUi.mainMenu")} translate="no">
           <div className="hubAtmosphere" aria-hidden="true">
             <span />
             <span />
@@ -30705,7 +30688,7 @@ function App({ onReady }) {
           </div>
 
           <div className="hubBrand">
-            <img className="appMascotLogo" src="/images/capybara-logo.svg" alt="Fretboard Training" />
+            <img className="appMascotLogo" src="/images/capybara-logo.svg" alt={translateUi("originalUi.fretboardTraining")} />
           </div>
 
           <div className="hubGuitarHead homeHeadstockImage" aria-hidden="true">
@@ -30718,66 +30701,56 @@ function App({ onReady }) {
           <div className="hubMenuPanel">
             <button className="hubMenuButton viewer" onClick={showFretboardViewer} type="button">
               <span className="hubMenuBadge">01</span>
-              <strong>지판보기</strong>
+              <strong><Translation id="app.fretboardApp" /></strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
             <button className="hubMenuButton rhythm" onClick={showMiniChordMaker} type="button">
               <span className="hubMenuBadge">02</span>
-              <strong>미니반주</strong>
+              <strong><Translation id="menu.miniBacking" /></strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
             <button className="hubMenuButton tuner" onClick={showTunerMode} type="button">
               <span className="hubMenuBadge">03</span>
-              <strong>튜너</strong>
+              <strong><Translation id="menu.tuner" /></strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
             <button
-              aria-label="슈팅게임"
+              aria-label={translateUi("menu.shooter")}
               className="hubMenuButton shooter notranslate"
               onClick={showShooterMode}
-              title="슈팅게임"
+              title={translateUi("menu.shooter")}
               translate="no"
               type="button"
             >
               <span className="hubMenuBadge">04</span>
-              <strong>슈팅게임</strong>
+              <strong><Translation id="menu.shooter" /></strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
             <button className="hubMenuButton metronome" onClick={showMetronomeMode} type="button">
               <span className="hubMenuBadge">05</span>
-              <strong>메트로놈</strong>
+              <strong><Translation id="menu.metronome" /></strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
           </div>
 
           <BottomNavigation className="mainBottomNav">
             <button onClick={showTunerMode} type="button">
-              <Radio size={24} aria-hidden="true" />
-              튜너
-            </button>
+              <Radio size={24} aria-hidden="true" /><Translation id="menu.tuner" /></button>
             <button onClick={showFretboardViewer} type="button">
-              <Grid3X3 size={24} aria-hidden="true" />
-              지판 보기
-            </button>
+              <Grid3X3 size={24} aria-hidden="true" /><Translation id="menu.fretboard" /></button>
             <button onClick={showMetronomeMode} type="button">
-              <Timer size={24} aria-hidden="true" />
-              메트로놈
-            </button>
+              <Timer size={24} aria-hidden="true" /><Translation id="menu.metronome" /></button>
             <button onClick={showShooterMode} translate="no" type="button">
-              <Gamepad2 size={24} aria-hidden="true" />
-              슈팅게임
-            </button>
+              <Gamepad2 size={24} aria-hidden="true" /><Translation id="menu.shooter" /></button>
             <button
               aria-controls="utility-menu-panel"
               aria-expanded={utilityMenuOpen}
-              aria-label={utilityMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+              aria-label={utilityMenuOpen ? translateUi("app.closeMenu") : translateUi("app.openMenu")}
               className={utilityMenuOpen ? "selected" : ""}
               onClick={toggleUtilityMenu}
               type="button"
             >
-              <Settings size={24} aria-hidden="true" />
-              메뉴
-            </button>
+              <Settings size={24} aria-hidden="true" /><Translation id="app.menu" /></button>
           </BottomNavigation>
         </section>
         ))}
@@ -30787,7 +30760,7 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.CURRICULUM) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.CURRICULUM)}>
         {renderAppMode(APP_MODES.CURRICULUM, () => (
-        <section className="curriculum" aria-label="Beginner curriculum">
+        <section className="curriculum" aria-label={translateUi("originalUi.beginnerCurriculum")}>
           <div className="trainingGrid stageMenu">
             {PRACTICE_CATEGORIES.filter((category) => !category.tutorial && !category.unavailable).map((category, index) => (
               <TrainingCard
@@ -30821,7 +30794,7 @@ function App({ onReady }) {
         {renderAppMode(APP_MODES.MINI_CHORD_MAKER, () => (
         <section
           aria-busy={miniChordIsStarting}
-          aria-label="미니코드 반주 모드"
+          aria-label={translateUi("app.miniChordBackingMode")}
           className={`miniChordMakerPanel miniChordMakerPanelCompact ${miniChordEditLocked ? "is-playback-locked" : ""}`}
         >
           <div
@@ -30831,13 +30804,13 @@ function App({ onReady }) {
             role="status"
           >
             <LoaderCircle aria-hidden="true" size={16} />
-            <span ref={miniChordOperationLabelRef}>처리 중</span>
+            <span ref={miniChordOperationLabelRef}><Translation id="app.processing" /></span>
           </div>
           <div className="miniChordHeader miniChordHeaderCompact">
             <div>
-              <span>Mini Chord</span>
-              <strong>미니코드 반주</strong>
-              <small>{miniChordVisibleStartBar}-{miniChordVisibleEndBar}마디 / 총 {miniChordBarCount}마디</small>
+              <span><Translation id="originalUi.miniChord" /></span>
+              <strong><Translation id="app.miniChordBacking" /></strong>
+              <small>{miniChordVisibleStartBar}-{miniChordVisibleEndBar}<Translation id="app.barsTotal" />{miniChordBarCount}<Translation id="app.bar" /></small>
             </div>
             {isMobileLayout ? <div className="miniChordTransport">
               <button
@@ -30846,18 +30819,18 @@ function App({ onReady }) {
                 type="button"
               >
                 {miniChordPlaybackActive ? <Square size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" />}
-                {miniChordIsStarting ? "준비 중" : miniChordIsPlaying ? "정지" : "시작"}
+                {miniChordIsStarting ? translateUi("app.preparing") : miniChordIsPlaying ? translateUi("app.stopApp") : translateUi("app.start")}
               </button>
             </div> : null}
           </div>
 
-          <div className="miniChordQuickBar" aria-label="미니코드 저장 도구">
+          <div className="miniChordQuickBar" aria-label={translateUi("app.miniChordSaveTools")}>
             {!isMobileLayout ? (
               <div className="miniChordStorageRoomLabel">
                 <FolderOpen aria-hidden="true" size={16} />
                 <span>
-                  <strong>LOAD 저장실</strong>
-                  <small>진행 이름을 정하고 불러오거나 저장하세요</small>
+                  <strong><Translation id="app.loadLibrary" /></strong>
+                  <small><Translation id="app.nameLoadOrSaveYourProgression" /></small>
                 </span>
               </div>
             ) : null}
@@ -30867,16 +30840,16 @@ function App({ onReady }) {
                 disabled={miniChordEditLocked}
                 maxLength={40}
                 onChange={(event) => setMiniChordTitle(event.currentTarget.value)}
-                placeholder="제목 입력"
+                placeholder={translateUi("app.enterTitle")}
                 value={miniChordTitle}
               />
             </label>
             <div className="miniChordLoadPicker">
               <MetronomeSelectControl
-                ariaLabel="미니코드 반주 불러오기"
+                ariaLabel={translateUi("app.loadMiniChordBacking")}
                 className="miniChordLoadSelect stage3RecommendedLoadSelect stage3UserLoadSelect"
                 disabled={miniChordEditLocked}
-                label="불러오기"
+                label={translateUi("app.load")}
                 managedListMode
                 matchTriggerWidth
                 onChange={loadSelectedMiniChordArrangement}
@@ -30892,14 +30865,12 @@ function App({ onReady }) {
                 optionTabs={miniChordLoadLibrary.optionTabs}
                 selectedOptionIds={miniChordLoadSelectedIds}
                 showLabel={false}
-                triggerLabel="불러오기"
+                triggerLabel={translateUi("app.load")}
                 value={miniChordRecommendedProgressionId}
               />
             </div>
-            <button disabled={miniChordEditLocked} onClick={requestSaveMiniChordArrangement} title="저장" type="button">
-              <FolderOpen size={15} aria-hidden="true" />
-              저장
-            </button>
+            <button disabled={miniChordEditLocked} onClick={requestSaveMiniChordArrangement} title={translateUi("common.save")} type="button">
+              <FolderOpen size={15} aria-hidden="true" /><Translation id="common.save" /></button>
           </div>
 
           {miniChordDeleteConfirmOpen && miniChordDeleteItems.length ? (
@@ -30971,12 +30942,10 @@ function App({ onReady }) {
             />
           ) : null}
 
-          <div className="miniChordMeasureStrip" aria-label="마디와 페이지 선택">
-            <span>
-              마디
-              {miniChordRecommendedProgressionId ? <small>편집 가능 · 저장 시 내 사본</small> : null}
+          <div className="miniChordMeasureStrip" aria-label={translateUi("app.barAndPageSelection")}>
+            <span><Translation id="app.bar" />{miniChordRecommendedProgressionId ? <small><Translation id="app.editableSaveAsYourOwnCopy" /></small> : null}
             </span>
-            <div className="miniChordSegment" role="group" aria-label="마디 수 선택">
+            <div className="miniChordSegment" role="group" aria-label={translateUi("app.chooseTheBarCount")}>
               {MINI_CHORD_BAR_OPTIONS.map((option) => (
                 <button
                   className={miniChordBarCount === option ? "selected" : ""}
@@ -30989,9 +30958,9 @@ function App({ onReady }) {
                 </button>
               ))}
             </div>
-            <div className="miniChordPageStepper" aria-label="마디 수 빠른 변경">
+            <div className="miniChordPageStepper" aria-label={translateUi("app.quickBarCount")}>
               <button
-                aria-label="마디 수 1 감소"
+                aria-label={translateUi("app.removeOneBar")}
                 disabled={miniChordStructureLocked || !miniChordCanDecreaseBars}
                 onClick={() => {
                   setMiniChordActiveBarIndex(null);
@@ -31012,7 +30981,7 @@ function App({ onReady }) {
                 value={miniChordBarCount}
               />
               <button
-                aria-label="마디 수 1 증가"
+                aria-label={translateUi("app.addOneBar")}
                 disabled={miniChordStructureLocked || !miniChordCanIncreaseBars}
                 onClick={() => {
                   setMiniChordActiveBarIndex(null);
@@ -31030,26 +30999,26 @@ function App({ onReady }) {
             </div>
           </div>
 
-          <div className="miniChordEditToolbar" aria-label="미니코드 편집 기록과 초기화">
+          <div className="miniChordEditToolbar" aria-label={translateUi("app.miniChordHistoryAndReset")}>
             <button
-              aria-label="되돌리기"
+              aria-label={translateUi("app.undo")}
               disabled={miniChordStructureLocked || !miniChordCanUndo}
               onClick={() => applyMiniChordHistoryDirection("undo")}
-              title="되돌리기"
+              title={translateUi("app.undo")}
               type="button"
             >
               <Undo2 aria-hidden="true" size={14} />
-              <span>Undo</span>
+              <span><Translation id="originalUi.undo" /></span>
             </button>
             <button
-              aria-label="다시 실행"
+              aria-label={translateUi("app.redo")}
               disabled={miniChordStructureLocked || !miniChordCanRedo}
               onClick={() => applyMiniChordHistoryDirection("redo")}
-              title="다시 실행"
+              title={translateUi("app.redo")}
               type="button"
             >
               <Redo2 aria-hidden="true" size={14} />
-              <span>Redo</span>
+              <span><Translation id="originalUi.redo" /></span>
             </button>
             <button
               aria-haspopup="dialog"
@@ -31060,14 +31029,12 @@ function App({ onReady }) {
               }}
               type="button"
             >
-              <RotateCcw aria-hidden="true" size={13} />
-              초기화
-            </button>
+              <RotateCcw aria-hidden="true" size={13} /><Translation id="app.reset" /></button>
           </div>
 
           {miniChordNotice ? (
             <div className="miniChordNotice" role="status">
-              {miniChordNotice}
+              {localizeUi(miniChordNotice)}
             </div>
           ) : null}
 
@@ -31081,15 +31048,15 @@ function App({ onReady }) {
                 <div>
                   <strong id="mini-chord-arrangement-manager-title">
                     {miniChordArrangementManagerTarget
-                      ? `${miniChordArrangementManagerEntries[0]?.override.sectionName || "Section"} 관리`
-                      : "Section 편곡 관리"}
+                      ? translateUi("app.manageValue1", { value1: miniChordArrangementManagerEntries[0]?.override.sectionName || "Section" })
+                      : translateUi("app.manageSectionArrangements")}
                   </strong>
                   <span>{miniChordArrangementManagerTarget
-                    ? `${miniChordArrangementManagerTarget.startBar + 1}–${miniChordArrangementManagerTarget.endBar + 1}마디 · 설정, 복제, 이동 또는 삭제`
-                    : `${miniChordArrangementCount}개 Section · 저장된 Pattern을 반복해서 사용할 수 있습니다.`}</span>
+                    ? translateUi("app.barsValue1Value2SetDuplicateMoveOrDelete", { value1: miniChordArrangementManagerTarget.startBar + 1, value2: miniChordArrangementManagerTarget.endBar + 1 })
+                    : translateUi("app.value1SectionsReuseSavedPatterns", { value1: miniChordArrangementCount })}</span>
                 </div>
                 <button
-                  aria-label="구간 편곡 관리 닫기"
+                  aria-label={translateUi("app.closeSectionManager")}
                   onClick={() => {
                     setMiniChordArrangementManagerOpen(false);
                     setMiniChordArrangementManagerTarget(null);
@@ -31103,7 +31070,7 @@ function App({ onReady }) {
                 {miniChordArrangementManagerEntries.map(({ override, arrangementIndex }) => (
                   <div className="miniChordArrangementManagerRow" key={`${override.id}-${override.startBar}-${override.endBar}`}>
                     <button
-                      aria-label={`${override.sectionName}, ${override.startBar + 1}-${override.endBar + 1}마디 설정 열기`}
+                      aria-label={translateUi("app.openValue1BarsValue2Value3Settings", { value1: override.sectionName, value2: override.startBar + 1, value3: override.endBar + 1 })}
                       className="miniChordArrangementManagerRange"
                       onClick={() => {
                         setMiniChordArrangementManagerOpen(false);
@@ -31130,9 +31097,7 @@ function App({ onReady }) {
                         },
                       })}
                       type="button"
-                    >
-                      복제
-                    </button>
+                    ><Translation id="app.duplicate" /></button>
                     <button
                       className="miniChordArrangementManagerReset"
                       onClick={() => startMiniChordArrangementRangeSelection({
@@ -31140,16 +31105,12 @@ function App({ onReady }) {
                         override: { ...override },
                       })}
                       type="button"
-                    >
-                      구간
-                    </button>
+                    ><Translation id="app.range" /></button>
                     <button
                       className="miniChordArrangementManagerClear"
                       onClick={() => clearMiniChordArrangementOverride(override, arrangementIndex + 1)}
                       type="button"
-                    >
-                      삭제
-                    </button>
+                    ><Translation id="common.delete" /></button>
                   </div>
                 ))}
               </div>
@@ -31157,9 +31118,7 @@ function App({ onReady }) {
                 className="miniChordArrangementManagerAdd"
                 onClick={() => startMiniChordArrangementRangeSelection()}
                 type="button"
-              >
-                + Section 추가
-              </button>
+              ><Translation id="app.addSection" /></button>
             </section>
           ) : null}
 
@@ -31171,33 +31130,33 @@ function App({ onReady }) {
             >
               <div>
                 <strong id="mini-chord-arrangement-confirm-title">
-                  {miniChordArrangementReselectTarget
-                    ? `${miniChordArrangementReselectTarget.duplicate ? "Section 복제" : miniChordArrangementReselectTarget.override.sectionName} · ${miniChordSelectedRange.startBar + 1}–${miniChordSelectedRange.endBar + 1}마디`
-                    : `${miniChordSelectedRange.startBar + 1}–${miniChordSelectedRange.endBar + 1}마디 Section`}
+                  {localizeUi(miniChordArrangementReselectTarget
+                    ? translateUi("app.value1BarsValue2Value3", { value1: miniChordArrangementReselectTarget.duplicate ? ko["app.duplicateSection"] : miniChordArrangementReselectTarget.override.sectionName, value2: miniChordSelectedRange.startBar + 1, value3: miniChordSelectedRange.endBar + 1 })
+                    : translateUi("app.sectionBarsValue1Value2", { value1: miniChordSelectedRange.startBar + 1, value2: miniChordSelectedRange.endBar + 1 }))}
                 </strong>
                 <span>{miniChordArrangementReselectTarget
                   ? miniChordArrangementReselectTarget.duplicate
-                    ? "같은 Pattern을 재사용하는 새 Section을 만들까요?"
-                    : "Section과 Pattern을 유지하며 구간을 변경할까요?"
-                  : "선택한 구간의 Section과 Pattern을 설정할까요?"}</span>
+                    ? translateUi("app.createANewSectionUsingTheSamePattern")
+                    : translateUi("app.changeTheRangeWhileKeepingTheSectionAndPattern")
+                  : translateUi("app.setTheSectionAndPatternForTheSelectedRange")}</span>
               </div>
               <div className="miniChordArrangementRangeConfirmActions">
-                <button onClick={cancelMiniChordArrangementConfirmation} type="button">취소</button>
+                <button onClick={cancelMiniChordArrangementConfirmation} type="button"><Translation id="common.cancel" /></button>
                 <button className="primary" onClick={confirmMiniChordArrangementSelection} type="button">
                   {miniChordArrangementReselectTarget?.duplicate
-                    ? "복제 설정"
+                    ? translateUi("app.duplicateSettings")
                     : miniChordArrangementReselectTarget
-                      ? "구간 변경"
-                      : "Section 설정"}
+                      ? translateUi("app.changeRange")
+                      : translateUi("app.sectionSettings")}
                 </button>
               </div>
             </section>
           ) : null}
 
-          <div className="miniChordTransposeControlBar" aria-label="미니코드 전체 키 이조 및 편곡 설정">
-            <div className="miniChordTransposeStepControls" aria-label="전체 키 반음 조절" role="group">
+          <div className="miniChordTransposeControlBar" aria-label={translateUi("app.miniChordTranspositionAndArrangement")}>
+            <div className="miniChordTransposeStepControls" aria-label={translateUi("app.transposeBySemitones")} role="group">
               <button
-                aria-label="전체 키 반음 낮추기"
+                aria-label={translateUi("app.transposeDownASemitone")}
                 disabled={miniChordEditLocked || miniChordTransposeSemitones <= MINI_CHORD_TRANSPOSE_MIN}
                 onClick={() => updateMiniChordTransposeStep(-1)}
                 type="button"
@@ -31205,7 +31164,7 @@ function App({ onReady }) {
                 <ChevronDown aria-hidden="true" size={14} strokeWidth={2.4} />
               </button>
               <button
-                aria-label="전체 키 반음 올리기"
+                aria-label={translateUi("app.transposeUpASemitone")}
                 disabled={miniChordEditLocked || miniChordTransposeSemitones >= MINI_CHORD_TRANSPOSE_MAX}
                 onClick={() => updateMiniChordTransposeStep(1)}
                 type="button"
@@ -31213,31 +31172,31 @@ function App({ onReady }) {
                 <ChevronUp aria-hidden="true" size={14} strokeWidth={2.4} />
               </button>
             </div>
-            <span className="miniChordTransposeScope">전체 이조</span>
+            <span className="miniChordTransposeScope"><Translation id="app.transposeAll" /></span>
             <strong className="miniChordTransposeAmount" aria-live="polite">
               {miniChordTransposeSemitones > 0 ? `+${miniChordTransposeSemitones}` : miniChordTransposeSemitones}
             </strong>
             <button
-              aria-label={`원래 키 ${normalizedMiniChordSourceKey.label}로 복귀`}
+              aria-label={localizeUi(translateUi("app.returnToOriginalKeyValue1", { value1: normalizedMiniChordSourceKey.label }))}
               className="miniChordTransposeReset"
               disabled={miniChordEditLocked || miniChordTransposeSemitones === 0}
               onClick={resetMiniChordTranspose}
-              title={`원키 ${normalizedMiniChordSourceKey.label}`}
+              title={localizeUi(translateUi("app.originalKeyValue1", { value1: normalizedMiniChordSourceKey.label }))}
               type="button"
             >
               {normalizedMiniChordSourceKey.root}
             </button>
             <div className="miniChordTransposeKey" aria-live="polite">
-              <span>키</span>
-              <strong>{miniChordSoundingKey.label}</strong>
+              <span><Translation id="app.key" /></span>
+              <strong>{localizeUi(miniChordSoundingKey.label)}</strong>
             </div>
-            <div className="miniChordArrangementControlGroup" aria-label="Section 편곡 설정" role="group">
+            <div className="miniChordArrangementControlGroup" aria-label={translateUi("app.sectionArrangementSettings")} role="group">
               <button
                 aria-label={miniChordExpertMode
-                  ? `편곡 선택 완료, 현재 ${miniChordArrangementCount}개 구간`
+                  ? translateUi("app.arrangementSelectedValue1Ranges", { value1: miniChordArrangementCount })
                   : miniChordArrangementCount > 0
-                    ? `Section 편곡 관리, 현재 ${miniChordArrangementCount}개 Section`
-                    : "첫 Section 설정"}
+                    ? translateUi("app.manageArrangementValue1Sections", { value1: miniChordArrangementCount })
+                    : translateUi("app.setFirstSection")}
                 aria-pressed={miniChordExpertMode || (miniChordArrangementManagerOpen && !miniChordArrangementManagerTarget)}
                 className={`miniChordExpertToggle miniChordArrangementMainButton ${miniChordExpertMode || (miniChordArrangementManagerOpen && !miniChordArrangementManagerTarget) ? "selected" : ""}`}
                 disabled={miniChordArrangementEditLocked}
@@ -31255,19 +31214,19 @@ function App({ onReady }) {
                   setMiniChordArrangementManagerTarget(null);
                 }}
                 title={miniChordExpertMode
-                  ? "편곡 선택 완료"
+                  ? translateUi("app.arrangementSelected")
                   : miniChordArrangementCount > 0
-                    ? "Section 편곡 관리"
-                    : "첫 Section 설정"}
+                    ? translateUi("app.manageSectionArrangements")
+                    : translateUi("app.setFirstSection")}
                 type="button"
               >
-                <span>{miniChordExpertMode ? "완료" : "편곡"}</span>
+                <span>{miniChordExpertMode ? translateUi("common.done") : translateUi("app.arrangement")}</span>
               </button>
             </div>
           </div>
 
           <div
-            aria-label={`코드 타임라인 ${miniChordVisibleStartBar}-${miniChordVisibleEndBar}마디`}
+            aria-label={translateUi("app.chordTimelineBarsValue1Value2", { value1: miniChordVisibleStartBar, value2: miniChordVisibleEndBar })}
             className={`miniChordTimelinePanel miniChordTimelinePanelCompact ${miniChordPageCount > 1 ? "is-paged" : ""}`}
             data-mini-chord-page-index={miniChordSafePageIndex}
             onClickCapture={handleMiniChordTimelineClickCapture}
@@ -31355,20 +31314,20 @@ function App({ onReady }) {
                       <MiniChordPlaybackSeekButton
                         store={miniChordPlaybackStoreRef.current}
                         barIndex={bar.index}
-                        aria-label={`${bar.index + 1}마디부터 재생`}
+                        aria-label={translateUi("app.playFromBarValue1", { value1: bar.index + 1 })}
                         className="miniChordPlaybackSeekLayer"
                         onClick={(event) => {
                           event.preventDefault();
                           event.stopPropagation();
                           seekMiniChordPreviewToBar(bar.index);
                         }}
-                        title={`${bar.index + 1}마디부터 재생`}
+                        title={translateUi("app.playFromBarValue1", { value1: bar.index + 1 })}
                         type="button"
                       />
                     ) : null}
                     {miniChordArrangementInputLocked ? (
                       <button
-                        aria-label={`${bar.index + 1}마디 편곡 범위 선택`}
+                        aria-label={translateUi("app.selectArrangementRangeAtBarValue1", { value1: bar.index + 1 })}
                         aria-pressed={inArrangementRange || isArrangementAnchor}
                         className="miniChordArrangementHitLayer"
                         type="button"
@@ -31390,7 +31349,7 @@ function App({ onReady }) {
                     ) : null}
                     {hasArrangementOverride && isAppliedArrangementRangeStart && arrangementOverride.showSectionLabel ? (
                       <button
-                        aria-label={`${arrangementOverride.sectionName}, ${arrangementOverride.startBar + 1}-${arrangementOverride.endBar + 1}마디 관리 열기`}
+                        aria-label={translateUi("app.manageValue1BarsValue2Value3", { value1: arrangementOverride.sectionName, value2: arrangementOverride.startBar + 1, value3: arrangementOverride.endBar + 1 })}
                         className="miniChordArrangementRangeTag"
                         disabled={miniChordArrangementEditLocked}
                         onClick={(event) => {
@@ -31404,14 +31363,14 @@ function App({ onReady }) {
                           setMiniChordArrangementManagerOpen(true);
                         }}
                         onPointerDown={(event) => event.stopPropagation()}
-                        title={`${arrangementOverride.sectionName} · ${arrangementOverride.patternName} · ${arrangementOverride.startBar + 1}-${arrangementOverride.endBar + 1}마디`}
+                        title={translateUi("app.value1Value2BarsValue3Value4", { value1: arrangementOverride.sectionName, value2: arrangementOverride.patternName, value3: arrangementOverride.startBar + 1, value4: arrangementOverride.endBar + 1 })}
                         type="button"
                       >
                         {arrangementOverride.sectionName}
                       </button>
                     ) : null}
                     <button
-                      aria-label={`${bar.index + 1}마디 도돌이표 시작 ${bar.repeatStart ? "해제" : "설정"}`}
+                      aria-label={localizeUi(translateUi("app.barValue1RepeatStartValue2", { value1: bar.index + 1, value2: bar.repeatStart ? ko["app.clear"] : ko["app.settingsApp"] }))}
                       aria-pressed={bar.repeatStart}
                       className={`miniChordMarkHotspot miniChordMarkHotspotStart ${bar.repeatStart ? "active" : ""}`}
                       data-mini-chord-repeat-edge="start"
@@ -31427,11 +31386,11 @@ function App({ onReady }) {
                       onDoubleClick={(event) => event.stopPropagation()}
                       onPointerDown={(event) => event.stopPropagation()}
                       onPointerUp={(event) => event.stopPropagation()}
-                      title={`${bar.index + 1}마디 시작 도돌이표`}
+                      title={translateUi("app.barValue1StartRepeat", { value1: bar.index + 1 })}
                       type="button"
                     />
                     <button
-                      aria-label={`${bar.index + 1}마디 도돌이표 끝 ${bar.repeatEnd ? "해제" : "설정"}`}
+                      aria-label={localizeUi(translateUi("app.barValue1RepeatEndValue2", { value1: bar.index + 1, value2: bar.repeatEnd ? ko["app.clear"] : ko["app.settingsApp"] }))}
                       aria-pressed={bar.repeatEnd}
                       className={`miniChordMarkHotspot miniChordMarkHotspotEnd ${bar.repeatEnd ? "active" : ""}`}
                       data-mini-chord-repeat-edge="end"
@@ -31447,11 +31406,11 @@ function App({ onReady }) {
                       onDoubleClick={(event) => event.stopPropagation()}
                       onPointerDown={(event) => event.stopPropagation()}
                       onPointerUp={(event) => event.stopPropagation()}
-                      title={`${bar.index + 1}마디 끝 도돌이표`}
+                      title={translateUi("app.barValue1EndRepeat", { value1: bar.index + 1 })}
                       type="button"
                     />
                     <button
-                      aria-label={`${bar.index + 1}마디 헤드 반복 기호 설정`}
+                      aria-label={translateUi("app.setLeadingRepeatSymbolAtBarValue1", { value1: bar.index + 1 })}
                       aria-expanded={miniChordActiveBarIndex === bar.index}
                       className={`miniChordMarkHotspot miniChordMarkHotspotEnding ${hasEnding || hasNavigationSymbol || hasCommandSymbol ? "active" : ""}`}
                       disabled={miniChordStructureLocked}
@@ -31488,19 +31447,19 @@ function App({ onReady }) {
                         ) : null}
                       </div>
                     ) : null}
-                    <div className="miniChordBarTopLayer" aria-label={`${bar.index + 1}마디 기호`}>
+                    <div className="miniChordBarTopLayer" aria-label={translateUi("app.barValue1Symbols", { value1: bar.index + 1 })}>
                       {bar.endingRange ? (
                         <div
                           className={`miniChordVoltaLayer miniChordEndingLayer ${isEndingSegmentStart ? "is-segment-start" : "is-continuation"} ${isEndingSegmentEnd ? "is-segment-end" : ""}`}
-                          aria-label={`${bar.endingRange.endingNumber}번 엔딩, ${bar.endingRange.startBar + 1}마디부터 ${bar.endingRange.endBar + 1}마디까지`}
+                          aria-label={translateUi("app.endingValue1BarsValue2Value3", { value1: bar.endingRange.endingNumber, value2: bar.endingRange.startBar + 1, value3: bar.endingRange.endBar + 1 })}
                         >
                           <span className="barEndingBracket">
-                            {bar.endingLabel ? <b>{bar.endingLabel}</b> : null}
+                            {bar.endingLabel ? <b>{localizeUi(bar.endingLabel)}</b> : null}
                           </span>
                         </div>
                       ) : null}
                       {hasNavigationSymbol ? (
-                        <div className={`miniChordNavigationMarkerLayer ${hasMarkWarning ? "is-warning" : ""}`} aria-label={`${bar.index + 1}마디 이동 기호`} title={bar.markWarning || undefined}>
+                        <div className={`miniChordNavigationMarkerLayer ${hasMarkWarning ? "is-warning" : ""}`} aria-label={translateUi("app.barValue1NavigationSymbols", { value1: bar.index + 1 })} title={bar.markWarning || undefined}>
                           <span className="miniChordSymbolStack">
                             {bar.navigationSymbols.map((symbol) => (
                               <MiniChordMarkVisual key={symbol.key} symbol={symbol} />
@@ -31512,9 +31471,8 @@ function App({ onReady }) {
                         <div className="miniChordExpertIndicatorLayer">
                           <span
                             className="miniChordArrangementBadge"
-                            aria-label={`${bar.arrangementOverride.sectionName} Section 설정 있음`}
-                          >
-                            S{Math.max(1, arrangementNumber)}
+                            aria-label={translateUi("app.value1SectionConfigured", { value1: bar.arrangementOverride.sectionName })}
+                          ><Translation id="originalUi.s" />{Math.max(1, arrangementNumber)}
                           </span>
                         </div>
                       ) : null}
@@ -31522,8 +31480,8 @@ function App({ onReady }) {
                     {hasCommandSymbol ? (
                       <div
                         className={`miniChordCommandMarkerLayer ${hasMarkWarning ? "is-warning" : ""}`}
-                        aria-label={`${bar.index + 1}마디 반복 명령${bar.markWarning ? `, ${bar.markWarning}` : ""}`}
-                        title={bar.markWarning || bar.commandSymbols[0]?.ariaLabel}
+                        aria-label={translateUi("app.barValue1RepeatCommandValue2", { value1: bar.index + 1, value2: bar.markWarning ? `, ${bar.markWarning}` : "" })}
+                        title={localizeUi(bar.markWarning || bar.commandSymbols[0]?.ariaLabel)}
                       >
                         <span className="miniChordCommandStack">
                           {bar.commandSymbols.map((symbol) => (
@@ -31534,7 +31492,7 @@ function App({ onReady }) {
                     ) : hasMarkWarning ? (
                       <div
                         className="miniChordCommandMarkerLayer miniChordCommandMarkerLayer--warningOnly is-warning"
-                        aria-label={`${bar.index + 1}마디 기호 경고, ${bar.markWarning}`}
+                        aria-label={translateUi("app.barValue1SymbolWarningValue2", { value1: bar.index + 1, value2: bar.markWarning })}
                         title={bar.markWarning}
                       >
                         !
@@ -31545,16 +31503,16 @@ function App({ onReady }) {
                         className="barEndingPopover miniChordFloatingPopover miniChordFloatingMarkPopover"
                         onClick={(event) => event.stopPropagation()}
                         role="dialog"
-                        aria-label={`${bar.index + 1}마디 기호 설정`}
+                        aria-label={translateUi("app.setBarValue1Symbols", { value1: bar.index + 1 })}
                         style={miniChordEndingPopoverPosition ?? undefined}
                       >
                         <div className="miniChordPickerTitle miniChordMarkPickerTitle">
                           <span className="miniChordMarkPickerTitleCopy">
-                            <b>기호 설정</b>
-                            <small>{bar.index + 1}마디</small>
+                            <b><Translation id="app.symbolSettings" /></b>
+                            <small>{bar.index + 1}<Translation id="app.bar" /></small>
                           </span>
                           <button
-                            aria-label="기호 설정 닫기"
+                            aria-label={translateUi("app.closeSymbolSettings")}
                             className="miniChordPopupCloseButton"
                             onClick={() => closeMiniChordFloatingEditors({ restoreFocus: true })}
                             type="button"
@@ -31563,16 +31521,16 @@ function App({ onReady }) {
                           </button>
                         </div>
                         <div className="barMarkCompactRow">
-                          <span className="barMarkSectionLabel">엔딩</span>
-                          <div className="barEndingOptions" aria-label="도돌이 엔딩 번호 설정">
+                          <span className="barMarkSectionLabel"><Translation id="app.ending" /></span>
+                          <div className="barEndingOptions" aria-label={translateUi("app.setRepeatEndingNumber")}>
                             {[1, 2, 3, 4, 5].map((endingNumber) => (
                               <button
-                                aria-label={`${endingNumber}번 엔딩 ${bar.endingRange?.endingNumber === endingNumber ? "해제" : "설정"}`}
+                                aria-label={localizeUi(translateUi("app.endingValue1Value2", { value1: endingNumber, value2: bar.endingRange?.endingNumber === endingNumber ? ko["app.clear"] : ko["app.settingsApp"] }))}
                                 aria-pressed={bar.endingRange?.endingNumber === endingNumber}
                                 className={bar.endingRange?.endingNumber === endingNumber ? "selected" : ""}
                                 key={endingNumber}
                                 onClick={() => toggleMiniChordEndingAtBar(bar.index, endingNumber)}
-                                title="인접 마디에 같은 번호를 설정하면 하나의 엔딩 구간으로 연결됩니다"
+                                title={translateUi("app.adjacentBarsWithTheSameNumberFormOneEndingRange")}
                                 type="button"
                               >
                                 {endingNumber}
@@ -31580,12 +31538,12 @@ function App({ onReady }) {
                             ))}
                           </div>
                         </div>
-                        <div className="barMarkerOptions barMarkerOptions--compact" aria-label="위치 마커 설정">
+                        <div className="barMarkerOptions barMarkerOptions--compact" aria-label={translateUi("app.setPositionMarker")}>
                           {MINI_CHORD_LOCATION_MARKER_OPTIONS.map((option) => {
                             const compactLabel = MINI_CHORD_LOCATION_MARKER_COMPACT_LABELS[option.value] ?? option.label;
                             return (
                               <button
-                                aria-label={option.label}
+                                aria-label={localizeUi(option.label)}
                                 aria-pressed={bar.mark.marker === option.value}
                                 className={bar.mark.marker === option.value ? "selected" : ""}
                                 key={option.value}
@@ -31598,23 +31556,23 @@ function App({ onReady }) {
                                     markerIndex: nextMarkerIndex,
                                   });
                                 }}
-                                title={option.label}
+                                title={localizeUi(option.label)}
                                 type="button"
                               >
                                 <span className="barMarkButtonContent">
                                   {getMiniChordMarkerIconType(option.value) ? (
                                     <MiniChordMusicSymbolIcon type={getMiniChordMarkerIconType(option.value)} />
                                   ) : null}
-                                  {compactLabel ? <span>{compactLabel}</span> : null}
+                                  {compactLabel ? <span>{localizeUi(compactLabel)}</span> : null}
                                 </span>
                               </button>
                             );
                           })}
                         </div>
-                        <div className="barCommandOptions barCommandOptions--compact" aria-label="점프 명령 설정">
+                        <div className="barCommandOptions barCommandOptions--compact" aria-label={translateUi("app.setJumpCommand")}>
                           {MINI_CHORD_COMMAND_OPTIONS.map((option) => (
                             <button
-                              aria-label={option.label}
+                              aria-label={localizeUi(option.label)}
                               aria-pressed={bar.mark.command === option.value}
                               className={bar.mark.command === option.value ? "selected" : ""}
                               key={option.value}
@@ -31627,23 +31585,21 @@ function App({ onReady }) {
                                   targetIndex: nextTargetIndex,
                                 });
                               }}
-                              title={option.label}
+                              title={localizeUi(option.label)}
                               type="button"
                             >
                               <span className="barMarkButtonContent">
-                                <span>{MINI_CHORD_COMMAND_COMPACT_LABELS[option.value] ?? option.label}</span>
+                                <span>{localizeUi(MINI_CHORD_COMMAND_COMPACT_LABELS[option.value] ?? option.label)}</span>
                               </span>
                             </button>
                           ))}
                         </div>
                         <button
-                          aria-label={`${bar.index + 1}마디 기호 제거`}
+                          aria-label={translateUi("app.removeBarValue1Symbols", { value1: bar.index + 1 })}
                           className="barEndingClear barEndingClear--full"
                           onClick={() => clearMiniChordBarNavigationMark(bar.index)}
                           type="button"
-                        >
-                          기호 제거
-                        </button>
+                        ><Translation id="app.removeSymbols" /></button>
                       </div>
                     ), document.body) : null}
                     <div className="miniChordSlots">
@@ -31665,7 +31621,7 @@ function App({ onReady }) {
                               <MiniChordPlaybackSlot
                                 store={miniChordPlaybackStoreRef.current}
                                 playbackIndexes={slot.playbackSlotIndexes}
-                                aria-label={`${bar.index + 1}마디 ${slot.index % MINI_CHORD_SLOTS_PER_BAR + 1}박 코드 설정`}
+                                aria-label={translateUi("app.barValue1BeatValue2ChordSettings", { value1: bar.index + 1, value2: slot.index % MINI_CHORD_SLOTS_PER_BAR + 1 })}
                                 className={`miniChordSlot ${!miniChordPlaybackActive && miniChordActiveSlot === slot.index ? "active" : ""} ${slot.chord ? "filled" : ""}`}
                                 data-mini-chord-playback-indexes={slot.playbackSlotIndexes.join(" ")}
                                 data-mini-chord-slot-index={slot.index}
@@ -31704,8 +31660,8 @@ function App({ onReady }) {
                                 <MiniChordFloatingChordEditor
                                   barNumber={bar.index + 1}
                                   beatLabel={half.isSplit
-                                    ? `${half.halfInBar === 0 ? "앞박" : "뒷박"} · ${slot.index % MINI_CHORD_SLOTS_PER_BAR + 1}박`
-                                    : `${half.halfInBar === 0 ? "앞박" : "뒷박"} · 2박`}
+                                    ? translateUi("app.value1BeatValue2", { value1: half.halfInBar === 0 ? ko["app.firstBeat"] : ko["app.secondBeat"], value2: slot.index % MINI_CHORD_SLOTS_PER_BAR + 1 })
+                                    : translateUi("app.value12Beats", { value1: half.halfInBar === 0 ? ko["app.firstBeat"] : ko["app.secondBeat"] })}
                                   fallbackDraft={miniChordPickerDraftRef.current}
                                   halfSlotEntries={[
                                     {
@@ -31766,11 +31722,11 @@ function App({ onReady }) {
 
           {miniChordPageCount > 1 && isMobileLayout ? (
             <nav
-              aria-label="마디 페이지 이동"
+              aria-label={translateUi("app.navigateBarPages")}
               className="miniChordInlinePagination miniChordInlinePagination--mobile"
             >
               <button
-                aria-label={`이전 마디 페이지 ${miniChordPreviousPageWindow.startBarNumber}-${miniChordPreviousPageWindow.endBarNumber}마디`}
+                aria-label={translateUi("app.previousPageBarsValue1Value2", { value1: miniChordPreviousPageWindow.startBarNumber, value2: miniChordPreviousPageWindow.endBarNumber })}
                 disabled={!miniChordHasPreviousPage}
                 onClick={() => goToMiniChordPage(miniChordSafePageIndex - 1, { scrollToTimeline: true })}
                 type="button"
@@ -31782,7 +31738,7 @@ function App({ onReady }) {
                 <small>{miniChordVisibleStartBar}-{miniChordVisibleEndBar}</small>
               </span>
               <button
-                aria-label={`다음 마디 페이지 ${miniChordNextPageWindow.startBarNumber}-${miniChordNextPageWindow.endBarNumber}마디`}
+                aria-label={translateUi("app.nextPageBarsValue1Value2", { value1: miniChordNextPageWindow.startBarNumber, value2: miniChordNextPageWindow.endBarNumber })}
                 disabled={!miniChordHasNextPage}
                 onClick={() => goToMiniChordPage(miniChordSafePageIndex + 1, { scrollToTimeline: true })}
                 type="button"
@@ -31792,12 +31748,12 @@ function App({ onReady }) {
             </nav>
           ) : null}
 
-          <div className="standaloneMetronomePanel miniChordMetronomePanel" aria-label="미니코드 메트로놈">
+          <div className="standaloneMetronomePanel miniChordMetronomePanel" aria-label={translateUi("app.miniChordMetronome")}>
             <MetronomeTransportCard
-              actionAriaLabel={!isMobileLayout ? "탭 템포, 재생, 카운트인" : undefined}
+              actionAriaLabel={!isMobileLayout ? translateUi("app.tapTempoPlaybackCountIn") : undefined}
               actionOrder={!isMobileLayout ? "tap-play" : "play-tap"}
               actionPanelClassName={!isMobileLayout ? "miniChordDesktopMetronomeActionPanel" : ""}
-              ariaLabel={!isMobileLayout ? "미니코드 BPM, 탭 템포, 재생, 카운트인" : "미니코드 BPM 조절 및 반주 재생"}
+              ariaLabel={!isMobileLayout ? translateUi("app.miniChordBpmTapTempoPlaybackCountIn") : translateUi("app.miniChordBpmAndBackingPlayback")}
               bpm={miniChordBpm}
               bpmControlsDisabled={miniChordEditLocked}
               bpmPreviewKey="mini-chord"
@@ -31815,12 +31771,12 @@ function App({ onReady }) {
               onStop={stopMiniChordPreview}
               onTapTempo={handleMiniChordTapTempo}
               onTapTempoPressFeedback={triggerMiniChordTapTempoPressFeedback}
-              playStartLabel="미니코드 반주 시작"
-              playStopLabel="미니코드 반주 정지"
+              playStartLabel={translateUi("app.startMiniChordBacking")}
+              playStopLabel={translateUi("app.stopMiniChordBacking")}
               showCountIn={!isMobileLayout}
               swipeEnabled={!miniChordEditLocked}
               tapTempoDisabled={miniChordEditLocked}
-              tapTempoLabel="탭 템포로 미니코드 BPM 설정"
+              tapTempoLabel={translateUi("app.tapToSetMiniChordBpm")}
               tapTempoPressTick={miniChordTapTempoPressTick}
             />
           </div>
@@ -31840,7 +31796,7 @@ function App({ onReady }) {
 
           {miniChordPageCount > 1 && !isMobileLayout ? (
             <nav
-              aria-label="마디 페이지 이동"
+              aria-label={translateUi("app.navigateBarPages")}
               className="miniChordBottomPagination miniChordBottomPagination--desktop"
             >
               <button
@@ -31848,20 +31804,16 @@ function App({ onReady }) {
                 onClick={() => goToMiniChordPage(miniChordSafePageIndex - 1, { scrollToTimeline: true })}
                 type="button"
               >
-                <ChevronLeft aria-hidden="true" size={17} />
-                이전 {miniChordPreviousPageWindow.startBarNumber}-{miniChordPreviousPageWindow.endBarNumber}마디
-              </button>
+                <ChevronLeft aria-hidden="true" size={17} /><Translation id="app.previous" />{miniChordPreviousPageWindow.startBarNumber}-{miniChordPreviousPageWindow.endBarNumber}<Translation id="app.bar" /></button>
               <div aria-live="polite">
                 <strong>{miniChordSafePageIndex + 1} / {miniChordPageCount}</strong>
-                <small>{miniChordVisibleStartBar}-{miniChordVisibleEndBar}마디</small>
+                <small>{miniChordVisibleStartBar}-{miniChordVisibleEndBar}<Translation id="app.bar" /></small>
               </div>
               <button
                 disabled={!miniChordHasNextPage}
                 onClick={() => goToMiniChordPage(miniChordSafePageIndex + 1, { scrollToTimeline: true })}
                 type="button"
-              >
-                다음 {miniChordNextPageWindow.startBarNumber}-{miniChordNextPageWindow.endBarNumber}마디
-                <ChevronRight aria-hidden="true" size={17} />
+              ><Translation id="app.next" />{miniChordNextPageWindow.startBarNumber}-{miniChordNextPageWindow.endBarNumber}<Translation id="app.bar" /><ChevronRight aria-hidden="true" size={17} />
               </button>
             </nav>
           ) : null}
@@ -31874,16 +31826,16 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.DESIGN_LAB) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.DESIGN_LAB)}>
         {renderAppMode(APP_MODES.DESIGN_LAB, () => (
-        <section className="designLabPanel" aria-label="FRETIVA LAB UI 실험실" style={logoPreviewStyle}>
-          <ContentTitle title="Design Lab" subtitle="제작, 등록, 비교, 채택을 위한 FRETIVA LAB 전용 테스트 공간" />
-          <div className="designLabStickyPreview" aria-label="현재 적용 헤더 미리보기">
+        <section className="designLabPanel" aria-label={translateUi("app.fretivaLabUiLab")} style={logoPreviewStyle}>
+          <ContentTitle title={translateUi("originalUi.designLab")} subtitle={translateUi("app.aFretivaLabWorkspaceForCreatingRegisteringComparingAndChoosingDesigns")} />
+          <div className="designLabStickyPreview" aria-label={translateUi("app.currentHeaderPreview")}>
             <div>
-              <span>Live Header</span>
-              <strong>{getHeaderVariantLabel(headerVariant)}</strong>
+              <span><Translation id="originalUi.liveHeader" /></span>
+              <strong>{localizeUi(getHeaderVariantLabel(headerVariant))}</strong>
             </div>
             <BrandHeader variant={headerVariant} />
           </div>
-          <nav className="designLabTabs" aria-label="Design Lab categories">
+          <nav className="designLabTabs" aria-label={translateUi("originalUi.designLabCategories")}>
             {DESIGN_LAB_SECTIONS.map((section) => (
               <button
                 className={designLabSection === section.id ? "selected" : ""}
@@ -31891,29 +31843,29 @@ function App({ onReady }) {
                 onClick={() => setDesignLabSection(section.id)}
                 type="button"
               >
-                {getDesignLabSectionLabel(section)}
+                {localizeUi(getDesignLabSectionLabel(section))}
               </button>
             ))}
           </nav>
-          <section className="headerPreviewSection" aria-label="Header Preview">
+          <section className="headerPreviewSection" aria-label={translateUi("originalUi.headerPreview")}>
             <div className="headerPreviewSectionTitle">
-              <span>{selectedDesignLabSectionLabel} Lab</span>
+              <span>{localizeUi(selectedDesignLabSectionLabel)}<Translation id="originalUi.labApp" /></span>
               <strong>
                 {designLabSection === "logo"
-                  ? `운영 Header: ${getHeaderVariantLabel(headerVariant)}`
+                  ? translateUi("app.liveHeaderValue1", { value1: getHeaderVariantLabel(headerVariant) })
                   : designLabSection === "app-icon"
-                    ? `운영 App Icon: ${getAppIconVariantLabel(designLabAppIconState.activeIcon)}`
+                    ? translateUi("app.liveAppIconValue1", { value1: getAppIconVariantLabel(designLabAppIconState.activeIcon) })
                     : designLabSection === "character"
                       ? `Shooter Player: ${selectedGuitarVariant.title}`
                       : designLabSection === "test"
-                        ? "Metronome Visual Lab: 운영 화면 미적용"
-                        : "운영 화면에 적용하지 않는 시안 보관 영역"}
+                        ? translateUi("app.metronomeVisualLabPreviewOnly")
+                        : translateUi("app.designArchiveNotAppliedToTheLiveApp")}
               </strong>
             </div>
             {designLabSection === "logo" ? (
               <>
-                <div className="designLabLogoSizeControl" aria-label="Logo Size">
-                  <span>Logo Size</span>
+                <div className="designLabLogoSizeControl" aria-label={translateUi("originalUi.logoSize")}>
+                  <span><Translation id="originalUi.logoSize" /></span>
                   <button
                     disabled={logoPreviewScale <= 90}
                     onClick={() => setLogoPreviewScale((current) => Math.max(90, current - 10))}
@@ -31941,9 +31893,9 @@ function App({ onReady }) {
                         onClick={() => setSelectedHeaderCandidateId(variant.id)}
                       >
                         <div className="headerPreviewMeta">
-                          <span>{variant.title}</span>
-                          <small>{variant.description}</small>
-                          <em className={`designLabStatus designLabStatus--${getHeaderLabStatusClass(status)}`}>{status}</em>
+                          <span>{localizeUi(variant.title)}</span>
+                          <small>{localizeUi(variant.description)}</small>
+                          <em className={`designLabStatus designLabStatus--${getHeaderLabStatusClass(status)}`}>{localizeUi(status)}</em>
                         </div>
                         <div className="headerPreviewDevice">
                           <BrandHeader variant={variant.id} />
@@ -31957,7 +31909,7 @@ function App({ onReady }) {
                             }}
                             type="button"
                           >
-                            {isSelectedCandidate ? "선택됨" : "선택"}
+                            {isSelectedCandidate ? translateUi("app.selected") : translateUi("app.select")}
                           </button>
                           <button
                             className={headerVariant === variant.id ? "selected" : ""}
@@ -31968,10 +31920,10 @@ function App({ onReady }) {
                             }}
                             type="button"
                           >
-                            {headerVariant === variant.id ? "운영중" : "적용"}
+                            {headerVariant === variant.id ? translateUi("app.live") : translateUi("app.apply")}
                           </button>
                           <button
-                            className={status === "잠금" ? "selected" : ""}
+                            className={status === ko["app.lock"] ? "selected" : ""}
                             disabled={headerVariant === variant.id}
                             onClick={(event) => {
                               event.stopPropagation();
@@ -31979,18 +31931,16 @@ function App({ onReady }) {
                             }}
                             type="button"
                           >
-                            {status === "잠금" ? "잠금 해제" : "잠금"}
+                            {localizeUi(status === ko["app.lock"] ? translateUi("app.unlock") : translateUi("app.lock"))}
                           </button>
                           <button
-                            disabled={headerVariant === variant.id || status === "잠금"}
+                            disabled={headerVariant === variant.id || status === ko["app.lock"]}
                             onClick={(event) => {
                               event.stopPropagation();
                               deleteHeaderVariant(variant.id);
                             }}
                             type="button"
-                          >
-                            삭제
-                          </button>
+                          ><Translation id="common.delete" /></button>
                         </div>
                       </article>
                     );
@@ -32012,11 +31962,11 @@ function App({ onReady }) {
                       onClick={() => setSelectedAppIconCandidateId(variant.id)}
                     >
                       <div className="headerPreviewMeta">
-                        <span>{variant.title}</span>
-                        <small>{variant.description}</small>
-                        <em className={`designLabStatus designLabStatus--${getHeaderLabStatusClass(status)}`}>{status}</em>
+                        <span>{localizeUi(variant.title)}</span>
+                        <small>{localizeUi(variant.description)}</small>
+                        <em className={`designLabStatus designLabStatus--${getHeaderLabStatusClass(status)}`}>{localizeUi(status)}</em>
                       </div>
-                      <div className="designLabAppIconPreviewSet" aria-label={`${variant.title} 크기별 미리보기`}>
+                      <div className="designLabAppIconPreviewSet" aria-label={translateUi("app.value1SizePreviews", { value1: variant.title })}>
                         <AppIconPreview variantId={variant.id} size="large" />
                         <div className="designLabAppIconSizes">
                           <AppIconPreview variantId={variant.id} size="medium" />
@@ -32032,7 +31982,7 @@ function App({ onReady }) {
                           }}
                           type="button"
                         >
-                          {isSelectedCandidate ? "선택됨" : "선택"}
+                          {isSelectedCandidate ? translateUi("app.selected") : translateUi("app.select")}
                         </button>
                         <button
                           className={isActiveIcon ? "selected" : ""}
@@ -32043,10 +31993,10 @@ function App({ onReady }) {
                           }}
                           type="button"
                         >
-                          {isActiveIcon ? "운영중" : "적용"}
+                          {isActiveIcon ? translateUi("app.live") : translateUi("app.apply")}
                         </button>
                         <button
-                          className={status === "잠금" ? "selected" : ""}
+                          className={status === ko["app.lock"] ? "selected" : ""}
                           disabled={isActiveIcon}
                           onClick={(event) => {
                             event.stopPropagation();
@@ -32054,18 +32004,16 @@ function App({ onReady }) {
                           }}
                           type="button"
                         >
-                          {status === "잠금" ? "잠금 해제" : "잠금"}
+                          {localizeUi(status === ko["app.lock"] ? translateUi("app.unlock") : translateUi("app.lock"))}
                         </button>
                         <button
-                          disabled={isActiveIcon || status === "잠금"}
+                          disabled={isActiveIcon || status === ko["app.lock"]}
                           onClick={(event) => {
                             event.stopPropagation();
                             deleteAppIconVariant(variant.id);
                           }}
                           type="button"
-                        >
-                          삭제
-                        </button>
+                        ><Translation id="common.delete" /></button>
                       </div>
                     </article>
                   );
@@ -32076,8 +32024,8 @@ function App({ onReady }) {
               <div className="guitarLab">
                 <article className="headerPreviewCard guitarLabRulesCard">
                   <div className="headerPreviewMeta">
-                    <span>FRETIVA LAB 기타 디자인 규칙</span>
-                    <small>Martin, Gibson, Taylor, Yamaha 계열 정면 구조를 참고한 신규 실제 비율 라인 기준</small>
+                    <span><Translation id="app.fretivaLabGuitarDesignGuidelines" /></span>
+                    <small><Translation id="app.realisticProportionsBasedOnFrontViewsOfMartinGibsonTaylorAndYamaha" /></small>
                   </div>
                   <ul>
                     {RIFFLAB_GUITAR_DESIGN_RULES.map((rule) => (
@@ -32087,23 +32035,17 @@ function App({ onReady }) {
                 </article>
                 <div className="guitarLabToolbar">
                   <div>
-                    <strong>Guitar Lab</strong>
-                    <span>디자인 {visibleGuitarLabVariants.length}개 · 아카이브 {archivedGuitarLabVariants.length}개</span>
+                    <strong><Translation id="originalUi.guitarLab" /></strong>
+                    <span><Translation id="app.designs" />{visibleGuitarLabVariants.length}<Translation id="app.archived" />{archivedGuitarLabVariants.length}<Translation id="app.items" /></span>
                   </div>
                   <div className="guitarLabToolbarActions">
-                    <button disabled={!guitarLabSelectedDeleteIds.length} onClick={deleteSelectedGuitarLabVariants} type="button">
-                      선택 삭제
-                    </button>
+                    <button disabled={!guitarLabSelectedDeleteIds.length} onClick={deleteSelectedGuitarLabVariants} type="button"><Translation id="app.deleteSelected" /></button>
                     <button
                       disabled={!visibleGuitarLabVariants.some((variant) => !assignedGuitarVariantIds.has(variant.id) && selectedGuitarVariant.id !== variant.id)}
                       onClick={deleteAllGuitarLabVariants}
                       type="button"
-                    >
-                      전체 삭제
-                    </button>
-                    <button disabled={!showGuitarLabArchiveButton} onClick={openGuitarLabArchive} type="button">
-                      아카이브 보기
-                    </button>
+                    ><Translation id="app.deleteAll" /></button>
+                    <button disabled={!showGuitarLabArchiveButton} onClick={openGuitarLabArchive} type="button"><Translation id="app.viewArchive" /></button>
                   </div>
                 </div>
                 {["Acoustic", "Classical", "Electric"].map((pack) => {
@@ -32112,7 +32054,7 @@ function App({ onReady }) {
                     <section className="guitarLabPack" key={pack} aria-label={`${pack} Guitar Pack`}>
                       <div className="headerPreviewMeta">
                         <span>{pack}</span>
-                        <small>{pack === "Acoustic" ? `어쿠스틱 기타팩 ${packVariants.length}종` : pack === "Classical" ? `클래식 기타팩 ${packVariants.length}종` : `일렉 기타팩 ${packVariants.length}종`}</small>
+                        <small>{pack === "Acoustic" ? translateUi("app.acousticGuitarPackValue1Designs", { value1: packVariants.length }) : pack === "Classical" ? translateUi("app.classicalGuitarPackValue1Designs", { value1: packVariants.length }) : translateUi("app.electricGuitarPackValue1Designs", { value1: packVariants.length })}</small>
                       </div>
                       <div className="headerPreviewGrid guitarLabGrid">
                         {packVariants.map((variant) => {
@@ -32126,22 +32068,20 @@ function App({ onReady }) {
                         return (
                           <article className={`headerPreviewCard guitarLabCard ${assignedSlotNumbers.length ? "selected" : ""} ${isDeleteSelected ? "candidateSelected" : ""}`} key={variant.id}>
                             <div className="guitarLabCardTop">
-                              <b>{variantLabel}</b>
+                              <b>{localizeUi(variantLabel)}</b>
                               <label className={`guitarLabSelectCheck ${isProtected ? "disabled" : ""}`}>
                                 <input
                                   checked={isDeleteSelected}
                                   disabled={isProtected}
                                   onChange={() => toggleGuitarLabDeleteSelection(variant.id)}
                                   type="checkbox"
-                                />
-                                선택
-                              </label>
+                                /><Translation id="app.select" /></label>
                             </div>
                             <div className="headerPreviewMeta">
-                              <span>{variantLabel} · {variant.model}</span>
-                              <small>{variant.description}</small>
+                              <span>{localizeUi(variantLabel)} · {variant.model}</span>
+                              <small>{localizeUi(variant.description)}</small>
                               <em className="designLabCharacterSpec">
-                                {variant.pack} · {assignedSlotNumbers.length ? `Shooter Slot ${assignedSlotNumbers.join(", ")}` : "후보 미지정"}
+                                {variant.pack} · {assignedSlotNumbers.length ? `Shooter Slot ${assignedSlotNumbers.join(", ")}` : translateUi("app.noCandidateSelected")}
                               </em>
                             </div>
                             <GuitarLabPreview variant={variant} active={isActive || assignedSlotNumbers.length > 0} />
@@ -32156,8 +32096,7 @@ function App({ onReady }) {
                                     onClick={() => saveGuitarToShooterSlot(variant.id, slotKey)}
                                     type="button"
                                   >
-                                    {slotNumber}로 저장
-                                  </button>
+                                    {slotNumber}<Translation id="app.save" /></button>
                                 );
                               })}
                               <button
@@ -32165,9 +32104,7 @@ function App({ onReady }) {
                                 disabled={isProtected}
                                 onClick={() => deleteGuitarLabVariant(variant.id)}
                                 type="button"
-                              >
-                                삭제
-                              </button>
+                              ><Translation id="common.delete" /></button>
                             </div>
                           </article>
                         );
@@ -32182,23 +32119,23 @@ function App({ onReady }) {
               <div className="metronomeVisualLab">
                 <article className="headerPreviewCard svgLogoLabHero">
                   <div className="headerPreviewMeta">
-                    <span>Logo Lab · R Brand Symbol Candidates</span>
-                    <small>R을 중심으로 피크, 프렛, 헤드스톡, 훈련 상징을 다르게 조합한 1:1 SVG 후보입니다. 기존 V11 명판과 로고는 분리 관리됩니다.</small>
-                    <em className="designLabStatus designLabStatus--draft">Experimental</em>
+                    <span><Translation id="originalUi.logoLabRBrandSymbolCandidates" /></span>
+                    <small><Translation id="app.squareSvgCandidatesCombineRWithPicksFretsHeadstocksAndPracticeSymbols" /></small>
+                    <em className="designLabStatus designLabStatus--draft"><Translation id="originalUi.experimental" /></em>
                   </div>
                   <SvgLogoHeaderPreview candidate={svgLogoPreviewCandidate} />
                   <div className="svgLogoLabHeroMeta">
-                    <span>{svgLogoPreviewCandidate.label}</span>
-                    <strong>{svgLogoPreviewCandidate.title}</strong>
-                    <small>{svgLogoPreviewCandidate.description}</small>
+                    <span>{localizeUi(svgLogoPreviewCandidate.label)}</span>
+                    <strong>{localizeUi(svgLogoPreviewCandidate.title)}</strong>
+                    <small>{localizeUi(svgLogoPreviewCandidate.description)}</small>
                   </div>
                 </article>
 
                 <article className="headerPreviewCard shooterHitSoundLabCard">
                   <div className="headerPreviewMeta">
-                    <span>Shooter Hit Sound Lab</span>
-                    <small>몹이 깨질 때 들릴 짧은 "빠각!" 후보입니다. 게임에는 현재 A 후보가 기본 적용됩니다.</small>
-                    <em className="designLabStatus designLabStatus--draft">Preview</em>
+                    <span><Translation id="originalUi.shooterHitSoundLab" /></span>
+                    <small><Translation id="app.shortImpactSoundsForBreakingTargetsCandidateAIsCurrentlyTheGame" /></small>
+                    <em className="designLabStatus designLabStatus--draft"><Translation id="originalUi.preview" /></em>
                   </div>
                   <div className="shooterHitSoundCandidates">
                     {SHOOTER_HIT_SOUND_CANDIDATES.map((candidate) => (
@@ -32208,9 +32145,9 @@ function App({ onReady }) {
                         type="button"
                       >
                         <Play size={15} />
-                        <span>{candidate.label}</span>
-                        <strong>{candidate.title}</strong>
-                        <small>{candidate.description}</small>
+                        <span>{localizeUi(candidate.label)}</span>
+                        <strong>{localizeUi(candidate.title)}</strong>
+                        <small>{localizeUi(candidate.description)}</small>
                       </button>
                     ))}
                   </div>
@@ -32226,8 +32163,8 @@ function App({ onReady }) {
                         key={candidate.id}
                       >
                         <div className="headerPreviewMeta">
-                          <span>{candidate.label}</span>
-                          <small>{candidate.title}</small>
+                          <span>{localizeUi(candidate.label)}</span>
+                          <small>{localizeUi(candidate.title)}</small>
                           <em className={`designLabStatus designLabStatus--${isActive ? "active" : "draft"}`}>
                             {isActive ? "Active Logo" : "SVG Candidate"}
                           </em>
@@ -32235,15 +32172,13 @@ function App({ onReady }) {
                         <div className="svgLogoCandidatePreview">
                           <RiffLoopLogoSvg candidate={candidate} />
                         </div>
-                        <p>{candidate.description}</p>
+                        <p>{localizeUi(candidate.description)}</p>
                         <div className="designLabItemActions">
                           <button
                             className={isPreview ? "selected" : ""}
                             onClick={() => setSvgLogoPreviewId(candidate.id)}
                             type="button"
-                          >
-                            Preview in Header
-                          </button>
+                          ><Translation id="originalUi.previewInHeader" /></button>
                           <button
                             className={isActive ? "selected" : ""}
                             onClick={() => selectSvgLogoCandidate(candidate.id)}
@@ -32255,9 +32190,7 @@ function App({ onReady }) {
                             disabled={isActive}
                             onClick={() => deleteSvgLogoCandidate(candidate.id)}
                             type="button"
-                          >
-                            Delete
-                          </button>
+                          ><Translation id="originalUi.delete" /></button>
                         </div>
                       </article>
                     );
@@ -32266,11 +32199,11 @@ function App({ onReady }) {
 
                 <article className="headerPreviewCard metronomeVisualLabControlCard">
                   <div className="headerPreviewMeta">
-                    <span>Metronome Visual Lab</span>
-                    <small>실제 메트로놈 화면에는 적용하지 않고, 같은 BPM과 오디오로 시각화만 비교합니다.</small>
-                    <em className="designLabStatus designLabStatus--draft">Experimental</em>
+                    <span><Translation id="originalUi.metronomeVisualLab" /></span>
+                    <small><Translation id="app.compareVisualsWithTheSameBpmAndAudioWithoutApplyingThemTo" /></small>
+                    <em className="designLabStatus designLabStatus--draft"><Translation id="originalUi.experimental" /></em>
                   </div>
-                  <div className="metronomeVisualLabTabs" aria-label="Metronome visual modes">
+                  <div className="metronomeVisualLabTabs" aria-label={translateUi("originalUi.metronomeVisualModes")}>
                     {METRONOME_VISUAL_LAB_MODES.map((mode) => (
                       <button
                         className={metronomeVisualLabMode === mode.id ? "selected" : ""}
@@ -32278,7 +32211,7 @@ function App({ onReady }) {
                         onClick={() => setMetronomeVisualLabMode(mode.id)}
                         type="button"
                       >
-                        {mode.label}
+                        {localizeUi(mode.label)}
                       </button>
                     ))}
                   </div>
@@ -32288,13 +32221,13 @@ function App({ onReady }) {
                       onClick={toggleMetronomeVisualLab}
                       type="button"
                     >
-                      {metronomeVisualLabPlaying ? "정지" : "프리뷰 재생"}
+                      {metronomeVisualLabPlaying ? translateUi("app.stopApp") : translateUi("app.playPreview")}
                     </button>
-                    <span>{bpm} BPM</span>
+                    <span>{bpm}<Translation id="originalUi.bpmApp" /></span>
                     <span>{metronomeVisualLabTimeSignature}</span>
-                    <span>{getMetronomeToneOption(metronomeTone).label}</span>
+                    <span>{localizeUi(getMetronomeToneOption(metronomeTone).label)}</span>
                   </div>
-                  <div className="metronomeVisualLabSignaturePicker" aria-label="Circle Mode time signature candidates">
+                  <div className="metronomeVisualLabSignaturePicker" aria-label={translateUi("originalUi.circleModeTimeSignatureCandidates")}>
                     {METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS.map((option) => (
                       <button
                         className={metronomeVisualLabTimeSignature === option.id ? "selected" : ""}
@@ -32302,7 +32235,7 @@ function App({ onReady }) {
                         onClick={() => setMetronomeVisualLabTimeSignature(option.id)}
                         type="button"
                       >
-                        {option.label}
+                        {localizeUi(option.label)}
                       </button>
                     ))}
                   </div>
@@ -32322,14 +32255,12 @@ function App({ onReady }) {
               <div className="designLabArchive">
                 <div className="guitarLabToolbar">
                   <div>
-                    <strong>삭제 후보 보관함 🗑️</strong>
-                    <span>삭제한 항목은 여기에서 복원하거나 영구 삭제할 수 있어요.</span>
-                    <span>디자인 {visibleGuitarLabVariants.length}개 · 아카이브 {archivedGuitarLabVariants.length}개</span>
+                    <strong><Translation id="app.discardedDesigns" /></strong>
+                    <span><Translation id="app.restoreDeletedItemsOrDeleteThemPermanentlyHere" /></span>
+                    <span><Translation id="app.designs" />{visibleGuitarLabVariants.length}<Translation id="app.archived" />{archivedGuitarLabVariants.length}<Translation id="app.items" /></span>
                   </div>
                   <div className="guitarLabToolbarActions">
-                    <button className="danger" disabled={!archivedGuitarLabVariants.length} onClick={emptyGuitarLabArchive} type="button">
-                      휴지통 비우기
-                    </button>
+                    <button className="danger" disabled={!archivedGuitarLabVariants.length} onClick={emptyGuitarLabArchive} type="button"><Translation id="app.emptyTrash" /></button>
                   </div>
                 </div>
 
@@ -32339,15 +32270,11 @@ function App({ onReady }) {
                       const variantLabel = `V${String(variant.index).padStart(2, "0")}`;
                       return (
                         <article className="headerPreviewCard designLabArchiveCard guitarLabCard" key={variant.id}>
-                          <b className="guitarLabArchiveBadge">{variantLabel}</b>
+                          <b className="guitarLabArchiveBadge">{localizeUi(variantLabel)}</b>
                           <GuitarLabPreview variant={variant} />
                           <div className="designLabItemActions">
-                            <button onClick={() => restoreGuitarLabVariant(variant.id)} type="button">
-                              복원
-                            </button>
-                            <button className="danger" onClick={() => permanentlyDeleteGuitarLabVariant(variant.id)} type="button">
-                              영구 삭제
-                            </button>
+                            <button onClick={() => restoreGuitarLabVariant(variant.id)} type="button"><Translation id="app.restore" /></button>
+                            <button className="danger" onClick={() => permanentlyDeleteGuitarLabVariant(variant.id)} type="button"><Translation id="app.deletePermanently" /></button>
                           </div>
                         </article>
                       );
@@ -32360,28 +32287,28 @@ function App({ onReady }) {
                     {ARCHIVED_HEADER_VARIANTS.map((variant) => (
                       <article className="headerPreviewCard designLabArchiveCard" key={variant.id}>
                         <div className="headerPreviewMeta">
-                          <span>{variant.title}</span>
-                          <small>{variant.description}</small>
-                          <em className="designLabStatus designLabStatus--legacy">Legacy</em>
+                          <span>{localizeUi(variant.title)}</span>
+                          <small>{localizeUi(variant.description)}</small>
+                          <em className="designLabStatus designLabStatus--legacy"><Translation id="originalUi.legacy" /></em>
                         </div>
                         <div className="headerPreviewDevice">
                           <BrandHeader variant={variant.id} />
                         </div>
                         <div className="designLabItemActions">
-                          <button disabled type="button">보관됨</button>
-                          <button disabled type="button">잠금</button>
-                          <button disabled type="button">삭제</button>
+                          <button disabled type="button"><Translation id="app.archivedApp" /></button>
+                          <button disabled type="button"><Translation id="app.lock" /></button>
+                          <button disabled type="button"><Translation id="common.delete" /></button>
                         </div>
                       </article>
                     ))}
                     {ARCHIVED_APP_ICON_VARIANTS.map((variant) => (
                       <article className="headerPreviewCard designLabArchiveCard designLabArchivedAppIconCard" key={variant.id}>
                         <div className="headerPreviewMeta">
-                          <span>{variant.title}</span>
-                          <small>{variant.description}</small>
-                          <em className="designLabStatus designLabStatus--legacy">Legacy</em>
+                          <span>{localizeUi(variant.title)}</span>
+                          <small>{localizeUi(variant.description)}</small>
+                          <em className="designLabStatus designLabStatus--legacy"><Translation id="originalUi.legacy" /></em>
                         </div>
-                        <div className="designLabAppIconPreviewSet" aria-label={`${variant.title} 보관 미리보기`}>
+                        <div className="designLabAppIconPreviewSet" aria-label={translateUi("app.value1ArchivePreview", { value1: variant.title })}>
                           <AppIconPreview variantId={variant.id} size="large" />
                           <div className="designLabAppIconSizes">
                             <AppIconPreview variantId={variant.id} size="medium" />
@@ -32389,9 +32316,9 @@ function App({ onReady }) {
                           </div>
                         </div>
                         <div className="designLabItemActions">
-                          <button disabled type="button">보관됨</button>
-                          <button disabled type="button">잠금</button>
-                          <button disabled type="button">삭제</button>
+                          <button disabled type="button"><Translation id="app.archivedApp" /></button>
+                          <button disabled type="button"><Translation id="app.lock" /></button>
+                          <button disabled type="button"><Translation id="common.delete" /></button>
                         </div>
                       </article>
                     ))}
@@ -32416,7 +32343,7 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.FRETBOARD_VIEWER) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.FRETBOARD_VIEWER)}>
         {renderAppMode(APP_MODES.FRETBOARD_VIEWER, () => (
-        <section className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode} ${!isMobileLayout ? "fretboardViewerPanel--desktopUnified" : ""}`} aria-label="지판 보기">
+        <section className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode} ${!isMobileLayout ? "fretboardViewerPanel--desktopUnified" : ""}`} aria-label={translateUi("menu.fretboard")}>
           <div
             className={`viewerControlPanel viewerControlPanel--${viewerMode} compactControls viewerSwipeSurface ${viewerSwipeFeedback ? `viewerSwipeSurface--${viewerSwipeFeedback}` : ""}`}
             onPointerCancel={isMobileLayout ? () => {
@@ -32425,23 +32352,19 @@ function App({ onReady }) {
             onPointerDown={isMobileLayout ? handleFretboardSwipeStart : undefined}
             onPointerUp={isMobileLayout ? handleFretboardSwipeEnd : undefined}
           >
-            <div className="viewerModeTabs" aria-label="지판 보기 종류">
+            <div className="viewerModeTabs" aria-label={translateUi("app.fretboardView")}>
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.CHORD}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
                 onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
                 type="button"
-              >
-                코드
-              </button>
+              ><Translation id="app.chords" /></button>
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.NOTE}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
                 onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
                 type="button"
-              >
-                음표
-              </button>
+              ><Translation id="app.notes" /></button>
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.SCALE}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "selected" : ""}
@@ -32449,25 +32372,24 @@ function App({ onReady }) {
                 type="button"
               >
                 <span className="viewerModeTabStack">
-                  <span>스케일</span>
-                  <span>펜타토닉</span>
+                  <span><Translation id="app.scales" /></span>
+                  <span><Translation id="app.pentatonics" /></span>
                 </span>
               </button>
             </div>
 
-            <section className={`viewerMapCard viewerMapCard--${viewerMode}`} aria-label="전체 지판 음표" ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
+            <section className={`viewerMapCard viewerMapCard--${viewerMode}`} aria-label={translateUi("app.allFretboardNotes")} ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
               <div className={`viewerMapHeader ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "viewerMapHeader--chord" : ""}`}>
                 {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
                   <div className="viewerChordHeader">
                     <div className="viewerChordIdentity">
-                      <span>참고지판</span>
+                      <span><Translation id="app.referenceFretboard" /></span>
                       <strong>{viewerMapTitle}</strong>
 
                     </div>
                     <small className="viewerSwipeHint">
-                      {viewerChordPositionLabel} · 밀기
-                      {isMobileLayout ? (
-                        <span className="viewerSwipeGestureLabel" aria-hidden="true">↔ 스와이프</span>
+                      {localizeUi(viewerChordPositionLabel)}<Translation id="app.swipe" />{isMobileLayout ? (
+                        <span className="viewerSwipeGestureLabel" aria-hidden="true"><Translation id="app.swipeApp" /></span>
                       ) : null}
                     </small>
                     <div className="viewerChordHeaderActions">
@@ -32475,11 +32397,9 @@ function App({ onReady }) {
                         className="viewerAllButton"
                         onClick={scrollToChordChart}
                         type="button"
-                      >
-                        전체보기
-                      </button>
+                      ><Translation id="app.viewAll" /></button>
                       <button
-                        aria-label={`${viewerMapTitle} ${viewerSample ? "원본 녹음" : "현재 운지"} 소리 듣기`}
+                        aria-label={localizeUi(translateUi("app.playValue1Value2", { value1: viewerMapTitle, value2: viewerSample ? ko["app.originalRecording"] : ko["app.currentFingering"] }))}
                         aria-pressed={false}
                         className="viewerChordSoundButton"
                         disabled={!viewerCurrentChordPosition?.notes?.length}
@@ -32487,14 +32407,14 @@ function App({ onReady }) {
                         type="button"
                       >
                         <Volume2 aria-hidden="true" size={16} />
-                        <span>코드 듣기</span>
+                        <span><Translation id="app.playChord" /></span>
                       </button>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="viewerMapHeaderTop">
-                      <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "음표 위치" : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "스케일 위치" : "기준 지판"}</span>
+                      <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? translateUi("app.notePositions") : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? translateUi("app.scalePositions") : translateUi("app.referenceFretboardApp")}</span>
                     </div>
                     <div className="viewerMapTitleRow">
                       {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
@@ -32503,7 +32423,7 @@ function App({ onReady }) {
                         <strong>{viewerMapTitle}</strong>
                       )}
                       {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
-                        <small className="viewerSwipeHint">↔ Swipe</small>
+                        <small className="viewerSwipeHint"><Translation id="originalUi.swipe" /></small>
                       ) : null}
                     </div>
                   </>
@@ -32511,12 +32431,12 @@ function App({ onReady }) {
               </div>
               {viewerMode === FRETBOARD_VIEWER_MODES.CHORD && viewerCurrentChordPosition?.voicing?.omittedTones.length > 0 && (
                 <div className="chordVoicingOmissions">
-                  <span>정석 생략 보이싱 · 생략: {viewerCurrentChordPosition.voicing.omittedTones.map((tone) => `${tone.degreeOffset === 3 ? "11" : "5"}도(${tone.label})`).join(" · ")}</span>
-                  <span>전체 이론 구성음: {viewerCurrentChordPosition.voicing.theoreticalTones.map((tone) => tone.label).join(" · ")}</span>
+                  <span><Translation id="app.standardOmittedToneVoicingOmitted" />{viewerCurrentChordPosition.voicing.omittedTones.map((tone) => translateUi("app.degreeValue1Value2", { value1: tone.degreeOffset === 3 ? "11" : "5", value2: tone.label })).join(" · ")}</span>
+                  <span><Translation id="app.fullChordTones" />{viewerCurrentChordPosition.voicing.theoreticalTones.map((tone) => tone.label).join(" · ")}</span>
                 </div>
               )}
               <div
-                aria-label={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? `${viewerMapTitle} ${viewerChordPositionLabel}. 좌우로 밀어 구간 변경` : undefined}
+                aria-label={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? translateUi("app.value1Value2SwipeToChangePosition", { value1: viewerMapTitle, value2: viewerChordPositionLabel }) : undefined}
                 className={`viewerFretboardGestureSurface ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? `viewerFretboardGestureSurface--chord ${viewerChordSwipeFeedback ? `viewerFretboardGestureSurface--${viewerChordSwipeFeedback}` : ""}` : ""}`}
                 onKeyDown={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? handleChordFretboardKeyDown : undefined}
                 onPointerCancel={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? handleChordFretboardSwipeCancel : undefined}
@@ -32564,19 +32484,19 @@ function App({ onReady }) {
               ) : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
                 <div className="viewerSelectGrid">
                   <MetronomeSelectControl
-                    label="키"
+                    label={translateUi("app.key")}
                     onChange={setViewerScaleRoot}
                     options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
                     value={viewerScaleRoot}
                   />
                   <MetronomeSelectControl
-                    label="종류"
+                    label={translateUi("app.typeApp")}
                     onChange={setViewerScaleFamily}
                     options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
                     value={viewerScaleFamily}
                   />
                   <MetronomeSelectControl
-                    label="타입"
+                    label={translateUi("app.type")}
                     onChange={setViewerScaleType}
                     options={Object.values(viewerScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
                     value={viewerScaleType}
@@ -32589,8 +32509,8 @@ function App({ onReady }) {
                   />
                 </div>
               ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label="코드 빌더">
-                  <ChordBuilderOptionSection layout="cols-7" showTitle title="루트">
+                <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label={translateUi("app.chordBuilder")}>
+                  <ChordBuilderOptionSection layout="cols-7" showTitle title={translateUi("app.root")}>
                     {chordRootOptions.map((root) => (
                       <ChordBuilderChip
                         key={root}
@@ -32602,7 +32522,7 @@ function App({ onReady }) {
                     ))}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="cols-3" showTitle title="변환">
+                  <ChordBuilderOptionSection layout="cols-3" showTitle title={translateUi("app.convert")}>
                     {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
                       const hasDiagram = Boolean(
                         getChordFromSelector(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension),
@@ -32614,13 +32534,13 @@ function App({ onReady }) {
                           onClick={() => applyViewerChordSelection(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension)}
                           selected={viewerChordAccidental === accidental.id}
                         >
-                          {accidental.id === "flat" ? "♭" : accidental.label}
+                          {localizeUi(accidental.id === "flat" ? "♭" : accidental.label,{[ko["app.default"]]:"chord.natural"})}
                         </ChordBuilderChip>
                       );
                     })}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="cols-4" showTitle title="타입">
+                  <ChordBuilderOptionSection layout="cols-4" showTitle title={translateUi("app.type")}>
                     {CHORD_QUALITY_OPTIONS.map((quality) => {
                       const isSupported = isChordViewerSelectionSupported(quality.id, "none");
                       return (
@@ -32632,13 +32552,13 @@ function App({ onReady }) {
                           }}
                           selected={viewerChordQuality === quality.id}
                         >
-                          {quality.label}
+                          {localizeUi(quality.label)}
                         </ChordBuilderChip>
                       );
                     })}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="tensions-2row" showTitle title="확장">
+                  <ChordBuilderOptionSection layout="tensions-2row" showTitle title={translateUi("app.extension")}>
                     {availableChordExtensionOptions.map((extension) => {
                       const isDisabled = extension.disabled || !extension.hasDiagram;
                       return (
@@ -32650,7 +32570,7 @@ function App({ onReady }) {
                           }}
                           selected={viewerChordExtension === extension.id}
                         >
-                          {extension.label}
+                          {localizeUi(extension.label,{[ko["app.default"]]:"chord.noExtension"})}
                         </ChordBuilderChip>
                       );
                     })}
@@ -32663,9 +32583,9 @@ function App({ onReady }) {
 
           {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
             <details className="viewerSampleCredits">
-              <summary>기타 음원 · BiblicalBricksProductions · CC BY 3.0</summary>
-              <p>C–B 기본 장조는 원본 녹음입니다. 운지 구간별 음 배치는 다를 수 있습니다. 그 외 코드는 현재 운지를 합성해 재생합니다.</p>
-              <p><a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer">Creative Commons Attribution 3.0</a> · 원본 파일 보존 · 재생 시 앞부분 준비 구간 생략</p>
+              <summary><Translation id="app.guitarAudioBiblicalbricksproductionsCcBy30" /></summary>
+              <p><Translation id="app.basicMajorChordsCBUseOriginalRecordingsTheirVoicingsMayDiffer" /></p>
+              <p><a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer"><Translation id="originalUi.creativeCommonsAttribution30" /></a><Translation id="app.originalFileKeptLeadInSkippedDuringPlayback" /></p>
               <p>{Object.entries(VIEWER_CHORD_SAMPLES).map(([root, sample]) => (
                 <a key={root} href={sample.source} target="_blank" rel="noreferrer">{sample.title} </a>
               ))}</p>
@@ -32675,15 +32595,15 @@ function App({ onReady }) {
             <Activity mode={getModeActivityState(viewerMode, FRETBOARD_VIEWER_MODES.CHORD)}>
               <section
                 aria-hidden={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "true" : undefined}
-                aria-label="전체 코드표"
+                aria-label={translateUi("app.chordChart")}
                 className={`chordCatalogPanel ${viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "chordCatalogPanel--desktopDormant" : ""}`}
                 ref={chordChartRef}
               >
-                <div className="viewerChordReferenceFooter" aria-label="전체 코드 운지 안내">
-                  <strong>전체 코드 운지</strong>
+                <div className="viewerChordReferenceFooter" aria-label={translateUi("app.chordFingeringGuide")}>
+                  <strong><Translation id="app.allChordFingerings" /></strong>
                   <div>
-                    <span>해당 코드를 누르면 크게 볼 수 있어요</span>
-                    <span>↔ 좌우 스와이프로 다른 코드 보기</span>
+                    <span><Translation id="app.tapAChordToEnlarge" /></span>
+                    <span><Translation id="app.swipeToBrowseChords" /></span>
                   </div>
                 </div>
                 <div className="chordCatalogScroll">
@@ -32709,10 +32629,10 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.METRONOME) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.METRONOME)}>
         {renderAppMode(APP_MODES.METRONOME, () => (
-        <section className={`standaloneMetronomePanel ${metronomeDisplayMode === "groove" ? "hasGroove" : ""} ${metronomeDockCollapsed ? "dockCollapsed" : ""}`} aria-label="독립 메트로놈">
+        <section className={`standaloneMetronomePanel ${metronomeDisplayMode === "groove" ? "hasGroove" : ""} ${metronomeDockCollapsed ? "dockCollapsed" : ""}`} aria-label={translateUi("app.standaloneMetronome")}>
           <MetronomeDockHandle collapsed={metronomeDockCollapsed} onChange={setMetronomeDockCollapsed}/>
           {!metronomeDockCollapsed && (
-          <div className="metronomeAdvancedDock" aria-label="고급 메트로놈 상태 및 설정">
+          <div className="metronomeAdvancedDock" aria-label={translateUi("app.advancedMetronomeStatusAndSettings")}>
             <button
               aria-controls="metronome-advanced-panel"
               aria-expanded={metronomeAdvancedPanel === "automator"}
@@ -32720,9 +32640,9 @@ function App({ onReady }) {
               onClick={() => toggleMetronomeAdvancedPanel("automator")}
               type="button"
             >
-              <span>AUTOMATOR</span>
-              <strong>{automatorSummaryLabel}</strong>
-              <small>{automatorDetailLabel}</small>
+              <span><Translation id="originalUi.automator" /></span>
+              <strong>{localizeUi(automatorSummaryLabel)}</strong>
+              <small>{localizeUi(automatorDetailLabel)}</small>
             </button>
             <button
               aria-controls="metronome-advanced-panel"
@@ -32731,41 +32651,41 @@ function App({ onReady }) {
               onClick={() => toggleMetronomeAdvancedPanel("tracker")}
               type="button"
             >
-              <span>TRACKER</span>
-              <strong>{trackerSummaryLabel}</strong>
-              <small>{trackerDetailLabel}</small>
+              <span><Translation id="originalUi.tracker" /></span>
+              <strong>{localizeUi(trackerSummaryLabel)}</strong>
+              <small>{localizeUi(trackerDetailLabel)}</small>
             </button>
             <button
-              aria-label="메트로놈 세션 리셋"
+              aria-label={translateUi("app.resetMetronomeSession")}
               className="metronomeTrackerResetButton"
               onClick={resetMetronomePractice}
               type="button"
             >
               <b aria-hidden="true">↻</b>
-              <span aria-hidden="true">RESET</span>
+              <span aria-hidden="true"><Translation id="originalUi.reset" /></span>
             </button>
 
             {metronomeAdvancedPanel ? (
               <>
               <button
-                aria-label="메트로놈 설정창 닫기"
+                aria-label={translateUi("app.closeMetronomeSettings")}
                 className="metronomeAdvancedDimOverlay"
                 onClick={closeMetronomeAdvancedPanel}
                 type="button"
               />
               <section
                 className={`metronomeAdvancedPopover metronomeAdvancedPopover--${metronomeAdvancedPanel}`}
-                aria-label={`${metronomeAdvancedPanel === "automator" ? "Automator" : "Tracker"} 설정`}
+                aria-label={translateUi("app.value1Settings", { value1: metronomeAdvancedPanel === "automator" ? "Automator" : "Tracker" })}
                 id="metronome-advanced-panel"
               >
                 <div className="metronomeAdvancedPopoverTopbar">
                   <span>{metronomeAdvancedPanel === "automator" ? "AUTOMATOR" : "TRACKER"}</span>
-                  <button onClick={closeMetronomeAdvancedPanel} type="button">Done</button>
+                  <button onClick={closeMetronomeAdvancedPanel} type="button"><Translation id="originalUi.done" /></button>
                 </div>
                 {metronomeAdvancedPanel === "automator" ? (
                   <>
                     <div className="metronomeTrackerSettingGroup">
-                      <span>Automate tempo changes</span>
+                      <span><Translation id="originalUi.automateTempoChanges" /></span>
                       <div className="metronomeTrackerChoiceGrid metronomeTrackerChoiceGrid--mode">
                         {AUTOMATOR_MODE_OPTIONS.map((option) => (
                           <button
@@ -32775,16 +32695,14 @@ function App({ onReady }) {
                             onClick={() => setAutoBpmMode(option.id)}
                             type="button"
                           >
-                            {option.label}
+                            {localizeUi(option.label)}
                           </button>
                         ))}
                       </div>
                     </div>
 
                     {autoBpmMode === "off" ? (
-                      <div className="metronomeAutomatorNotice">
-                        AUTOMATOR OFF
-                      </div>
+                      <div className="metronomeAutomatorNotice"><Translation id="originalUi.automatorOff" /></div>
                     ) : null}
 
                     {autoBpmMode !== "off" ? (
@@ -32795,19 +32713,15 @@ function App({ onReady }) {
                             className={autoBpmDirection === "decrease" ? "selected" : ""}
                             onClick={() => setAutoBpmDirection("decrease")}
                             type="button"
-                          >
-                            Decrease
-                          </button>
+                          ><Translation id="originalUi.decrease" /></button>
                           <button
                             className={autoBpmDirection === "increase" ? "selected" : ""}
                             onClick={() => setAutoBpmDirection("increase")}
                             type="button"
-                          >
-                            Increase
-                          </button>
+                          ><Translation id="originalUi.increase" /></button>
                         </div>
                     <div className="metronomeStepperRow">
-                          <span>BPM</span>
+                          <span><Translation id="originalUi.bpm" /></span>
                       <button disabled={autoBpmStep <= 1} onClick={() => setAutoBpmStep((value) => Math.max(1, value - 1))} type="button">-</button>
                       <strong>{autoBpmStep}</strong>
                       <button disabled={autoBpmStep >= 5} onClick={() => setAutoBpmStep((value) => Math.min(5, value + 1))} type="button">+</button>
@@ -32817,18 +32731,18 @@ function App({ onReady }) {
 
                     {autoBpmMode === "bars" ? (
                     <div className="metronomeStepperRow">
-                      <span>Every</span>
+                      <span><Translation id="originalUi.every" /></span>
                       <button disabled={autoBpmBars <= 5} onClick={() => setAutoBpmBars((value) => Math.max(5, value - 5))} type="button">-</button>
-                      <strong>{autoBpmBars} bars</strong>
+                      <strong>{autoBpmBars}<Translation id="originalUi.bars" /></strong>
                         <button disabled={autoBpmBars >= 200} onClick={() => setAutoBpmBars((value) => Math.min(200, value + 5))} type="button">+</button>
                     </div>
                     ) : null}
 
                     {autoBpmMode === "time" ? (
                       <div className="metronomeTrackerSettingGroup">
-                        <span>Every</span>
+                        <span><Translation id="originalUi.every" /></span>
                         <MetronomeWheelPicker
-                          ariaLabel="AUTOMATOR 시간 간격 선택"
+                          ariaLabel={translateUi("app.automatorInterval")}
                           minuteOptions={AUTOMATOR_TIME_MINUTE_OPTIONS}
                           minutes={autoBpmTimeMinutes}
                           onDetent={triggerMetronomeWheelDetent}
@@ -32842,7 +32756,7 @@ function App({ onReady }) {
                     ) : null}
 
                     <div className="metronomeAdvancedPopoverHeader">
-                      <span>Coach Mode</span>
+                      <span><Translation id="originalUi.coachMode" /></span>
                       <button
                         className={`metronomeHardwareToggle ${coachModeEnabled ? "selected" : ""}`}
                         onClick={() => {
@@ -32856,22 +32770,22 @@ function App({ onReady }) {
                       </button>
                     </div>
                     <div className="metronomeStepperRow">
-                      <span>Sound</span>
+                      <span><Translation id="originalUi.sound" /></span>
                       <button disabled={coachPlayBars <= 1} onClick={() => setCoachPlayBars((value) => Math.max(1, value / 2))} type="button">-</button>
-                      <strong>{coachPlayBars} bars</strong>
+                      <strong>{coachPlayBars}<Translation id="originalUi.bars" /></strong>
                       <button disabled={coachPlayBars >= 8} onClick={() => setCoachPlayBars((value) => Math.min(8, value * 2))} type="button">+</button>
                     </div>
                     <div className="metronomeStepperRow">
-                      <span>Mute</span>
+                      <span><Translation id="originalUi.mute" /></span>
                       <button disabled={coachMuteBars <= 1} onClick={() => setCoachMuteBars((value) => Math.max(1, value / 2))} type="button">-</button>
-                      <strong>{coachMuteBars} bars</strong>
+                      <strong>{coachMuteBars}<Translation id="originalUi.bars" /></strong>
                       <button disabled={coachMuteBars >= 8} onClick={() => setCoachMuteBars((value) => Math.min(8, value * 2))} type="button">+</button>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="metronomeTrackerSettingGroup">
-                      <span>Count In</span>
+                      <span><Translation id="originalUi.countIn" /></span>
                       <div className="metronomeTrackerChoiceGrid">
                         {TRACKER_COUNT_IN_OPTIONS.map((option) => (
                           <button
@@ -32881,14 +32795,14 @@ function App({ onReady }) {
                             onClick={() => setMetronomeCountInBars(option.bars)}
                             type="button"
                           >
-                            {option.label}
+                            {localizeUi(option.label)}
                           </button>
                         ))}
                       </div>
                     </div>
 
                     <div className="metronomeTrackerSettingGroup">
-                      <span>Tracker Mode</span>
+                      <span><Translation id="originalUi.trackerMode" /></span>
                       <div className="metronomeTrackerChoiceGrid metronomeTrackerChoiceGrid--mode">
                         {TRACKER_MODE_OPTIONS.map((option) => (
                           <button
@@ -32898,7 +32812,7 @@ function App({ onReady }) {
                             onClick={() => setMetronomeTrackerMode(option.id)}
                             type="button"
                           >
-                            {option.label}
+                            {localizeUi(option.label)}
                           </button>
                         ))}
                       </div>
@@ -32907,7 +32821,7 @@ function App({ onReady }) {
                     {metronomeTrackerMode === "bars" ? (
                       <div className="metronomeTrackerSettingGroup">
                         <label className="metronomeTrackerSwitchRow">
-                          <span>Limit number of bars</span>
+                          <span><Translation id="originalUi.limitNumberOfBars" /></span>
                           <button
                             className={`metronomeHardwareToggle ${metronomeBarLimitEnabled ? "selected" : ""}`}
                             onClick={() => {
@@ -32921,7 +32835,7 @@ function App({ onReady }) {
                           </button>
                         </label>
                         <label className="metronomeTrackerCustomInput">
-                          <span>Limit to</span>
+                          <span><Translation id="originalUi.limitTo" /></span>
                           <input
                             disabled={!metronomeBarLimitEnabled}
                             inputMode="numeric"
@@ -32937,10 +32851,10 @@ function App({ onReady }) {
                             type="text"
                             value={metronomeBarLimitDraft}
                           />
-                          <small>Bars</small>
+                          <small><Translation id="originalUi.barsApp" /></small>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
-                          <span>Stop when reached</span>
+                          <span><Translation id="originalUi.stopWhenReached" /></span>
                           <button
                             className={`metronomeHardwareToggle ${metronomeBarStopWhenReached ? "selected" : ""}`}
                             onClick={() => {
@@ -32954,7 +32868,7 @@ function App({ onReady }) {
                           </button>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
-                          <span>Reset when reached</span>
+                          <span><Translation id="originalUi.resetWhenReached" /></span>
                           <button
                             className={`metronomeHardwareToggle ${metronomeBarResetWhenReached ? "selected" : ""}`}
                             onClick={() => {
@@ -32968,7 +32882,7 @@ function App({ onReady }) {
                           </button>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
-                          <span>Start from 1</span>
+                          <span><Translation id="originalUi.startFrom1" /></span>
                           <button
                             className={`metronomeHardwareToggle ${metronomeBarStartFromOne ? "selected" : ""}`}
                             onClick={() => {
@@ -32987,7 +32901,7 @@ function App({ onReady }) {
                     {metronomeTrackerMode === "timer" ? (
                       <div className="metronomeTrackerSettingGroup">
                         <label className="metronomeTrackerSwitchRow">
-                          <span>Countdown</span>
+                          <span><Translation id="originalUi.countdown" /></span>
                           <button
                             className={`metronomeHardwareToggle ${metronomeTimerCountdown ? "selected" : ""}`}
                             onClick={() => {
@@ -33001,7 +32915,7 @@ function App({ onReady }) {
                           </button>
                         </label>
                         <MetronomeWheelPicker
-                          ariaLabel="TRACKER 타이머 선택"
+                          ariaLabel={translateUi("app.trackerTimer")}
                           minuteOptions={TRACKER_TIMER_MINUTE_OPTIONS}
                           minutes={metronomeTrackerTimerMinutes}
                           onDetent={triggerMetronomeWheelDetent}
@@ -33012,7 +32926,7 @@ function App({ onReady }) {
                           seconds={metronomeTrackerTimerSeconds}
                         />
                         <label className="metronomeTrackerSwitchRow">
-                          <span>Stop when reached</span>
+                          <span><Translation id="originalUi.stopWhenReached" /></span>
                           <button
                             className={`metronomeHardwareToggle ${metronomeTimerStopWhenReached ? "selected" : ""}`}
                             onClick={() => {
@@ -33026,7 +32940,7 @@ function App({ onReady }) {
                           </button>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
-                          <span>Reset when reached</span>
+                          <span><Translation id="originalUi.resetWhenReached" /></span>
                           <button
                             className={`metronomeHardwareToggle ${metronomeTimerResetWhenReached ? "selected" : ""}`}
                             onClick={() => {
@@ -33049,14 +32963,14 @@ function App({ onReady }) {
           </div>
 
           )}
-          <div className="grooveModeSelector" aria-label="메트로놈 모드"><span>메트로놈 모드</span>{METRONOME_DISPLAY_MODES.map((item,i) => <button type="button" key={item.id} aria-pressed={metronomeDisplayMode === item.id} onClick={() => {
+          <div className="grooveModeSelector" aria-label={translateUi("app.metronomeMode")}><span><Translation id="app.metronomeMode" /></span>{METRONOME_DISPLAY_MODES.map((item,i) => <button type="button" key={item.id} aria-pressed={metronomeDisplayMode === item.id} onClick={() => {
             if(item.id === "groove" && metronomeDisplayMode !== "groove") {
               metronomeTimeSignatureRef.current = "4/4"; setMetronomeTimeSignature("4/4");
               metronomeSubdivisionRef.current = "sixteenth"; setMetronomeSubdivision("sixteenth");
             }
             grooveModeRef.current = item.id;
             setMetronomeDisplayMode(item.id);
-          }}>{i+1}{item.id === "groove" ? " 그루브" : ""}</button>)}{metronomeDisplayMode === "groove" && <button type="button" className="groovePacksTrigger" onClick={() => setGroovePacksDialog("library")}><span className="groovePackFolder" aria-hidden="true">📁</span>그루브팩 ▾</button>}</div>
+          }}>{i+1}{item.id === "groove" ? translateUi("app.groove") : ""}</button>)}{metronomeDisplayMode === "groove" && <button type="button" className="groovePacksTrigger" onClick={() => setGroovePacksDialog("library")}><span className="groovePackFolder" aria-hidden="true">📁</span><Translation id="app.groovePacks" /></button>}</div>
           {groovePacksDialog && <GroovePacks bpm={bpm} preparePreview={async () => {
             if (isStandaloneMetronomePlaying) stopMetronomePlayback();
             const ready = await ensureAudioReady();
@@ -33091,7 +33005,7 @@ function App({ onReady }) {
             swipeOffset={metronomeModeSwipeOffset}
           />}
           <MetronomeTransportCard
-            ariaLabel="BPM 조절 영역. 좌우 스와이프는 BPM만 변경합니다"
+            ariaLabel={translateUi("app.bpmControlSwipeLeftOrRightToAdjustBpmOnly")}
             bpm={bpm}
             bpmPreview
             isPlaying={isStandaloneMetronomePlaying}
@@ -33146,26 +33060,24 @@ function App({ onReady }) {
             ownerMode={APP_MODES.METRONOME}
           />
 
-          <div className="metronomePresetStrip" aria-label="메트로놈 설정 저장 및 불러오기">
+          <div className="metronomePresetStrip" aria-label={translateUi("app.saveAndLoadMetronomeSettings")}>
             <input
-              aria-label="저장할 메트로놈 설정 이름"
+              aria-label={translateUi("app.metronomePresetName")}
               maxLength={24}
               onChange={(event) => setMetronomePresetName(event.target.value)}
-              placeholder="워밍업"
+              placeholder={translateUi("app.warmUp")}
               type="text"
               value={metronomePresetName}
             />
-            <button onClick={saveMetronomePreset} type="button">
-              저장
-            </button>
+            <button onClick={saveMetronomePreset} type="button"><Translation id="common.save" /></button>
             <select
-              aria-label="저장된 메트로놈 설정 불러오기"
+              aria-label={translateUi("app.loadMetronomePreset")}
               onChange={(event) => applyMetronomePreset(event.target.value)}
               onFocus={() => setMetronomePresets(getStoredMetronomePresets())}
               onMouseDown={() => setMetronomePresets(getStoredMetronomePresets())}
               value={metronomePresetSelectedId}
             >
-              <option value="">불러오기</option>
+              <option value=""><Translation id="app.load" /></option>
               {metronomePresets.map((preset) => (
                 <option key={preset.id} value={preset.id}>
                   {preset.name}
@@ -33184,11 +33096,9 @@ function App({ onReady }) {
         {renderAppMode(APP_MODES.SHOOTER, () => (
         <section
           className={`shooterPanel ${horizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterPanel--mobileLandscape" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
-          aria-label={mapEditor.enabled ? "맵 스튜디오" : "슈팅게임"}
+          aria-label={mapEditor.enabled ? translateUi("app.mapStudio") : translateUi("menu.shooter")}
         >
-          <div className="modeHelper shooterHelper">
-            반복 연습으로 지판 인식과 피킹 정확도를 키워보세요.
-          </div>
+          <div className="modeHelper shooterHelper"><Translation id="app.buildFretboardRecognitionAndPickingAccuracyThroughRepetition" /></div>
           {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
             anchor={shooterDifficultyAnchor}
             mobile={isMobileLayout}
@@ -33201,18 +33111,18 @@ function App({ onReady }) {
           /> : null}
 
           {!isMobileLayout && !mapEditor.enabled ? <>
-          <div className="shooterDifficultyPanel" aria-label="슈팅게임 난이도">
+          <div className="shooterDifficultyPanel" aria-label={translateUi("app.noteShooterDifficulty")}>
             <div>
-              <span>난이도</span>
-              <strong>현재 {shooterDifficultyLabel}</strong>
+              <span><Translation id="app.difficulty" /></span>
+              <strong><Translation id="app.current" />{localizeUi(shooterDifficultyLabel)}</strong>
               <small>
-                {isShooterScriptedDifficulty(shooterDifficulty)
+                {localizeUi(isShooterScriptedDifficulty(shooterDifficulty)
                   ? `${shooterDifficultyPhase.label} · ${shooterScenarioDisplayBpm} BPM`
-                  : `${shooterDifficultyPhase.label} · 최대 ${shooterLevel.maxTargets}마리`}
+                  : translateUi("app.value1UpToValue2Targets", { value1: shooterDifficultyPhase.label, value2: shooterLevel.maxTargets }))}
               </small>
             </div>
             <div className="shooterDifficultyButtons">
-              <button type="button" disabled={isShooterDifficultyLocked} onClick={(event) => { setShooterDifficultyAnchor(event.currentTarget); setShooterDifficultyMenuOpen(true); }}>진행 속도 {shooterProgressSpeed}× · 설정</button>
+              <button type="button" disabled={isShooterDifficultyLocked} onClick={(event) => { setShooterDifficultyAnchor(event.currentTarget); setShooterDifficultyMenuOpen(true); }}><Translation id="app.speed" />{shooterProgressSpeed}<Translation id="app.settingsApp2" /></button>
               {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
                 <button
                   aria-disabled={isShooterDifficultyLocked}
@@ -33227,79 +33137,79 @@ function App({ onReady }) {
                     }
                     changeShooterDifficulty(option.id);
                   }}
-                  title={option.hint}
+                  title={localizeUi(option.hint)}
                   type="button"
                 >
-                  <strong>{option.label}</strong>
-                  <span>{option.hint}</span>
+                  <strong>{localizeUi(option.label)}</strong>
+                  <span>{localizeUi(option.hint)}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {showShooterRecords && (
-            <section className="shooterRecordsPanel" aria-label="슈팅게임 기록">
+            <section className="shooterRecordsPanel" aria-label={translateUi("app.noteShooterHistory")}>
               <div className="shooterRecordGrid">
                 <article>
-                  <span>BEST SCORE</span>
+                  <span><Translation id="originalUi.bestScore" /></span>
                   <strong>{shooterRecords.best.score.toLocaleString()}</strong>
                 </article>
                 <article>
-                  <span>BEST COMBO</span>
+                  <span><Translation id="originalUi.bestCombo" /></span>
                   <strong>{shooterRecords.best.combo}</strong>
                 </article>
                 <article>
-                  <span>BEST KILLS</span>
+                  <span><Translation id="originalUi.bestKills" /></span>
                   <strong>{shooterRecords.best.kills.toLocaleString()}</strong>
                 </article>
                 <article>
-                  <span>BEST TIME</span>
+                  <span><Translation id="originalUi.bestTime" /></span>
                   <strong>{formatShooterRecordTime(shooterRecords.best.survivalMs)}</strong>
                 </article>
                 <article>
-                  <span>BEST ACCURACY</span>
+                  <span><Translation id="originalUi.bestAccuracy" /></span>
                   <strong>{shooterRecords.best.accuracy}%</strong>
                 </article>
                 <article>
-                  <span>TOTAL ACCURACY</span>
+                  <span><Translation id="originalUi.totalAccuracy" /></span>
                   <strong>{shooterTotalAccuracy}%</strong>
                 </article>
               </div>
               <div className="shooterRecordSplit">
                 <article>
-                  <h3>누적 연습기록</h3>
-                  <p><span>총 플레이</span><strong>{shooterRecords.totals.plays.toLocaleString()}회</strong></p>
-                  <p><span>총 연습시간</span><strong>{formatShooterRecordTime(shooterRecords.totals.playTimeMs)}</strong></p>
-                  <p><span>총 처치</span><strong>{shooterRecords.totals.kills.toLocaleString()}</strong></p>
-                  <p><span>총 발사</span><strong>{shooterRecords.totals.shots.toLocaleString()}</strong></p>
-                  <p><span>총 적중</span><strong>{shooterRecords.totals.hits.toLocaleString()}</strong></p>
+                  <h3><Translation id="app.practiceTotals" /></h3>
+                  <p><span><Translation id="app.gamesPlayed" /></span><strong>{shooterRecords.totals.plays.toLocaleString()}<Translation id="app.times" /></strong></p>
+                  <p><span><Translation id="app.practiceTime" /></span><strong>{formatShooterRecordTime(shooterRecords.totals.playTimeMs)}</strong></p>
+                  <p><span><Translation id="app.targetsCleared" /></span><strong>{shooterRecords.totals.kills.toLocaleString()}</strong></p>
+                  <p><span><Translation id="app.shotsFired" /></span><strong>{shooterRecords.totals.shots.toLocaleString()}</strong></p>
+                  <p><span><Translation id="app.hits" /></span><strong>{shooterRecords.totals.hits.toLocaleString()}</strong></p>
                 </article>
                 <article>
-                  <h3>난이도별 기록</h3>
+                  <h3><Translation id="app.historyByDifficulty" /></h3>
                   {SHOOTER_DIFFICULTY_OPTIONS.map((option) => {
                     const record = shooterRecords.difficulty[option.id] ?? getDefaultShooterDifficultyRecord();
                     return (
                       <p key={option.id}>
-                        <span>{option.label}</span>
-                        <strong>{Number(record.bestScore || 0).toLocaleString()} · C{record.bestCombo || 0}</strong>
+                        <span>{localizeUi(option.label)}</span>
+                        <strong>{Number(record.bestScore || 0).toLocaleString()}<Translation id="originalUi.c" />{record.bestCombo || 0}</strong>
                       </p>
                     );
                   })}
                 </article>
               </div>
               <article className="shooterRecentRecords">
-                <h3>최근 10회</h3>
+                <h3><Translation id="app.last10Games" /></h3>
                 {shooterRecords.recent.length ? (
                   shooterRecords.recent.map((record) => (
                     <p key={record.id}>
                       <span>
-                        {formatShooterRecordDate(record.playedAt)} · {SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === record.difficulty)?.label ?? "쉬움"}
+                        {formatShooterRecordDate(record.playedAt)} · {SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === record.difficulty)?.label ?? translateUi("app.easy")}
                       </span>
                       <strong>{Number(record.score || 0).toLocaleString()} · {record.accuracy}% · {formatShooterRecordTime(record.survivalMs)}</strong>
                     </p>
                   ))
                 ) : (
-                  <p><span>아직 기록 없음</span><strong>첫 플레이를 시작하세요</strong></p>
+                  <p><span><Translation id="app.noHistoryYet" /></span><strong><Translation id="app.playYourFirstGame" /></strong></p>
                 )}
               </article>
             </section>
@@ -33307,11 +33217,11 @@ function App({ onReady }) {
 
           <div className="shooterFretGuide">
             <div>
-              <span>목표</span>
+              <span><Translation id="app.target" /></span>
               <strong className="guidePitch">
                 {shooterGuidePitch
                   ? shooterGuidePrimaryLabel
-                  : "대기"}
+                  : translateUi("app.waiting")}
               </strong>
               <span className="guidePositionLine">
                 {shooterGuidePitch
@@ -33320,16 +33230,16 @@ function App({ onReady }) {
                       ? shooterGuideSecondaryLabel
                       : shooterGuidePositions
                           .slice(0, 3)
-                          .map((position) => `${position.stringNumber}번줄 ${getFretLabel(position)}`)
+                          .map((position) => translateUi("app.stringValue1Value2", { value1: position.stringNumber, value2: getFretLabel(position) }))
                           .join(" · ")
-                    : "지판 위치 없음"
-                  : "목표 음을 기다리는 중"}
+                    : translateUi("app.noFretboardPosition")
+                  : translateUi("app.waitingForATargetNote")}
               </span>
             </div>
             {!isMobileLayout && <div className={`detector mobileShooterDetector ${isSignalActive ? "active" : ""}`}>
               <Radio size={15} />
               <div>
-                <span>감지음</span>
+                <span><Translation id="app.detectedNote" /></span>
                 <strong>{detected ? detected.pitch : "--"}</strong>
               </div>
             </div>}
@@ -33338,9 +33248,7 @@ function App({ onReady }) {
               onClick={startShooterMic}
               type="button"
             >
-              <Mic size={15} />
-              마이크
-            </button>
+              <Mic size={15} /><Translation id="app.microphone" /></button>
           </div>
           </> : null}
 
@@ -33360,26 +33268,26 @@ function App({ onReady }) {
                   <button
                     aria-expanded={shooterDifficultyMenuOpen}
                     aria-haspopup="dialog"
-                    aria-label="슈팅게임 난이도"
+                    aria-label={translateUi("app.noteShooterDifficulty")}
                     className={`mobileShooterDifficultyHud ${isShooterDifficultyLocked ? "locked" : ""}`}
                     disabled={isShooterDifficultyLocked}
                     onClick={(event) => { setShooterDifficultyAnchor(event.currentTarget); setShooterDifficultyMenuOpen((isOpen) => !isOpen); }}
-                    title={isShooterDifficultyLocked ? "게임 중에는 난이도를 변경할 수 없습니다." : "난이도 선택"}
+                    title={isShooterDifficultyLocked ? translateUi("app.difficultyCannotBeChangedDuringAGame") : translateUi("app.chooseDifficulty")}
                     type="button"
                   >
                     <span>
-                      <small>난이도</small>
-                      <strong>{shooterDifficultyLabel}</strong>
+                      <small><Translation id="app.difficulty" /></small>
+                      <strong>{localizeUi(shooterDifficultyLabel)}</strong>
                     </span>
                     <ChevronDown aria-hidden="true" className="mobileShooterDifficultyChevron" size={11} strokeWidth={2.2} />
                   </button>
                 </div>
 
                 <div className={`mobileShooterPlayHelpHud mobileShooterPlayHelpHud--level-${shooterPlayHelpLevel}`}>
-                  <span className="mobileShooterPlayHelpLabel">도움</span>
+                  <span className="mobileShooterPlayHelpLabel"><Translation id="app.hints" /></span>
                   {SHOOTER_PLAY_HELP_LEVELS.map((level) => (
                     <button
-                      aria-label={`연주 도움 ${level === 0 ? "끄기" : `${level}단계`}`}
+                      aria-label={localizeUi(translateUi("app.playingHintsValue1", { value1: level === 0 ? ko["app.off"] : formatMessage(ko["app.levelValue1"], { value1: level }) }))}
                       aria-pressed={shooterPlayHelpLevel === level}
                       className={`mobileShooterPlayHelpOption ${shooterPlayHelpLevel === level ? "selected" : ""}`}
                       key={level}
@@ -33392,7 +33300,7 @@ function App({ onReady }) {
                   <button
                     aria-controls="shooter-play-help-tooltip"
                     aria-expanded={shooterPlayHelpInfoOpen}
-                    aria-label="연주 도움 기능 설명"
+                    aria-label={translateUi("app.aboutPlayingHints")}
                     className="mobileShooterPlayHelpInfoButton"
                     onClick={() => setShooterPlayHelpInfoOpen((isOpen) => !isOpen)}
                     type="button"
@@ -33402,18 +33310,18 @@ function App({ onReady }) {
                 </div>
 
                 <button
-                  aria-label={`도레미파솔라시도 표시 ${shooterSolfegeOn ? "끄기" : "켜기"}`}
+                  aria-label={localizeUi(translateUi("app.koreanSolfeGeDisplayValue1", { value1: shooterSolfegeOn ? ko["app.off"] : ko["app.on"] }))}
                   aria-pressed={shooterSolfegeOn}
                   className={`mobileShooterSolfegeHud ${shooterSolfegeOn ? "selected" : ""}`}
                   onClick={() => setShooterSolfegeOn((isOn) => !isOn)}
-                  title={shooterSolfegeOn ? "한글 계이름 ON · 영문 음이름으로 전환" : "한글 계이름 OFF · 도레미파솔라시도로 전환"}
+                  title={shooterSolfegeOn ? translateUi("app.koreanSolfeGeOnSwitchToLetterNames") : translateUi("app.koreanSolfeGeOffSwitchToKoreanSolfeGe")}
                   type="button"
                 >
-                  <span>LANG</span>
+                  <span><Translation id="originalUi.lang" /></span>
                   <b aria-hidden="true">
-                    <span className={shooterSolfegeOn ? "active" : ""}>KO</span>
+                    <span className={shooterSolfegeOn ? "active" : ""}><Translation id="originalUi.ko" /></span>
                     <i>/</i>
-                    <span className={!shooterSolfegeOn ? "active" : ""}>EN</span>
+                    <span className={!shooterSolfegeOn ? "active" : ""}><Translation id="originalUi.en" /></span>
                   </b>
                 </button>
 
@@ -33422,7 +33330,7 @@ function App({ onReady }) {
                 ) : null}
 
                 <button
-                  aria-label={inputSelection.shooterSource === "midi" ? "슈팅게임 MIDI 연결" : streamRef.current ? "슈팅게임 마이크 켜짐" : "슈팅게임 마이크 켜기"}
+                  aria-label={inputSelection.shooterSource === "midi" ? translateUi("app.noteShooterMidiConnection") : streamRef.current ? translateUi("app.noteShooterMicrophoneOn") : translateUi("app.enableNoteShooterMicrophone")}
                   aria-pressed={hasMic}
                   className={`mobileShooterMicHud ${hasMic ? "selected" : ""}`}
                   onClick={startShooterMic}
@@ -33437,7 +33345,7 @@ function App({ onReady }) {
 
               {shooterPlayHelpLevel > 0 ? (
                 <div className="mobileShooterPlayHelpMessageBar">
-                  <p aria-live="polite">{shooterPlayHelpMessage}</p>
+                  <p aria-live="polite">{localizeUi(shooterPlayHelpMessage)}</p>
                 </div>
               ) : null}
             </div>
@@ -33486,28 +33394,26 @@ function App({ onReady }) {
 
             {mobileLandscapeShooterSelected && !mobileLandscapeShooterActive ? (
               <section
-                aria-label="가로 전용 맵 안내"
+                aria-label={translateUi("app.landscapeOnlyMapInformation")}
                 className="mobileLandscapeShooterPrompt"
                 role="region"
               >
                 <span>
-                  <strong>가로 전용 맵</strong>
+                  <strong><Translation id="app.landscapeOnlyMap" /></strong>
                   <small role={shooterLandscapeHint ? "status" : undefined}>
-                    {shooterLandscapeHint || "휴대폰을 가로로 돌려주세요."}
+                    {shooterLandscapeHint || translateUi("app.rotateYourPhoneToLandscape")}
                   </small>
                 </span>
                 <div className="mobileLandscapeShooterPromptActions">
                 <button
-                  aria-label="맵 변경"
+                  aria-label={translateUi("app.changeMap")}
                   onClick={(event) => {
                     event.stopPropagation();
                     setShooterPickerInitialTab("map");
                     setShooterGuitarPickerOpen(true);
                   }}
                   type="button"
-                >
-                  맵 변경
-                </button>
+                ><Translation id="app.changeMap" /></button>
                 <button
                   onClick={(event) => {
                     event.stopPropagation();
@@ -33515,9 +33421,7 @@ function App({ onReady }) {
                   }}
                   type="button"
                 >
-                  <RotateCw aria-hidden="true" size={15} />
-                  가로로 보기
-                </button>
+                  <RotateCw aria-hidden="true" size={15} /><Translation id="app.landscapeView" /></button>
                 </div>
               </section>
             ) : null}
@@ -33529,7 +33433,7 @@ function App({ onReady }) {
                 currentScore={score}
                 difficultyLabel={shooterDifficultyLabel}
                 judgment={gameState === GAME_STATES.PLAYING ? feedback : ""}
-                level={shooterLevel.name.replace("레벨 ", "")}
+                level={localizeUi(shooterLevel.name.replace(ko["app.level"], ""))}
                   levelPhase={shooterPhaseDisplayLabel}
                 lives={shooterLives}
                 maxLives={SHOOTER_MAX_LIVES}
@@ -33541,9 +33445,9 @@ function App({ onReady }) {
               />
             ) : null}
             {mobileLandscapeShooterActive && !mapEditor.enabled ? (
-              <nav aria-label="가로 전용 맵 이동" className="mobileLandscapeShooterNavigation">
+              <nav aria-label={translateUi("app.landscapeMapNavigation")} className="mobileLandscapeShooterNavigation">
                 <button
-                  aria-label="가로 전용 맵에서 나가기"
+                  aria-label={translateUi("app.leaveLandscapeMap")}
                   className="mobileLandscapeShooterHome"
                   onClick={(event) => {
                     event.stopPropagation();
@@ -33552,10 +33456,10 @@ function App({ onReady }) {
                   type="button"
                 >
                   <House aria-hidden="true" size={20} />
-                  <span>홈</span>
+                  <span><Translation id="app.home" /></span>
                 </button>
                 <button
-                  aria-label="이전에 사용한 세로 맵으로 돌아가기"
+                  aria-label={translateUi("app.returnToThePreviousPortraitMap")}
                   className="mobileLandscapeShooterReturn"
                   onClick={(event) => {
                     event.stopPropagation();
@@ -33564,7 +33468,7 @@ function App({ onReady }) {
                   type="button"
                 >
                   <ChevronLeft aria-hidden="true" size={18} />
-                  <span>돌아가기</span>
+                  <span><Translation id="app.back" /></span>
                 </button>
               </nav>
             ) : null}
@@ -33572,11 +33476,11 @@ function App({ onReady }) {
             {!mapEditor.enabled ? (
               <>
                   <div className="mobileShooterTargetHud" aria-live="polite">
-                    <span>목표 음</span>
+                    <span><Translation id="app.targetNote" /></span>
                     <strong>
                       {shooterGuidePitch
                         ? shooterGuidePrimaryLabel
-                        : "대기"}
+                        : translateUi("app.waiting")}
                     </strong>
                 </div>
 
@@ -33585,28 +33489,26 @@ function App({ onReady }) {
                     className="mobileShooterPlayHelpTooltip"
                     id="shooter-play-help-tooltip"
                     role="tooltip"
-                  >
-                    OFF는 숨김, 1은 프렛, 2는 프렛과 줄을 안내합니다.
-                  </div>
+                  ><Translation id="app.offHidesHints1ShowsTheFretAnd2ShowsTheFret" /></div>
                 ) : null}
 
-                <div className="mobileShooterScoreHud" aria-label="슈팅게임 점수와 레벨">
+                <div className="mobileShooterScoreHud" aria-label={translateUi("app.noteShooterScoreAndLevel")}>
                   <div className="mobileShooterBestScore">
-                    <span>BEST SCORE</span>
+                    <span><Translation id="originalUi.bestScore" /></span>
                     <strong>{shooterRecords.best.score.toLocaleString()}</strong>
                   </div>
                   <div>
-                    <span>SCORE</span>
+                    <span><Translation id="originalUi.score" /></span>
                     <strong>{score.toLocaleString()}</strong>
                   </div>
                   <div>
-                    <span>COMBO</span>
+                    <span><Translation id="originalUi.combo" /></span>
                     <strong>{combo}</strong>
                   </div>
                   <div>
-                    <span>LEVEL</span>
-                    <strong>{shooterLevel.name.replace("레벨 ", "")}</strong>
-                    {!isMobileLayout ? <small>{shooterPhaseDisplayLabel}</small> : null}
+                    <span><Translation id="originalUi.level" /></span>
+                    <strong>{localizeUi(shooterLevel.name.replace(ko["app.level"], ""))}</strong>
+                    {!isMobileLayout ? <small>{localizeUi(shooterPhaseDisplayLabel)}</small> : null}
                   </div>
                 </div>
               </>
@@ -33614,65 +33516,65 @@ function App({ onReady }) {
 
             {!mapEditor.enabled ? <>
             {isMobileLayout && shooterGuitarPickerOpen ? (
-              <div className="shooterSkinArenaLoadoutInfo" aria-label="현재 라이브 로드아웃">
+              <div className="shooterSkinArenaLoadoutInfo" aria-label={translateUi("app.currentLoadout")}>
                 <div className="shooterSkinArenaLoadoutSummary">
-                  <small><i aria-hidden="true" />LIVE LOADOUT</small>
-                  <strong>{getShooterSkinGuitarTitle(selectedGuitar.title)}</strong>
-                  <em>{selectedGuitarCategory.label}</em>
+                  <small><i aria-hidden="true" /><Translation id="originalUi.liveLoadout" /></small>
+                  <strong>{localizeUi(getShooterSkinGuitarTitle(selectedGuitar.title))}</strong>
+                  <em>{localizeUi(selectedGuitarCategory.label)}</em>
                 </div>
                 <div className="shooterSkinArenaEquipment">
                   <span className="shooterSkinArenaEquipmentRow">
                     <i className="shooterSkinArenaEquipmentIcon" aria-hidden="true">
                       {selectedPick.assetSrc ? <img alt="" draggable="false" src={selectedPick.assetSrc} /> : "—"}
                     </i>
-                    <span><small>PICK</small><strong>{selectedPick.label}</strong></span>
+                    <span><small><Translation id="originalUi.pick" /></small><strong>{localizeUi(selectedPick.label)}</strong></span>
                   </span>
                   <span className="shooterSkinArenaEquipmentRow">
                     <i className="shooterSkinArenaEquipmentIcon" aria-hidden="true">
                       {selectedAuraEffect.asset ? <img alt="" draggable="false" src={selectedAuraEffect.asset} /> : "—"}
                     </i>
-                    <span><small>AURA</small><strong>{selectedAuraEffect.label}</strong></span>
+                    <span><small><Translation id="originalUi.aura" /></small><strong>{localizeUi(selectedAuraEffect.label)}</strong></span>
                   </span>
                   <span className="shooterSkinArenaEquipmentRow">
                     <i className="shooterSkinArenaEquipmentIcon" aria-hidden="true">
                       {selectedFloorEffect.asset ? <img alt="" draggable="false" src={selectedFloorEffect.asset} /> : "—"}
                     </i>
-                    <span><small>FLOOR</small><strong>{selectedFloorEffect.label}</strong></span>
+                    <span><small><Translation id="originalUi.floor" /></small><strong>{localizeUi(selectedFloorEffect.label)}</strong></span>
                   </span>
                 </div>
               </div>
             ) : null}
 
-            {!isMobileLayout ? <div className="shooterBestHud" aria-label="슈팅게임 최고 기록">
-              <span>BEST SCORE {shooterRecords.best.score.toLocaleString()}</span>
-              <span>BEST COMBO {shooterRecords.best.combo}</span>
+            {!isMobileLayout ? <div className="shooterBestHud" aria-label={translateUi("app.noteShooterBestScore")}>
+              <span><Translation id="originalUi.bestScoreApp" />{shooterRecords.best.score.toLocaleString()}</span>
+              <span><Translation id="originalUi.bestComboApp" />{shooterRecords.best.combo}</span>
             </div> : null}
 
-            {!isMobileLayout ? <div className="shooterGameHud" aria-label="슈팅게임 현재 상태">
+            {!isMobileLayout ? <div className="shooterGameHud" aria-label={translateUi("app.noteShooterStatus")}>
               <div>
-                <span>LEVEL</span>
-                <strong>{shooterLevel.name}</strong>
-                <small>{shooterPhaseDisplayLabel}</small>
+                <span><Translation id="originalUi.level" /></span>
+                <strong>{localizeUi(shooterLevel.name)}</strong>
+                <small>{localizeUi(shooterPhaseDisplayLabel)}</small>
               </div>
               <div>
-                <span>SCORE</span>
+                <span><Translation id="originalUi.score" /></span>
                 <strong>{score}</strong>
               </div>
               <div>
-                <span>COMBO</span>
+                <span><Translation id="originalUi.combo" /></span>
                 <strong>{combo}</strong>
               </div>
             </div> : null}
 
             {gameState === GAME_STATES.PLAYING && shooterCountInLabel ? (
               <div aria-live="assertive" className="shooterCountInOverlay" role="status">
-                <strong>{shooterCountInLabel}</strong>
+                <strong>{localizeUi(shooterCountInLabel)}</strong>
                 {isShooterRandomDifficulty(shooterDifficulty) ? (
                   <span>
                     {shooterDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
                       ? SHOOTER_EASY_RANDOM_RANGE_LABEL
                       : shooterDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM
-                        ? "개방현~12프렛 · # 포함 랜덤"
+                        ? translateUi("app.openStringsFret12RandomIncludingSharps")
                         : SHOOTER_NORMAL_RANDOM_RANGE_LABEL}
                   </span>
                 ) : null}
@@ -33690,7 +33592,7 @@ function App({ onReady }) {
               const targetDestroyDurationMs = target.destroyHoldMs ?? SHOOTER_TARGET_DESTROY_ANIMATION_MS;
               return (
               <div
-                aria-label={`목표 음 ${targetPitchDisplayLabel}${targetIsScriptedScenario ? ` (${targetPitch} · ${getStringFretLabel(target.detail)}${target.detail?.techniqueLabel ? ` · ${target.detail.techniqueLabel}` : ""})` : shooterSolfegeOn ? ` (${targetPitch})` : ""}${desktopHorizontalClickAttackActive ? " 클릭 공격" : ""}`}
+                aria-label={localizeUi(translateUi("app.targetNoteValue1Value2Value3", { value1: targetPitchDisplayLabel, value2: targetIsScriptedScenario ? ` (${targetPitch} · ${getStringFretLabel(target.detail)}${target.detail?.techniqueLabel ? ` · ${target.detail.techniqueLabel}` : ""})` : shooterSolfegeOn ? ` (${targetPitch})` : "", value3: desktopHorizontalClickAttackActive ? ko["app.clickToAttack"] : "" }))}
                 className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""} ${shooterActiveTargetId === target.id ? "shooterEnemy--currentTarget" : ""} ${target.slashPending ? "shooterEnemy--slashPending" : ""}`}
                 data-click-attack={desktopHorizontalClickAttackActive && !target.defeated ? "true" : undefined}
                 data-current-target={shooterActiveTargetId === target.id ? "true" : undefined}
@@ -33728,7 +33630,7 @@ function App({ onReady }) {
               >
                 {shooterActiveTargetId === target.id && !target.defeated ? (
                   <span
-                    aria-label="현재 목표"
+                    aria-label={translateUi("app.currentTarget")}
                     className="shooterActiveTargetArrow"
                   >
                     ▼
@@ -33740,7 +33642,7 @@ function App({ onReady }) {
                     <span className="threeDLabEnemyReflection" />
                   </div>
                 ) : null}
-                {!target.defeated ? <NeonNote pitch={targetPitch} label={targetPitchDisplayLabel} /> : null}
+                {!target.defeated ? <NeonNote pitch={targetPitch} label={localizeUi(targetPitchDisplayLabel)} /> : null}
                 {shooterHitboxDebugEnabled && !horizontalShooterActive && !selectedMapIsPseudo3D && !target.defeated && target.hitboxActive !== false ? (() => {
                   const hurtbox = getShooterTargetHurtbox(target);
                   if (!hurtbox) return null;
@@ -33809,7 +33711,7 @@ function App({ onReady }) {
 
             {shooterHitboxDebugEnabled ? (
               <div className="shooterHitboxDebugToolbar">
-                <span>DEBUG HITBOX</span>
+                <span><Translation id="originalUi.debugHitbox" /></span>
                 <button
                   disabled={gameState !== GAME_STATES.PLAYING || !shooterTargets.some((target) => !target.defeated && target.hitboxActive !== false && !target.pendingProjectileId)}
                   onClick={(event) => {
@@ -33817,9 +33719,7 @@ function App({ onReady }) {
                     fireShooterDebugTestShot();
                   }}
                   type="button"
-                >
-                  TEST SHOT
-                </button>
+                ><Translation id="originalUi.testShot" /></button>
               </div>
             ) : null}
 
@@ -33830,7 +33730,7 @@ function App({ onReady }) {
                 preserveAspectRatio="none"
                 viewBox={`0 0 ${shooterDebugGeometry.width} ${shooterDebugGeometry.height}`}
               >
-                <text className="shooterHitboxDebugTitle" x="10" y="18">HITBOX DEBUG</text>
+                <text className="shooterHitboxDebugTitle" x="10" y="18"><Translation id="originalUi.hitboxDebug" /></text>
                 {shooterDebugGeometry.guitar ? (
                   <g className="shooterHitboxDebugGuitar">
                     <ellipse
@@ -33961,7 +33861,7 @@ function App({ onReady }) {
             </> : null}
             {mapEditor.enabled ? (
               <div
-                aria-label="현재 기타와 이펙트 보정 미리보기"
+                aria-label={translateUi("app.currentGuitarAndEffectAlignmentPreview")}
                 className={`guitarPlayer guitarPlayer--mapEditPreview guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${previewAuraEffect.id} guitarPlayer--floor-${previewFloorEffect.id}`}
                 data-instrument-skin-pack={selectedGuitar.instrumentSkinPack}
               >
@@ -34014,7 +33914,7 @@ function App({ onReady }) {
             {!mapEditor.enabled ? <>
             {selectedPet.sheetSrc && !horizontalShooterActive ? (
               <button
-                aria-label={`${selectedPet.label} 위치 이동: 눌러서 드래그`}
+                aria-label={localizeUi(translateUi("app.moveValue1PressAndDrag", { value1: selectedPet.label }))}
                 className="shooterPetCompanion"
                 data-animation-active={shooterPetDocumentVisible
                   && gameState !== GAME_STATES.PAUSED
@@ -34036,13 +33936,13 @@ function App({ onReady }) {
                   "--shooter-pet-x": shooterPetPosition.x,
                   "--shooter-pet-y": shooterPetPosition.y,
                 }}
-                title="눌러서 위치 이동"
+                title={translateUi("app.pressAndDragToMove")}
                 type="button"
               />
             ) : null}
             {!horizontalShooterActive ? (
-              <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
-                <span>LIFE {shooterLives}</span>
+              <div className="mobileShooterLives" aria-label={translateUi("app.livesLeftValue1", { value1: shooterLives })}>
+                <span><Translation id="originalUi.life" />{shooterLives}</span>
                 {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
                   <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
                 ))}
@@ -34056,7 +33956,7 @@ function App({ onReady }) {
                 className={isMobileLayout ? "mobileShooterScenarioBanner" : "desktopShooterScenarioBanner"}
                 style={{ animation: "none" }}
               >
-                <strong>{shooterScenarioCountdown.sectionLabel}</strong>
+                <strong>{localizeUi(shooterScenarioCountdown.sectionLabel)}</strong>
                 <span>{shooterScenarioCountdown.sectionAnnouncement}</span>
                 <b style={{ fontSize: 32, lineHeight: 1.2 }}>{shooterScenarioCountdown.seconds}</b>
               </div>
@@ -34071,18 +33971,17 @@ function App({ onReady }) {
                 <strong>
                   {shooterScenarioRoundSummary.bpmRaised
                     ? `TEMPO UP · ${shooterScenarioRoundSummary.bpm} BPM`
-                    : `${shooterScenarioRoundSummary.round}구간 · 정확도 ${shooterScenarioRoundSummary.accuracy}%`}
+                    : translateUi("app.sectionValue1AccuracyValue2", { value1: shooterScenarioRoundSummary.round, value2: shooterScenarioRoundSummary.accuracy })}
                 </strong>
                 <span>
                   {shooterScenarioRoundSummary.bpmRaised
                     ? shooterDifficulty === SHOOTER_DIFFICULTIES.EASY
-                      ? `${SHOOTER_EASY_SPEED_ANNOUNCEMENT} 다음은 ${shooterScenarioRoundSummary.bpm} BPM입니다.`
-                      : `안정적인 성공률로 ${shooterScenarioRoundSummary.bpm} BPM에 도전합니다.`
+                      ? translateUi("app.afterValue1TheNextTempoIsValue2Bpm", { value1: SHOOTER_EASY_SPEED_ANNOUNCEMENT, value2: shooterScenarioRoundSummary.bpm })
+                      : translateUi("app.yourConsistentAccuracyIsReadyForValue1Bpm", { value1: shooterScenarioRoundSummary.bpm })
                     : shooterScenarioRoundSummary.message}
                 </span>
                 {shooterScenarioRoundSummary.missedPositions.length ? (
-                  <small>
-                    놓친 위치: {shooterScenarioRoundSummary.missedPositions.slice(0, 3).join(" · ")}
+                  <small><Translation id="app.missedPositions" />{shooterScenarioRoundSummary.missedPositions.slice(0, 3).join(" · ")}
                   </small>
                 ) : null}
               </div>
@@ -34092,10 +33991,10 @@ function App({ onReady }) {
                 {gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? (
                   <div
                     className={`shooterStartPanel ${mapEditor.available ? "shooterStartPanel--withMapEdit" : ""}`}
-                    aria-label="슈팅게임 시작 메뉴"
+                    aria-label={translateUi("app.noteShooterStartMenu")}
                   >
                     <button
-                      aria-label="슈팅게임 시작"
+                      aria-label={translateUi("app.startNoteShooter")}
                       className="mobileShooterStartButton primary shooterStartPanelButton shooterStartPanelButton--primary"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -34110,12 +34009,12 @@ function App({ onReady }) {
                         <Play size={24} strokeWidth={2.4} />
                       </span>
                       <span className="shooterStartPanelLabel">
-                        <strong>시작</strong>
+                        <strong><Translation id="app.start" /></strong>
                       </span>
                       <Guitar className="shooterStartPanelGhostGuitar" size={82} strokeWidth={1.15} aria-hidden="true" />
                     </button>
                     <button
-                      aria-label="슈팅게임 스킨변경"
+                      aria-label={translateUi("app.changeNoteShooterSkin")}
                       className="mobileShooterStartButton shooterStartPanelButton shooterStartPanelButton--secondary"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -34131,13 +34030,13 @@ function App({ onReady }) {
                         <Guitar size={28} strokeWidth={1.85} />
                       </span>
                       <span className="shooterStartPanelLabel">
-                        <strong>스킨변경</strong>
+                        <strong><Translation id="app.changeSkin" /></strong>
                       </span>
                       <Guitar className="shooterStartPanelGhostGuitar" size={86} strokeWidth={1.05} aria-hidden="true" />
                     </button>
                     {mapEditor.available ? (
                       <button
-                        aria-label={`${selectedMap.label} 맵 편집 시작`}
+                        aria-label={localizeUi(translateUi("app.editValue1Map", { value1: selectedMap.label }))}
                         className="mobileShooterStartButton shooterStartPanelButton shooterStartPanelButton--mapEdit"
                         onClick={(event) => {
                           event.stopPropagation();
@@ -34150,23 +34049,23 @@ function App({ onReady }) {
                           <Grid3X3 size={25} strokeWidth={1.9} />
                         </span>
                         <span className="shooterStartPanelLabel">
-                          <strong>맵 편집</strong>
-                          <small>MAP EDIT</small>
+                          <strong><Translation id="app.editMap" /></strong>
+                          <small><Translation id="originalUi.mapEdit" /></small>
                         </span>
                       </button>
                     ) : null}
                   </div>
                 ) : gameState === GAME_STATES.PAUSED ? (
-                  <div className="shooterPausePanel" aria-label="슈팅게임 일시정지 메뉴">
+                  <div className="shooterPausePanel" aria-label={translateUi("app.noteShooterPauseMenu")}>
                     <div className="shooterPausePanelHeader">
                       <Pause aria-hidden="true" size={24} strokeWidth={2.25} />
                       <span>
-                        <strong>일시정지</strong>
-                        <small>PAUSED</small>
+                        <strong><Translation id="app.pause" /></strong>
+                        <small><Translation id="originalUi.paused" /></small>
                       </span>
                     </div>
                     <button
-                      aria-label="슈팅게임 계속"
+                      aria-label={translateUi("app.resumeNoteShooter")}
                       className="mobileShooterStartButton primary shooterPausePanelButton shooterPausePanelButton--continue"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -34179,12 +34078,12 @@ function App({ onReady }) {
                         <Play aria-hidden="true" size={22} strokeWidth={2.35} />
                       </span>
                       <span className="shooterPausePanelLabel">
-                        <strong>계속</strong>
-                        <small>CONTINUE</small>
+                        <strong><Translation id="app.resume" /></strong>
+                        <small><Translation id="originalUi.continue" /></small>
                       </span>
                     </button>
                     <button
-                      aria-label="슈팅게임 리셋"
+                      aria-label={translateUi("app.resetNoteShooter")}
                       className="mobileShooterStartButton shooterPausePanelButton shooterPausePanelButton--reset"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -34197,8 +34096,8 @@ function App({ onReady }) {
                         <RotateCcw aria-hidden="true" size={22} strokeWidth={2.2} />
                       </span>
                       <span className="shooterPausePanelLabel">
-                        <strong>RESET</strong>
-                        <small>RESTART</small>
+                        <strong><Translation id="originalUi.reset" /></strong>
+                        <small><Translation id="originalUi.restart" /></small>
                       </span>
                     </button>
                   </div>
@@ -34282,7 +34181,7 @@ function App({ onReady }) {
                 handleHorizontalScroll,
               }) => (
               <div
-                aria-label="슈팅게임 스킨변경"
+                aria-label={translateUi("app.changeNoteShooterSkin")}
                 aria-modal="true"
                 className={`shooterGuitarPickerModal shooterGuitarPickerModal--${shooterSkinTab}`}
                 onClick={(event) => event.stopPropagation()}
@@ -34290,18 +34189,18 @@ function App({ onReady }) {
               >
                 <div className="shooterGuitarPickerHeader">
                   <div>
-                    <strong>스킨변경</strong>
+                    <strong><Translation id="app.changeSkin" /></strong>
                     {isMobileLayout ? (
-                      <span title={`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedPet.label} · ${selectedPick.label} · ${selectedMap.label}`}>
-                        {getShooterSkinGuitarTitle(selectedGuitar.title)} · {selectedGuitarCabinet.label} · {selectedPet.label} · {selectedPick.label} · {selectedMap.label}
+                      <span title={localizeUi(`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedPet.label} · ${selectedPick.label} · ${selectedMap.label}`)}>
+                        {localizeUi(getShooterSkinGuitarTitle(selectedGuitar.title))} · {localizeUi(selectedGuitarCabinet.label)} · {localizeUi(selectedPet.label)} · {localizeUi(selectedPick.label)} · {localizeUi(selectedMap.label)}
                       </span>
                     ) : null}
                   </div>
-                  <button aria-label="스킨변경 창 닫기" onClick={() => setShooterGuitarPickerOpen(false)} type="button">
+                  <button aria-label={translateUi("app.closeSkinSelector")} onClick={() => setShooterGuitarPickerOpen(false)} type="button">
                     <X aria-hidden="true" size={15} />
                   </button>
                 </div>
-                <div className="shooterSkinTabs" aria-label="스킨 카테고리">
+                <div className="shooterSkinTabs" aria-label={translateUi("app.skinCategory")}>
                   {SHOOTER_SKIN_TABS.map((option) => (
                     <button
                       aria-pressed={shooterSkinTab === option.id}
@@ -34313,7 +34212,7 @@ function App({ onReady }) {
                       }}
                       type="button"
                     >
-                      {option.label}
+                      {localizeUi(option.label)}
                     </button>
                   ))}
                 </div>
@@ -34337,7 +34236,7 @@ function App({ onReady }) {
                       ).map((section) => (
                         <section className="shooterGuitarCategorySection" key={section.id}>
                           <div className="shooterSkinSectionHeader">
-                            <span>{section.label}</span>
+                            <span>{localizeUi(section.label)}</span>
                           </div>
                           <div className="shooterGuitarPickerGrid">
                             {section.options.map(({ slotKey, variant }) => {
@@ -34354,10 +34253,10 @@ function App({ onReady }) {
                                 >
                                   <GuitarAssetSvg variant={variant} className="shooterGuitarPickerAsset" compact />
                                   <span>
-                                    <strong>{getShooterSkinGuitarTitle(variant.title)}</strong>
+                                    <strong>{localizeUi(getShooterSkinGuitarTitle(variant.title))}</strong>
                                     <small>{variant.pack}</small>
                                   </span>
-                                  <em>{isSelected ? "선택됨" : "선택"}</em>
+                                  <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
                                 </button>
                               );
                             })}
@@ -34365,13 +34264,13 @@ function App({ onReady }) {
                         </section>
                       )) : (
                         <div className="shooterGuitarPickerEmpty">
-                          <strong>준비중</strong>
-                          <span>새 기타가 추가되면 여기에 표시됩니다.</span>
+                          <strong><Translation id="app.comingSoon" /></strong>
+                          <span><Translation id="app.newGuitarsWillAppearHere" /></span>
                         </div>
                       )}
                     </div>
                   ) : shooterSkinTab === "pet" ? (
-                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--pets" aria-label="펫 스킨 선택">
+                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--pets" aria-label={translateUi("app.choosePetSkin")}>
                       {SHOOTER_PET_SKINS.map((skin) => {
                         const isSelected = selectedPet.id === skin.id;
                         return (
@@ -34392,15 +34291,15 @@ function App({ onReady }) {
                             >
                               {skin.sheetSrc ? null : "—"}
                             </span>
-                            <strong>{skin.label}</strong>
-                            <small>{skin.description}</small>
-                            <em>{isSelected ? "선택됨" : "선택"}</em>
+                            <strong>{localizeUi(skin.label)}</strong>
+                            <small>{localizeUi(skin.description)}</small>
+                            <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
                           </button>
                         );
                       })}
                     </div>
                   ) : shooterSkinTab === "pick" ? (
-                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--picks" aria-label="피크 스킨 선택">
+                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--picks" aria-label={translateUi("app.choosePickSkin")}>
                       {SHOOTER_PICK_SKINS.map((skin) => {
                         const isSelected = selectedPick.id === skin.id;
                         return (
@@ -34419,15 +34318,15 @@ function App({ onReady }) {
                             >
                               {skin.assetSrc ? <img alt="" draggable="false" src={skin.assetSrc} /> : null}
                             </span>
-                            <strong>{skin.label}</strong>
-                            <small>{skin.description}</small>
-                            <em>{isSelected ? "선택됨" : "선택"}</em>
+                            <strong>{localizeUi(skin.label)}</strong>
+                            <small>{localizeUi(skin.description)}</small>
+                            <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
                           </button>
                         );
                       })}
                     </div>
                   ) : shooterSkinTab === "map" ? (
-                    <div className="shooterSkinOptionStack" aria-label="슈팅 맵 선택">
+                    <div className="shooterSkinOptionStack" aria-label={translateUi("app.chooseGameMap")}>
                       <div className="shooterMapPickerGrid">
                         {shooterMapPickerOptions.map((map) => {
                           const isSelected = shooterMapPreference === map.id;
@@ -34441,7 +34340,7 @@ function App({ onReady }) {
                               onClick={() => applyShooterMap(map.id)}
                               type="button"
                             >
-                              <strong>{map.label}</strong>
+                              <strong>{localizeUi(map.label)}</strong>
                               <span
                                 className={`shooterMapPreview shooterMapSkin shooterMapSkin--${map.id} ${hasMapImage ? "shooterMapPreview--image" : ""}`}
                                 aria-hidden="true"
@@ -34449,8 +34348,8 @@ function App({ onReady }) {
                               >
                                 <i />
                               </span>
-                              <small>{map.description}</small>
-                              <em>{isSelected ? "선택됨" : "선택"}</em>
+                              <small>{localizeUi(map.description)}</small>
+                              <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
                             </button>
                           );
                         })}
@@ -34460,7 +34359,7 @@ function App({ onReady }) {
                             shooterMapPreference === SHOOTER_RANDOM_MAP_ID ? "selected" : ""
                           }`}
                           onClick={() => applyShooterMap(SHOOTER_RANDOM_MAP_ID)}
-                          title={SHOOTER_RANDOM_MAP_OPTION.description}
+                          title={localizeUi(SHOOTER_RANDOM_MAP_OPTION.description)}
                           type="button"
                         >
                           <span className="shooterMapRandomPreview" aria-hidden="true">
@@ -34472,12 +34371,12 @@ function App({ onReady }) {
                               />
                             ))}
                           </span>
-                          <strong>{SHOOTER_RANDOM_MAP_OPTION.label}</strong>
+                          <strong>{localizeUi(SHOOTER_RANDOM_MAP_OPTION.label)}</strong>
                         </button>
                         {landscapeShooterMapOptions.length > 0 ? (
                           <div className="shooterMapLandscapeDivider">
-                            <span><i />가로 전용</span>
-                            <small>휴대폰 가로 화면용 맵</small>
+                            <span><i /><Translation id="app.landscapeOnly" /></span>
+                            <small><Translation id="app.mapForLandscapePhones" /></small>
                           </div>
                         ) : null}
                         {landscapeShooterMapOptions.map((map) => {
@@ -34492,8 +34391,8 @@ function App({ onReady }) {
                               onClick={() => applyShooterMap(map.id)}
                               type="button"
                             >
-                              <span className="shooterMapLandscapeBadge">가로</span>
-                              <strong>{map.label}</strong>
+                              <span className="shooterMapLandscapeBadge"><Translation id="app.landscape" /></span>
+                              <strong>{localizeUi(map.label)}</strong>
                               <span
                                 className={`shooterMapPreview shooterMapSkin shooterMapSkin--${map.id} ${hasMapImage ? "shooterMapPreview--image" : ""}`}
                                 aria-hidden="true"
@@ -34501,15 +34400,15 @@ function App({ onReady }) {
                               >
                                 <i />
                               </span>
-                              <small>{map.description}</small>
-                              <em>{isSelected ? "선택됨" : "선택"}</em>
+                              <small>{localizeUi(map.description)}</small>
+                              <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
                             </button>
                           );
                         })}
                         {developerShooterMapOptions.length > 0 ? (
                           <div className="shooterMapDevDivider">
-                            <span><i />DEV</span>
-                            <small>개발자 전용 비교 테스트</small>
+                            <span><i /><Translation id="originalUi.dev" /></span>
+                            <small><Translation id="app.developerComparisonTest" /></small>
                           </div>
                         ) : null}
                         {developerShooterMapOptions.map((map) => {
@@ -34524,8 +34423,8 @@ function App({ onReady }) {
                               onClick={() => applyShooterMap(map.id)}
                               type="button"
                             >
-                              <span className="shooterMapDevBadge">DEV</span>
-                              <strong>{map.label}</strong>
+                              <span className="shooterMapDevBadge"><Translation id="originalUi.dev" /></span>
+                              <strong>{localizeUi(map.label)}</strong>
                               <span
                                 className={`shooterMapPreview shooterMapSkin shooterMapSkin--${map.id} ${hasMapImage ? "shooterMapPreview--image" : ""}`}
                                 aria-hidden="true"
@@ -34533,19 +34432,19 @@ function App({ onReady }) {
                               >
                                 <i />
                               </span>
-                              <small>{map.description}</small>
-                              <em>{isSelected ? "선택됨" : "선택"}</em>
+                              <small>{localizeUi(map.description)}</small>
+                              <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
                             </button>
                           );
                         })}
                       </div>
                     </div>
                   ) : (
-                    <div className="shooterEffectSetPicker" aria-label="슈팅 기타 효과 선택">
+                    <div className="shooterEffectSetPicker" aria-label={translateUi("app.chooseGuitarEffects")}>
                       <section className="shooterEffectSetSection">
                         <div className="shooterSkinSectionHeader">
-                          <span>SET · 독립 선택</span>
-                          <em>위 AURA · 아래 FLOOR</em>
+                          <span><Translation id="app.setIndependentSelection" /></span>
+                          <em><Translation id="app.auraAboveFloorBelow" /></em>
                         </div>
                         <div
                           className="shooterEffectSetScroller"
@@ -34555,7 +34454,7 @@ function App({ onReady }) {
                           <div className="shooterEffectSetTrack">
                             {SHOOTER_EFFECT_SET_PAIRS.map((pair) => (
                               <article className="shooterEffectSetColumn" key={pair.id}>
-                                <span className="shooterEffectSetLabel">{pair.label}</span>
+                                <span className="shooterEffectSetLabel">{localizeUi(pair.label)}</span>
                                 <ShooterEffectOptionButton
                                   className="shooterEffectSetCard shooterEffectSetCard--aura"
                                   effect={pair.aura}
@@ -34581,8 +34480,8 @@ function App({ onReady }) {
                       </section>
                       <section className="shooterEffectStandaloneSection">
                         <div className="shooterSkinSectionHeader">
-                          <span>FLOOR {SHOOTER_STANDALONE_FLOOR_EFFECT_OPTIONS.length}</span>
-                          <em>단독 플로어 · 캐비닛</em>
+                          <span><Translation id="originalUi.floorApp" />{SHOOTER_STANDALONE_FLOOR_EFFECT_OPTIONS.length}</span>
+                          <em><Translation id="app.standaloneFloorCabinet" /></em>
                         </div>
                         <div
                           className="shooterEffectStandaloneScroller"
@@ -34622,7 +34521,7 @@ function App({ onReady }) {
                 </div>
                 {shooterSkinTab === "guitar" ? (
                   <div
-                    aria-label="기타 종류 선택"
+                    aria-label={translateUi("app.chooseGuitarType")}
                     className={`shooterGuitarCategoryTabs ${
                       isMobileLayout
                         ? "shooterGuitarCategoryTabs--mobile"
@@ -34640,7 +34539,7 @@ function App({ onReady }) {
                           onClick={() => setShooterGuitarCategoryId(option.id)}
                           type="button"
                         >
-                          {option.label}
+                          {localizeUi(option.label)}
                         </button>
                       );
                     })}
@@ -34674,7 +34573,7 @@ function App({ onReady }) {
             role="presentation"
           >
             <section
-              aria-label="저장된 코드 진행"
+              aria-label={translateUi("app.savedChordProgressions")}
               aria-modal="true"
               className="stage3StorageRoom stage3StorageDialog chordTransitionPanel"
               onPointerCancel={handleStage3StorageSwipeCancel}
@@ -34690,10 +34589,10 @@ function App({ onReady }) {
           {!isDesktopLayout ? (
             <div className="stage3StorageDialogHeading stage3StorageDialogHeading--mobile">
               <div>
-                <strong>저장실</strong>
+                <strong><Translation id="app.library" /></strong>
               </div>
               {stage3StorageLoadSelect}
-              <button aria-label="저장된 코드 진행 닫기" autoFocus onClick={closeStage3StorageRoom} type="button">
+              <button aria-label={translateUi("app.closeSavedProgressions")} autoFocus onClick={closeStage3StorageRoom} type="button">
                 <X aria-hidden="true" size={18} />
               </button>
             </div>
@@ -34701,7 +34600,7 @@ function App({ onReady }) {
           {isDesktopLayout ? (
             <div className="stage3StorageDialogHeading">
               <div>
-                <strong>저장된 코드 진행</strong>
+                <strong><Translation id="app.savedChordProgressions" /></strong>
               </div>
             </div>
           ) : null}
@@ -34710,7 +34609,7 @@ function App({ onReady }) {
               <div className="stage3StorageTopBar">
                 {stage3StorageLoadSelect}
                 <button
-                  aria-label="저장된 코드 진행 닫기"
+                  aria-label={translateUi("app.closeSavedProgressions")}
                   autoFocus
                   className="stage3StorageTopBarClose"
                   onClick={closeStage3StorageRoom}
@@ -34720,15 +34619,15 @@ function App({ onReady }) {
                 </button>
               </div>
             ) : null}
-            <div className="stage3StorageChordBuilder" aria-label="저장된 진행 코드 및 주법 선택">
-              <div className="stage3ChordBuilderPanel" aria-label="코드 빌더">
+            <div className="stage3StorageChordBuilder" aria-label={translateUi("app.chooseSavedChordsAndStrummingPatterns")}>
+              <div className="stage3ChordBuilderPanel" aria-label={translateUi("app.chordBuilder")}>
                 <div
-                  aria-label={`${stage3StorageSelectedChordName} ${stage3StorageChordPositionLabel} 코드 참고지판`}
+                  aria-label={translateUi("app.value1Value2ChordReferenceFretboard", { value1: stage3StorageSelectedChordName, value2: stage3StorageChordPositionLabel })}
                   className="stage3ChordMiniReference"
                 >
                   <div className="stage3ChordMiniReferenceHeading">
                     <strong>{stage3StorageSelectedChordName}</strong>
-                    <small>{stage3StorageChordPositionLabel}</small>
+                    <small>{localizeUi(stage3StorageChordPositionLabel)}</small>
                   </div>
                   <EditableChordFretboard
                     className="stageChordSharedFretboard stage3ChordMiniReferenceFretboard fitRange"
@@ -34739,7 +34638,7 @@ function App({ onReady }) {
                   />
                 </div>
 
-                <ChordBuilderOptionSection layout="cols-5" showTitle title="구간">
+                <ChordBuilderOptionSection layout="cols-5" showTitle title={translateUi("app.range")}>
                   {CHORD_VIEWER_POSITIONS.map((position) => (
                     <ChordBuilderChip
                       className="stage3ChordPositionChip"
@@ -34748,12 +34647,12 @@ function App({ onReady }) {
                       onClick={() => setStage3StorageChordPosition(position.id)}
                       selected={stage3StorageChordPosition === position.id}
                     >
-                      {position.label}
+                      {localizeUi(position.label)}
                     </ChordBuilderChip>
                   ))}
                 </ChordBuilderOptionSection>
 
-                <ChordBuilderOptionSection layout="cols-7" showTitle title="루트">
+                <ChordBuilderOptionSection layout="cols-7" showTitle title={translateUi("app.root")}>
                   {chordRootOptions.map((root) => (
                     <ChordBuilderChip
                       key={`storage-root-${root}`}
@@ -34765,7 +34664,7 @@ function App({ onReady }) {
                   ))}
                 </ChordBuilderOptionSection>
 
-                <ChordBuilderOptionSection layout="cols-3" showTitle title="변환">
+                <ChordBuilderOptionSection layout="cols-3" showTitle title={translateUi("app.convert")}>
                   {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
                     const hasDiagram = Boolean(
                       getChordFromSelector(
@@ -34782,13 +34681,13 @@ function App({ onReady }) {
                         onClick={() => applyStage3StorageChordSelection(stage3StorageChordBaseRoot, accidental.id, stage3StorageChordQuality, stage3StorageChordExtension)}
                         selected={stage3StorageChordAccidental === accidental.id}
                       >
-                        {accidental.id === "flat" ? "♭" : accidental.label}
+                        {localizeUi(accidental.id === "flat" ? "♭" : accidental.label,{[ko["app.default"]]:"chord.natural"})}
                       </ChordBuilderChip>
                     );
                   })}
                 </ChordBuilderOptionSection>
 
-                <ChordBuilderOptionSection layout="cols-4" showTitle title="타입">
+                <ChordBuilderOptionSection layout="cols-4" showTitle title={translateUi("app.type")}>
                   {CHORD_QUALITY_OPTIONS.map((quality) => {
                     const isSupported = isChordViewerSelectionSupported(quality.id, "none");
                     return (
@@ -34798,13 +34697,13 @@ function App({ onReady }) {
                         onClick={() => applyStage3StorageChordSelection(stage3StorageChordBaseRoot, stage3StorageChordAccidental, quality.id, stage3StorageChordExtension)}
                         selected={stage3StorageChordQuality === quality.id}
                       >
-                        {quality.label}
+                        {localizeUi(quality.label)}
                       </ChordBuilderChip>
                     );
                   })}
                 </ChordBuilderOptionSection>
 
-                <ChordBuilderOptionSection layout="tensions-2row" showTitle title="확장">
+                <ChordBuilderOptionSection layout="tensions-2row" showTitle title={translateUi("app.extension")}>
                   {stage3StorageAvailableExtensionOptions.map((extension) => {
                     const isDisabled = extension.disabled || !extension.hasDiagram;
                     return (
@@ -34814,7 +34713,7 @@ function App({ onReady }) {
                         onClick={() => applyStage3StorageChordSelection(stage3StorageChordBaseRoot, stage3StorageChordAccidental, stage3StorageChordQuality, extension.id)}
                         selected={stage3StorageChordExtension === extension.id}
                       >
-                        {extension.label}
+                        {localizeUi(extension.label,{[ko["app.default"]]:"chord.noExtension"})}
                       </ChordBuilderChip>
                     );
                   })}
@@ -34822,13 +34721,13 @@ function App({ onReady }) {
 
               </div>
               <div className="stage3OptionRow stage3StrumPickRow">
-                <span>주법</span>
+                <span><Translation id="app.technique" /></span>
                 <div className="stage3StrumInlineControl">
                   <div className="stage3StrumChoiceButtons stage3SegmentControl">
-                    <button aria-label="다운 업 주법 추가" onClick={addStage3StrumPair} type="button">↓↑</button>
-                    <button aria-label="다운 주법 추가" onClick={() => addStage3StrumStep("down", false)} type="button">↓</button>
-                    <button aria-label="업 주법 추가" onClick={() => addStage3StrumStep("up", false)} type="button">↑</button>
-                    <button aria-label="X2 주법 표시 추가" onClick={addStage3StrumRepeat} type="button">X2</button>
+                    <button aria-label={translateUi("app.addDownUpStrum")} onClick={addStage3StrumPair} type="button">↓↑</button>
+                    <button aria-label={translateUi("app.addDownstroke")} onClick={() => addStage3StrumStep("down", false)} type="button">↓</button>
+                    <button aria-label={translateUi("app.addUpstroke")} onClick={() => addStage3StrumStep("up", false)} type="button">↑</button>
+                    <button aria-label={translateUi("app.addX2PatternMarker")} onClick={addStage3StrumRepeat} type="button"><Translation id="originalUi.x2" /></button>
                   </div>
                   <div className="stage3SegmentControl stage3ActionSegment stage3StrumActionSegment">
                     <button
@@ -34837,7 +34736,7 @@ function App({ onReady }) {
                       onClick={() => addStage3StrumPatternDraft(0)}
                       type="button"
                     >
-                      {isDesktopLayout ? "추가1열" : "추가1"}
+                      {isDesktopLayout ? translateUi("app.addRow1") : translateUi("app.add1")}
                     </button>
                     <button
                       className="primary"
@@ -34845,7 +34744,7 @@ function App({ onReady }) {
                       onClick={() => addStage3StrumPatternDraft(1)}
                       type="button"
                     >
-                      {isDesktopLayout ? "추가2열" : "추가2"}
+                      {isDesktopLayout ? translateUi("app.addRow2") : translateUi("app.add2")}
                     </button>
                     <button
                       disabled={!stage3StorageStrumDraftPattern.length && !stage3StorageStrumPattern.length}
@@ -34855,16 +34754,14 @@ function App({ onReady }) {
                         setStage3StorageStrumPattern([]);
                       }}
                       type="button"
-                    >
-                      초기화
-                    </button>
+                    ><Translation id="app.reset" /></button>
                   </div>
                   <div className="stage3StrumDraftInline">
                     <strong>
                       {stage3StorageStrumDraftPattern.length ? (
                         <StrumPattern onStepClick={toggleStage3StrumHit} pattern={stage3StorageStrumDraftPattern} />
                       ) : (
-                        <small>주법을 선택하세요</small>
+                        <small><Translation id="app.chooseATechnique" /></small>
                       )}
                     </strong>
                   </div>
@@ -34872,13 +34769,13 @@ function App({ onReady }) {
               </div>
               <div className="stage3AddRow">
                 <strong>
-                  <span>선택코드</span>
-                  <b>{stage3StorageSelectedChord ? stage3StorageSelectedChordName : "준비중"}</b>
+                  <span><Translation id="app.selectedChord" /></span>
+                  <b>{stage3StorageSelectedChord ? stage3StorageSelectedChordName : translateUi("app.comingSoon")}</b>
                   {stage3StorageSelectedChord ? (
                     <small>
                       {stage3StorageChordEditingIndex == null
                         ? stage3StorageChordPositionLabel
-                        : `${stage3StorageChordEditingIndex + 1}번째 코드 편집 · ${stage3StorageChordPositionLabel}`}
+                        : translateUi("app.editChordValue1Value2", { value1: stage3StorageChordEditingIndex + 1, value2: stage3StorageChordPositionLabel })}
                     </small>
                   ) : null}
                 </strong>
@@ -34888,36 +34785,28 @@ function App({ onReady }) {
                     disabled={!stage3StorageSelectedChord}
                     onClick={() => commitStage3StorageChord(1)}
                     type="button"
-                  >
-                    1박 추가
-                  </button>
+                  ><Translation id="app.add1Beat" /></button>
                   <button
                     className="primary"
                     disabled={!stage3StorageSelectedChord}
                     onClick={() => commitStage3StorageChord(2)}
                     type="button"
-                  >
-                    2박 추가
-                  </button>
+                  ><Translation id="app.add2Beats" /></button>
                   <button
                     className="primary"
                     disabled={!stage3StorageSelectedChord}
                     onClick={() => commitStage3StorageChord(4)}
                     type="button"
-                  >
-                    4박 추가
-                  </button>
+                  ><Translation id="app.add4Beats" /></button>
                   <button
                     className="stage3AddRestButton"
                     onClick={addStage3StorageRest}
                     type="button"
-                  >
-                    1박 쉼
-                  </button>
+                  ><Translation id="app.1BeatRest" /></button>
                 </div>
               </div>
               <div className="stage3InlineProgressionRow">
-                <span>진행순서</span>
+                <span><Translation id="app.sequence" /></span>
                 <div className="progressionChipList">
                   {hasStage3StorageProgression ? stage3StorageProgressionMeasures.map((measure) => (
                     <div className="rhythmChordMeasure" key={`storage-measure-${measure.measureIndex}`}>
@@ -34929,7 +34818,7 @@ function App({ onReady }) {
                         >
                           <button
                             aria-disabled="true"
-                            aria-label={`자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`}
+                            aria-label={translateUi("app.autoRestValue1", { value1: getRhythmChordBeatLabel(beatLength) })}
                             className="stage3ProgressionEditButton stage3ProgressionRestButton stage3AutomaticRestButton"
                             tabIndex={-1}
                             type="button"
@@ -34943,17 +34832,17 @@ function App({ onReady }) {
                           style={{ "--rhythm-chord-beats": beatLength }}
                         >
                           <button
-                            aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}${chord.isRest ? "" : " 편집"}`}
+                            aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}${chord.isRest ? "" : translateUi("app.edit")}`}
                             className={`${stage3StorageChordEditingIndex === index ? "selected " : ""}stage3ProgressionEditButton${chord.isRest ? " stage3ProgressionRestButton" : ""}`}
                             disabled={chord.isRest}
                             onClick={chord.isRest ? undefined : () => editStage3StorageChordEntry(stage3StorageChordIds[index], index)}
                             type="button"
                           >
                             <span>{chord.displayName}</span>
-                            <small>{getRhythmChordBeatLabel(chord.beatLength)}</small>
+                            <small>{localizeUi(getRhythmChordBeatLabel(chord.beatLength))}</small>
                           </button>
                           <button
-                            aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)} 제거`}
+                            aria-label={translateUi("app.removeValue1Value2", { value1: chord.displayName, value2: getRhythmChordBeatLabel(chord.beatLength) })}
                             onClick={() => {
                               setStage3StorageChordIds((ids) => ids.filter((_, chordIndex) => chordIndex !== index));
                               setStage3StorageChordEditingIndex(null);
@@ -34966,33 +34855,33 @@ function App({ onReady }) {
                       ))}
                     </div>
                   )) : (
-                    <small className="chordProgressionEmpty">코드를 선택해서 추가하세요</small>
+                    <small className="chordProgressionEmpty"><Translation id="app.chooseAChordToAdd" /></small>
                   )}
                 </div>
                 {isDesktopLayout && stage3StorageStrumRows.some((row) => row.length) ? (
-                  <div aria-label="진행순서 열별 주법" className="stage3ProgressionStrumAssignments">
+                  <div aria-label={translateUi("app.strummingPatternsByRow")} className="stage3ProgressionStrumAssignments">
                     {stage3StorageStrumRows.map((row, rowIndex) => row.length ? (
                       <div
                         className="stage3ProgressionStrumAssignment is-assigned"
                         data-progression-row={rowIndex + 1}
                         key={`storage-progression-strum-row-${rowIndex}`}
                       >
-                        <b>{rowIndex + 1}열</b>
+                        <b>{rowIndex + 1}<Translation id="app.row" /></b>
                         <StrumPattern pattern={row} />
                       </div>
                     ) : null)}
                   </div>
                 ) : null}
               </div>
-              {!isDesktopLayout ? <div className="stage3InlineStrum" aria-label="추가된 주법">
-                <span>추가된 주법</span>
+              {!isDesktopLayout ? <div className="stage3InlineStrum" aria-label={translateUi("app.addedPatterns")}>
+                <span><Translation id="app.addedPatterns" /></span>
                 <div className="strumPreviewList">
                   {stage3StorageStrumPattern.length ? (
                     normalizeStrumPatternGroups(stage3StorageStrumPattern).filter((row) => row.length).map((row, index) => (
                       <StrumPattern key={`storage-inline-strum-row-${index}`} pattern={row} />
                     ))
                   ) : (
-                    <small className="chordProgressionEmpty">주법을 선택해서 추가하세요</small>
+                    <small className="chordProgressionEmpty"><Translation id="app.chooseAPatternToAdd" /></small>
                   )}
                 </div>
               </div> : null}
@@ -35019,12 +34908,12 @@ function App({ onReady }) {
             onConfirm={confirmDeleteStage3StorageItems}
           />
         ) : null}
-        <section className="chordTransitionPanel" aria-label="Chord transition practice">
+        <section className="chordTransitionPanel" aria-label={translateUi("originalUi.chordTransitionPractice")}>
           <div className="stage3DesktopPrimaryColumn">
           <div className="chordTransitionBody">
-            <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
+            <aside className="referenceFretboard chordTransitionChart" aria-label={translateUi("originalUi.currentChordFingering")}>
               {!isMobileLayout ? (
-                <span className="stage3DesktopProgressionHeading">코드 진행</span>
+                <span className="stage3DesktopProgressionHeading"><Translation id="app.chordProgression" /></span>
               ) : null}
               {hasChordTransitionProgression ? (
               <div className="referenceHeader stage3ProgressionHeader">
@@ -35045,7 +34934,7 @@ function App({ onReady }) {
                       </span>
                     ) : null}
                   </div>
-                  <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
+                  <div className="currentProgressionReadout" aria-label={translateUi("app.currentChordProgression")}>
                     {chordTransitionProgressionMeasures.map((measure) => {
                       const isCurrentMeasure = measure.items.some(({ endBeat, index, isAutoRest, startBeat }) => (
                         isAutoRest
@@ -35076,8 +34965,8 @@ function App({ onReady }) {
                               <button
                                 aria-disabled={isAutoRest ? "true" : undefined}
                                 aria-label={isAutoRest
-                                  ? `자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`
-                                  : `${isMobileLayout && isNextChord ? "다음 코드 " : ""}${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
+                                  ? translateUi("app.autoRestValue1", { value1: getRhythmChordBeatLabel(beatLength) })
+                                  : `${isMobileLayout && isNextChord ? translateUi("app.nextChord") : ""}${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
                                 aria-current={isMobileLayout && isCurrentChord ? "step" : undefined}
                                 className={`${isMobileLayout && isCurrentChord ? "active " : ""}${isMobileLayout && isNextChord ? "stage3ProgressionNext " : ""}${isAutoRest ? "stage3AutomaticRestButton" : ""}`}
                                 data-progression-state={isMobileLayout ? (isCurrentChord ? "current" : isNextChord ? "next" : "upcoming") : undefined}
@@ -35094,7 +34983,7 @@ function App({ onReady }) {
                                 ) : (
                                   <>
                                     <span>{chord.displayName}</span>
-                                    <small>{getRhythmChordBeatLabel(chord.beatLength)}</small>
+                                    <small>{localizeUi(getRhythmChordBeatLabel(chord.beatLength))}</small>
                                   </>
                                 )}
                               </button>
@@ -35105,16 +34994,14 @@ function App({ onReady }) {
                     })}
                   </div>
                   {chordPracticeCurrent.isEnharmonic && (
-                    <small className="enharmonicNotice">
-                      참고 운지: {chordPracticeCurrent.fretboardDisplayName} · {chordPracticeCurrent.displayName} = {chordPracticeCurrent.fretboardDisplayName} 동명음
-                    </small>
+                    <small className="enharmonicNotice"><Translation id="app.suggestedFingering" />{chordPracticeCurrent.fretboardDisplayName} · {chordPracticeCurrent.displayName} = {chordPracticeCurrent.fretboardDisplayName}<Translation id="app.enharmonic" /></small>
                   )}
                 </div>
               </div>
               ) : null}
               {!hasChordTransitionProgression ? (
                 <div
-                  aria-label={landscapePlayFocus ? "빈 코드 진행 예시 8마디" : "빈 코드 진행 예시 4마디"}
+                  aria-label={landscapePlayFocus ? translateUi("app.empty8BarProgressionExample") : translateUi("app.empty4BarProgressionExample")}
                   className="currentProgressionReadout stage3EmptyProgressionReadout"
                   role="img"
                 >
@@ -35131,7 +35018,7 @@ function App({ onReady }) {
                 </div>
               ) : null}
               {Number(loadedStage3LibraryItem?.capo) > 0 ? (
-                <span className="stage3CapoBadge">{Number(loadedStage3LibraryItem.capo)}Capo</span>
+                <span className="stage3CapoBadge">{Number(loadedStage3LibraryItem.capo)}<Translation id="originalUi.capo" /></span>
               ) : null}
               <Fretboard
                 barres={chordPracticeFretboardView.barres}
@@ -35149,14 +35036,14 @@ function App({ onReady }) {
                 && isStage3VoicingMovementItem(loadedStage3LibraryItem)
                 && hasChordTransitionProgression ? (
                 <div className="stage3VoicingMovementGuide" aria-live="polite">
-                  <strong>{chordPracticeCurrent.uiLabel || chordPracticeCurrent.positionLabel}</strong>
-                  <p>{loadedStage3LibraryItem?.practiceSummary || loadedStage3LibraryItem?.description}</p>
+                  <strong>{localizeUi(chordPracticeCurrent.uiLabel || chordPracticeCurrent.positionLabel)}</strong>
+                  <p>{localizeUi(loadedStage3LibraryItem?.practiceSummary || loadedStage3LibraryItem?.description)}</p>
                 </div>
               ) : null}
               {isMobileLayout && !hasChordTransitionProgression ? (
                 <div className="stage3EmptyFretboardPrompt" role="status" aria-live="polite">
-                  <strong>진행을 선택해주세요</strong>
-                  <span>추천진행 또는 사용자 진행을 고르면 운지가 표시됩니다</span>
+                  <strong><Translation id="app.chooseAProgression" /></strong>
+                  <span><Translation id="app.chooseARecommendedOrCustomProgressionToSeeFingerings" /></span>
                 </div>
               ) : null}
             </aside>
@@ -35165,9 +35052,9 @@ function App({ onReady }) {
 
           <div className="chordTransitionHud stage3ProgressHud">
             {!isMobileLayout ? (
-              <span className="stage3DesktopBeatHeading">박자 진행</span>
+              <span className="stage3DesktopBeatHeading"><Translation id="app.beatProgress" /></span>
             ) : null}
-            <div className="referenceBeatMetronomeStrip stage3ReferenceBeatMetronomeStrip" aria-label="리듬 코드 점자 메트로놈">
+            <div className="referenceBeatMetronomeStrip stage3ReferenceBeatMetronomeStrip" aria-label={translateUi("app.rhythmChordsBeatDotMetronome")}>
               <BeatIndicator
                 activateDotsOnPointerUp={landscapePlayFocus}
                 beat={beat}
@@ -35176,14 +35063,14 @@ function App({ onReady }) {
                 compact
                 dotClassName="referenceBeatMetronomeDot"
                 isPlaying={isStage3Playing}
-                label="리듬 코드 점자 메트로놈"
+                label={translateUi("app.rhythmChordsBeatDotMetronome")}
                 onBeatClick={cycleStage3BeatState}
                 timeSignature={stage3MetronomeTimeSignature}
               />
             </div>
             {isMobileLayout ? (
               <button
-                aria-label={`리듬 코드 메트로놈 사운드 ${stage3MetronomeSoundOn ? "끄기" : "켜기"}`}
+                aria-label={localizeUi(translateUi("app.rhythmChordsMetronomeSoundValue1", { value1: stage3MetronomeSoundOn ? ko["app.off"] : ko["app.on"] }))}
                 aria-pressed={stage3MetronomeSoundOn}
                 aria-controls="stage3-metronome-options-options"
                 className={`stage3MetronomeSoundToggle stage3MetronomeSoundToggle--mobile ${
@@ -35193,7 +35080,7 @@ function App({ onReady }) {
                 type="button"
               >
                 {stage3MetronomeSoundOn ? <Volume2 aria-hidden="true" size={16} /> : <VolumeX aria-hidden="true" size={16} />}
-                <span>매트로놈</span>
+                <span><Translation id="app.metronomeApp" /></span>
                 <b>{stage3MetronomeSoundOn ? "ON" : "OFF"}</b>
               </button>
             ) : null}
@@ -35219,7 +35106,7 @@ function App({ onReady }) {
                   ) : (
                     <Play size={16} />
                   )}
-                  {isStage3Playing ? "STOP" : isStage3AudioPreparing ? "준비중" : "START"}
+                  {isStage3Playing ? "STOP" : isStage3AudioPreparing ? translateUi("app.comingSoon") : "START"}
                 </button>
                 <CountInToggleButton
                   className="stage3CountInToggle"
@@ -35236,10 +35123,10 @@ function App({ onReady }) {
             {stage3LandscapeLoadToolbar}
             <div className={isMobileLayout ? "stage3MobileTransportDeck" : "standaloneMetronomePanel stage3StandaloneTransportDeck"}>
               <MetronomeTransportCard
-                actionAriaLabel="재생, 탭 템포, 카운트인"
+                actionAriaLabel={translateUi("app.playbackTapTempoCountIn")}
                 actionOrder="tap-play"
                 actionPanelClassName={isMobileLayout ? "stage3BpmActionPanel" : "stage3StandaloneBpmActionPanel"}
-                ariaLabel="리듬 코드 BPM, 탭 템포, 시작, 카운트인"
+                ariaLabel={translateUi("app.rhythmChordsBpmTapTempoStartCountIn")}
                 bpm={bpm}
                 bpmPreviewKey="stage3"
                 cardClassName={isMobileLayout ? "stage3BpmTransportCard" : ""}
@@ -35266,8 +35153,8 @@ function App({ onReady }) {
                 }
                 playIdleText={isMobileLayout ? "START" : "PLAY"}
                 playPending={isStage3AudioPreparing}
-                playStartLabel="연습 시작"
-                playStopLabel="연습 정지"
+                playStartLabel={translateUi("app.startPractice")}
+                playStopLabel={translateUi("app.stopPractice")}
                 showCountIn
                 showPause
                 swipeEnabled
@@ -35294,7 +35181,7 @@ function App({ onReady }) {
             showCountIn={false}
             showRepeat={false}
             splitToneControls
-            optionsCollapseLabel="매트로놈 설정"
+            optionsCollapseLabel={translateUi("app.metronomeSettings")}
             optionsCollapsed={isMobileLayout && stage3MetronomeOptionsCollapsed}
             subdivision={stage3MetronomeSubdivision}
             timeSignature={stage3MetronomeTimeSignature}
@@ -35307,8 +35194,8 @@ function App({ onReady }) {
             defaultExpanded={!isMobileLayout || !viewportProfile.isLandscape}
             disabled={stage3RecommendedAccompanimentLocked}
             hidePartSummary={landscapePlayFocus}
-            lockedLabel="추천 진행"
-            lockedNotice="기본 제공 팩은 수정할 수 없습니다"
+            lockedLabel={translateUi("app.recommendedProgressions")}
+            lockedNotice={translateUi("app.builtInPacksCannotBeEdited")}
             onOpenSettings={openMiniChordRhythmSettings}
             onToggleAll={toggleAllBackingParts}
             onTogglePart={toggleBackingPartEnabled}
@@ -35322,7 +35209,7 @@ function App({ onReady }) {
       ) : !LEGACY_PRACTICE_RENDERING_ENABLED ? (
         <section
           className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""}`}
-          aria-label="Reference fretboard training"
+          aria-label={translateUi("originalUi.referenceFretboardTraining")}
         >
           {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
             <ContentTitle {...contentHeader} />
@@ -35334,7 +35221,7 @@ function App({ onReady }) {
           )}
 
           <div className="referenceTrainingMainRow">
-            <aside className="referenceFretboard referenceTrainingBoard" aria-label="Reference fretboard">
+            <aside className="referenceFretboard referenceTrainingBoard" aria-label={translateUi("originalUi.referenceFretboard")}>
               {selectedCategory.id === "first-position" || selectedCategory.id === "scale-block" ? (
                 selectedCategory.id === "scale-block" ? (
                   <div className="referenceHeader stage2HeaderScalePicker">
@@ -35342,7 +35229,7 @@ function App({ onReady }) {
                       <MetronomeSelectControl
                         className="scaleKeySelect"
                         dropdownDirection="down"
-                        label="키"
+                        label={translateUi("app.key")}
                         onChange={changeScaleRoot}
                         options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
                         showLabel={!isMobileLayout}
@@ -35351,7 +35238,7 @@ function App({ onReady }) {
                       <div className="scaleTypeGroup">
                         <MetronomeSelectControl
                           className="scaleFamilySelect"
-                          label="스케일"
+                          label={translateUi("app.scales")}
                           dropdownDirection="down"
                           onChange={changeScaleFamily}
                           options={Object.values(SCALE_TRAINING_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
@@ -35360,7 +35247,7 @@ function App({ onReady }) {
                         />
                         <MetronomeSelectControl
                           className="scaleTypeSelect"
-                          label="타입"
+                          label={translateUi("app.type")}
                           dropdownDirection="down"
                           onChange={changeScaleType}
                           options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
@@ -35371,7 +35258,7 @@ function App({ onReady }) {
                       <MetronomeSelectControl
                         className={`scaleBoxSelect scaleDetailSelect ${isSelectedScaleLick ? "scaleLickSelect" : ""}`}
                         dropdownDirection="down"
-                        label={selectedScaleDetailLabel}
+                        label={localizeUi(selectedScaleDetailLabel)}
                         onChange={changeScaleDetail}
                         options={selectedScaleDetailOptions}
                         showLabel={!isMobileLayout}
@@ -35390,7 +35277,7 @@ function App({ onReady }) {
                     content={(
                       <>
                         <span className="trainingDetailTitle">
-                          {referencePromptDisplayLabel}
+                          {localizeUi(referencePromptDisplayLabel)}
                         </span>
                         {isMobileLayout ? (
                           <TrainingNoteGuideToggle
@@ -35400,18 +35287,18 @@ function App({ onReady }) {
                         ) : null}
                       </>
                     )}
-                    title={referencePromptDisplayLabel}
+                    title={localizeUi(referencePromptDisplayLabel)}
                   />
                 )
               ) : (
                 <div className="referenceHeader">
-                  <span>참고 지판</span>
+                  <span><Translation id="app.referenceFretboardApp2" /></span>
                   <strong>
                     {selectedCategory.id === "scale-block"
                       ? scaleReferenceTitle
                       : referenceDisplayPrompt
                         ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}`
-                        : "준비"}
+                        : translateUi("app.ready")}
                   </strong>
                 </div>
               )}
@@ -35430,8 +35317,8 @@ function App({ onReady }) {
               />
               <p>
                 {gameState === GAME_STATES.PLAYING
-                  ? "하이라이트된 음을 지판에서 찾아 연주하세요."
-                  : "시작을 누르면 참고지판 중심으로 위치 찾기 연습을 진행합니다."}
+                  ? translateUi("app.findAndPlayTheHighlightedNoteOnTheFretboard")
+                  : translateUi("app.pressStartToPracticeFindingPositionsOnTheReferenceFretboard")}
               </p>
             </aside>
 
@@ -35448,13 +35335,13 @@ function App({ onReady }) {
                 >
                   {isMobileLayout && !landscapePlayFocus ? referenceLandscapeBeatStrip : null}
                   <MetronomeTransportCard
-                    actionAriaLabel="재생, 탭 템포, 카운트인"
+                    actionAriaLabel={translateUi("app.playbackTapTempoCountIn")}
                     actionPanelClassName={
                       isMobileLayout
                         ? "referenceMetronomeActionPanel"
                         : "trainingStandaloneMetronomeActionPanel"
                     }
-                    ariaLabel="연습 BPM, 재생, 탭 템포, 카운트인"
+                    ariaLabel={translateUi("app.practiceBpmPlaybackTapTempoCountIn")}
                     bpm={bpm}
                     bpmPreview
                     cardClassName={isMobileLayout ? "referenceMetronomeHeroCard" : ""}
@@ -35473,8 +35360,8 @@ function App({ onReady }) {
                     onStop={stopPracticeSession}
                     onTapTempo={handleTapTempo}
                     onTapTempoPressFeedback={triggerTapTempoPressFeedback}
-                    playStartLabel="연습 시작"
-                    playStopLabel="연습 정지"
+                    playStartLabel={translateUi("app.startPractice")}
+                    playStopLabel={translateUi("app.stopPractice")}
                     showCountIn
                     swipeEnabled
                     tapTempoPressTick={tapTempoPressTick}
@@ -35573,11 +35460,11 @@ function App({ onReady }) {
               </button>
               <>
                 <div className="chordNextCard">
-                  <span>{referenceNextLabel}</span>
+                  <span>{localizeUi(referenceNextLabel)}</span>
                   <strong>{getReferenceStageValue(referenceNextPrompt)}</strong>
                 </div>
                 <div className="chordNowCard">
-                  <span>{referenceCurrentLabel}</span>
+                  <span>{localizeUi(referenceCurrentLabel)}</span>
                   <strong>{getReferenceStageValue(referenceDisplayPrompt)}</strong>
                 </div>
               </>
@@ -35585,17 +35472,17 @@ function App({ onReady }) {
           ) : null}
         </section>
       ) : LEGACY_PRACTICE_RENDERING_ENABLED ? (
-        <section className="gamePanel" aria-label="Beginner scale block practice">
+        <section className="gamePanel" aria-label={translateUi("originalUi.beginnerScaleBlockPractice")}>
           <div className="gameToolbar">
             <div className="rhythmSubdivisionHeader">
-              <span>리듬 분할</span>
-              <strong>{noteSpeed.label}</strong>
+              <span><Translation id="app.rhythmSubdivision" /></span>
+              <strong>{localizeUi(noteSpeed.label)}</strong>
             </div>
             <div className="judgmentModeBadge">
-              <span>판정 모드</span>
-              <strong>{currentJudgmentMode.shortLabel}</strong>
+              <span><Translation id="app.scoringMode" /></span>
+              <strong>{localizeUi(currentJudgmentMode.shortLabel)}</strong>
             </div>
-            <div className="subdivisionButtons" aria-label="Rhythm subdivision">
+            <div className="subdivisionButtons" aria-label={translateUi("originalUi.rhythmSubdivision")}>
               {Object.values(RHYTHM_SUBDIVISIONS).map((speed) => (
                 <button
                   className={noteSpeed.label === speed.label ? "selected" : ""}
@@ -35604,16 +35491,16 @@ function App({ onReady }) {
                   onClick={() => changeNoteSpeed(speed)}
                   type="button"
                 >
-                  <strong>{speed.label}</strong>
-                  <span>{speed.hint}</span>
+                  <strong>{localizeUi(speed.label)}</strong>
+                  <span>{localizeUi(speed.hint)}</span>
                 </button>
               ))}
             </div>
             {!hasDirectionPractice && (
             <label className="mobileSelectControl mobileSubdivisionSelect">
-              <span>리듬 분할</span>
+              <span><Translation id="app.rhythmSubdivision" /></span>
               <select
-                aria-label="리듬 분할 선택"
+                aria-label={translateUi("app.chooseRhythmSubdivision")}
                 onChange={(event) => {
                   const nextSpeed = Object.values(RHYTHM_SUBDIVISIONS).find((speed) => speed.label === event.target.value);
                   if (nextSpeed) changeNoteSpeed(nextSpeed);
@@ -35622,19 +35509,19 @@ function App({ onReady }) {
               >
                 {Object.values(RHYTHM_SUBDIVISIONS).map((speed) => (
                   <option disabled={speed.disabled} key={speed.label} value={speed.label}>
-                    {speed.label} / {speed.hint}
+                    {localizeUi(speed.label)} / {localizeUi(speed.hint)}
                   </option>
                 ))}
               </select>
             </label>
             )}
             {hasDirectionPractice && (
-              <div className="scaleDirectionPanel" aria-label="Scale direction">
+              <div className="scaleDirectionPanel" aria-label={translateUi("originalUi.scaleDirection")}>
                 {selectedCategory.id === "scale-block" && (
                   <div className="scalePickerPanel">
                     <MetronomeSelectControl
                       className="scaleKeySelect"
-                      label="키"
+                      label={translateUi("app.key")}
                       onChange={changeScaleRoot}
                       options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
                       value={selectedScaleRoot}
@@ -35642,14 +35529,14 @@ function App({ onReady }) {
                     <div className="scaleTypeGroup">
                       <MetronomeSelectControl
                         className="scaleFamilySelect"
-                        label="스케일"
+                        label={translateUi("app.scales")}
                         onChange={changeScaleFamily}
                         options={Object.values(SCALE_TRAINING_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
                         value={selectedScaleFamily}
                       />
                       <MetronomeSelectControl
                         className="scaleTypeSelect"
-                        label="타입"
+                        label={translateUi("app.type")}
                         onChange={changeScaleType}
                         options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
                         value={selectedScaleType}
@@ -35657,32 +35544,32 @@ function App({ onReady }) {
                     </div>
                     <MetronomeSelectControl
                       className={`scaleBoxSelect scaleDetailSelect ${isSelectedScaleLick ? "scaleLickSelect" : ""}`}
-                      label={selectedScaleDetailLabel}
+                      label={localizeUi(selectedScaleDetailLabel)}
                       onChange={changeScaleDetail}
                       options={selectedScaleDetailOptions}
                       value={selectedScaleDetailValue}
                     />
-                    <strong>{selectedPentatonic.label}</strong>
+                    <strong>{localizeUi(selectedPentatonic.label)}</strong>
                   </div>
                 )}
                 <label className="mobileSelectControl mobileDirectionSelect">
-                  <span>진행 방향</span>
+                  <span><Translation id="app.direction" /></span>
                   <select
-                    aria-label="진행 방향 선택"
+                    aria-label={translateUi("app.chooseDirection")}
                     onChange={(event) => changeScaleDirection(event.target.value)}
                     value={scaleDirection}
                   >
                     {SCALE_DIRECTION_OPTIONS.map((option) => (
                       <option key={option.id} value={option.id}>
-                        {option.label}
+                        {localizeUi(option.label)}
                       </option>
                     ))}
                   </select>
                 </label>
                 <label className="mobileSelectControl mobileSubdivisionSelect">
-                  <span>리듬 분할</span>
+                  <span><Translation id="app.rhythmSubdivision" /></span>
                   <select
-                    aria-label="리듬 분할 선택"
+                    aria-label={translateUi("app.chooseRhythmSubdivision")}
                     onChange={(event) => {
                       const nextSpeed = Object.values(RHYTHM_SUBDIVISIONS).find((speed) => speed.label === event.target.value);
                       if (nextSpeed) changeNoteSpeed(nextSpeed);
@@ -35691,7 +35578,7 @@ function App({ onReady }) {
                   >
                     {Object.values(RHYTHM_SUBDIVISIONS).map((speed) => (
                       <option disabled={speed.disabled} key={speed.label} value={speed.label}>
-                        {speed.label} / {speed.hint}
+                        {localizeUi(speed.label)} / {localizeUi(speed.hint)}
                       </option>
                     ))}
                   </select>
@@ -35703,12 +35590,12 @@ function App({ onReady }) {
                     onClick={() => changeScaleDirection(option.id)}
                     type="button"
                   >
-                    <strong>{option.label}</strong>
+                    <strong>{localizeUi(option.label)}</strong>
                     <span>
                       {option.id === SCALE_DIRECTIONS.ASC
-                        ? `${scaleStartPitch}부터 위로`
+                        ? translateUi("app.ascendingFromValue1", { value1: scaleStartPitch })
                         : option.id === SCALE_DIRECTIONS.DESC
-                          ? `${scaleEndPitch}부터 아래로`
+                          ? translateUi("app.descendingFromValue1", { value1: scaleEndPitch })
                           : option.hint}
                     </span>
                   </button>
@@ -35719,13 +35606,13 @@ function App({ onReady }) {
                     onChange={toggleRepeatPractice}
                     type="checkbox"
                   />
-                  <span>반복 연습</span>
-                  <small>{repeatPractice ? `${repeatCount}회 반복 후 멈춤` : "1회 후 멈춤"}</small>
+                  <span><Translation id="app.repeatPractice" /></span>
+                  <small>{repeatPractice ? translateUi("app.stopAfterValue1Repeats", { value1: repeatCount }) : translateUi("app.stopAfterOnePass")}</small>
                 </label>
                 <div className="repeatCountControl">
-                  <span>반복</span>
+                  <span><Translation id="app.repeat" /></span>
                   <input
-                    aria-label="Repeat count"
+                    aria-label={translateUi("originalUi.repeatCount")}
                     disabled={!repeatPractice && !isMobileLayout}
                     max={MAX_REPEAT_COUNT}
                     min={MIN_REPEAT_COUNT}
@@ -35733,9 +35620,9 @@ function App({ onReady }) {
                     type="number"
                     value={repeatCount}
                   />
-                  <div className="repeatStepper" aria-label="반복 횟수 조절">
+                  <div className="repeatStepper" aria-label={translateUi("app.repeatCount")}>
                     <button
-                      aria-label="반복 횟수 올리기"
+                      aria-label={translateUi("app.increaseRepeats")}
                       disabled={repeatCount >= MAX_REPEAT_COUNT}
                       onClick={() => changeRepeatCount(repeatCount + 1)}
                       type="button"
@@ -35743,7 +35630,7 @@ function App({ onReady }) {
                       +
                     </button>
                     <button
-                      aria-label="반복 횟수 줄이기"
+                      aria-label={translateUi("app.decreaseRepeats")}
                       disabled={repeatCount <= MIN_REPEAT_COUNT}
                       onClick={() => changeRepeatCount(repeatCount - 1)}
                       type="button"
@@ -35760,12 +35647,12 @@ function App({ onReady }) {
           <div className="compactControlRow">
           <div className="metronomePanel">
             <div>
-              <span>메트로놈</span>
-              <strong>{bpm} BPM</strong>
+              <span><Translation id="menu.metronome" /></span>
+              <strong>{bpm}<Translation id="originalUi.bpmApp" /></strong>
             </div>
             <button onClick={() => changeBpm(bpm - 1)} type="button">-</button>
             <input
-              aria-label="BPM"
+              aria-label={translateUi("originalUi.bpm")}
               max={MAX_BPM}
               min={MIN_BPM}
               onChange={(event) => changeBpm(event.target.value)}
@@ -35773,13 +35660,13 @@ function App({ onReady }) {
               value={bpm}
             />
             <label className="mobileBpmPresetSelect">
-              <span>빠른 BPM</span>
+              <span><Translation id="app.quickBpm" /></span>
               <select
-                aria-label="빠른 BPM 선택"
+                aria-label={translateUi("app.chooseQuickBpm")}
                 onChange={(event) => changeBpm(event.target.value)}
                 value={BPM_PRESETS.includes(bpm) ? bpm : ""}
               >
-                <option value="">선택</option>
+                <option value=""><Translation id="app.select" /></option>
                 {BPM_PRESETS.map((preset) => (
                   <option key={preset} value={preset}>
                     {preset}
@@ -35805,41 +35692,33 @@ function App({ onReady }) {
               onClick={() => setMetronomeOn((value) => !value)}
               type="button"
             >
-              {metronomeOn ? "메트로놈 켜짐" : "메트로놈 꺼짐"}
+              {metronomeOn ? translateUi("app.metronomeOn") : translateUi("app.metronomeOff")}
             </button>
           </div>
 
           <div className="inlinePlaybackControls compactControls">
             <div className="buttons playbackButtons">
               <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
-                <Play size={18} />
-                시작
-              </button>
+                <Play size={18} /><Translation id="app.start" /></button>
               <button
                 onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
                 type="button"
                 disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
               >
                 <Pause size={18} />
-                {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                {gameState === GAME_STATES.PAUSED ? translateUi("app.resume") : translateUi("app.pause")}
               </button>
               <button onClick={stopPracticeSession} type="button">
-                <Square size={18} />
-                정지
-              </button>
+                <Square size={18} /><Translation id="app.stopApp" /></button>
             </div>
           </div>
           </div>
 
             <div className="practiceQueueRow">
               <div className="rhythmHelperStack">
-                <p className="modeHelper stage2HelperText">
-                  같은 음은 여러 위치에 있을 수 있어요. 참고 지판을 보면서 따라가세요.
-                </p>
+                <p className="modeHelper stage2HelperText"><Translation id="app.theSameNoteCanAppearInSeveralPositionsFollowTheReferenceFretboard" /></p>
                 {selectedCategory.id === "scale-block" && (
-                  <p className="modeHelper stage2HelperText">
-                    이론 암기보다 리듬과 손가락 컨트롤에 집중하세요.
-                  </p>
+                  <p className="modeHelper stage2HelperText"><Translation id="app.focusOnRhythmAndFingerControlRatherThanMemorizingTheory" /></p>
                 )}
               </div>
               {currentPrompt && (
@@ -35847,7 +35726,7 @@ function App({ onReady }) {
               <span></span>
               <strong>{currentPrompt.solfege ?? getSolfege(currentPrompt.pitch)}</strong>
               <p>
-                {currentPrompt.pitch} / {currentPrompt.hint ?? getStringFretLabel(currentPrompt)}
+                {currentPrompt.pitch} / {localizeUi(currentPrompt.hint ?? getStringFretLabel(currentPrompt))}
               </p>
             </div>
           )}
@@ -35858,8 +35737,8 @@ function App({ onReady }) {
             </div>
           )}
 
-          <div className="nextNotes" aria-label="Next notes">
-            <span>다음 음 순서</span>
+          <div className="nextNotes" aria-label={translateUi("originalUi.nextNotes")}>
+            <span><Translation id="app.upcomingNotes" /></span>
             <div>
               {nextNotes.map((note, index) => (
                 <strong
@@ -35876,15 +35755,15 @@ function App({ onReady }) {
           </div>
 
           <div className="rhythmWorkbench">
-            <aside className="referenceFretboard" aria-label="Reference fretboard">
+            <aside className="referenceFretboard" aria-label={translateUi("originalUi.referenceFretboard")}>
               <div className="referenceHeader">
-                <span>참고 지판</span>
+                <span><Translation id="app.referenceFretboardApp2" /></span>
                 <strong>
-                  {selectedCategory.id === "scale-block"
+                  {localizeUi(selectedCategory.id === "scale-block"
                     ? detectedReferenceScaleNote
                       ? `${detectedReferenceScaleNote.solfege} / ${detectedReferenceScaleNote.pitch}`
                       : selectedPentatonic.label
-                   : referenceDisplayPrompt ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}` : "준비"}
+                   : referenceDisplayPrompt ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}` : translateUi("app.ready"))}
                 </strong>
               </div>
               {selectedCategory.id === "scale-block" ? (
@@ -35919,7 +35798,7 @@ function App({ onReady }) {
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
-                      <b>{stringNumber}번줄</b>
+                      <b>{stringNumber}<Translation id="app.string" /></b>
                     </span>
                   ))}
                   {selectedPentatonic.notes.map((note) => {
@@ -35937,7 +35816,7 @@ function App({ onReady }) {
                         ...getNoteColorStyle(note.octaveNote),
                       }}
                       >
-                        <b>{isSelectedScaleLick ? (isActive && referenceDisplayPrompt?.lickOrder ? referenceDisplayPrompt.lickOrder : note.label ?? note.octaveNote) : note.octaveNote}</b>
+                        <b>{localizeUi(isSelectedScaleLick ? (isActive && referenceDisplayPrompt?.lickOrder ? referenceDisplayPrompt.lickOrder : note.label ?? note.octaveNote) : note.octaveNote)}</b>
                         <small>{isSelectedScaleLick ? note.noteName : note.solfege}</small>
                       </span>
                     );
@@ -35950,7 +35829,7 @@ function App({ onReady }) {
                     style={{ gridTemplateColumns: `repeat(${visibleFrets.length}, 1fr)` }}
                   >
                     {visibleFrets.map((fret) => (
-                      <span key={fret}>{fret}프렛</span>
+                      <span key={fret}>{fret}<Translation id="app.fret" /></span>
                     ))}
                   </div>
                   <div
@@ -35958,7 +35837,7 @@ function App({ onReady }) {
                     style={{ gridTemplateColumns: `repeat(${visibleFrets.length}, 1fr)` }}
                   >
                     {visibleFrets.map((fret) => (
-                      <span key={fret}>{fret}프렛</span>
+                      <span key={fret}>{fret}<Translation id="app.fret" /></span>
                     ))}
                   </div>
                   <div
@@ -35975,7 +35854,7 @@ function App({ onReady }) {
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
-                      <b>{stringNumber}번줄</b>
+                      <b>{stringNumber}<Translation id="app.string" /></b>
                     </span>
                   ))}
                   {isMobileLayout && selectedCategory.id === "first-position" && FIRST_POSITION_NOTES.map((note) => (
@@ -36008,11 +35887,11 @@ function App({ onReady }) {
                 </div>
               )}
               <p>
-                {selectedCategory.id === "scale-block"
+                {localizeUi(selectedCategory.id === "scale-block"
                   ? detectedReferenceScaleNote
-                    ? "지금 친 음이 선택한 박스에서 빛나고 있어요"
-                    : `${selectedPentatonic.label} 안에서 연주할 줄과 프렛을 확인하세요`
-                  : referenceDisplayPrompt?.hint ?? "다음 음의 줄과 프렛을 확인하세요"}
+                    ? translateUi("app.theNoteYouPlayedIsHighlightedInTheSelectedBox")
+                    : translateUi("app.checkTheStringAndFretWithinValue1", { value1: selectedPentatonic.label })
+                  : referenceDisplayPrompt?.hint ?? translateUi("app.checkTheNextNoteSStringAndFret"))}
               </p>
             </aside>
 
@@ -36020,29 +35899,27 @@ function App({ onReady }) {
               <div className={`detector mobileDetector ${isSignalActive ? "active" : ""}`}>
                 <Radio size={16} />
                 <div>
-                  <span>감지음</span>
+                  <span><Translation id="app.detectedNote" /></span>
                   <strong>{detected ? detected.pitch : "--"}</strong>
                 </div>
               </div>
               <div className="buttons playbackButtons">
                 <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
-                  <Play size={17} />
-                  시작
-                </button>
+                  <Play size={17} /><Translation id="app.start" /></button>
                 <button
                   disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
                   onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
                   type="button"
                 >
                   <Pause size={17} />
-                  {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                  {gameState === GAME_STATES.PAUSED ? translateUi("app.resume") : translateUi("app.pause")}
                 </button>
               </div>
             </div>
 
             <div
               className={`stage ${stageFlash}`}
-              aria-label="Rhythm lanes"
+              aria-label={translateUi("originalUi.rhythmLanes")}
               style={{
                 "--hit-line-y": `${HIT_LINE_PERCENT}%`,
                 "--hit-note-size": `${HIT_ZONE_SIZE}px`,
@@ -36052,8 +35929,7 @@ function App({ onReady }) {
               <div className="laneGrid">
                 {laneStrings.map((stringNumber) => (
                   <div className="laneLabel" key={stringNumber}>
-                    {stringNumber}번줄
-                  </div>
+                    {stringNumber}<Translation id="app.string" /></div>
                 ))}
               </div>
               <div className="laneDividers">
@@ -36090,7 +35966,7 @@ function App({ onReady }) {
                 >
                   {(note.solfege ?? getSolfege(enemy.note)) && <em>{note.solfege ?? getSolfege(enemy.note)}</em>}
                   <span>{note.octaveNote ?? enemy.note}</span>
-                  <small>{getFretLabel(note)}</small>
+                  <small>{localizeUi(getFretLabel(note))}</small>
                   </div>
                 );
               })}
@@ -36116,72 +35992,72 @@ function App({ onReady }) {
                     key={item.id}
                     style={{ left: getLaneLeft(item.stringNumber) }}
                 >
-                  {item.shortLabel}
+                  {localizeUi(item.shortLabel)}
                 </span>
                 ))}
               </div>
             </div>
             {isMobileLayout && (
-              <div className="mobilePracticeMiniStats" aria-label="Mobile practice stats">
+              <div className="mobilePracticeMiniStats" aria-label={translateUi("originalUi.mobilePracticeStats")}>
                 <span>
-                  <em>Hit</em>
+                  <em><Translation id="originalUi.hit" /></em>
                   <strong>{hits}</strong>
                 </span>
                 <span>
-                  <em>Miss</em>
+                  <em><Translation id="originalUi.miss" /></em>
                   <strong>{missCount}</strong>
                 </span>
                 <span>
-                  <em>정확도</em>
+                  <em><Translation id="app.accuracy" /></em>
                   <strong>{accuracy}%</strong>
                 </span>
               </div>
             )}
             {!isMobileLayout && (
-            <aside className="practiceStatsPanel" aria-label="Practice statistics">
+            <aside className="practiceStatsPanel" aria-label={translateUi("originalUi.practiceStatistics")}>
               <div className="statsPanelHeader">
-                <span>연습 현황</span>
-                <strong>{selectedCategory.title}</strong>
+                <span><Translation id="app.practiceStats" /></span>
+                <strong>{localizeUi(selectedCategory.title)}</strong>
               </div>
               <div className="statCard">
-                <span>현재 BPM</span>
+                <span><Translation id="app.currentBpm" /></span>
                 <strong>{bpm}</strong>
               </div>
               <div className="statCard">
-                <span>현재 콤보</span>
+                <span><Translation id="app.currentCombo" /></span>
                 <strong>{combo}</strong>
               </div>
               <div className="statCard">
-                <span>최대 콤보</span>
+                <span><Translation id="app.bestCombo" /></span>
                 <strong>{maxCombo}</strong>
               </div>
               <div className="statCard">
-                <span>정확도</span>
+                <span><Translation id="app.accuracy" /></span>
                 <strong>{accuracy}%</strong>
               </div>
               <div className="statCard">
-                <span>박자 정확도</span>
+                <span><Translation id="app.rhythmAccuracy" /></span>
                 <strong>{beatAccuracy}%</strong>
               </div>
               <div className="statCard">
-                <span>음정 정확도</span>
+                <span><Translation id="app.pitchAccuracy" /></span>
                 <strong>{noteAccuracy}%</strong>
               </div>
               <div className="summaryCards">
                 <div>
-                  <span>총 시도</span>
+                  <span><Translation id="app.attempts" /></span>
                   <strong>{attempts}</strong>
                 </div>
                 <div>
-                  <span>완벽 판정</span>
+                  <span><Translation id="app.perfectHits" /></span>
                   <strong>{perfectCount}</strong>
                 </div>
                 <div>
-                  <span>실패</span>
+                  <span><Translation id="app.misses" /></span>
                   <strong>{missCount}</strong>
                 </div>
                 <div>
-                  <span>가장 놓친 음</span>
+                  <span><Translation id="app.mostMissedNote" /></span>
                   <strong>{mostMissedNote}</strong>
                 </div>
               </div>
@@ -36197,21 +36073,21 @@ function App({ onReady }) {
       {false && <section className="debugPanel">
         <div className={`micState ${classNameFromLabel(micLabel)}`}>
           {hasMic ? <Mic size={18} /> : <Volume2 size={18} />}
-          <span>{t(micLabel)}</span>
+          <span>{localizeUi(t(micLabel))}</span>
         </div>
         <div className="meterBlock">
           <div className="meterHeader">
-            <span>?낅젰 ?덈꺼</span>
+            <span><Translation id="app.inputLevel" /></span>
             <strong>{Math.round(signalLevel * 100)}%</strong>
           </div>
           <div className="meter">
             <span style={{ width: `${Math.round(signalLevel * 100)}%` }} />
           </div>
-          {showLowSignalWarning && <p>마이크 입력이 낮아요. 기타를 조금 더 가까이 두거나 입력 볼륨을 올려보세요.</p>}
+          {showLowSignalWarning && <p><Translation id="app.microphoneInputIsLowMoveYourGuitarCloserOrIncreaseTheInput" /></p>}
         </div>
         <div className="debugGrid">
           <div>
-            <span>二쇳뙆</span>
+            <span><Translation id="app.frequency" /></span>
             <strong>{detectedPitch ? `${detectedPitch.frequency.toFixed(1)} Hz` : "--"}</strong>
           </div>
           <div>
@@ -36219,40 +36095,40 @@ function App({ onReady }) {
             <strong>{detectedPitch ? detectedPitch.note : "--"}</strong>
           </div>
           <div>
-            <span>紐⑺몴 </span>
+            <span><Translation id="app.targetApp" /></span>
             <strong>{debugTargetNote?.octaveNote ?? debugTargetNote?.name ?? "--"}</strong>
           </div>
           <div>
-            <span>감지음</span>
+            <span><Translation id="app.detectedNote" /></span>
             <strong>{detected?.octaveNote ?? detected?.name ?? "--"}</strong>
           </div>
           <div>
-            <span>紐⑺몴 二쇳뙆</span>
+            <span><Translation id="app.targetFrequency" /></span>
             <strong>{debugTargetNote?.frequency ? `${debugTargetNote.frequency.toFixed(2)} Hz` : "--"}</strong>
           </div>
           <div>
-            <span>감지음</span>
+            <span><Translation id="app.detectedNote" /></span>
             <strong>{detectedPitch ? `${detectedPitch.frequency.toFixed(2)} Hz` : "--"}</strong>
           </div>
           <div>
-            <span>以??꾨젢</span>
-            <strong>{debugTargetNote ? `${debugTargetNote.stringNumber}번줄 ${getFretLabel(debugTargetNote)}` : "--"}</strong>
+            <span><Translation id="app.stringFret" /></span>
+            <strong>{debugTargetNote ? translateUi("app.stringValue1Value2", { value1: debugTargetNote.stringNumber, value2: getFretLabel(debugTargetNote) }) : "--"}</strong>
           </div>
           <div>
-            <span>?먯젙 紐⑤뱶</span>
-            <strong>{currentJudgmentMode.shortLabel}</strong>
+            <span><Translation id="app.scoringModeApp" /></span>
+            <strong>{localizeUi(currentJudgmentMode.shortLabel)}</strong>
           </div>
           <div>
-            <span>?좏샇</span>
+            <span><Translation id="app.signal" /></span>
             <strong>{signalLevel.toFixed(3)}</strong>
           </div>
           <div>
-            <span>?꾩옱 BPM</span>
+            <span><Translation id="app.currentBpmApp" /></span>
             <strong>{bpm}</strong>
           </div>
           <div>
-            <span>?곗뒿 ?④퀎</span>
-            <strong>{appMode === APP_MODES.PRACTICE || appMode === APP_MODES.SHOOTER ? selectedCategory.title : t(appMode)}</strong>
+            <span><Translation id="app.practiceStage" /></span>
+            <strong>{localizeUi(appMode === APP_MODES.PRACTICE || appMode === APP_MODES.SHOOTER ? selectedCategory.title : t(appMode))}</strong>
           </div>
         </div>
       </section>}

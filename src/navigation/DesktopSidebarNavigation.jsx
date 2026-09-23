@@ -1,3 +1,6 @@
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {
   AudioLines,
   ChevronDown,
@@ -13,6 +16,7 @@ import {
   Volume2,
 } from "lucide-react";
 import MetronomeVolumeControl from "../components/MetronomeVolumeControl.jsx";
+import LanguageSettings from '../i18n/LanguageSettings.jsx';
 
 function InstagramMark({ size = 18 }) {
   return (
@@ -25,6 +29,7 @@ function InstagramMark({ size = 18 }) {
 }
 
 function DesktopSidebarItem({ active = false, icon: Icon, index, label, mark = "", onClick, tone = "" }) {
+  useLanguage();
   const toneClassName = tone ? ` desktopSidebarNavItem--${tone}` : "";
   return (
     <button
@@ -38,7 +43,7 @@ function DesktopSidebarItem({ active = false, icon: Icon, index, label, mark = "
       ) : (
         <span className="desktopSidebarIcon" aria-hidden="true"><Icon size={18} /></span>
       )}
-      <span className="desktopSidebarLabel">{label}</span>
+      <span className="desktopSidebarLabel">{localizeUi(label)}</span>
       {mark ? (
         <span className={`desktopSidebarStatusLogo desktopSidebarStatusLogo--${tone || "neutral"}`}>
           {mark}
@@ -86,41 +91,42 @@ export default function DesktopSidebarNavigation({
   themeTransitionActive,
   versionLabel,
 }) {
+  useLanguage();
   return (
-    <aside className="desktopSidebar" aria-label="FRETIVA LAB 데스크톱 내비게이션">
-      <div className="desktopSidebarBrand" aria-label="FRETIVA LAB">
-        <span aria-hidden="true">FL</span>
+    <aside className="desktopSidebar" aria-label={translateUi("navigation.fretivaLabDesktopNavigation")}>
+      <div className="desktopSidebarBrand" aria-label={translateUi("originalUi.fretivaLab")}>
+        <span aria-hidden="true"><Translation id="originalUi.fl" /></span>
         <div>
-          <strong>FRETIVA LAB</strong>
-          <small>GUITAR PRACTICE SYSTEM</small>
+          <strong><Translation id="originalUi.fretivaLab" /></strong>
+          <small><Translation id="originalUi.guitarPracticeSystem" /></small>
         </div>
       </div>
 
-      <nav className="desktopSidebarNav" aria-label="주요 화면">
+      <nav className="desktopSidebarNav" aria-label={translateUi("navigation.mainScreens")}>
         <div className="desktopSidebarGroup">
-          <DesktopSidebarItem active={activeKey === "tuner"} icon={Radio} label="튜너" onClick={onOpenTuner} />
-          <DesktopSidebarItem active={activeKey === "fretboard"} icon={Grid3X3} label="지판 보기" onClick={onOpenFretboard} />
-          <DesktopSidebarItem active={activeKey === "metronome"} icon={Timer} label="메트로놈" onClick={onOpenMetronome} />
-          <DesktopSidebarItem active={activeKey === "shooter"} icon={Gamepad2} label="슈팅게임" onClick={onOpenShooter} />
+          <DesktopSidebarItem active={activeKey === "tuner"} icon={Radio} label={translateUi("menu.tuner")} onClick={onOpenTuner} />
+          <DesktopSidebarItem active={activeKey === "fretboard"} icon={Grid3X3} label={translateUi("menu.fretboard")} onClick={onOpenFretboard} />
+          <DesktopSidebarItem active={activeKey === "metronome"} icon={Timer} label={translateUi("menu.metronome")} onClick={onOpenMetronome} />
+          <DesktopSidebarItem active={activeKey === "shooter"} icon={Gamepad2} label={translateUi("menu.shooter")} onClick={onOpenShooter} />
         </div>
 
-        <DesktopSidebarSectionHeading>연습 코스</DesktopSidebarSectionHeading>
+        <DesktopSidebarSectionHeading><Translation id="app.practiceCourses" /></DesktopSidebarSectionHeading>
 
         <div className="desktopSidebarGroup">
-          <DesktopSidebarItem active={activeKey === "stage1"} index="①" label="단일 음 위치 익히기" mark="초보 ★" onClick={onOpenSingleNote} tone="beginner" />
-          <DesktopSidebarItem active={activeKey === "stage2"} index="②" label="스케일 · 펜타토닉" mark="SOLO" onClick={onOpenScale} tone="solo" />
-          <DesktopSidebarItem active={activeKey === "stage3"} index="③" label="리듬 코드 전환" mark="HOT •" onClick={onOpenRhythm} tone="rhythm" />
-          <DesktopSidebarItem active={activeKey === "etudes"} icon={Music2} label="에튀드 스튜디오" mark="PRO" onClick={onOpenEtudes} tone="arranger" />
+          <DesktopSidebarItem active={activeKey === "stage1"} index="①" label={translateUi("app.singleNotes")} mark={translateUi("app.beginner")} onClick={onOpenSingleNote} tone="beginner" />
+          <DesktopSidebarItem active={activeKey === "stage2"} index="②" label={translateUi("app.scalesPentatonics")} mark="SOLO" onClick={onOpenScale} tone="solo" />
+          <DesktopSidebarItem active={activeKey === "stage3"} index="③" label={translateUi("navigation.rhythmChords")} mark="HOT •" onClick={onOpenRhythm} tone="rhythm" />
+          <DesktopSidebarItem active={activeKey === "etudes"} icon={Music2} label={translateUi("app.scorePractice")} mark="PRO" onClick={onOpenEtudes} tone="arranger" />
         </div>
 
-        <DesktopSidebarSectionHeading>반주 · 편집</DesktopSidebarSectionHeading>
+        <DesktopSidebarSectionHeading><Translation id="app.backingEditing" /></DesktopSidebarSectionHeading>
 
         <div className="desktopSidebarGroup">
           <DesktopSidebarItem
             active={activeKey === "mini-chord"}
             icon={Music2}
-            label="미니반주"
-            mark="진행 구성"
+            label={translateUi("menu.miniBacking")}
+            mark={translateUi("app.buildProgressions")}
             onClick={onOpenMiniChord}
             tone="arranger"
           />
@@ -128,8 +134,8 @@ export default function DesktopSidebarNavigation({
             <DesktopSidebarItem
               active={activeKey === "audio-studio"}
               icon={AudioLines}
-              label="오디오 스튜디오"
-              mark="간편 편집"
+              label={translateUi("menu.audioStudio")}
+              mark={translateUi("app.quickEditing")}
               onClick={onOpenAudioStudio}
               tone="editor"
             />
@@ -142,10 +148,11 @@ export default function DesktopSidebarNavigation({
           <details className="desktopSidebarSettings">
             <summary>
               <span className="desktopSidebarIcon" aria-hidden="true"><Volume2 size={18} /></span>
-              <span className="desktopSidebarLabel">사운드 및 리듬 설정</span>
+              <span className="desktopSidebarLabel"><Translation id="app.soundRhythm" /></span>
               <ChevronDown className="desktopSidebarChevron" size={16} aria-hidden="true" />
             </summary>
             <div className="desktopSidebarSoundControls">
+              <LanguageSettings desktop />
               {inputControls}
               <MetronomeVolumeControl className="desktopSidebarSoundRow" />
               {backingVolumeControls.map((control) => {
@@ -153,11 +160,11 @@ export default function DesktopSidebarNavigation({
                 return (
                   <label className="desktopSidebarSoundRow" key={control.id}>
                     <span>
-                      <strong>{control.label}</strong>
+                      <strong>{localizeUi(control.label)}</strong>
                       <b data-backing-volume-value>{value}</b>
                     </span>
                     <input
-                      aria-label={`${control.label} 볼륨`}
+                      aria-label={localizeUi(translateUi("app.value1Volume", { value1: control.label }))}
                       data-backing-volume-part={control.id}
                       defaultValue={value}
                       disabled={accompanimentControlsDisabled}
@@ -179,20 +186,16 @@ export default function DesktopSidebarNavigation({
                 onClick={onOpenRhythmSettings}
                 type="button"
               >
-                <Settings size={14} aria-hidden="true" />
-                리듬 사용자 설정
-              </button>
+                <Settings size={14} aria-hidden="true" /><Translation id="app.customRhythms" /></button>
               <button
                 className="desktopSidebarReset"
                 disabled={accompanimentControlsDisabled}
                 onClick={onResetSound}
                 type="button"
-              >
-                사운드 초기화
-              </button>
+              ><Translation id="app.resetSound" /></button>
             </div>
           </details>
-          <DesktopSidebarItem icon={CircleHelp} label="사용설명서 & 도움말" onClick={onOpenHelp} />
+          <DesktopSidebarItem icon={CircleHelp} label={translateUi("app.guideHelp")} onClick={onOpenHelp} />
           <a
             className="desktopSidebarNavItem desktopSidebarContact"
             href="https://www.instagram.com/sungsu91_/"
@@ -200,31 +203,31 @@ export default function DesktopSidebarNavigation({
             target="_blank"
           >
             <span className="desktopSidebarIcon desktopSidebarInstagramIcon" aria-hidden="true"><InstagramMark size={18} /></span>
-            <span className="desktopSidebarLabel">문의하기</span>
+            <span className="desktopSidebarLabel"><Translation id="app.contact" /></span>
           </a>
         </div>
       </nav>
 
       <footer className="desktopSidebarFooter">
-        <div className="desktopSidebarThemeOptions" role="radiogroup" aria-label="화면 테마">
+        <div className="desktopSidebarThemeOptions" role="radiogroup" aria-label={translateUi("navigation.displayTheme")}>
           {themeOptions.map((option) => (
             <button
               aria-checked={appTheme === option.id}
-              aria-label={`${option.label} 테마`}
+              aria-label={localizeUi(translateUi("navigation.value1Theme", { value1: option.label }))}
               className={appTheme === option.id ? "is-active" : ""}
               disabled={themeTransitionActive}
               key={option.id}
               onClick={() => onSelectTheme(option.id)}
               role="radio"
-              title={`${option.label} 테마`}
+              title={localizeUi(translateUi("navigation.value1Theme", { value1: option.label }))}
               type="button"
             >
               {option.id === "light" ? <Sun size={15} aria-hidden="true" /> : <Moon size={15} aria-hidden="true" />}
-              <span>{option.label}</span>
+              <span>{localizeUi(option.label)}</span>
             </button>
           ))}
         </div>
-        <small>{versionLabel}</small>
+        <small>{localizeUi(versionLabel)}</small>
       </footer>
     </aside>
   );

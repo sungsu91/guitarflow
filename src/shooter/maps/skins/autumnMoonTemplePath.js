@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 const AUTUMN_MOON_ROOT = "/assets/maps/autumn-moon-temple-path";
 
 function createSheetSources(directory, stem, sheetCount) {
@@ -160,10 +161,10 @@ export const AUTUMN_MOON_TEMPLE_RUNTIME = Object.freeze({
 export const AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN = Object.freeze({
   id: "autumn_moon_temple_path",
   kind: "layered",
-  label: "월야 단풍 사찰길",
-  nameKo: "월야 단풍 사찰길",
+  label: ko["shooter.moonlitAutumnTemplePath"],
+  nameKo: ko["shooter.moonlitAutumnTemplePath"],
   nameEn: "Autumn Moon Temple Path",
-  description: "달빛 아래 단풍과 낙엽이 흐르는 고요한 사찰길",
+  description: ko["shooter.aQuietMoonlitTemplePathWithAutumnFoliageAndDriftingLeaves"],
   mobileOnly: false,
   portraitOnly: true,
   previewImage: `${AUTUMN_MOON_ROOT}/background/autumn_moon_temple_path_bg_768x1664.webp`,

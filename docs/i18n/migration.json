@@ -1,0 +1,604 @@
+{
+  "keys": 2436,
+  "changes": [
+    {
+      "file": "src/App.jsx",
+      "occurrences": 1056,
+      "subscribedComponents": 26
+    },
+    {
+      "file": "src/audio-studio/AudioStudio.jsx",
+      "occurrences": 198,
+      "subscribedComponents": 19
+    },
+    {
+      "file": "src/components/BackingGroovePicker.jsx",
+      "occurrences": 21,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/components/BackingLoop.jsx",
+      "occurrences": 116,
+      "subscribedComponents": 18
+    },
+    {
+      "file": "src/components/Fretboard.jsx",
+      "occurrences": 18,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/components/FretboardNoteViewer.jsx",
+      "occurrences": 9,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/components/GrooveVolumeControl.jsx",
+      "occurrences": 1,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/components/MenuStatusBadge.jsx",
+      "occurrences": 1,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/components/MetronomeSettingsPanel.jsx",
+      "occurrences": 2,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/components/MetronomeVolumeControl.jsx",
+      "occurrences": 1,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/components/MobileScoreZoom.jsx",
+      "occurrences": 3,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/ChordDisplayMenu.jsx",
+      "occurrences": 4,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/DrumInput.jsx",
+      "occurrences": 38,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/EditorAudioDock.jsx",
+      "occurrences": 18,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/EditorChoiceMenu.jsx",
+      "occurrences": 1,
+      "subscribedComponents": 0
+    },
+    {
+      "file": "src/etudes/EditorInputPanel.jsx",
+      "occurrences": 28,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/etudes/EditorScore.jsx",
+      "occurrences": 16,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/etudes/EditorSettings.jsx",
+      "occurrences": 67,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/EtudePicker.jsx",
+      "occurrences": 20,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/EtudeStudio.jsx",
+      "occurrences": 27,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/etudes/FollowPatternControl.jsx",
+      "occurrences": 3,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/InstrumentChangeDialog.jsx",
+      "occurrences": 9,
+      "subscribedComponents": 0
+    },
+    {
+      "file": "src/etudes/KeyboardInput.jsx",
+      "occurrences": 22,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/etudes/MobileCursorControls.jsx",
+      "occurrences": 13,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/MobileScoreInput.jsx",
+      "occurrences": 83,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/MobileScoreSheets.jsx",
+      "occurrences": 6,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/PracticeBeatDots.jsx",
+      "occurrences": 11,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/PracticeFloatingTools.jsx",
+      "occurrences": 73,
+      "subscribedComponents": 7
+    },
+    {
+      "file": "src/etudes/PracticeSheet.jsx",
+      "occurrences": 66,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/PracticeTransport.jsx",
+      "occurrences": 14,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/RepeatTools.jsx",
+      "occurrences": 37,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/RhythmModifiers.jsx",
+      "occurrences": 5,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/Score.jsx",
+      "occurrences": 3,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/ScoreChordDialog.jsx",
+      "occurrences": 46,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "occurrences": 287,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/etudes/ScorePlayback.jsx",
+      "occurrences": 29,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/ScoreSaveDialog.jsx",
+      "occurrences": 23,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/ScoreSource.jsx",
+      "occurrences": 1,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/etudes/TechniqueQuickDock.jsx",
+      "occurrences": 6,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/input/DeviceConnection.jsx",
+      "occurrences": 33,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/launch/SplashIntro.jsx",
+      "occurrences": 2,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/layouts/MobilePullToRefresh.jsx",
+      "occurrences": 2,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/main.jsx",
+      "occurrences": 2,
+      "subscribedComponents": 0
+    },
+    {
+      "file": "src/metronome/GrooveEditor.jsx",
+      "occurrences": 28,
+      "subscribedComponents": 3
+    },
+    {
+      "file": "src/metronome/GroovePacks.jsx",
+      "occurrences": 42,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/metronome/GrooveTonePicker.jsx",
+      "occurrences": 6,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/navigation/BottomNavigation.jsx",
+      "occurrences": 1,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/navigation/DesktopSidebarNavigation.jsx",
+      "occurrences": 26,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/EditablePractice.jsx",
+      "occurrences": 4,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/LibraryChrome.jsx",
+      "occurrences": 16,
+      "subscribedComponents": 5
+    },
+    {
+      "file": "src/pdf/MobileLibraryChrome.jsx",
+      "occurrences": 11,
+      "subscribedComponents": 3
+    },
+    {
+      "file": "src/pdf/MobilePdfChrome.jsx",
+      "occurrences": 30,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/pdf/PdfAnnotationLayer.jsx",
+      "occurrences": 36,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/pdf/PdfBarCount.jsx",
+      "occurrences": 6,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/PdfContinuous.jsx",
+      "occurrences": 4,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/PdfLibraryCard.jsx",
+      "occurrences": 6,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/PdfPage.jsx",
+      "occurrences": 11,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/PdfPractice.jsx",
+      "occurrences": 68,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/PdfStudio.jsx",
+      "occurrences": 43,
+      "subscribedComponents": 4
+    },
+    {
+      "file": "src/pdf/PdfViewToolbar.jsx",
+      "occurrences": 4,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/pdf/ScoreFolderList.jsx",
+      "occurrences": 36,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/pdf/ScoreLibraryTabs.jsx",
+      "occurrences": 3,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/rhythm/SharedAccompanimentPanel.jsx",
+      "occurrences": 13,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx",
+      "occurrences": 19,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/shooter/maps/editor/MapEditPanel.jsx",
+      "occurrences": 282,
+      "subscribedComponents": 13
+    },
+    {
+      "file": "src/shooter/maps/MapSkinRenderer.jsx",
+      "occurrences": 7,
+      "subscribedComponents": 4
+    },
+    {
+      "file": "src/shooter/ProgressSettings.jsx",
+      "occurrences": 4,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/shooter/pseudo3d/Pseudo3DRenderer.jsx",
+      "occurrences": 5,
+      "subscribedComponents": 0
+    },
+    {
+      "file": "src/shooter/recording/ShooterRecording.jsx",
+      "occurrences": 40,
+      "subscribedComponents": 4
+    },
+    {
+      "file": "src/shooter/results/ShooterGameOver.jsx",
+      "occurrences": 6,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/shooter/results/ShooterShareButton.jsx",
+      "occurrences": 14,
+      "subscribedComponents": 1
+    },
+    {
+      "file": "src/shooter/ShooterPitchMonitor.jsx",
+      "occurrences": 4,
+      "subscribedComponents": 2
+    },
+    {
+      "file": "src/shooter/threed/archive/ThreeDLabPortraitRenderer.jsx",
+      "occurrences": 2,
+      "subscribedComponents": 0
+    },
+    {
+      "file": "src/shooter/threed/ThreeDLabHorizontalRenderer.jsx",
+      "occurrences": 1,
+      "subscribedComponents": 0
+    },
+    {
+      "file": "src/tuner/TunerMode.jsx",
+      "occurrences": 66,
+      "subscribedComponents": 12
+    }
+  ],
+  "skipped": [
+    {
+      "file": "src/App.jsx",
+      "line": 31974,
+      "value": "잠금",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 31982,
+      "value": "잠금",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 31985,
+      "value": "잠금",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 32049,
+      "value": "잠금",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 32057,
+      "value": "잠금",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 32060,
+      "value": "잠금",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/components/BackingGroovePicker.jsx",
+      "line": 19,
+      "value": "전체",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/components/BackingGroovePicker.jsx",
+      "line": 21,
+      "value": "팝·발라드",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/components/BackingGroovePicker.jsx",
+      "line": 21,
+      "value": "펑크·디스코",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/components/MetronomeSettingsPanel.jsx",
+      "line": 80,
+      "value": "미리듣기 음원을 불러오지 못했습니다. 다시 눌러주세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/EtudePicker.jsx",
+      "line": 19,
+      "value": "전체",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/EtudePicker.jsx",
+      "line": 22,
+      "value": "즐겨찾기",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 348,
+      "value": "현재 마디의 운지에 따라 코드명이 자동 입력됩니다. 이름을 누르면 직접 수정할 수 있습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 354,
+      "value": "{value1}마디를 복사했습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 359,
+      "value": "편집창을 열었을 때의 상태로 되돌렸습니다. 실행 취소할 수 있습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 359,
+      "value": "음표와 코드표를 비우고 빈 한 마디로 초기화했습니다. 실행 취소할 수 있습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 360,
+      "value": "선택 범위의 피킹 표시를 적용했습니다. 음표·운지·리듬은 유지되며 실행 취소할 수 있습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 364,
+      "value": "새 악보를 만들었습니다. 기존 저장본은 유지됩니다. 실행 취소할 수 있습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 364,
+      "value": "인쇄 창에서 PDF로 저장을 선택하세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 365,
+      "value": "선택 마디를 복사했습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 373,
+      "value": "{value1}마디에 {value2} 코드표를 붙였습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 373,
+      "value": "코드표를 삭제했습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 374,
+      "value": "선택한 드럼 음을 삭제했습니다. 리듬 길이는 유지됩니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 377,
+      "value": " · 외 {value1}건",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 400,
+      "value": "기본 악보 내용을 가져왔습니다. 실행 취소로 되돌릴 수 있습니다. 다른 저장본은 유지됩니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/etudes/ScoreEditor.jsx",
+      "line": 403,
+      "value": "삭제",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/metronome/GroovePacks.jsx",
+      "line": 63,
+      "value": "팝·발라드",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/metronome/GroovePacks.jsx",
+      "line": 63,
+      "value": "펑크·디스코",
+      "reason": "Comparison/key: not a display value."
+    },
+    {
+      "file": "src/metronome/GrooveTonePicker.jsx",
+      "line": 15,
+      "value": "음원을 불러오지 못했습니다. 다시 눌러주세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/pdf/PdfPractice.jsx",
+      "line": 118,
+      "value": "지정한 마디 번호를 쉼표로 구분해서 입력하세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/pdf/PdfPractice.jsx",
+      "line": 148,
+      "value": "현재 메모를 저장하거나 취소한 뒤 다른 페이지에 입력해 주세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/pdf/PdfPractice.jsx",
+      "line": 148,
+      "value": "작성 중인 메모를 저장하거나 취소해 주세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/pdf/PdfStudio.jsx",
+      "line": 58,
+      "value": "기기 저장소 유지 요청이 승인되었습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/pdf/PdfStudio.jsx",
+      "line": 58,
+      "value": "브라우저가 저장소 유지 요청을 승인하지 않았습니다. 백업을 보관하세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/pdf/PdfStudio.jsx",
+      "line": 79,
+      "value": "악보를 삭제했습니다.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/shooter/maps/editor/MapEditPanel.jsx",
+      "line": 342,
+      "value": "FLOOR · AURA · 필요할 때만",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    },
+    {
+      "file": "src/shooter/recording/ShooterRecording.jsx",
+      "line": 655,
+      "value": "이 브라우저에서 미리보기를 재생하지 못했습니다. 영상 저장 후 확인해주세요.",
+      "reason": "Handler/data attribute: preserve behavior; localize at presentation boundary separately."
+    }
+  ]
+}

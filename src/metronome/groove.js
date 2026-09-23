@@ -1,6 +1,7 @@
+import ko from "../i18n/locales/ko.js";
 import {getGrooveMasteringInput} from '../audio/grooveMastering.js';
 import { METRONOME_TONE_OPTIONS } from './options.js';
-const labels = {crash:'크래시',pedalHihat:'페달 하이햇',rideBell:'라이드 벨',electronicSnare:'일렉트릭 스네어',tomHigh:'하이 탐',tomMid:'미드 탐',tomLow:'로우 탐',hihat:'하이햇', snare:'스네어', kick:'킥', clap:'클랩', tick:'클릭',ride:'라이드',brushSnare:'브러시',rim:'림',stick:'스틱',shaker:'셰이커',openHihat:'오픈햇',tambourine:'탬버린',cowbell:'카우벨',congaSlap:'콩가',cabasa:'카바사',agogo:'아고고',triangle:'트라이앵글'};
+const labels = {crash:ko["metronome.crash"],pedalHihat:ko["metronome.pedalHiHat"],rideBell:ko["metronome.rideBell"],electronicSnare:ko["metronome.electricSnare"],tomHigh:ko["metronome.highTom"],tomMid:ko["metronome.midTom"],tomLow:ko["metronome.lowTom"],hihat:ko["etudes.hiHat"], snare:ko["metronome.snare"], kick:ko["metronome.kick"], clap:ko["metronome.clap"], tick:ko["metronome.click"],ride:ko["metronome.ride"],brushSnare:ko["metronome.brush"],rim:ko["metronome.rim"],stick:ko["metronome.stick"],shaker:ko["metronome.shaker"],openHihat:ko["metronome.openHiHat"],tambourine:ko["metronome.tambourine"],cowbell:ko["metronome.cowbell"],congaSlap:ko["metronome.conga"],cabasa:ko["metronome.cabasa"],agogo:ko["metronome.agogo"],triangle:ko["metronome.triangle"]};
 export const GROOVE_TONES = METRONOME_TONE_OPTIONS.map(({id, label}) => [id, labels[id] ?? label]);
 // The transport and both editor views share this snapshot without re-rendering App.
 export function createGrooveStore(initial) {
@@ -12,7 +13,7 @@ export function createGrooveStore(initial) {
     set(next){snapshot=next;listeners.forEach(listener=>listener());},
   };
 }
-export const GROOVE_STRENGTHS = [[100,'강'],[70,'중'],[45,'약'],[25,'고스트']];
+export const GROOVE_STRENGTHS = [[100,ko["metronome.strong"]],[70,ko["metronome.medium"]],[45,ko["metronome.soft"]],[25,ko["metronome.ghost"]]];
 // Groove-only mix: kick/snare lead; repeated bright percussion sits behind them.
 // Calibrated from the source samples' 20ms RMS, spectral energy and decay;
 // quiet cabasa/clap samples are not attenuated like the high-energy cymbals.

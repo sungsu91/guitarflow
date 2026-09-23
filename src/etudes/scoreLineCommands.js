@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {newId,patchEvent,isBlankEvent} from './scoreModel.js';
 import {nextEntry,setEventDuration} from './editorCommands.js';
 
@@ -14,11 +15,11 @@ function disconnectIncoming(d,c){
 }
 export function copyGripToNext(d,c){
  const source=d.measures[c.bar]?.events[c.event];
- if(!source||source.rest||!source.notes.length)throw Error('복사할 운지 묶음을 선택하세요.');
+ if(!source||source.rest||!source.notes.length)throw Error(ko["etudes.selectAFingeringGroupToCopy"]);
  const next=nextEntry(d,c);
- if(next.cursor.bar===c.bar&&next.cursor.event===c.event)throw Error('다음 입력 위치가 없습니다. 마디 길이와 최대 64마디 제한을 확인하세요.');
+ if(next.cursor.bar===c.bar&&next.cursor.event===c.event)throw Error(ko["etudes.thereIsNoNextInputPositionCheckTheBarLengthAndThe"]);
  const target=next.document.measures[next.cursor.bar].events[next.cursor.event];
- if(!['1','2','4','8','16'].includes(target.duration))throw Error('다음 위치의 음표 길이를 먼저 선택하세요. 현재 입력을 지원하지 않는 길이입니다.');
+ if(!['1','2','4','8','16'].includes(target.duration))throw Error(ko["etudes.chooseTheNextPositionSNoteDurationFirstItsCurrentDurationDoes"]);
  const notes=source.notes.map(n=>({...structuredClone(n),id:newId('tone'),dead:Boolean(n.dead??source.dead)}));
  const timed=setEventDuration(next.document,next.cursor,source.duration,Boolean(source.dotted));
  const document=patchEvent(disconnectIncoming(timed,next.cursor),next.cursor.bar,next.cursor.event,{...cleared,notes,rest:false,blank:false});

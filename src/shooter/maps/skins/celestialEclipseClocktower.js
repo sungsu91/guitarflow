@@ -1,13 +1,14 @@
+import ko from "../../../i18n/locales/ko.js";
 const CELESTIAL_ECLIPSE_ROOT = "/assets/maps/celestial-eclipse-clocktower";
 const CELESTIAL_ECLIPSE_PREVIEW = "/assets/maps/previews/celestial-eclipse-clocktower-current.jpg";
 
 export const CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN = Object.freeze({
   id: "celestial-eclipse-clocktower",
   kind: "layered",
-  label: "천공의 월식 시계탑",
-  nameKo: "천공의 월식 시계탑",
+  label: ko["shooter.celestialEclipseClocktower"],
+  nameKo: ko["shooter.celestialEclipseClocktower"],
   nameEn: "Celestial Eclipse Clocktower",
-  description: "월식과 천문환이 회전하는 천공의 시계탑",
+  description: ko["shooter.aCelestialClocktowerWithALunarEclipseAndRotatingAstronomicalRings"],
   mobileOnly: false,
   portraitOnly: true,
   previewImage: CELESTIAL_ECLIPSE_PREVIEW,

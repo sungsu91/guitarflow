@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 export const BEAT_PRESET_PART_IDS = Object.freeze(["drum", "bass", "piano"]);
 
 export const BEAT_PRESET_SLOT_IDS = Object.freeze([
@@ -9,7 +10,7 @@ export const BEAT_PRESET_SLOT_IDS = Object.freeze([
 ]);
 
 export const BEAT_PRESET_SLOT_LABELS = Object.freeze({
-  basic: "기본",
+  basic: ko["app.default"],
   "4beat": "4",
   "8beat": "8",
   "16beat": "16",

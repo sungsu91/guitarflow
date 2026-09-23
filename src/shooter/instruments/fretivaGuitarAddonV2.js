@@ -1,3 +1,5 @@
+import ko from "../../i18n/locales/ko.js";
+import { formatMessage } from "../../i18n/format.js";
 export const FRETIVA_GUITAR_ADDON_V2_ID = "fretiva-guitar-addon-v2";
 
 const ASSET_ROOT = "/assets/shooter/instruments/fretiva-guitar-addon-v2";
@@ -20,7 +22,7 @@ export const FRETIVA_GUITAR_ADDON_V2 = Object.freeze(
     canvasHeight: CANVAS_HEIGHT,
     canvasWidth: CANVAS_WIDTH,
     collisionAspectRatio: skin.visibleWidth / VISIBLE_HEIGHT,
-    description: `${skin.title} 원본 투명 PNG 기타 스킨`,
+    description: formatMessage(ko["shooter.valueOriginalTransparentPngGuitarSkin"], { value1: skin.title }),
     instrumentSkinPack: FRETIVA_GUITAR_ADDON_V2_ID,
     muzzleHeightScale: (CANVAS_HEIGHT - VISIBLE_TOP) / CANVAS_HEIGHT,
     visibleHeight: VISIBLE_HEIGHT,

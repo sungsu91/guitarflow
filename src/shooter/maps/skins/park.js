@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { PARK_ENVIRONMENT_ASSETS } from "../assets/parkAssets.js";
 import parkLayout from "./park-layout.json" with { type: "json" };
 
@@ -6,8 +7,8 @@ const PARK_BACKGROUND_SRC = "/assets/maps/park/park-background.png";
 export const PARK_MAP_SKIN = Object.freeze({
   id: "park",
   kind: "layered",
-  label: "햇살 공원",
-  description: "햇살이 드는 잔디 공원을 중심으로 꾸미는 모듈형 공원 맵",
+  label: ko["shooter.sunnyPark"],
+  description: ko["shooter.aModularParkMapBuiltAroundASunlitLawn"],
   previewImage: PARK_BACKGROUND_SRC,
   pickerPreviewImage: "/assets/maps/previews/park-current.jpg",
   performance: Object.freeze({

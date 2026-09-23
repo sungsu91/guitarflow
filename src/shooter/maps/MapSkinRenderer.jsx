@@ -1,3 +1,6 @@
+import ko from "../../i18n/locales/ko.js";
+import { t as translateUi } from "./../../i18n/core.js";
+import { useLanguage } from "./../../i18n/react.jsx";
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import AbyssalMoonRuntimeField from "./AbyssalMoonRuntimeField.jsx";
@@ -118,13 +121,14 @@ function PerspectiveSurface({ children, corners }) {
 }
 
 const CORNER_LABELS = Object.freeze([
-  "왼쪽 위",
-  "오른쪽 위",
-  "오른쪽 아래",
-  "왼쪽 아래",
+  ko["pdf.topLeft"],
+  ko["pdf.topRight"],
+  ko["pdf.bottomRight"],
+  ko["pdf.bottomLeft"],
 ]);
 
 function FreeTransformSurface({ children, editMode, layer, layout, onAssetPointerDown, selected }) {
+  useLanguage();
   const placement = getLayerPlacement(layer, layout);
   const corners = normalizePerspectiveCorners(
     placement.perspectiveCorners ?? DEFAULT_PERSPECTIVE_CORNERS,
@@ -141,7 +145,7 @@ function FreeTransformSurface({ children, editMode, layer, layout, onAssetPointe
           </svg>
           {corners.map((corner, index) => (
             <i
-              aria-label={`${CORNER_LABELS[index]} 원근 변형 핸들`}
+              aria-label={translateUi("shooter.value1PerspectiveHandle", { value1: CORNER_LABELS[index] })}
               className={`shooterMapEditHandle shooterMapPerspectiveHandle shooterMapPerspectiveHandle--${index}`}
               key={CORNER_LABELS[index]}
               onPointerDown={(event) => {
@@ -286,10 +290,11 @@ function CompositeLightEffect({ effect }) {
 }
 
 function CreatureAnchorOverlay({ layer, onAnchorPointerDown }) {
+  useLanguage();
   const anchors = layer.creature?.settings?.anchors ?? [];
   return anchors.map((anchor, index) => (
     <button
-      aria-label={anchor.kind === "water" ? "개구리 다이빙 입수 포인트" : `개구리 이동 포인트 ${index + 1}`}
+      aria-label={anchor.kind === "water" ? translateUi("shooter.frogDiveEntryPoint") : translateUi("shooter.frogMovementPointValue1", { value1: index + 1 })}
       className={`shooterMapCreatureAnchor ${anchor.kind === "water" ? "shooterMapCreatureAnchor--water" : ""}`}
       key={anchor.id}
       onPointerDown={(event) => onAnchorPointerDown?.(event, layer, anchor.id)}
@@ -856,6 +861,7 @@ function Figure8WhaleViewport({
   onAssetSelect,
   selected,
 }) {
+  useLanguage();
   const placement = getLayerPlacement(layer, layout);
   const x = Number.isFinite(placement.x) ? placement.x : 0.5;
   const y = Number.isFinite(placement.y) ? placement.y : 0.15;
@@ -865,7 +871,7 @@ function Figure8WhaleViewport({
   return (
     <>
       <span
-        aria-label={editMode ? `${layer.label} 배치 오브젝트` : undefined}
+        aria-label={localizeUi(editMode ? translateUi("shooter.value1PlacedObject", { value1: layer.label }) : undefined)}
         className={`shooterMapWhaleViewport shooterMapWhaleViewport--rear shooterMapSkinAsset shooterMapSkinAsset--background-environment ${selected ? "shooterMapSkinAsset--selected" : ""}`}
         data-animation="abyssal-whale-figure8-v8"
         data-asset-id={layer.assetId}
@@ -907,7 +913,7 @@ function Figure8WhaleViewport({
         />
         {editMode && selected ? (
           <i
-            aria-label="전체 크기 조절 핸들"
+            aria-label={translateUi("shooter.overallScaleHandle")}
             className="shooterMapEditHandle shooterMapEditScaleHandle shooterMapFigure8WhaleScaleHandle"
             onPointerDown={(event) => {
               event.stopPropagation();
@@ -961,6 +967,7 @@ function MapSkinRenderer({
   skin,
   stage = "underlay",
 }) {
+  useLanguage();
   const [eventHiddenLayerIds, setEventHiddenLayerIds] = useState(() => new Set());
   const runtimeEventPlacementsRef = useRef({ key: "", layers: [] });
   const stageRef = useRef(null);
@@ -1128,7 +1135,7 @@ function MapSkinRenderer({
 
       {regularRenderLayers.map((layer) => (
         <span
-          aria-label={editMode ? `${layer.label} 배치 오브젝트` : undefined}
+          aria-label={localizeUi(editMode ? translateUi("shooter.value1PlacedObject", { value1: layer.label }) : undefined)}
           className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""} ${layer.eventActor ? "shooterMapSkinAsset--event-actor" : ""} ${layer.eventActor?.type === "coastal-chest" ? "shooterMapSkinAsset--interactive-event" : ""}`}
           data-animation={layer.composite ? undefined : layer.animation?.type || undefined}
           data-asset-id={layer.assetId}
@@ -1198,7 +1205,7 @@ function MapSkinRenderer({
           </FreeTransformSurface>
           {editMode && selectedAssetId === layer.instanceId ? (
             <i
-              aria-label="전체 크기 조절 핸들"
+              aria-label={translateUi("shooter.overallScaleHandle")}
               className="shooterMapEditHandle shooterMapEditScaleHandle"
               onPointerDown={(event) => {
                 event.stopPropagation();

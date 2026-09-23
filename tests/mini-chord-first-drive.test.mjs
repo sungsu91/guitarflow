@@ -1,5 +1,6 @@
+import { readFileSync } from "./helpers/i18n-source.mjs";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+
 import test from "node:test";
 
 import { getMiniChordRecommendedProgressions } from "../src/mini-chord/originalPracticeSongs.js";

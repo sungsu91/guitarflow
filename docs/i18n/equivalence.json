@@ -1,0 +1,1336 @@
+[
+  {
+    "file": "src/App.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": [
+      {
+        "path": ".body.453.body.body.24.argument.expression.children.0.expression.consequent.expression.children.1.children.0.expression.consequent.expression.openingElement.attributes",
+        "name": "aria-label",
+        "value": {
+          "type": "Literal",
+          "value": "강박"
+        }
+      },
+      {
+        "path": ".body.453.body.body.24.argument.expression.children.0.expression.consequent.expression.children.1.children.0.expression.consequent.expression.openingElement.attributes",
+        "name": "title",
+        "value": {
+          "type": "Literal",
+          "value": "강박"
+        }
+      },
+      {
+        "path": ".body.453.body.body.24.argument.expression.children.0.expression.consequent.expression.children.1.children.1.expression.consequent.expression.openingElement.attributes",
+        "name": "aria-label",
+        "value": {
+          "type": "Literal",
+          "value": "카운트인"
+        }
+      },
+      {
+        "path": ".body.453.body.body.24.argument.expression.children.0.expression.consequent.expression.children.1.children.1.expression.consequent.expression.openingElement.attributes",
+        "name": "title",
+        "value": {
+          "type": "Literal",
+          "value": "카운트인"
+        }
+      },
+      {
+        "path": ".body.453.body.body.24.argument.expression.children.0.expression.consequent.expression.children.1.children.2.expression.consequent.expression.openingElement.attributes",
+        "name": "aria-label",
+        "value": {
+          "type": "Literal",
+          "value": "반복"
+        }
+      },
+      {
+        "path": ".body.453.body.body.24.argument.expression.children.0.expression.consequent.expression.children.1.children.2.expression.consequent.expression.openingElement.attributes",
+        "name": "title",
+        "value": {
+          "type": "Literal",
+          "value": "반복"
+        }
+      }
+    ]
+  },
+  {
+    "file": "src/audio/mediaPermissionGuide.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/audio/metronomePreview.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/audio/scoreDrums.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/audio/scoreInstrument.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/audio-studio/AudioStudio.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/audio-studio/audioStudioModel.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/audio-studio/useAudioStudio.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/backing-loop/backingPlaylist.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/backing-loop/useBackingGroovePreview.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/backing-loop/useBackingLoop.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/chords/additionalChords.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/chords/fixedAddVoicings.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/BackingGroovePicker.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/BackingLoop.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/BrandHeader.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/Fretboard.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/FretboardNoteViewer.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/GrooveVolumeControl.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/MenuStatusBadge.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/MetronomeSettingsPanel.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/MetronomeVolumeControl.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/components/MobileScoreZoom.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/beamOverrides.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/catalog.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/ChordDisplayMenu.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": [
+      {
+        "path": ".body.2.declaration.body.body.1.argument.children.0.openingElement.attributes",
+        "name": "aria-label",
+        "value": {
+          "type": "Literal",
+          "value": "코드표"
+        }
+      },
+      {
+        "path": ".body.2.declaration.body.body.1.argument.children.0.openingElement.attributes",
+        "name": "title",
+        "value": {
+          "type": "Literal",
+          "value": "코드표"
+        }
+      }
+    ]
+  },
+  {
+    "file": "src/etudes/chordStudy.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/compositionSketch.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/convertScoreInstrument.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/curriculum.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/curriculumRevision.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/daylightFingerstyle.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/drawPalmMute.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/drumInput.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/DrumInput.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/drumTechniques.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/drumVoices.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EditorAudioDock.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EditorChoiceMenu.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/editorCommands.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EditorInputPanel.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EditorMusicIcon.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EditorScore.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EditorSettings.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/enterMidiNotes.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EtudePicker.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/EtudeStudio.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/exportScorePdf.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/filters.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/FollowPatternControl.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/InstrumentChangeDialog.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/KeyboardInput.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/KeyboardScore.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/mixedTechniqueStudies.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/MobileCursorControls.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/MobileScoreInput.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": [
+      {
+        "path": ".body.6.declaration.body.body.10.declarations.0.init.alternate.children.0.expression.right.children.0.children.6.expression.right.children.0.openingElement.attributes",
+        "name": "aria-label",
+        "value": {
+          "type": "Literal",
+          "value": "박 복사"
+        }
+      },
+      {
+        "path": ".body.6.declaration.body.body.10.declarations.0.init.alternate.children.0.expression.right.children.0.children.6.expression.right.children.0.openingElement.attributes",
+        "name": "title",
+        "value": {
+          "type": "Literal",
+          "value": "박 복사"
+        }
+      },
+      {
+        "path": ".body.6.declaration.body.body.10.declarations.0.init.alternate.children.0.expression.right.children.0.children.6.expression.right.children.1.openingElement.attributes",
+        "name": "aria-label",
+        "value": {
+          "type": "Literal",
+          "value": "박 삭제"
+        }
+      },
+      {
+        "path": ".body.6.declaration.body.body.10.declarations.0.init.alternate.children.0.expression.right.children.0.children.6.expression.right.children.1.openingElement.attributes",
+        "name": "title",
+        "value": {
+          "type": "Literal",
+          "value": "박 삭제"
+        }
+      },
+      {
+        "path": ".body.6.declaration.body.body.11.declarations.0.init.body.children.3.children.2.expression.arguments.0.body.openingElement.attributes",
+        "name": "title",
+        "value": {
+          "type": "JSXExpressionContainer",
+          "expression": {
+            "type": "Identifier",
+            "name": "label"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "src/etudes/MobileScoreSheets.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/notationData.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/openChordStudies.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/pedagogy.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/pianoInput.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/PracticeBeatDots.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/PracticeFloatingTools.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/PracticePopover.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/PracticeSheet.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/practiceTips.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/PracticeTransport.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/printScore.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/RepeatTools.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/rhythmInput.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/RhythmModifiers.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/Score.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreAnnotations.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreBeatCommands.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreChordDiagram.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/ScoreChordDialog.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreDocument.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/ScoreEditor.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreInstruments.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreLibrary.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreLineCommands.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreMetadata.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreModel.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreNavigation.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/ScorePlayback.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreRangeClipboard.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreRepeats.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/ScoreSaveDialog.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/ScoreSource.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/scoreTuning.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/slurs.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/TechniqueQuickDock.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/tracks.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/trackStudies.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/tuplets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/useEtudeMetronome.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/useScoreDrag.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/etudes/useScorePreview.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/input/DeviceConnection.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/input/midiInput.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/launch/SplashIntro.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/layouts/DesktopLayout.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/layouts/MobilePullToRefresh.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/main.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/groove.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/GrooveEditor.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/groovePackLibrary.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/GroovePacks.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/GrooveTonePicker.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/recommendedGrooves.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/subdivision.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/metronome/useGroovePreview.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/mini-chord/capo.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/mini-chord/loadLibrary.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/mini-chord/notationValidation.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/mini-chord/originalPracticeSongs.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/mini-chord/personalPracticeProjects.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/music/lickTechniques.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/navigation/BottomNavigation.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/navigation/DesktopSidebarNavigation.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/omr/tromrAdapter.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/EditablePractice.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/LibraryChrome.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/MobileLibraryChrome.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/MobilePdfChrome.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfAnnotationLayer.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfBarCount.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfContinuous.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/pdfLibrary.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfLibraryCard.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfPage.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfPractice.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/pdfRenderer.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfStudio.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/PdfViewToolbar.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/ScoreFileIcon.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/ScoreFolderList.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/scoreFolders.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/ScoreLibraryTabs.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/pdf/usePdfFullscreen.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/rhythm/beatPresetStore.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/rhythm/chordBeatTimeline.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/rhythm/recommendedProgressions.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/rhythm/SharedAccompanimentPanel.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/rhythm/voicingMovementCourses.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/difficultDifficultyScenario.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/easyDifficultyScenario.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/easyRandomDifficulty.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/guitarCabinet.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/instruments/fretivaArtisanInstrumentSkinPackV2.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/instruments/fretivaCreativeInstrumentPackV3.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/instruments/fretivaGuitarAddonV2.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/instruments/fretivaInstrumentSkinPackV1.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/instruments/fretivaPinkInstrumentSkinPackV1.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/instruments/fretivaPomeranianInstrumentPackV1.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/assets/abyssalMoonCathedralAssets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/assets/clockworkOperaAssets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/assets/coastalCoveAssets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/assets/lavaCanyonAssets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/assets/parkAssets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/assets/riverAssets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/editor/editorState.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/editor/MapEditPanel.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/editor/useMapEditMode.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/events/CoastalChestActor.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/MapSkinRenderer.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/abyssalMoonCathedral.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/autumnMoonTemplePath.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/celestialEclipseClocktower.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/clockworkOperaCitadel.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/coastalCove.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/gachaArcade.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/lavaCanyon.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/moonlitRooftop.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/park.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/pseudo3dTest.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/river.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/scenicMaps.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/maps/skins/threeDLab.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/normalDifficultyScenario.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/noteMonsterAssets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/noteVfx/NeonNote.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/pets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/playHelp.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/ProgressSettings.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/pseudo3d/Pseudo3DRenderer.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/recording/cameraBeauty.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/recording/canvasPaintTexture.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/recording/recordingMedia.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/recording/sceneCapture.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/recording/ShooterRecording.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/results/shareResult.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/results/ShooterGameOver.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/results/ShooterShareButton.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/ShooterPitchMonitor.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/ShooterSettingsPopover.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/threed/archive/ThreeDLabPortraitRenderer.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/shooter/threed/ThreeDLabHorizontalRenderer.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/tuner/tunerHeadstockDesigns.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/tuner/tunerMath.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/tuner/TunerMode.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "src/tuner/tunerPresets.js",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  },
+  {
+    "file": "experiments/omr/app.jsx",
+    "equivalent": true,
+    "differences": [],
+    "accessibleLabelAdditions": []
+  }
+]

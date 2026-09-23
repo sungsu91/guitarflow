@@ -1,3 +1,4 @@
+import ko from "../../i18n/locales/ko.js";
 // Shared iOS/Android/desktop UI painter. Never embeds HTML in SVG foreignObject.
 // Layout comes from the live DOM; pixels come from Canvas text, paths and images.
 import { RECORDING_WIDTH } from "./recordingMedia.js";
@@ -85,9 +86,9 @@ export function createPaintTexture(root, options = {}) {
   let disposed = false;
   const images = new Map();
   const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("게임 화면을 그릴 수 없습니다. [CANVAS_CONTEXT]");
+  if (!ctx) throw new Error(ko["shooter.couldNotRenderTheGameScreenCanvasContext"]);
   const check = () => {
-    if (disposed) throw new Error("촬영이 종료되었습니다.");
+    if (disposed) throw new Error(ko["shooter.recordingEnded"]);
   };
   async function load(src) {
     if (!images.has(src)) {
@@ -233,7 +234,7 @@ export function createPaintTexture(root, options = {}) {
       }
       async function svg(node, r) {
         const clone = node.cloneNode(true);
-        if (clone.querySelector("foreignObject")) throw new Error("지원하지 않는 SVG 화면 요소입니다. [SVG_CONTENT]");
+        if (clone.querySelector("foreignObject")) throw new Error(ko["shooter.unsupportedSvgScreenElementSvgContent"]);
         const sources = [node, ...node.querySelectorAll("*")], targets = [clone, ...clone.querySelectorAll("*")];
         sources.forEach((source, index) => {
           const s = getComputedStyle(source), target = targets[index];

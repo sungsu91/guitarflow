@@ -1,3 +1,5 @@
+import { formatMessage } from "../../../i18n/format.js";
+import ko from "../../../i18n/locales/ko.js";
 const PARK_MINI_POODLE_ROOT = "/assets/maps/park/creatures/mini-poodle/tilt";
 const PARK_MINI_POODLE_TILT_FRAMES = Object.freeze(
   Array.from(
@@ -84,7 +86,7 @@ const PARK_WOOD_PLANK_FLOOR_TILES = Object.freeze(
 export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   Object.freeze({
     id: "ambient-mini-poodle",
-    label: "고개를 갸우뚱하는 미니푸들",
+    label: ko["shooter.headTiltingMiniaturePoodle"],
     src: PARK_MINI_POODLE_TILT_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.28,
@@ -103,7 +105,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-border-collie-acrobat",
-    label: "달리고 공중제비하는 보더콜리",
+    label: ko["shooter.runningAndSomersaultingBorderCollie"],
     src: PARK_BORDER_COLLIE_ACROBAT_FRAMES[0].src,
     slot: "animated-environment",
     baseWidth: 0.44,
@@ -123,7 +125,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-british-shorthair-play",
-    label: "산책하고 혼자 노는 브리티시 숏헤어",
+    label: ko["shooter.walkingPlayfulBritishShorthair"],
     src: PARK_BRITISH_SHORTHAIR_PLAY_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.34,
@@ -143,7 +145,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-munchkin-play",
-    label: "깡충 뛰고 슬라이딩하며 혼자 노는 먼치킨",
+    label: ko["shooter.hoppingSlidingPlayfulMunchkinCat"],
     src: PARK_MUNCHKIN_PLAY_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.34,
@@ -163,7 +165,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-park-fountain-flow",
-    label: "물이 흐르는 정원 분수",
+    label: ko["shooter.flowingGardenFountain"],
     src: PARK_FOUNTAIN_BASE,
     slot: "animated-environment",
     baseWidth: 0.56,
@@ -183,7 +185,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-garden-swing",
-    label: "천천히 흔들리는 정원 그네",
+    label: ko["shooter.gentlySwayingGardenSwing"],
     src: PARK_GARDEN_SWING_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.48,
@@ -203,7 +205,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "park-fountain-fence-back",
-    label: "분수 울타리 · 뒤쪽 고정 레이어",
+    label: ko["shooter.fountainFenceFixedRearLayer"],
     src: PARK_FOUNTAIN_FENCE_BACK,
     slot: "midground-environment",
     baseWidth: 0.72,
@@ -213,7 +215,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "park-fountain-fence-front",
-    label: "분수 울타리 · 앞쪽 고정 레이어",
+    label: ko["shooter.fountainFenceFixedFrontLayer"],
     src: PARK_FOUNTAIN_FENCE_FRONT,
     slot: "midground-environment",
     baseWidth: 0.72,
@@ -223,7 +225,7 @@ export const PARK_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   ...PARK_WOOD_PLANK_FLOOR_TILES.map((src, index) => Object.freeze({
     id: `park-wood-plank-floor-${String(index + 1).padStart(2, "0")}`,
-    label: `이끼 낀 나무 판자 바닥 ${index + 1}`,
+    label: formatMessage(ko["shooter.mossyWoodenPlankFloorValue"], { value1: index + 1 }),
     src,
     slot: "background-environment",
     baseWidth: 0.38,

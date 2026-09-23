@@ -1,3 +1,8 @@
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { formatMessage } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {
   ArrowLeft,
   Copy,
@@ -94,10 +99,11 @@ function useAudioStudioModal(onClose) {
 }
 
 function AudioStudioHiddenImport({ controller }) {
+  useLanguage();
   return (
     <input
       accept={controller.importAccept}
-      aria-label="오디오 파일 여러 개 선택"
+      aria-label={translateUi("audioStudio.selectAudioFiles")}
       className="audioStudioFileInput"
       multiple
       onChange={controller.importFiles}
@@ -111,23 +117,24 @@ function AudioStudioHiddenImport({ controller }) {
 function LibraryHeader() {
   return (
     <header className="audioStudioLibraryHeader">
-      <span>FRETIVA LAB</span>
-      <h1>Audio Studio</h1>
-      <p>완성 음원 보관함 · 실제 WAV 파일</p>
+      <span><Translation id="originalUi.fretivaLab" /></span>
+      <h1><Translation id="originalUi.audioStudio" /></h1>
+      <p><Translation id="audioStudio.finishedAudioLibraryWavFiles" /></p>
     </header>
   );
 }
 
 function AudioRenameDialog({ mix, onClose, onRename }) {
+  useLanguage();
   const [name, setName] = useState(mix.fileName);
   useAudioStudioModal(onClose);
   const dialog = (
     <div className="audioStudioOverlay audioStudioDialogBackdrop" role="presentation">
       <section aria-labelledby="audio-studio-rename-title" aria-modal="true" className="audioStudioDialog audioStudioDialog--compact" role="dialog">
-        <header><h2 id="audio-studio-rename-title">음원 이름 변경</h2><button aria-label="닫기" onClick={onClose} type="button"><X size={18} /></button></header>
-        <label className="audioStudioDialogName"><span>파일명</span><input autoFocus maxLength="120" onChange={(event) => setName(event.target.value)} value={name} /></label>
-        <small>실제 출력 형식인 .wav 확장자로 저장됩니다.</small>
-        <div className="audioStudioDialogActions"><button onClick={onClose} type="button">취소</button><button disabled={!name.trim()} onClick={() => onRename(mix.id, name)} type="button">변경</button></div>
+        <header><h2 id="audio-studio-rename-title"><Translation id="audioStudio.renameAudio" /></h2><button aria-label={translateUi("common.close")} onClick={onClose} type="button"><X size={18} /></button></header>
+        <label className="audioStudioDialogName"><span><Translation id="audioStudio.filename" /></span><input autoFocus maxLength="120" onChange={(event) => setName(event.target.value)} value={name} /></label>
+        <small><Translation id="audioStudio.savedInWavFormatWithTheWavExtension" /></small>
+        <div className="audioStudioDialogActions"><button onClick={onClose} type="button"><Translation id="common.cancel" /></button><button disabled={!name.trim()} onClick={() => onRename(mix.id, name)} type="button"><Translation id="audioStudio.change" /></button></div>
       </section>
     </div>
   );
@@ -135,6 +142,7 @@ function AudioRenameDialog({ mix, onClose, onRename }) {
 }
 
 function MixSaveNameDialog({ onClose, onSave, saving }) {
+  useLanguage();
   const [name, setName] = useState("");
   useAudioStudioModal(onClose);
   const submit = async (event) => {
@@ -145,10 +153,10 @@ function MixSaveNameDialog({ onClose, onSave, saving }) {
   const dialog = (
     <div className="audioStudioOverlay audioStudioDialogBackdrop" role="presentation">
       <form aria-labelledby="audio-studio-mix-name-title" aria-modal="true" className="audioStudioDialog audioStudioDialog--compact" onSubmit={submit} role="dialog">
-        <header><h2 id="audio-studio-mix-name-title">완성 음원 이름</h2><button aria-label="닫기" disabled={saving} onClick={onClose} type="button"><X size={18} /></button></header>
-        <label className="audioStudioDialogName"><span>파일명</span><input autoFocus disabled={saving} maxLength="120" onChange={(event) => setName(event.target.value)} placeholder="예: Guitar Mix" value={name} /></label>
-        <small>저장하면 모든 트랙이 실제 WAV 파일 하나로 만들어집니다.</small>
-        <div className="audioStudioDialogActions"><button disabled={saving} onClick={onClose} type="button">취소</button><button disabled={!name.trim() || saving} type="submit">{saving ? "저장 중..." : "하나로 저장"}</button></div>
+        <header><h2 id="audio-studio-mix-name-title"><Translation id="audioStudio.finishedAudioName" /></h2><button aria-label={translateUi("common.close")} disabled={saving} onClick={onClose} type="button"><X size={18} /></button></header>
+        <label className="audioStudioDialogName"><span><Translation id="audioStudio.filename" /></span><input autoFocus disabled={saving} maxLength="120" onChange={(event) => setName(event.target.value)} placeholder={translateUi("audioStudio.eGGuitarMix")} value={name} /></label>
+        <small><Translation id="audioStudio.savingMixesAllTracksIntoOneWavFile" /></small>
+        <div className="audioStudioDialogActions"><button disabled={saving} onClick={onClose} type="button"><Translation id="common.cancel" /></button><button disabled={!name.trim() || saving} type="submit">{saving ? translateUi("audioStudio.saving") : translateUi("app.saveAMix")}</button></div>
       </form>
     </div>
   );
@@ -156,6 +164,7 @@ function MixSaveNameDialog({ onClose, onSave, saving }) {
 }
 
 function AudioMixLibrary({ controller }) {
+  useLanguage();
   const [renameMix, setRenameMix] = useState(null);
   const rename = async (mixId, name) => {
     await controller.renameSavedMix(mixId, name);
@@ -165,11 +174,11 @@ function AudioMixLibrary({ controller }) {
     <section className="audioStudioLibrary" data-audio-studio-screen="library">
       <LibraryHeader />
       <div className="audioStudioLibraryActions">
-        <button onClick={controller.openEditor} type="button"><FilePlus2 size={17} /><span>편집실</span></button>
+        <button onClick={controller.openEditor} type="button"><FilePlus2 size={17} /><span><Translation id="audioStudio.studio" /></span></button>
       </div>
       <div className="audioStudioLibrarySectionHeader">
-        <div><span>MY AUDIO</span><h2>완성 음원</h2></div>
-        <small>{controller.savedMixes.length}곡</small>
+        <div><span><Translation id="originalUi.myAudio" /></span><h2><Translation id="audioStudio.finishedAudio" /></h2></div>
+        <small>{controller.savedMixes.length}<Translation id="audioStudio.tracks" /></small>
       </div>
       {controller.savedMixes.length ? (
         <div className="audioStudioMixList">
@@ -178,7 +187,7 @@ function AudioMixLibrary({ controller }) {
             return (
               <article className={`audioStudioMixRow ${isPlaying ? "is-playing" : ""}`} key={saved.id}>
                 <button
-                  aria-label={`${saved.fileName} ${isPlaying ? "일시정지" : "재생"}`}
+                  aria-label={`${saved.fileName} ${isPlaying ? translateUi("app.pause") : translateUi("audioStudio.play")}`}
                   aria-pressed={isPlaying}
                   className="audioStudioMixPlay"
                   disabled={controller.projectOperation === "loading-mix"}
@@ -189,13 +198,13 @@ function AudioMixLibrary({ controller }) {
                 </button>
                 <div className="audioStudioMixCopy">
                   <strong title={saved.fileName}>{saved.fileName}</strong>
-                  <small>WAV · {formatProjectDate(saved.updatedAt)}</small>
+                  <small><Translation id="originalUi.wav" />{formatProjectDate(saved.updatedAt)}</small>
                 </div>
                 <time>{formatStudioTime(saved.durationMs)}</time>
                 <div className="audioStudioMixActions">
-                  <button aria-label={`${saved.fileName} 이름 변경`} onClick={() => setRenameMix(saved)} title="이름 변경" type="button"><SlidersHorizontal size={15} /></button>
-                  <button aria-label={`${saved.fileName} 기기로 다운로드`} onClick={() => controller.downloadSavedMix(saved.id)} title="기기로 다운로드" type="button"><Download size={15} /></button>
-                  <button aria-label={`${saved.fileName} 삭제`} className="is-danger" onClick={() => controller.deleteSavedMix(saved.id)} title="삭제" type="button"><Trash2 size={15} /></button>
+                  <button aria-label={translateUi("audioStudio.renameValue1", { value1: saved.fileName })} onClick={() => setRenameMix(saved)} title={translateUi("audioStudio.rename")} type="button"><SlidersHorizontal size={15} /></button>
+                  <button aria-label={translateUi("audioStudio.downloadValue1ToDevice", { value1: saved.fileName })} onClick={() => controller.downloadSavedMix(saved.id)} title={translateUi("audioStudio.downloadToDevice")} type="button"><Download size={15} /></button>
+                  <button aria-label={translateUi("app.deleteValue1", { value1: saved.fileName })} className="is-danger" onClick={() => controller.deleteSavedMix(saved.id)} title={translateUi("common.delete")} type="button"><Trash2 size={15} /></button>
                 </div>
               </article>
             );
@@ -204,27 +213,29 @@ function AudioMixLibrary({ controller }) {
       ) : (
         <section className="audioStudioLibraryEmpty">
           <FileAudio aria-hidden="true" size={30} />
-          <h2>아직 완성된 음원이 없습니다.</h2>
-          <p>편집실에서 여러 소리를 조합한 뒤 MIX SAVE를 완료해보세요.</p>
+          <h2><Translation id="audioStudio.noFinishedAudioYet" /></h2>
+          <p><Translation id="audioStudio.combineSoundsInTheStudioThenUseMixSave" /></p>
         </section>
       )}
-      <p aria-live="polite" className="audioStudioLibraryNotice">{controller.notice}</p>
+      <p aria-live="polite" className="audioStudioLibraryNotice">{localizeUi(controller.notice)}</p>
       {renameMix ? <AudioRenameDialog mix={renameMix} onClose={() => setRenameMix(null)} onRename={rename} /> : null}
     </section>
   );
 }
 
-function StudioWorkspaceTopbar({ controller, title = "편집실" }) {
+function StudioWorkspaceTopbar({ controller, title = ko["audioStudio.studio"] }) {
+  useLanguage();
   return (
     <header className="audioStudioProjectTopbar">
-      <button aria-label="완성 음원 보관함으로" onClick={controller.goToLibrary} type="button"><ArrowLeft size={19} /></button>
-      <div><strong>{title}</strong><span>완성 음원을 만드는 작업 공간</span></div>
+      <button aria-label={translateUi("audioStudio.openFinishedAudioLibrary")} onClick={controller.goToLibrary} type="button"><ArrowLeft size={19} /></button>
+      <div><strong>{title}</strong><span><Translation id="audioStudio.createYourFinishedMix" /></span></div>
       <span />
     </header>
   );
 }
 
 function AudioStudioTimeline({ controller, mobile }) {
+  useLanguage();
   const { project } = controller;
   const pixelsPerSecond = project.settings.pixelsPerSecond;
   const durationMs = getAudioStudioProjectDurationMs(project);
@@ -416,11 +427,11 @@ function AudioStudioTimeline({ controller, mobile }) {
   };
   const loop = project.practice.loop;
   return (
-    <section className="audioStudioTimelineFrame" aria-label="전문 오디오 Timeline">
+    <section className="audioStudioTimelineFrame" aria-label={translateUi("audioStudio.audioTimeline")}>
       <div className="audioStudioTimelineScroller" onTouchCancel={() => { pinchRef.current = null; }} onTouchEnd={() => { pinchRef.current = null; }} onTouchMove={onTouchMove} onTouchStart={onTouchStart} ref={timelineScrollerRef} tabIndex="0">
         <div className="audioStudioTimelineCanvas" style={{ "--audio-studio-timeline-width": `${timelineWidth}px` }}>
           <div className="audioStudioRulerRow">
-            <strong>TRACKS</strong>
+            <strong><Translation id="originalUi.tracks" /></strong>
             <div className="audioStudioRuler" onPointerDown={dragPlayhead}>
               {ticks.map((timeMs) => <span className="audioStudioRulerTick" key={timeMs} style={{ left: `${timeMs / 1_000 * pixelsPerSecond}px` }}>{formatStudioTime(timeMs)}</span>)}
               {loop.enabled && loop.endMs > loop.startMs ? <i className="audioStudioLoopRange" style={{ left: `${loop.startMs / 1_000 * pixelsPerSecond}px`, width: `${(loop.endMs - loop.startMs) / 1_000 * pixelsPerSecond}px` }} /> : null}
@@ -431,18 +442,18 @@ function AudioStudioTimeline({ controller, mobile }) {
             return (
               <div className={`audioStudioTrackRow ${controller.activeTrackId === track.id ? "is-active" : ""}`} data-track-id={track.id} key={track.id} onDragOver={(event) => event.preventDefault()} onDrop={() => controller.reorderTrack(trackDragRef.current, track.id)}>
                 <header className="audioStudioTrackHeader" draggable onClick={() => controller.selectTrack(track.id)} onDragStart={() => { trackDragRef.current = track.id; }}>
-                  <span aria-label={`${track.name} 순서 이동`} className="audioStudioTrackDrag" onPointerDown={(event) => beginTrackPointerReorder(event, track.id)} role="button" tabIndex="0"><GripVertical size={14} /></span>
-                  <strong title={track.name}><b>TRACK {trackIndex + 1}</b><span>{track.name}</span></strong>
+                  <span aria-label={translateUi("audioStudio.reorderValue1", { value1: track.name })} className="audioStudioTrackDrag" onPointerDown={(event) => beginTrackPointerReorder(event, track.id)} role="button" tabIndex="0"><GripVertical size={14} /></span>
+                  <strong title={track.name}><b><Translation id="originalUi.track" />{trackIndex + 1}</b><span>{track.name}</span></strong>
                   <div className="audioStudioTrackSwitches">
-                    <button aria-label={`${track.name} 음소거`} aria-pressed={track.mute} className={track.mute ? "is-on" : ""} onClick={(event) => { event.stopPropagation(); controller.updateTrack(track.id, { mute: !track.mute }); }} type="button">MUTE</button>
-                    <button aria-label={`${track.name} 솔로`} aria-pressed={track.solo} className={track.solo ? "is-on" : ""} onClick={(event) => { event.stopPropagation(); controller.updateTrack(track.id, { solo: !track.solo }); }} type="button">SOLO</button>
+                    <button aria-label={translateUi("audioStudio.muteValue1", { value1: track.name })} aria-pressed={track.mute} className={track.mute ? "is-on" : ""} onClick={(event) => { event.stopPropagation(); controller.updateTrack(track.id, { mute: !track.mute }); }} type="button"><Translation id="originalUi.muteAudiostudio" /></button>
+                    <button aria-label={translateUi("audioStudio.soloValue1", { value1: track.name })} aria-pressed={track.solo} className={track.solo ? "is-on" : ""} onClick={(event) => { event.stopPropagation(); controller.updateTrack(track.id, { solo: !track.solo }); }} type="button"><Translation id="originalUi.solo" /></button>
                   </div>
-                  <label className="audioStudioTrackVolume" onClick={(event) => event.stopPropagation()}><span>VOL</span><input aria-label={`${track.name} 볼륨`} max="2" min="0" onChange={(event) => controller.updateTrack(track.id, { volume: event.target.valueAsNumber })} step="0.05" type="range" value={track.volume} /></label>
-                  <label className="audioStudioTrackBpm" onClick={(event) => event.stopPropagation()}><span>BPM</span><input aria-label={`${track.name} BPM`} max="240" min="0" onChange={(event) => controller.updateTrack(track.id, { bpm: event.target.valueAsNumber })} placeholder="—" step="1" type="number" value={track.bpm || ""} /></label>
-                  {track.bpm && Math.abs(track.bpm - project.settings.projectBpm) >= 0.5 ? <button className="audioStudioBpmMatch" disabled={Boolean(controller.projectOperation)} onClick={(event) => { event.stopPropagation(); controller.matchTrackBpm(track.id); }} type="button">{Math.round(track.bpm)}→{Math.round(project.settings.projectBpm)} 맞추기</button> : null}
+                  <label className="audioStudioTrackVolume" onClick={(event) => event.stopPropagation()}><span><Translation id="originalUi.vol" /></span><input aria-label={translateUi("app.value1Volume", { value1: track.name })} max="2" min="0" onChange={(event) => controller.updateTrack(track.id, { volume: event.target.valueAsNumber })} step="0.05" type="range" value={track.volume} /></label>
+                  <label className="audioStudioTrackBpm" onClick={(event) => event.stopPropagation()}><span><Translation id="originalUi.bpm" /></span><input aria-label={`${track.name} BPM`} max="240" min="0" onChange={(event) => controller.updateTrack(track.id, { bpm: event.target.valueAsNumber })} placeholder="—" step="1" type="number" value={track.bpm || ""} /></label>
+                  {track.bpm && Math.abs(track.bpm - project.settings.projectBpm) >= 0.5 ? <button className="audioStudioBpmMatch" disabled={Boolean(controller.projectOperation)} onClick={(event) => { event.stopPropagation(); controller.matchTrackBpm(track.id); }} type="button">{Math.round(track.bpm)}→{Math.round(project.settings.projectBpm)}<Translation id="audioStudio.match" /></button> : null}
                 </header>
                 <div className={`audioStudioTrackLane ${track.clips.length ? "" : "is-empty"}`} data-track-id={track.id} onPointerDown={(event) => beginRangeSelection(event, track)}>
-                  {!track.clips.length ? <div className="audioStudioTrackLaneEmpty"><FileAudio aria-hidden="true" size={16} /><b>오디오가 없습니다</b><div><button onPointerDown={(event) => event.stopPropagation()} onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Upload size={13} /> + 음원 추가</button><button onPointerDown={(event) => event.stopPropagation()} onClick={() => controller.startRecording(track.id)} type="button"><Mic size={13} /> 녹음</button></div></div> : null}
+                  {!track.clips.length ? <div className="audioStudioTrackLaneEmpty"><FileAudio aria-hidden="true" size={16} /><b><Translation id="audioStudio.noAudio" /></b><div><button onPointerDown={(event) => event.stopPropagation()} onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Upload size={13} /><Translation id="audioStudio.addAudio" /></button><button onPointerDown={(event) => event.stopPropagation()} onClick={() => controller.startRecording(track.id)} type="button"><Mic size={13} /><Translation id="audioStudio.record" /></button></div></div> : null}
                   {gaps.map((gap) => <span className="audioStudioGap" key={`${gap.startMs}-${gap.endMs}`} style={{ left: `${gap.startMs / 1_000 * pixelsPerSecond}px`, width: `${Math.max(2, gap.gapMs / 1_000 * pixelsPerSecond)}px` }} title={`Gap ${Math.round(gap.gapMs)}ms`} />)}
                   {track.clips.map((clip) => {
                     const source = project.audioSources.find((item) => item.id === clip.sourceId);
@@ -473,7 +484,7 @@ function AudioStudioTimeline({ controller, mobile }) {
                         type="button"
                       >
                         <span className="audioStudioClipName">{clip.name}</span>
-                        <span className={`audioStudioWaveform ${waveformPeaks.length ? "" : "is-empty"}`} onPointerDown={(event) => beginWaveformRangeSelection(event, track, clip)}>{waveformPeaks.length ? waveformPeaks.map((peak, index) => <i aria-hidden="true" key={`${clip.id}-${index}`} style={{ height: `${Math.max(6, peak * 92)}%` }} />) : <em>파형 생성 중...</em>}</span>
+                        <span className={`audioStudioWaveform ${waveformPeaks.length ? "" : "is-empty"}`} onPointerDown={(event) => beginWaveformRangeSelection(event, track, clip)}>{waveformPeaks.length ? waveformPeaks.map((peak, index) => <i aria-hidden="true" key={`${clip.id}-${index}`} style={{ height: `${Math.max(6, peak * 92)}%` }} />) : <em><Translation id="audioStudio.generatingWaveform" /></em>}</span>
                         {fadeInMs ? <span className="audioStudioFade audioStudioFade--in" style={{ width: `${Math.min(100, fadeInMs / clip.durationMs * 100)}%` }} /> : null}
                         {fadeOutMs ? <span className="audioStudioFade audioStudioFade--out" style={{ width: `${Math.min(100, fadeOutMs / clip.durationMs * 100)}%` }} /> : null}
                         {selected ? <span aria-hidden="true" className="audioStudioFadeHandle audioStudioFadeHandle--in" onPointerDown={(event) => beginFadeDrag(event, clip, "in")} /> : null}
@@ -485,9 +496,9 @@ function AudioStudioTimeline({ controller, mobile }) {
                   })}
                   {rangeSelection?.trackId === track.id ? (
                     <span className="audioStudioRangeSelection" style={{ left: `${rangeSelection.startMs / 1_000 * pixelsPerSecond}px`, width: `${Math.max(2, (rangeSelection.endMs - rangeSelection.startMs) / 1_000 * pixelsPerSecond)}px` }}>
-                      <button aria-label="선택 구간 시작 조절" className="is-start" onPointerDown={(event) => beginRangeHandleDrag(event, "start")} type="button" />
+                      <button aria-label={translateUi("audioStudio.adjustSelectionStart")} className="is-start" onPointerDown={(event) => beginRangeHandleDrag(event, "start")} type="button" />
                       <small>{formatStudioTime(rangeSelection.startMs, true)} – {formatStudioTime(rangeSelection.endMs, true)}</small>
-                      <button aria-label="선택 구간 끝 조절" className="is-end" onPointerDown={(event) => beginRangeHandleDrag(event, "end")} type="button" />
+                      <button aria-label={translateUi("audioStudio.adjustSelectionEnd")} className="is-end" onPointerDown={(event) => beginRangeHandleDrag(event, "end")} type="button" />
                     </span>
                   ) : null}
                 </div>
@@ -495,50 +506,53 @@ function AudioStudioTimeline({ controller, mobile }) {
             );
           })}
           <span aria-hidden="true" className="audioStudioPlayhead" style={{ "--audio-studio-playhead-x": `${controller.currentTimeMs / 1_000 * pixelsPerSecond}px` }} />
-          {controller.snapGuideMs !== null ? <span aria-hidden="true" className="audioStudioSnapGuide" style={{ "--audio-studio-snap-x": `${controller.snapGuideMs / 1_000 * pixelsPerSecond}px` }}><i>SNAP</i></span> : null}
+          {controller.snapGuideMs !== null ? <span aria-hidden="true" className="audioStudioSnapGuide" style={{ "--audio-studio-snap-x": `${controller.snapGuideMs / 1_000 * pixelsPerSecond}px` }}><i><Translation id="originalUi.snap" /></i></span> : null}
         </div>
       </div>
-      {controller.importing ? <div aria-live="polite" className="audioStudioWaveformAnalyzing"><LoaderCircle aria-hidden="true" className="is-spinning" size={19} /><strong>파형 분석 중...</strong><span>완료되면 파일명과 실제 파형이 자동으로 표시됩니다.</span></div> : null}
-      {mobile ? <small className="audioStudioPinchHint">두 손가락으로 Timeline 확대·축소</small> : null}
+      {controller.importing ? <div aria-live="polite" className="audioStudioWaveformAnalyzing"><LoaderCircle aria-hidden="true" className="is-spinning" size={19} /><strong><Translation id="audioStudio.analyzingWaveform" /></strong><span><Translation id="audioStudio.theFilenameAndWaveformWillAppearWhenReady" /></span></div> : null}
+      {mobile ? <small className="audioStudioPinchHint"><Translation id="audioStudio.pinchToZoomTheTimeline" /></small> : null}
     </section>
   );
 }
 
 function AudioStudioTransport({ controller, mobile }) {
+  useLanguage();
   const durationMs = getAudioStudioProjectDurationMs(controller.project);
   const playing = controller.playbackStatus === "playing";
   const recordingPhase = controller.recordingState.phase;
   const recording = recordingPhase === "recording";
   const recordingBusy = ["requesting", "count-in", "recording", "processing"].includes(recordingPhase);
   return (
-    <section className={`audioStudioTransport ${mobile ? "is-mobile" : "is-desktop"}`} aria-label="재생과 Timeline 탐색">
+    <section className={`audioStudioTransport ${mobile ? "is-mobile" : "is-desktop"}`} aria-label={translateUi("audioStudio.playbackAndTimelineNavigation")}>
       <output title={`${formatStudioTime(controller.currentTimeMs, true)} / ${formatStudioTime(durationMs, true)}`}><strong>{formatStudioTime(controller.currentTimeMs, true)}</strong><span>/ {formatStudioTime(durationMs, true)}</span></output>
       <div className="audioStudioTransportPlayback">
-        <button aria-label={playing ? "일시정지" : "재생"} className="is-primary" onClick={playing ? controller.pausePlayback : () => controller.startPlayback()} type="button">{playing ? <Pause size={17} /> : <Play size={17} />}</button>
-        <button aria-label={recordingBusy ? "녹음 정지" : "바로 녹음"} aria-pressed={recordingBusy} className={`audioStudioTransportRecord ${recording ? "is-recording" : ""}`} onClick={recordingBusy ? controller.stopRecording : () => controller.startRecording()} type="button">{recordingBusy ? <Square size={13} /> : <Mic size={15} />}<span>{recording ? "REC" : recordingPhase === "count-in" ? "COUNT" : recordingPhase === "processing" ? "저장 중" : "REC"}</span></button>
-        <button aria-label="구간 반복" aria-pressed={controller.project.practice.loop.enabled} className="audioStudioTransportLoop" onClick={() => controller.updatePractice({ loop: { enabled: !controller.project.practice.loop.enabled } })} type="button">LOOP <span>{controller.project.practice.loop.enabled ? "ON" : "OFF"}</span></button>
+        <button aria-label={playing ? translateUi("app.pause") : translateUi("audioStudio.play")} className="is-primary" onClick={playing ? controller.pausePlayback : () => controller.startPlayback()} type="button">{playing ? <Pause size={17} /> : <Play size={17} />}</button>
+        <button aria-label={recordingBusy ? translateUi("audioStudio.stopRecording") : translateUi("audioStudio.recordNow")} aria-pressed={recordingBusy} className={`audioStudioTransportRecord ${recording ? "is-recording" : ""}`} onClick={recordingBusy ? controller.stopRecording : () => controller.startRecording()} type="button">{recordingBusy ? <Square size={13} /> : <Mic size={15} />}<span>{recording ? "REC" : recordingPhase === "count-in" ? "COUNT" : recordingPhase === "processing" ? translateUi("app.saving") : "REC"}</span></button>
+        <button aria-label={translateUi("audioStudio.loopSelection")} aria-pressed={controller.project.practice.loop.enabled} className="audioStudioTransportLoop" onClick={() => controller.updatePractice({ loop: { enabled: !controller.project.practice.loop.enabled } })} type="button"><Translation id="originalUi.loop" /><span>{controller.project.practice.loop.enabled ? "ON" : "OFF"}</span></button>
       </div>
       {!mobile ? <div className="audioStudioTimelineNavigation">
-        <button aria-label="축소" onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond / 1.5)} type="button"><ZoomOut size={16} /></button>
-        <button onClick={controller.requestProjectFit} type="button"><Maximize2 size={15} /><span>전체 보기</span></button>
-        {controller.selectedClipIds.length ? <button onClick={() => controller.fitSelection(mobile ? 260 : 760)} type="button"><Maximize2 size={15} /><span>SELECT</span></button> : null}
-        <button aria-label="확대" onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond * 1.5)} type="button"><ZoomIn size={16} /></button>
+        <button aria-label={translateUi("audioStudio.zoomOut")} onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond / 1.5)} type="button"><ZoomOut size={16} /></button>
+        <button onClick={controller.requestProjectFit} type="button"><Maximize2 size={15} /><span><Translation id="audioStudio.fitAll" /></span></button>
+        {controller.selectedClipIds.length ? <button onClick={() => controller.fitSelection(mobile ? 260 : 760)} type="button"><Maximize2 size={15} /><span><Translation id="originalUi.select" /></span></button> : null}
+        <button aria-label={translateUi("audioStudio.zoomIn")} onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond * 1.5)} type="button"><ZoomIn size={16} /></button>
       </div> : null}
       <div className="audioStudioTempoControls">
-        <label><span>전체 BPM</span><input max="240" min="40" onChange={(event) => controller.updateEditorSettings({ projectBpm: event.target.valueAsNumber })} step="1" type="number" value={controller.project.settings.projectBpm} /></label>
-        <label><span>COUNT-IN</span><select onChange={(event) => controller.updateEditorSettings({ countInBars: Number(event.target.value) })} value={controller.project.settings.countInBars}><option value="0">OFF</option><option value="1">1마디</option><option value="2">2마디</option></select></label>
+        <label><span><Translation id="audioStudio.masterBpm" /></span><input max="240" min="40" onChange={(event) => controller.updateEditorSettings({ projectBpm: event.target.valueAsNumber })} step="1" type="number" value={controller.project.settings.projectBpm} /></label>
+        <label><span><Translation id="originalUi.countInAudiostudio" /></span><select onChange={(event) => controller.updateEditorSettings({ countInBars: Number(event.target.value) })} value={controller.project.settings.countInBars}><option value="0"><Translation id="originalUi.off" /></option><option value="1"><Translation id="audioStudio.1Bar" /></option><option value="2"><Translation id="audioStudio.2Bars" /></option></select></label>
       </div>
-      {recordingPhase === "count-in" ? <div aria-live="assertive" className="audioStudioCountIn"><span>COUNT-IN</span><strong>{controller.recordingState.beat}</strong><small>이어폰/헤드폰 권장</small></div> : null}
-      {recording ? <div aria-live="polite" className="audioStudioRecordingBanner"><i /> RECORDING · 기존 트랙을 들으며 새 트랙에 녹음 중</div> : null}
+      {recordingPhase === "count-in" ? <div aria-live="assertive" className="audioStudioCountIn"><span><Translation id="originalUi.countInAudiostudio" /></span><strong>{controller.recordingState.beat}</strong><small><Translation id="audioStudio.headphonesRecommended" /></small></div> : null}
+      {recording ? <div aria-live="polite" className="audioStudioRecordingBanner"><i /><Translation id="audioStudio.recordingRecordingANewTrackWhilePlayingExistingTracks" /></div> : null}
     </section>
   );
 }
 
 function ContextButton({ disabled, icon: Icon, label, onClick }) {
-  return <button disabled={disabled} onClick={onClick} title={label} type="button">{Icon ? <Icon size={15} /> : null}<span>{label}</span></button>;
+  useLanguage();
+  return <button disabled={disabled} onClick={onClick} title={localizeUi(label)} type="button">{Icon ? <Icon size={15} /> : null}<span>{localizeUi(label)}</span></button>;
 }
 
 function AudioStudioContextToolbar({ controller }) {
+  useLanguage();
   const count = controller.selectedClipIds.length;
   const addMenuRef = useRef(null);
   useEffect(() => {
@@ -547,67 +561,68 @@ function AudioStudioContextToolbar({ controller }) {
   let actions;
   if (controller.rangeSelection) {
     actions = [
-      [null, "자르기", controller.trimRangeSelection],
-      [Scissors, "분할", controller.splitRangeSelection],
-      [Trash2, "삭제", controller.deleteRangeSelection],
-      [Copy, "복사", controller.duplicateRangeSelection],
-      [null, "구간 반복", controller.loopRangeSelection],
+      [null, ko["audioStudio.trim"], controller.trimRangeSelection],
+      [Scissors, ko["audioStudio.split"], controller.splitRangeSelection],
+      [Trash2, ko["common.delete"], controller.deleteRangeSelection],
+      [Copy, ko["audioStudio.copy"], controller.duplicateRangeSelection],
+      [null, ko["audioStudio.loopSelection"], controller.loopRangeSelection],
     ];
   } else if (!count) {
     actions = [
-      [Undo2, "되돌리기", controller.canUndo ? controller.undo : null],
-      [Redo2, "다시 실행", controller.canRedo ? controller.redo : null],
+      [Undo2, ko["app.undo"], controller.canUndo ? controller.undo : null],
+      [Redo2, ko["app.redo"], controller.canRedo ? controller.redo : null],
     ];
   } else if (count === 1) {
     actions = [
-      [Scissors, "분할", controller.splitSelection],
-      [null, "앞 자르기", () => controller.trimSelection("start")],
-      [null, "뒤 자르기", () => controller.trimSelection("end")],
-      [Copy, "복사본", controller.duplicateSelection],
-      [Trash2, "삭제", controller.deleteSelection],
-      [Undo2, "되돌리기", controller.canUndo ? controller.undo : null],
+      [Scissors, ko["audioStudio.split"], controller.splitSelection],
+      [null, ko["audioStudio.trimStart"], () => controller.trimSelection("start")],
+      [null, ko["audioStudio.trimEnd"], () => controller.trimSelection("end")],
+      [Copy, ko["audioStudio.copy2"], controller.duplicateSelection],
+      [Trash2, ko["common.delete"], controller.deleteSelection],
+      [Undo2, ko["app.undo"], controller.canUndo ? controller.undo : null],
     ];
   } else {
     actions = [
-      [Copy, "복사본", controller.duplicateSelection],
-      [Trash2, "삭제", controller.deleteSelection],
-      [Undo2, "되돌리기", controller.canUndo ? controller.undo : null],
+      [Copy, ko["audioStudio.copy2"], controller.duplicateSelection],
+      [Trash2, ko["common.delete"], controller.deleteSelection],
+      [Undo2, ko["app.undo"], controller.canUndo ? controller.undo : null],
     ];
   }
   return (
-    <section className="audioStudioContextToolbar" aria-label="선택 문맥 편집 도구">
-      <div className="audioStudioContextLabel"><span>{controller.rangeSelection ? "파형 구간 선택" : count ? `클립 ${count}개 선택` : "TRACK + WAVEFORM"}</span><small>{controller.rangeSelection ? "핸들을 움직여 범위를 정밀하게 조절하세요" : count ? "선택한 클립에 적용" : "파형을 드래그하면 구간 도구가 나타납니다"}</small></div>
-      <details className="audioStudioDesktopAddMenu" ref={addMenuRef}><summary><Plus size={15} /> 음원 추가</summary><div><button onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Upload size={14} /> 파일 가져오기</button><button onClick={() => controller.startRecording()} type="button"><Mic size={14} /> 바로 녹음하기</button></div></details>
-      <div className="audioStudioContextActions">{actions.map(([icon, label, action]) => <ContextButton disabled={!action} icon={icon} key={label} label={label} onClick={action} />)}</div>
+    <section className="audioStudioContextToolbar" aria-label={translateUi("audioStudio.selectionEditingTools")}>
+      <div className="audioStudioContextLabel"><span>{controller.rangeSelection ? translateUi("audioStudio.waveformRange") : count ? translateUi("audioStudio.value1ClipsSelected", { value1: count }) : "TRACK + WAVEFORM"}</span><small>{controller.rangeSelection ? translateUi("audioStudio.dragTheHandlesToFineTuneTheRange") : count ? translateUi("audioStudio.applyToSelectedClips") : translateUi("audioStudio.dragOnAWaveformToShowRangeTools")}</small></div>
+      <details className="audioStudioDesktopAddMenu" ref={addMenuRef}><summary><Plus size={15} /><Translation id="audioStudio.addAudioAudioStudio" /></summary><div><button onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Upload size={14} /><Translation id="audioStudio.importFiles" /></button><button onClick={() => controller.startRecording()} type="button"><Mic size={14} /><Translation id="audioStudio.recordNowAudioStudio" /></button></div></details>
+      <div className="audioStudioContextActions">{actions.map(([icon, label, action]) => <ContextButton disabled={!action} icon={icon} key={label} label={localizeUi(label)} onClick={action} />)}</div>
     </section>
   );
 }
 
 function MobileTimelineToolbar({ controller }) {
+  useLanguage();
   const toolbarRef = useRef(null);
   useEffect(() => {
     toolbarRef.current?.querySelectorAll("details[open]").forEach((details) => details.removeAttribute("open"));
   }, [controller.importCompletionId]);
   return (
-    <section className="audioStudioMobileTimelineToolbar" aria-label="Timeline 빠른 도구" ref={toolbarRef}>
+    <section className="audioStudioMobileTimelineToolbar" aria-label={translateUi("audioStudio.timelineQuickTools")} ref={toolbarRef}>
       <details>
-        <summary aria-label="Timeline에 음원 추가"><Plus size={16} /><span>음원 추가</span></summary>
+        <summary aria-label={translateUi("audioStudio.addAudioToTimeline")}><Plus size={16} /><span><Translation id="app.addAudio" /></span></summary>
         <div>
-          <button onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Upload size={14} /> 파일 가져오기</button>
-          <button onClick={() => controller.startRecording()} type="button"><Mic size={14} /> 바로 녹음하기</button>
+          <button onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Upload size={14} /><Translation id="audioStudio.importFiles" /></button>
+          <button onClick={() => controller.startRecording()} type="button"><Mic size={14} /><Translation id="audioStudio.recordNowAudioStudio" /></button>
         </div>
       </details>
-      <button disabled={!controller.canUndo} onClick={controller.undo} type="button"><Undo2 size={15} /><span>되돌리기</span></button>
-      <button disabled={!controller.canRedo} onClick={controller.redo} type="button"><Redo2 size={15} /><span>다시 실행</span></button>
+      <button disabled={!controller.canUndo} onClick={controller.undo} type="button"><Undo2 size={15} /><span><Translation id="app.undo" /></span></button>
+      <button disabled={!controller.canRedo} onClick={controller.redo} type="button"><Redo2 size={15} /><span><Translation id="app.redo" /></span></button>
       <details className="audioStudioMobileTimelineOptions">
-        <summary aria-label="보기와 연습 옵션"><MoreHorizontal size={17} /><span>더보기</span></summary>
+        <summary aria-label={translateUi("audioStudio.viewAndPracticeOptions")}><MoreHorizontal size={17} /><span><Translation id="audioStudio.more" /></span></summary>
         <div>
-          <button onClick={controller.requestProjectFit} type="button"><Maximize2 size={14} /> 전체 곡 보기</button>
-          <button onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond / 1.5)} type="button"><ZoomOut size={14} /> 축소</button>
-          <button onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond * 1.5)} type="button"><ZoomIn size={14} /> 확대</button>
-          <button onClick={() => controller.setLoopPoint("start")} type="button">현재 위치를 Loop A로</button>
-          <button onClick={() => controller.setLoopPoint("end")} type="button">현재 위치를 Loop B로</button>
-          <button onClick={controller.goToLibrary} type="button"><FolderOpen size={14} /> 완성 음원 보관함</button>
+          <button onClick={controller.requestProjectFit} type="button"><Maximize2 size={14} /><Translation id="audioStudio.fitSong" /></button>
+          <button onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond / 1.5)} type="button"><ZoomOut size={14} /><Translation id="audioStudio.zoomOutAudioStudio" /></button>
+          <button onClick={() => controller.setTimelineZoom(controller.project.settings.pixelsPerSecond * 1.5)} type="button"><ZoomIn size={14} /><Translation id="audioStudio.zoomInAudioStudio" /></button>
+          <button onClick={() => controller.setLoopPoint("start")} type="button"><Translation id="audioStudio.setLoopAHere" /></button>
+          <button onClick={() => controller.setLoopPoint("end")} type="button"><Translation id="audioStudio.setLoopBHere" /></button>
+          <button onClick={controller.goToLibrary} type="button"><FolderOpen size={14} /><Translation id="audioStudio.finishedAudioLibrary" /></button>
         </div>
       </details>
     </section>
@@ -615,58 +630,61 @@ function MobileTimelineToolbar({ controller }) {
 }
 
 function MobileContextToolbar({ controller, onOpenInspector }) {
+  useLanguage();
   const count = controller.selectedClipIds.length;
   const selectedTrack = controller.project.tracks.find((track) => track.id === controller.selectedTrackId);
   if (!count && !selectedTrack && !controller.rangeSelection) return null;
-  let label = "트랙";
+  let label = ko["audioStudio.track"];
   let actions = selectedTrack ? [
-    [null, selectedTrack.mute ? "음소거 해제" : "음소거", () => controller.updateTrack(selectedTrack.id, { mute: !selectedTrack.mute })],
-    [null, selectedTrack.solo ? "솔로 해제" : "솔로", () => controller.updateTrack(selectedTrack.id, { solo: !selectedTrack.solo })],
-    [SlidersHorizontal, "볼륨", onOpenInspector],
-    [null, "위로", () => controller.moveActiveTrack("up")],
-    [null, "아래로", () => controller.moveActiveTrack("down")],
-    [Trash2, "트랙 삭제", controller.deleteActiveTrack],
+    [null, selectedTrack.mute ? ko["audioStudio.unmute"] : ko["audioStudio.muteAudioStudio"], () => controller.updateTrack(selectedTrack.id, { mute: !selectedTrack.mute })],
+    [null, selectedTrack.solo ? ko["audioStudio.unsolo"] : ko["audioStudio.soloAudioStudio"], () => controller.updateTrack(selectedTrack.id, { solo: !selectedTrack.solo })],
+    [SlidersHorizontal, ko["audioStudio.volume"], onOpenInspector],
+    [null, ko["audioStudio.up"], () => controller.moveActiveTrack("up")],
+    [null, ko["audioStudio.down"], () => controller.moveActiveTrack("down")],
+    [Trash2, ko["audioStudio.deleteTrack"], controller.deleteActiveTrack],
   ] : [];
   if (controller.rangeSelection) {
-    label = "파형 구간";
+    label = ko["audioStudio.waveformRange2"];
     actions = [
-      [null, "자르기", controller.trimRangeSelection],
-      [Scissors, "분할", controller.splitRangeSelection],
-      [Trash2, "삭제", controller.deleteRangeSelection],
-      [Copy, "복사", controller.duplicateRangeSelection],
-      [null, "구간 반복", controller.loopRangeSelection],
+      [null, ko["audioStudio.trim"], controller.trimRangeSelection],
+      [Scissors, ko["audioStudio.split"], controller.splitRangeSelection],
+      [Trash2, ko["common.delete"], controller.deleteRangeSelection],
+      [Copy, ko["audioStudio.copy"], controller.duplicateRangeSelection],
+      [null, ko["audioStudio.loopSelection"], controller.loopRangeSelection],
     ];
   } else if (count === 1) {
-    label = "클립";
+    label = ko["audioStudio.clip"];
     actions = [
-      [Scissors, "분할", controller.splitSelection],
-      [null, "앞 자르기", () => controller.trimSelection("start")],
-      [null, "뒤 자르기", () => controller.trimSelection("end")],
-      [Copy, "복사본", controller.duplicateSelection],
-      [Trash2, "삭제", controller.deleteSelection],
-      [Undo2, "되돌리기", controller.canUndo ? controller.undo : null],
+      [Scissors, ko["audioStudio.split"], controller.splitSelection],
+      [null, ko["audioStudio.trimStart"], () => controller.trimSelection("start")],
+      [null, ko["audioStudio.trimEnd"], () => controller.trimSelection("end")],
+      [Copy, ko["audioStudio.copy2"], controller.duplicateSelection],
+      [Trash2, ko["common.delete"], controller.deleteSelection],
+      [Undo2, ko["app.undo"], controller.canUndo ? controller.undo : null],
     ];
   } else if (count > 1) {
-    label = `클립 ${count}개`;
+    label = formatMessage(ko["audioStudio.value1Clips"], { value1: count });
     actions = [
-      [Copy, "복사본", controller.duplicateSelection],
-      [Trash2, "삭제", controller.deleteSelection],
-      [Undo2, "되돌리기", controller.canUndo ? controller.undo : null],
+      [Copy, ko["audioStudio.copy2"], controller.duplicateSelection],
+      [Trash2, ko["common.delete"], controller.deleteSelection],
+      [Undo2, ko["app.undo"], controller.canUndo ? controller.undo : null],
     ];
   }
   return (
-    <section className="audioStudioMobileContextToolbar" aria-label={`${label} 문맥 도구`}>
-      <small>{label} · {controller.rangeSelection ? "양쪽 핸들로 범위 조절" : "Timeline에서 직접 드래그해 이동"}</small>
-      <div>{actions.map(([icon, actionLabel, action]) => <ContextButton icon={icon} key={actionLabel} label={actionLabel} onClick={action} />)}</div>
+    <section className="audioStudioMobileContextToolbar" aria-label={translateUi("audioStudio.value1ContextTools", { value1: label })}>
+      <small>{localizeUi(label)} · {controller.rangeSelection ? translateUi("audioStudio.adjustRangeWithBothHandles") : translateUi("audioStudio.dragOnTheTimelineToMove")}</small>
+      <div>{actions.map(([icon, actionLabel, action]) => <ContextButton icon={icon} key={actionLabel} label={localizeUi(actionLabel)} onClick={action} />)}</div>
     </section>
   );
 }
 
 function InspectorField({ children, label }) {
-  return <label className="audioStudioInspectorField"><span>{label}</span>{children}</label>;
+  useLanguage();
+  return <label className="audioStudioInspectorField"><span>{localizeUi(label)}</span>{children}</label>;
 }
 
 function ClipInspector({ controller, tab }) {
+  useLanguage();
   const clip = controller.selectedClips[0];
   if (!clip) return <TrackInspector controller={controller} />;
   const source = controller.project.audioSources.find((item) => item.id === clip.sourceId);
@@ -675,42 +693,43 @@ function ClipInspector({ controller, tab }) {
   if (tab === "edit") {
     return (
       <div className="audioStudioInspectorPanel">
-        <div className="audioStudioSourceName"><span>원본 파일</span><strong title={source?.fileName || clip.name}>{source?.fileName || clip.name}</strong></div>
-        <InspectorField label="클립 이름"><input maxLength="240" onChange={(event) => update({ name: event.target.value })} value={clip.name} /></InspectorField>
+        <div className="audioStudioSourceName"><span><Translation id="audioStudio.originalFile" /></span><strong title={source?.fileName || clip.name}>{source?.fileName || clip.name}</strong></div>
+        <InspectorField label={translateUi("audioStudio.clipName")}><input maxLength="240" onChange={(event) => update({ name: event.target.value })} value={clip.name} /></InspectorField>
         <div className="audioStudioInspectorPair">
-          <InspectorField label="시작 위치 (ms)"><input min="0" onChange={(event) => update({ timelineStartMs: event.target.valueAsNumber })} step="10" type="number" value={Math.round(clip.timelineStartMs)} /></InspectorField>
-          <InspectorField label="길이 (ms)"><input min="10" readOnly type="number" value={Math.round(clip.durationMs)} /></InspectorField>
+          <InspectorField label={translateUi("audioStudio.startMs")}><input min="0" onChange={(event) => update({ timelineStartMs: event.target.valueAsNumber })} step="10" type="number" value={Math.round(clip.timelineStartMs)} /></InspectorField>
+          <InspectorField label={translateUi("audioStudio.lengthMs")}><input min="10" readOnly type="number" value={Math.round(clip.durationMs)} /></InspectorField>
         </div>
-        <p className="audioStudioInspectorHint">클립 양 끝을 드래그하면 앞·뒤를 정밀하게 자를 수 있습니다.</p>
-        <div className="audioStudioInspectorCommands"><button onClick={controller.splitSelection} type="button">현재 재생 위치에서 분할</button><button onClick={controller.deleteSelection} type="button">클립 삭제</button></div>
+        <p className="audioStudioInspectorHint"><Translation id="audioStudio.dragEitherEndOfTheClipToTrimPrecisely" /></p>
+        <div className="audioStudioInspectorCommands"><button onClick={controller.splitSelection} type="button"><Translation id="audioStudio.splitAtPlayhead" /></button><button onClick={controller.deleteSelection} type="button"><Translation id="audioStudio.deleteClip" /></button></div>
       </div>
     );
   }
   return (
     <div className="audioStudioInspectorPanel">
-      {controller.selectedClips.length > 1 ? <p className="audioStudioGroupStatus">{controller.selectedClips.length} Clips · 그룹 값 적용</p> : null}
+      {controller.selectedClips.length > 1 ? <p className="audioStudioGroupStatus">{controller.selectedClips.length}<Translation id="audioStudio.clipsApplyGroupValues" /></p> : null}
       <div className="audioStudioInspectorPair">
-        <InspectorField label="클립 볼륨"><input max="2" min="0" onChange={(event) => update({ volume: event.target.valueAsNumber })} step="0.01" type="number" value={clip.volume} /></InspectorField>
-        <InspectorField label="페이드 인 (ms)"><input min="0" onChange={(event) => update({ fadeInMs: event.target.valueAsNumber })} step="10" type="number" value={clip.fadeInMs} /></InspectorField>
-        <InspectorField label="페이드 아웃 (ms)"><input min="0" onChange={(event) => update({ fadeOutMs: event.target.valueAsNumber })} step="10" type="number" value={clip.fadeOutMs} /></InspectorField>
+        <InspectorField label={translateUi("audioStudio.clipVolume")}><input max="2" min="0" onChange={(event) => update({ volume: event.target.valueAsNumber })} step="0.01" type="number" value={clip.volume} /></InspectorField>
+        <InspectorField label={translateUi("audioStudio.fadeInMs")}><input min="0" onChange={(event) => update({ fadeInMs: event.target.valueAsNumber })} step="10" type="number" value={clip.fadeInMs} /></InspectorField>
+        <InspectorField label={translateUi("audioStudio.fadeOutMs")}><input min="0" onChange={(event) => update({ fadeOutMs: event.target.valueAsNumber })} step="10" type="number" value={clip.fadeOutMs} /></InspectorField>
       </div>
-      <div className="audioStudioToggleRow"><label><input checked={clip.mute} onChange={() => update({ mute: !clip.mute })} type="checkbox" /> 이 클립 음소거</label></div>
+      <div className="audioStudioToggleRow"><label><input checked={clip.mute} onChange={() => update({ mute: !clip.mute })} type="checkbox" /><Translation id="audioStudio.muteThisClip" /></label></div>
     </div>
   );
 }
 
 function TrackInspector({ controller }) {
+  useLanguage();
   const track = controller.activeTrack;
   if (!track) return null;
   return (
     <div className="audioStudioInspectorPanel">
-      <div className="audioStudioInspectorContext"><span>선택한 트랙</span><strong>{track.name}</strong></div>
-      <InspectorField label="트랙 이름"><input maxLength="80" onChange={(event) => controller.updateActiveTrack({ name: event.target.value })} value={track.name} /></InspectorField>
-      <div className="audioStudioInspectorPair"><InspectorField label="감지/수정 BPM"><input max="240" min="0" onChange={(event) => controller.updateActiveTrack({ bpm: event.target.valueAsNumber })} placeholder="감지 안 됨" step="1" type="number" value={track.bpm || ""} /></InspectorField><InspectorField label="전체 BPM"><input max="240" min="40" onChange={(event) => controller.updateEditorSettings({ projectBpm: event.target.valueAsNumber })} step="1" type="number" value={controller.project.settings.projectBpm} /></InspectorField></div>
-      {track.bpm && Math.abs(track.bpm - controller.project.settings.projectBpm) >= 0.5 ? <button className="audioStudioInspectorBpmMatch" disabled={Boolean(controller.projectOperation)} onClick={() => controller.matchTrackBpm(track.id)} type="button">{Math.round(track.bpm)} → {Math.round(controller.project.settings.projectBpm)} BPM 맞추기 · 음정 유지</button> : null}
-      <InspectorField label="트랙 볼륨"><input max="2" min="0" onChange={(event) => controller.updateActiveTrack({ volume: event.target.valueAsNumber })} step="0.01" type="range" value={track.volume} /></InspectorField>
-      <div className="audioStudioToggleRow"><label><input checked={track.mute} onChange={() => controller.updateActiveTrack({ mute: !track.mute })} type="checkbox" /> 음소거</label><label><input checked={track.solo} onChange={() => controller.updateActiveTrack({ solo: !track.solo })} type="checkbox" /> 솔로</label></div>
-      <div className="audioStudioInspectorCommands"><button onClick={() => controller.moveActiveTrack("up")} type="button">위로 이동</button><button onClick={() => controller.moveActiveTrack("down")} type="button">아래로 이동</button><button disabled={controller.project.tracks.length <= 1} onClick={controller.deleteActiveTrack} type="button">트랙 삭제</button></div>
+      <div className="audioStudioInspectorContext"><span><Translation id="audioStudio.selectedTrack" /></span><strong>{track.name}</strong></div>
+      <InspectorField label={translateUi("audioStudio.trackName")}><input maxLength="80" onChange={(event) => controller.updateActiveTrack({ name: event.target.value })} value={track.name} /></InspectorField>
+      <div className="audioStudioInspectorPair"><InspectorField label={translateUi("audioStudio.detectedManualBpm")}><input max="240" min="0" onChange={(event) => controller.updateActiveTrack({ bpm: event.target.valueAsNumber })} placeholder={translateUi("audioStudio.notDetected")} step="1" type="number" value={track.bpm || ""} /></InspectorField><InspectorField label={translateUi("audioStudio.masterBpm")}><input max="240" min="40" onChange={(event) => controller.updateEditorSettings({ projectBpm: event.target.valueAsNumber })} step="1" type="number" value={controller.project.settings.projectBpm} /></InspectorField></div>
+      {track.bpm && Math.abs(track.bpm - controller.project.settings.projectBpm) >= 0.5 ? <button className="audioStudioInspectorBpmMatch" disabled={Boolean(controller.projectOperation)} onClick={() => controller.matchTrackBpm(track.id)} type="button">{Math.round(track.bpm)} → {Math.round(controller.project.settings.projectBpm)}<Translation id="audioStudio.matchBpmPreservePitch" /></button> : null}
+      <InspectorField label={translateUi("audioStudio.trackVolume")}><input max="2" min="0" onChange={(event) => controller.updateActiveTrack({ volume: event.target.valueAsNumber })} step="0.01" type="range" value={track.volume} /></InspectorField>
+      <div className="audioStudioToggleRow"><label><input checked={track.mute} onChange={() => controller.updateActiveTrack({ mute: !track.mute })} type="checkbox" /><Translation id="audioStudio.mute" /></label><label><input checked={track.solo} onChange={() => controller.updateActiveTrack({ solo: !track.solo })} type="checkbox" /><Translation id="audioStudio.solo" /></label></div>
+      <div className="audioStudioInspectorCommands"><button onClick={() => controller.moveActiveTrack("up")} type="button"><Translation id="audioStudio.moveUp" /></button><button onClick={() => controller.moveActiveTrack("down")} type="button"><Translation id="audioStudio.moveDown" /></button><button disabled={controller.project.tracks.length <= 1} onClick={controller.deleteActiveTrack} type="button"><Translation id="audioStudio.deleteTrack" /></button></div>
     </div>
   );
 }
@@ -719,24 +738,25 @@ function PracticeInspector({ controller }) {
   const practice = controller.project.practice;
   return (
     <div className="audioStudioInspectorPanel">
-      <div className="audioStudioInspectorCommands"><button onClick={() => controller.setLoopPoint("start")} type="button">SET LOOP A</button><button onClick={() => controller.setLoopPoint("end")} type="button">SET LOOP B</button></div>
+      <div className="audioStudioInspectorCommands"><button onClick={() => controller.setLoopPoint("start")} type="button"><Translation id="originalUi.setLoopA" /></button><button onClick={() => controller.setLoopPoint("end")} type="button"><Translation id="originalUi.setLoopB" /></button></div>
       <div className="audioStudioInspectorPair"><InspectorField label="SPEED"><input max="2" min="0.25" onChange={(event) => controller.updatePractice({ speed: { current: event.target.valueAsNumber } })} step="0.05" type="number" value={practice.speed.current} /></InspectorField><InspectorField label="PITCH"><input max="12" min="-12" onChange={(event) => controller.updatePractice({ pitchSemitones: event.target.valueAsNumber })} step="1" type="number" value={practice.pitchSemitones} /></InspectorField><InspectorField label="LOOP A ms"><input min="0" onChange={(event) => controller.updatePractice({ loop: { startMs: event.target.valueAsNumber } })} step="10" type="number" value={practice.loop.startMs} /></InspectorField><InspectorField label="LOOP B ms"><input min="0" onChange={(event) => controller.updatePractice({ loop: { endMs: event.target.valueAsNumber } })} step="10" type="number" value={practice.loop.endMs} /></InspectorField><InspectorField label="REPEAT"><input max="999" min="1" onChange={(event) => controller.updatePractice({ repeat: { count: event.target.valueAsNumber } })} type="number" value={practice.repeat.count} /></InspectorField></div>
-      <div className="audioStudioToggleRow"><label><input checked={practice.loop.enabled} onChange={() => controller.updatePractice({ loop: { enabled: !practice.loop.enabled } })} type="checkbox" /> A-B LOOP</label><label><input checked={practice.repeat.enabled} onChange={() => controller.updatePractice({ repeat: { enabled: !practice.repeat.enabled } })} type="checkbox" /> REPEAT</label><label><input checked={practice.speed.stepEnabled} onChange={() => controller.updatePractice({ speed: { stepEnabled: !practice.speed.stepEnabled } })} type="checkbox" /> STEP-UP</label></div>
+      <div className="audioStudioToggleRow"><label><input checked={practice.loop.enabled} onChange={() => controller.updatePractice({ loop: { enabled: !practice.loop.enabled } })} type="checkbox" /><Translation id="originalUi.aBLoop" /></label><label><input checked={practice.repeat.enabled} onChange={() => controller.updatePractice({ repeat: { enabled: !practice.repeat.enabled } })} type="checkbox" /><Translation id="originalUi.repeatAudiostudio" /></label><label><input checked={practice.speed.stepEnabled} onChange={() => controller.updatePractice({ speed: { stepEnabled: !practice.speed.stepEnabled } })} type="checkbox" /><Translation id="originalUi.stepUp" /></label></div>
     </div>
   );
 }
 
 function EditorInspector({ controller, mobile, onClose, open = false }) {
+  useLanguage();
   const [tab, setTab] = useState("edit");
-  const tabs = [["edit", "편집"], ["audio", "볼륨·페이드"], ["practice", "연습"]];
-  const content = <><div className="audioStudioInspectorTabs" role="tablist">{tabs.map(([key, label]) => <button aria-selected={tab === key} key={key} onClick={() => setTab(key)} role="tab" type="button">{label}</button>)}</div><ClipInspector controller={controller} tab={tab} /></>;
+  const tabs = [["edit", ko["common.edit"]], ["audio", ko["audioStudio.volumeFades"]], ["practice", ko["audioStudio.practice"]]];
+  const content = <><div className="audioStudioInspectorTabs" role="tablist">{tabs.map(([key, label]) => <button aria-selected={tab === key} key={key} onClick={() => setTab(key)} role="tab" type="button">{localizeUi(label)}</button>)}</div><ClipInspector controller={controller} tab={tab} /></>;
   if (mobile) {
     if (!open) return null;
     return (
       <div className="audioStudioInspectorSheetLayer" role="presentation">
-        <button aria-label="Inspector 닫기" className="audioStudioInspectorSheetDim" onClick={onClose} type="button" />
-        <section aria-label="Audio Inspector" aria-modal="true" className="audioStudioInspectorSheet" role="dialog">
-          <header><span><strong>{controller.selectedClipIds.length ? `클립 ${controller.selectedClipIds.length}개 선택` : controller.activeTrack?.name || "트랙 설정"}</strong><small>필요한 설정만 표시합니다</small></span><button aria-label="Inspector 닫기" onClick={onClose} type="button"><X size={17} /></button></header>
+        <button aria-label={translateUi("audioStudio.closeInspector")} className="audioStudioInspectorSheetDim" onClick={onClose} type="button" />
+        <section aria-label={translateUi("originalUi.audioInspector")} aria-modal="true" className="audioStudioInspectorSheet" role="dialog">
+          <header><span><strong>{controller.selectedClipIds.length ? translateUi("audioStudio.value1ClipsSelected", { value1: controller.selectedClipIds.length }) : controller.activeTrack?.name || translateUi("audioStudio.trackSettings")}</strong><small><Translation id="audioStudio.essentialSettings" /></small></span><button aria-label={translateUi("audioStudio.closeInspector")} onClick={onClose} type="button"><X size={17} /></button></header>
           <div className="audioStudioInspectorSheetBody">{content}</div>
         </section>
       </div>
@@ -747,9 +767,9 @@ function EditorInspector({ controller, mobile, onClose, open = false }) {
 
 function WorkspaceNavigation({ controller, screen }) {
   return (
-    <nav className="audioStudioWorkspaceNav" aria-label="Audio Studio Workspace">
-      <button aria-current={screen === AUDIO_STUDIO_SCREENS.EDIT ? "page" : undefined} onClick={controller.goToEditor} type="button">파형 편집</button>
-      <button aria-current={screen === AUDIO_STUDIO_SCREENS.MIX ? "page" : undefined} onClick={controller.goToMixer} type="button">믹스 저장</button>
+    <nav className="audioStudioWorkspaceNav" aria-label={translateUi("originalUi.audioStudioWorkspace")}>
+      <button aria-current={screen === AUDIO_STUDIO_SCREENS.EDIT ? "page" : undefined} onClick={controller.goToEditor} type="button"><Translation id="audioStudio.waveformEditing" /></button>
+      <button aria-current={screen === AUDIO_STUDIO_SCREENS.MIX ? "page" : undefined} onClick={controller.goToMixer} type="button"><Translation id="audioStudio.saveMix" /></button>
     </nav>
   );
 }
@@ -784,31 +804,32 @@ function WaveformEditor({ controller, mobile }) {
 }
 
 function MixerWorkspace({ controller, mobile }) {
+  useLanguage();
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const master = controller.project.mixer.master;
   const hasAudio = getAudioStudioProjectDurationMs(controller.project) > 0;
   return (
     <section className="audioStudioMixerWorkspace" data-audio-studio-screen="mix">
-      <StudioWorkspaceTopbar controller={controller} title="믹스 저장" />
+      <StudioWorkspaceTopbar controller={controller} title={translateUi("audioStudio.saveMix")} />
       <WorkspaceNavigation controller={controller} screen={AUDIO_STUDIO_SCREENS.MIX} />
       <AudioStudioTransport controller={controller} mobile={mobile} />
-      <header className="audioStudioMixerHeader"><div><span>VOLUME BALANCE</span><h1>각 소리의 크기를 맞추세요</h1><p>모든 트랙을 같은 화면에서 비교할 수 있습니다.</p></div><div className={`audioStudioMasterMeter ${controller.masterLevel > 0.98 ? "is-clipping" : ""}`}><i style={{ height: `${Math.max(2, controller.masterLevel * 100)}%` }} /></div></header>
+      <header className="audioStudioMixerHeader"><div><span><Translation id="originalUi.volumeBalance" /></span><h1><Translation id="audioStudio.balanceTheLevels" /></h1><p><Translation id="audioStudio.compareAllTracksInOneView" /></p></div><div className={`audioStudioMasterMeter ${controller.masterLevel > 0.98 ? "is-clipping" : ""}`}><i style={{ height: `${Math.max(2, controller.masterLevel * 100)}%` }} /></div></header>
       <div className={`audioStudioMixerChannels ${mobile ? "is-mobile" : "is-desktop"}`}>
         {controller.project.tracks.map((track, index) => (
           <section className="audioStudioMixerChannel" key={track.id}>
-            <header><span>TRACK {index + 1}</span><strong title={track.name}>{track.name}</strong></header>
-            <div className="audioStudioMixerChannelButtons"><button aria-pressed={track.mute} onClick={() => controller.updateTrack(track.id, { mute: !track.mute })} type="button">음소거</button><button aria-pressed={track.solo} onClick={() => controller.updateTrack(track.id, { solo: !track.solo })} type="button">솔로</button></div>
-            <label><span>볼륨</span><input max="2" min="0" onChange={(event) => controller.updateTrack(track.id, { volume: event.target.valueAsNumber })} step="0.01" type="range" value={track.volume} /><output>{Math.round(track.volume * 100)}%</output></label>
+            <header><span><Translation id="originalUi.track" />{index + 1}</span><strong title={track.name}>{track.name}</strong></header>
+            <div className="audioStudioMixerChannelButtons"><button aria-pressed={track.mute} onClick={() => controller.updateTrack(track.id, { mute: !track.mute })} type="button"><Translation id="audioStudio.muteAudioStudio" /></button><button aria-pressed={track.solo} onClick={() => controller.updateTrack(track.id, { solo: !track.solo })} type="button"><Translation id="audioStudio.soloAudioStudio" /></button></div>
+            <label><span><Translation id="audioStudio.volume" /></span><input max="2" min="0" onChange={(event) => controller.updateTrack(track.id, { volume: event.target.valueAsNumber })} step="0.01" type="range" value={track.volume} /><output>{Math.round(track.volume * 100)}%</output></label>
           </section>
         ))}
         <section className="audioStudioMixerChannel audioStudioMixerChannel--master">
-          <header><span>MASTER</span><strong>전체 출력</strong></header>
-          <label><span>전체 볼륨</span><input max="2" min="0" onChange={(event) => controller.updateMaster({ volume: event.target.valueAsNumber })} step="0.01" type="range" value={master.volume} /><output>{Math.round(master.volume * 100)}%</output></label>
+          <header><span><Translation id="originalUi.master" /></span><strong><Translation id="audioStudio.masterOutput" /></strong></header>
+          <label><span><Translation id="audioStudio.masterVolume" /></span><input max="2" min="0" onChange={(event) => controller.updateMaster({ volume: event.target.valueAsNumber })} step="0.01" type="range" value={master.volume} /><output>{Math.round(master.volume * 100)}%</output></label>
         </section>
       </div>
       <div className="audioStudioMixSaveArea">
-        <button className="audioStudioMixerExport" disabled={!hasAudio || controller.projectOperation === "mix-saving"} onClick={() => setSaveDialogOpen(true)} type="button"><Save size={15} /> MIX SAVE</button>
-        <small>전체 Preview를 확인한 뒤 실제 WAV 파일 하나로 만들어 AUDIO STUDIO 보관함에 저장합니다.</small>
+        <button className="audioStudioMixerExport" disabled={!hasAudio || controller.projectOperation === "mix-saving"} onClick={() => setSaveDialogOpen(true)} type="button"><Save size={15} /><Translation id="originalUi.mixSave" /></button>
+        <small><Translation id="audioStudio.previewTheFullMixThenSaveAWavFileToTheAudio" /></small>
       </div>
       {saveDialogOpen ? <MixSaveNameDialog onClose={() => setSaveDialogOpen(false)} onSave={controller.mixSave} saving={controller.projectOperation === "mix-saving"} /> : null}
     </section>
@@ -825,6 +846,7 @@ function getSimpleClipWaveform(source, clip, bucketCount = 84) {
 }
 
 function SimpleTrimDialog({ clip, controller, onClose, source, track }) {
+  useLanguage();
   const durationMs = Math.max(10, Number(source?.durationMs) || clip.sourceEndMs || clip.durationMs);
   const minimumDurationMs = Math.min(100, durationMs);
   const [startMs, setStartMs] = useState(Math.max(0, Math.min(durationMs - minimumDurationMs, clip.sourceStartMs)));
@@ -907,16 +929,16 @@ function SimpleTrimDialog({ clip, controller, onClose, source, track }) {
       setSourceBpm(String(detectedBpm));
       setTargetBpm(String(detectedBpm));
     }
-    setAnalysisMessage("원본 구간과 속도로 되돌릴 준비가 되었습니다. 적용을 눌러 반영하세요.");
+    setAnalysisMessage(ko["audioStudio.readyToRestoreTheOriginalRangeAndSpeedPressApply"]);
   };
   const useDetectedBpm = () => {
     if (!detectedBpm) {
-      setAnalysisMessage("이 음원에서는 BPM을 안정적으로 추정하지 못했습니다. 원본 BPM을 직접 입력해주세요.");
+      setAnalysisMessage(ko["audioStudio.couldnTReliablyDetectThisTrackSBpmEnterTheOriginalBpm"]);
       return;
     }
     setSourceBpm(String(detectedBpm));
     if (!Number(targetBpm)) setTargetBpm(String(detectedBpm));
-    setAnalysisMessage(`가져올 때 분석한 추정값 ${detectedBpm} BPM을 불러왔습니다.`);
+    setAnalysisMessage(formatMessage(ko["audioStudio.loadedTheImportEstimateValue1Bpm"], { value1: detectedBpm }));
   };
   const changeTargetBpm = (delta) => {
     const fallback = Number(sourceBpm) || detectedBpm || 120;
@@ -981,39 +1003,39 @@ function SimpleTrimDialog({ clip, controller, onClose, source, track }) {
   const dialog = (
     <div className="audioStudioOverlay audioStudioDialogBackdrop" role="presentation">
       <section aria-labelledby="audio-studio-simple-trim-title" aria-modal="true" className="audioStudioDialog audioStudioSimpleTrimDialog" role="dialog">
-        <header><div><h2 id="audio-studio-simple-trim-title">구간 다듬기</h2><strong>{source.fileName || track.name}</strong><span>양쪽 손잡이로 실제 사용할 구간을 정하세요.</span></div><button aria-label="닫기" disabled={processing} onClick={onClose} type="button"><X size={22} /></button></header>
+        <header><div><h2 id="audio-studio-simple-trim-title"><Translation id="audioStudio.trimRange" /></h2><strong>{source.fileName || track.name}</strong><span><Translation id="audioStudio.useTheHandlesToSelectTheRangeToKeep" /></span></div><button aria-label={translateUi("common.close")} disabled={processing} onClick={onClose} type="button"><X size={22} /></button></header>
         <div className="audioStudioSimpleTrimRuler" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <time key={index} style={{ left: `${index * 25}%` }}>{formatStudioTime(durationMs * index / 4)}</time>)}</div>
         <div className="audioStudioSimpleTrimWaveform" onPointerCancel={endTrim} onPointerDown={beginTrim} onPointerMove={moveTrim} onPointerUp={endTrim} ref={waveformRef}>
           <div aria-hidden="true" className="audioStudioSimpleTrimBars">{peaks.map((peak, index) => <i key={index} style={{ height: `${Math.max(5, peak * 100)}%` }} />)}</div>
           <i aria-hidden="true" className="audioStudioSimpleTrimMask is-start" style={{ width: `${startPercent}%` }} />
           <i aria-hidden="true" className="audioStudioSimpleTrimMask is-end" style={{ width: `${100 - endPercent}%` }} />
           <i aria-hidden="true" className="audioStudioSimpleTrimSelection" style={{ left: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />
-          <button aria-label={`앞부분 ${formatStudioTime(startMs, true)}부터 사용`} aria-valuemax={durationMs} aria-valuemin="0" aria-valuenow={Math.round(startMs)} className="audioStudioSimpleTrimHandle is-start" data-label="START" data-trim-handle="start" onKeyDown={(event) => handleTrimKey(event, "start")} role="slider" style={{ left: `${startPercent}%` }} type="button" />
-          <button aria-label={`뒷부분 ${formatStudioTime(endMs, true)}까지 사용`} aria-valuemax={durationMs} aria-valuemin="0" aria-valuenow={Math.round(endMs)} className="audioStudioSimpleTrimHandle is-end" data-label="END" data-trim-handle="end" onKeyDown={(event) => handleTrimKey(event, "end")} role="slider" style={{ left: `${endPercent}%` }} type="button" />
+          <button aria-label={translateUi("audioStudio.useAudioFromValue1", { value1: formatStudioTime(startMs, true) })} aria-valuemax={durationMs} aria-valuemin="0" aria-valuenow={Math.round(startMs)} className="audioStudioSimpleTrimHandle is-start" data-label="START" data-trim-handle="start" onKeyDown={(event) => handleTrimKey(event, "start")} role="slider" style={{ left: `${startPercent}%` }} type="button" />
+          <button aria-label={translateUi("audioStudio.useAudioThroughValue1", { value1: formatStudioTime(endMs, true) })} aria-valuemax={durationMs} aria-valuemin="0" aria-valuenow={Math.round(endMs)} className="audioStudioSimpleTrimHandle is-end" data-label="END" data-trim-handle="end" onKeyDown={(event) => handleTrimKey(event, "end")} role="slider" style={{ left: `${endPercent}%` }} type="button" />
         </div>
         <div className="audioStudioSimpleTrimTimes">
-          <span><small>START</small><strong>{formatStudioTime(startMs, true)}</strong><div><button aria-label="시작 0.01초 줄이기" onClick={() => nudgeBoundary("start", -10)} type="button"><Minus size={14} /></button><button aria-label="시작 0.01초 늘리기" onClick={() => nudgeBoundary("start", 10)} type="button"><Plus size={14} /></button></div></span>
-          <span><small>END</small><strong>{formatStudioTime(endMs, true)}</strong><div><button aria-label="끝 0.01초 줄이기" onClick={() => nudgeBoundary("end", -10)} type="button"><Minus size={14} /></button><button aria-label="끝 0.01초 늘리기" onClick={() => nudgeBoundary("end", 10)} type="button"><Plus size={14} /></button></div></span>
-          <span><small>LENGTH</small><strong>{formatStudioTime(endMs - startMs, true)}</strong><em>선택 구간</em></span>
+          <span><small><Translation id="originalUi.start" /></small><strong>{formatStudioTime(startMs, true)}</strong><div><button aria-label={translateUi("audioStudio.moveStartBack001S")} onClick={() => nudgeBoundary("start", -10)} type="button"><Minus size={14} /></button><button aria-label={translateUi("audioStudio.moveStartForward001S")} onClick={() => nudgeBoundary("start", 10)} type="button"><Plus size={14} /></button></div></span>
+          <span><small><Translation id="originalUi.end" /></small><strong>{formatStudioTime(endMs, true)}</strong><div><button aria-label={translateUi("audioStudio.moveEndBack001S")} onClick={() => nudgeBoundary("end", -10)} type="button"><Minus size={14} /></button><button aria-label={translateUi("audioStudio.moveEndForward001S")} onClick={() => nudgeBoundary("end", 10)} type="button"><Plus size={14} /></button></div></span>
+          <span><small><Translation id="originalUi.length" /></small><strong>{formatStudioTime(endMs - startMs, true)}</strong><em><Translation id="audioStudio.selection" /></em></span>
         </div>
-        <div className="audioStudioSimpleTrimPreview" aria-label="선택 구간 미리듣기">
-          <div><button aria-label="선택 구간 처음으로" disabled={processing} onClick={() => controller.setPlaybackPosition(0)} type="button"><SkipBack size={19} /></button><button aria-label={previewPlaying ? "미리듣기 일시정지" : "선택 구간 재생"} className="is-primary" disabled={processing} onClick={togglePreview} type="button">{previewPlaying ? <Pause size={20} /> : <Play size={20} />}</button><button aria-label="선택 구간 끝으로" disabled={processing} onClick={() => controller.setPlaybackPosition(previewDurationMs)} type="button"><SkipForward size={19} /></button></div>
-          <section><time>{formatStudioTime(Math.min(controller.currentTimeMs, previewDurationMs), true)} <span>/</span> {formatStudioTime(previewDurationMs, true)}</time><input aria-label="선택 구간 재생 위치" disabled={processing} max={Math.max(1, previewDurationMs)} min="0" onChange={(event) => controller.setPlaybackPosition(event.target.valueAsNumber)} step="10" type="range" value={Math.min(previewDurationMs, controller.currentTimeMs)} /></section>
+        <div className="audioStudioSimpleTrimPreview" aria-label={translateUi("audioStudio.previewSelection")}>
+          <div><button aria-label={translateUi("audioStudio.goToSelectionStart")} disabled={processing} onClick={() => controller.setPlaybackPosition(0)} type="button"><SkipBack size={19} /></button><button aria-label={previewPlaying ? translateUi("audioStudio.pausePreview") : translateUi("audioStudio.playSelection")} className="is-primary" disabled={processing} onClick={togglePreview} type="button">{previewPlaying ? <Pause size={20} /> : <Play size={20} />}</button><button aria-label={translateUi("audioStudio.goToSelectionEnd")} disabled={processing} onClick={() => controller.setPlaybackPosition(previewDurationMs)} type="button"><SkipForward size={19} /></button></div>
+          <section><time>{formatStudioTime(Math.min(controller.currentTimeMs, previewDurationMs), true)} <span>/</span> {formatStudioTime(previewDurationMs, true)}</time><input aria-label={translateUi("audioStudio.selectionPlayhead")} disabled={processing} max={Math.max(1, previewDurationMs)} min="0" onChange={(event) => controller.setPlaybackPosition(event.target.valueAsNumber)} step="10" type="range" value={Math.min(previewDurationMs, controller.currentTimeMs)} /></section>
         </div>
         <section className={`audioStudioTrimStretch ${stretchEnabled ? "is-enabled" : ""}`}>
-          <header><div><strong>TIME STRETCH</strong><span>속도/템포 조절 · Pitch 유지</span></div><button aria-checked={stretchEnabled} className="audioStudioTrimStretchToggle" disabled={processing} onClick={() => setStretchEnabled((value) => !value)} role="switch" type="button"><i /></button></header>
+          <header><div><strong><Translation id="originalUi.timeStretch" /></strong><span><Translation id="audioStudio.speedTempoPreservePitch" /></span></div><button aria-checked={stretchEnabled} className="audioStudioTrimStretchToggle" disabled={processing} onClick={() => setStretchEnabled((value) => !value)} role="switch" type="button"><i /></button></header>
           <div className="audioStudioTrimStretchFields">
-            <label><span>원본 BPM <small>분석값</small></span><div><input disabled={!stretchEnabled || processing} inputMode="decimal" max="320" min="1" onChange={(event) => setSourceBpm(event.target.value)} placeholder="직접 입력" step="0.1" type="number" value={sourceBpm} /><button disabled={!stretchEnabled || processing} onClick={useDetectedBpm} type="button">BPM 분석</button></div></label>
+            <label><span><Translation id="audioStudio.originalBpm" /><small><Translation id="audioStudio.detected" /></small></span><div><input disabled={!stretchEnabled || processing} inputMode="decimal" max="320" min="1" onChange={(event) => setSourceBpm(event.target.value)} placeholder={translateUi("audioStudio.manual")} step="0.1" type="number" value={sourceBpm} /><button disabled={!stretchEnabled || processing} onClick={useDetectedBpm} type="button"><Translation id="audioStudio.analyzeBpm" /></button></div></label>
             <b aria-hidden="true">→</b>
-            <label><span>목표 BPM</span><div><input disabled={!stretchEnabled || processing} inputMode="decimal" max="320" min="1" onChange={(event) => setTargetBpm(event.target.value)} placeholder="직접 입력" step="0.1" type="number" value={targetBpm} /><button aria-label="목표 BPM 1 줄이기" disabled={!stretchEnabled || processing} onClick={() => changeTargetBpm(-1)} type="button"><Minus size={15} /></button><button aria-label="목표 BPM 1 늘리기" disabled={!stretchEnabled || processing} onClick={() => changeTargetBpm(1)} type="button"><Plus size={15} /></button></div></label>
+            <label><span><Translation id="audioStudio.targetBpm" /></span><div><input disabled={!stretchEnabled || processing} inputMode="decimal" max="320" min="1" onChange={(event) => setTargetBpm(event.target.value)} placeholder={translateUi("audioStudio.manual")} step="0.1" type="number" value={targetBpm} /><button aria-label={translateUi("audioStudio.decreaseTargetBpmBy1")} disabled={!stretchEnabled || processing} onClick={() => changeTargetBpm(-1)} type="button"><Minus size={15} /></button><button aria-label={translateUi("audioStudio.increaseTargetBpmBy1")} disabled={!stretchEnabled || processing} onClick={() => changeTargetBpm(1)} type="button"><Plus size={15} /></button></div></label>
           </div>
-          <div className={`audioStudioTrimStretchRatio ${stretchEnabled && hasBothBpmValues && !supportedRatio ? "is-invalid" : ""}`}><span>변환 배율</span><div><i style={{ width: `${Math.max(0, Math.min(100, ((ratio || 0.75) - 0.75) / 0.75 * 100))}%` }} /></div><strong>{stretchEnabled && ratio > 0 ? `${ratio.toFixed(3)}x` : "OFF"}</strong></div>
-          {stretchEnabled && hasBothBpmValues && !supportedRatio ? <p className="audioStudioSimpleStretchWarning" role="alert">지원 범위는 {AUDIO_STUDIO_TIME_STRETCH_MIN_RATIO.toFixed(2)}× ~ {AUDIO_STUDIO_TIME_STRETCH_MAX_RATIO.toFixed(2)}×입니다.</p> : null}
-          {analysisMessage ? <p className="audioStudioTrimStretchMessage">{analysisMessage}</p> : null}
-          {processing ? <div aria-live="polite" className="audioStudioSimpleStretchProgress"><span><LoaderCircle className="is-spinning" size={15} /> Pitch를 유지하며 변환 중</span><progress max="100" value={Math.round((stretchState.progress || 0) * 100)} /><output>{Math.round((stretchState.progress || 0) * 100)}%</output></div> : null}
-          {stretchState.status === "error" ? <p className="audioStudioSimpleStretchWarning" role="alert">{stretchState.error}</p> : null}
+          <div className={`audioStudioTrimStretchRatio ${stretchEnabled && hasBothBpmValues && !supportedRatio ? "is-invalid" : ""}`}><span><Translation id="audioStudio.stretchRatio" /></span><div><i style={{ width: `${Math.max(0, Math.min(100, ((ratio || 0.75) - 0.75) / 0.75 * 100))}%` }} /></div><strong>{stretchEnabled && ratio > 0 ? `${ratio.toFixed(3)}x` : "OFF"}</strong></div>
+          {stretchEnabled && hasBothBpmValues && !supportedRatio ? <p className="audioStudioSimpleStretchWarning" role="alert"><Translation id="audioStudio.supportedRange" />{AUDIO_STUDIO_TIME_STRETCH_MIN_RATIO.toFixed(2)}× ~ {AUDIO_STUDIO_TIME_STRETCH_MAX_RATIO.toFixed(2)}<Translation id="audioStudio.label" /></p> : null}
+          {analysisMessage ? <p className="audioStudioTrimStretchMessage">{localizeUi(analysisMessage)}</p> : null}
+          {processing ? <div aria-live="polite" className="audioStudioSimpleStretchProgress"><span><LoaderCircle className="is-spinning" size={15} /><Translation id="audioStudio.processingWithPitchPreserved" /></span><progress max="100" value={Math.round((stretchState.progress || 0) * 100)} /><output>{Math.round((stretchState.progress || 0) * 100)}%</output></div> : null}
+          {stretchState.status === "error" ? <p className="audioStudioSimpleStretchWarning" role="alert">{localizeUi(stretchState.error)}</p> : null}
         </section>
-        <div className="audioStudioDialogActions audioStudioSimpleTrimActions"><button disabled={processing} onClick={restoreOriginal} type="button"><RotateCcw size={15} /> 원본 구간으로 복원</button><button disabled={processing} onClick={onClose} type="button">취소</button><button disabled={processing || (stretchEnabled && !supportedRatio)} onClick={applyTrim} type="button">{processing ? "처리 중..." : "적용"}</button></div>
+        <div className="audioStudioDialogActions audioStudioSimpleTrimActions"><button disabled={processing} onClick={restoreOriginal} type="button"><RotateCcw size={15} /><Translation id="audioStudio.restoreOriginalRange" /></button><button disabled={processing} onClick={onClose} type="button"><Translation id="common.cancel" /></button><button disabled={processing || (stretchEnabled && !supportedRatio)} onClick={applyTrim} type="button">{processing ? translateUi("audioStudio.processing") : translateUi("app.apply")}</button></div>
       </section>
     </div>
   );
@@ -1021,6 +1043,7 @@ function SimpleTrimDialog({ clip, controller, onClose, source, track }) {
 }
 
 function SimpleTrackRow({ controller, onDelete, onTrim, timelineDurationMs, track, trackIndex }) {
+  useLanguage();
   const [dragStartMs, setDragStartMs] = useState(null);
   const clip = track.clips[0];
   const source = controller.project.audioSources.find((item) => item.id === clip?.sourceId);
@@ -1067,10 +1090,10 @@ function SimpleTrackRow({ controller, onDelete, onTrim, timelineDurationMs, trac
   return (
     <article className={`audioStudioSimpleTrack ${track.mute ? "is-muted" : ""}`}>
       <header className="audioStudioSimpleTrackHeader">
-        <div className="audioStudioSimpleTrackName"><span>TRACK {trackIndex + 1}</span><strong title={source?.fileName || track.name}>{source?.fileName || track.name}</strong>{track.timeStretch?.ratio && Math.abs(track.timeStretch.ratio - 1) > 0.000001 ? <small>STRETCH {track.timeStretch.ratio.toFixed(3)}x</small> : null}</div>
+        <div className="audioStudioSimpleTrackName"><span><Translation id="originalUi.track" />{trackIndex + 1}</span><strong title={source?.fileName || track.name}>{source?.fileName || track.name}</strong>{track.timeStretch?.ratio && Math.abs(track.timeStretch.ratio - 1) > 0.000001 ? <small><Translation id="originalUi.stretch" />{track.timeStretch.ratio.toFixed(3)}<Translation id="originalUi.x" /></small> : null}</div>
         <div className="audioStudioSimpleTrackControls">
-          <div className="audioStudioSimpleTrackActions"><button aria-label={`${track.name} 구간 다듬기`} disabled={Boolean(controller.projectOperation)} onClick={() => onTrim(track.id)} title="구간 다듬기" type="button"><Scissors size={15} /><span>TRIM</span></button><button aria-label={`${track.name} 삭제`} className="is-danger" disabled={Boolean(controller.projectOperation)} onClick={() => onDelete(track.id)} title="삭제" type="button"><Trash2 size={15} /><span>삭제</span></button></div>
-          <div className="audioStudioSimpleTrackSound"><label className="audioStudioSimpleVolume"><span>VOL</span><input aria-label={`${track.name} 볼륨`} max="2" min="0" onChange={(event) => controller.updateTrack(track.id, { volume: event.target.valueAsNumber })} step="0.05" type="range" value={track.volume} /><output>{Math.round(track.volume * 100)}%</output></label><button aria-label={`${track.name} ${track.mute ? "음소거 해제" : "음소거"}`} aria-pressed={track.mute} className={`audioStudioSimpleMute ${track.mute ? "is-active" : ""}`} onClick={() => controller.updateTrack(track.id, { mute: !track.mute })} title={track.mute ? "음소거 해제" : "음소거"} type="button">{track.mute ? <VolumeX size={21} /> : <Volume2 size={21} />}</button></div>
+          <div className="audioStudioSimpleTrackActions"><button aria-label={translateUi("audioStudio.trimValue1", { value1: track.name })} disabled={Boolean(controller.projectOperation)} onClick={() => onTrim(track.id)} title={translateUi("audioStudio.trimRange")} type="button"><Scissors size={15} /><span><Translation id="originalUi.trim" /></span></button><button aria-label={translateUi("app.deleteValue1", { value1: track.name })} className="is-danger" disabled={Boolean(controller.projectOperation)} onClick={() => onDelete(track.id)} title={translateUi("common.delete")} type="button"><Trash2 size={15} /><span><Translation id="common.delete" /></span></button></div>
+          <div className="audioStudioSimpleTrackSound"><label className="audioStudioSimpleVolume"><span><Translation id="originalUi.vol" /></span><input aria-label={translateUi("app.value1Volume", { value1: track.name })} max="2" min="0" onChange={(event) => controller.updateTrack(track.id, { volume: event.target.valueAsNumber })} step="0.05" type="range" value={track.volume} /><output>{Math.round(track.volume * 100)}%</output></label><button aria-label={`${track.name} ${track.mute ? translateUi("audioStudio.unmute") : translateUi("audioStudio.muteAudioStudio")}`} aria-pressed={track.mute} className={`audioStudioSimpleMute ${track.mute ? "is-active" : ""}`} onClick={() => controller.updateTrack(track.id, { mute: !track.mute })} title={track.mute ? translateUi("audioStudio.unmute") : translateUi("audioStudio.muteAudioStudio")} type="button">{track.mute ? <VolumeX size={21} /> : <Volume2 size={21} />}</button></div>
         </div>
       </header>
       <div className="audioStudioSimpleTrackLane" onPointerDown={(event) => {
@@ -1078,9 +1101,9 @@ function SimpleTrackRow({ controller, onDelete, onTrim, timelineDurationMs, trac
         const bounds = event.currentTarget.getBoundingClientRect();
         controller.seekPlayback(((event.clientX - bounds.left) / bounds.width) * timelineDurationMs);
       }}>
-        <div aria-label={`${track.name} 위치 이동, 현재 ${formatStudioTime(displayedStartMs, true)} 시작`} className="audioStudioSimpleClip" onKeyDown={moveWithKeyboard} onPointerDown={beginMove} role="slider" tabIndex="0" title="좌우로 드래그해 시작 위치를 맞추세요" style={{ left: `${startPercent}%`, width: `${widthPercent}%` }}>
+        <div aria-label={translateUi("audioStudio.moveValue1CurrentlyStartingAtValue2", { value1: track.name, value2: formatStudioTime(displayedStartMs, true) })} className="audioStudioSimpleClip" onKeyDown={moveWithKeyboard} onPointerDown={beginMove} role="slider" tabIndex="0" title={translateUi("audioStudio.dragLeftOrRightToSetTheStartPosition")} style={{ left: `${startPercent}%`, width: `${widthPercent}%` }}>
           <div aria-hidden="true" className="audioStudioSimpleWaveform">{peaks.map((peak, index) => <i key={index} style={{ height: `${Math.max(6, peak * 100)}%` }} />)}</div>
-          <span>{formatStudioTime(displayedStartMs, true)} ~ {formatStudioTime(displayedEndMs, true)} <em>({(clip.durationMs / 1_000).toFixed(2)}s)</em></span>
+          <span>{formatStudioTime(displayedStartMs, true)} ~ {formatStudioTime(displayedEndMs, true)} <em>({(clip.durationMs / 1_000).toFixed(2)}<Translation id="originalUi.sAudiostudio" /></em></span>
         </div>
         <i aria-hidden="true" className="audioStudioSimplePlayhead" style={{ left: `${Math.min(100, (controller.currentTimeMs / timelineDurationMs) * 100)}%` }} />
       </div>
@@ -1089,37 +1112,40 @@ function SimpleTrackRow({ controller, onDelete, onTrim, timelineDurationMs, trac
 }
 
 function SimpleAudioTimeline({ controller, onDelete, onTrim }) {
+  useLanguage();
   const tracks = controller.project.tracks.filter((track) => track.clips.length);
   const contentDurationMs = getAudioStudioProjectDurationMs(controller.project);
   const timelineDurationMs = Math.max(10_000, Math.ceil((contentDurationMs + 10_000) / 10_000) * 10_000);
   const ticks = Array.from({ length: 6 }, (_, index) => (timelineDurationMs / 5) * index);
   return (
-    <section className="audioStudioSimpleTimeline" aria-label="모든 음원이 공유하는 시간축">
-      <div className="audioStudioSimpleRuler"><span>TRACKS</span><div>{ticks.map((timeMs) => <time key={timeMs} style={{ left: `${(timeMs / timelineDurationMs) * 100}%` }}>{formatStudioTime(timeMs)}</time>)}</div></div>
+    <section className="audioStudioSimpleTimeline" aria-label={translateUi("audioStudio.sharedAudioTimeline")}>
+      <div className="audioStudioSimpleRuler"><span><Translation id="originalUi.tracks" /></span><div>{ticks.map((timeMs) => <time key={timeMs} style={{ left: `${(timeMs / timelineDurationMs) * 100}%` }}>{formatStudioTime(timeMs)}</time>)}</div></div>
       {tracks.length ? tracks.map((track, index) => <SimpleTrackRow controller={controller} key={track.id} onDelete={onDelete} onTrim={onTrim} timelineDurationMs={timelineDurationMs} track={track} trackIndex={index} />) : (
-        <div className="audioStudioSimpleEmpty"><FileAudio size={30} /><strong>편집할 음원이 없습니다.</strong><span>한 개 또는 여러 파일을 선택하면 각각 별도 TRACK에 놓입니다.</span><button disabled={controller.importing || Boolean(controller.projectOperation)} onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Plus size={16} /> 음원 추가</button></div>
+        <div className="audioStudioSimpleEmpty"><FileAudio size={30} /><strong><Translation id="audioStudio.noAudioToEdit" /></strong><span><Translation id="audioStudio.selectOneOrMoreFilesEachWillBePlacedOnItsOwn" /></span><button disabled={controller.importing || Boolean(controller.projectOperation)} onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Plus size={16} /><Translation id="audioStudio.addAudioAudioStudio" /></button></div>
       )}
-      {controller.importing ? <div aria-live="polite" className="audioStudioSimpleImporting"><LoaderCircle className="is-spinning" size={18} /> 파일을 분석하고 있습니다.</div> : null}
+      {controller.importing ? <div aria-live="polite" className="audioStudioSimpleImporting"><LoaderCircle className="is-spinning" size={18} /><Translation id="audioStudio.analyzingFiles" /></div> : null}
     </section>
   );
 }
 
 function SimpleEditorPlayer({ controller, onSave }) {
+  useLanguage();
   const durationMs = getAudioStudioProjectDurationMs(controller.project);
   const playing = controller.playbackStatus === "playing";
   return (
     <footer className="audioStudioSimplePlayer">
       <div className="audioStudioSimplePlayerControls">
-        <button aria-label="타임라인 처음으로" disabled={!durationMs || Boolean(controller.projectOperation)} onClick={() => controller.seekPlayback(0)} type="button"><SkipBack size={20} /><span>처음으로</span></button>
-        <button aria-label={playing ? "일시정지" : "전체 재생"} className="is-primary" disabled={!durationMs || Boolean(controller.projectOperation)} onClick={playing ? controller.pausePlayback : () => controller.startPlayback()} type="button">{playing ? <Pause size={18} /> : <Play size={18} />}<span>{playing ? "일시정지" : "재생"}</span></button>
-        <div className="audioStudioSimpleTime"><time>{formatStudioTime(controller.currentTimeMs, true)} <span>/</span> {formatStudioTime(durationMs, true)}</time><input aria-label="전체 재생 위치" disabled={!durationMs} max={Math.max(1, durationMs)} min="0" onChange={(event) => controller.seekPlayback(event.target.valueAsNumber)} step="10" type="range" value={Math.min(durationMs, controller.currentTimeMs)} /></div>
+        <button aria-label={translateUi("audioStudio.goToTimelineStart")} disabled={!durationMs || Boolean(controller.projectOperation)} onClick={() => controller.seekPlayback(0)} type="button"><SkipBack size={20} /><span><Translation id="audioStudio.goToStart" /></span></button>
+        <button aria-label={playing ? translateUi("app.pause") : translateUi("audioStudio.playAll")} className="is-primary" disabled={!durationMs || Boolean(controller.projectOperation)} onClick={playing ? controller.pausePlayback : () => controller.startPlayback()} type="button">{playing ? <Pause size={18} /> : <Play size={18} />}<span>{playing ? translateUi("app.pause") : translateUi("audioStudio.play")}</span></button>
+        <div className="audioStudioSimpleTime"><time>{formatStudioTime(controller.currentTimeMs, true)} <span>/</span> {formatStudioTime(durationMs, true)}</time><input aria-label={translateUi("audioStudio.masterPlayhead")} disabled={!durationMs} max={Math.max(1, durationMs)} min="0" onChange={(event) => controller.seekPlayback(event.target.valueAsNumber)} step="10" type="range" value={Math.min(durationMs, controller.currentTimeMs)} /></div>
       </div>
-      <div className="audioStudioSimpleSaveGroup"><button className="audioStudioSimpleSave" disabled={!durationMs || Boolean(controller.projectOperation)} onClick={onSave} type="button"><Save size={16} /> 하나로 저장</button><small>현재 배치 그대로 하나의 완성 음원으로 합칩니다.</small></div>
+      <div className="audioStudioSimpleSaveGroup"><button className="audioStudioSimpleSave" disabled={!durationMs || Boolean(controller.projectOperation)} onClick={onSave} type="button"><Save size={16} /><Translation id="audioStudio.saveMixAudioStudio" /></button><small><Translation id="audioStudio.combineTheCurrentArrangementIntoOneFinishedAudioFile" /></small></div>
     </footer>
   );
 }
 
 function SimpleWaveformEditor({ controller, mobile }) {
+  useLanguage();
   const [trimTrackId, setTrimTrackId] = useState("");
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const trimTrack = controller.project.tracks.find((track) => track.id === trimTrackId);
@@ -1128,13 +1154,13 @@ function SimpleWaveformEditor({ controller, mobile }) {
   return (
     <section className={`audioStudioSimpleEditor ${mobile ? "is-mobile" : "is-desktop"}`} data-audio-studio-screen="edit">
       <header className="audioStudioSimpleTopbar">
-        <button aria-label="완성 음원 보관함으로 돌아가기" className="audioStudioSimpleBack" onClick={controller.goToLibrary} title="보관함으로 돌아가기" type="button"><ArrowLeft size={27} /></button>
-        <div><h1>편집실</h1><p>여러 음원을 다듬고 하나로 합쳐보세요.</p></div>
-        <button className="audioStudioSimpleAdd" disabled={controller.importing || Boolean(controller.projectOperation)} onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Plus size={17} /><span>음원 추가</span></button>
+        <button aria-label={translateUi("audioStudio.returnToFinishedAudioLibrary")} className="audioStudioSimpleBack" onClick={controller.goToLibrary} title={translateUi("audioStudio.backToLibrary")} type="button"><ArrowLeft size={27} /></button>
+        <div><h1><Translation id="audioStudio.studio" /></h1><p><Translation id="audioStudio.trimAndCombineYourAudio" /></p></div>
+        <button className="audioStudioSimpleAdd" disabled={controller.importing || Boolean(controller.projectOperation)} onClick={() => controller.openImportPicker("editor-new-track")} type="button"><Plus size={17} /><span><Translation id="app.addAudio" /></span></button>
       </header>
-      <main><SimpleAudioTimeline controller={controller} onDelete={controller.deleteTrack} onTrim={setTrimTrackId} /><p aria-live="polite" className="audioStudioSimpleNotice">{controller.notice}</p></main>
+      <main><SimpleAudioTimeline controller={controller} onDelete={controller.deleteTrack} onTrim={setTrimTrackId} /><p aria-live="polite" className="audioStudioSimpleNotice">{localizeUi(controller.notice)}</p></main>
       <SimpleEditorPlayer controller={controller} onSave={() => setSaveDialogOpen(true)} />
-      <section className="audioStudioSimpleGuide"><strong>사용 방법</strong><ol><li>음원 추가</li><li>TRIM에서 구간·템포 조절</li><li>파형을 좌우로 이동</li><li>볼륨·음소거 조절</li><li>함께 재생 후 하나로 저장</li></ol></section>
+      <section className="audioStudioSimpleGuide"><strong><Translation id="audioStudio.howToUse" /></strong><ol><li><Translation id="app.addAudio" /></li><li><Translation id="audioStudio.setRangeAndTempoInTrim" /></li><li><Translation id="audioStudio.moveWaveformsLeftOrRight" /></li><li><Translation id="audioStudio.adjustVolumeAndMute" /></li><li><Translation id="audioStudio.playTogetherAndSaveAMix" /></li></ol></section>
       {trimClip && trimSource ? <SimpleTrimDialog clip={trimClip} controller={controller} onClose={() => setTrimTrackId("")} source={trimSource} track={trimTrack} /> : null}
       {saveDialogOpen ? <MixSaveNameDialog onClose={() => setSaveDialogOpen(false)} onSave={controller.mixSave} saving={controller.projectOperation === "mix-saving"} /> : null}
     </section>

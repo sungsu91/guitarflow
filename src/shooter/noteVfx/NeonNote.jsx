@@ -1,3 +1,5 @@
+import { useLanguage } from "./../../i18n/react.jsx";
+import { localizeUi } from "./../../i18n/core.js";
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NOTE_VFX_DURATION_MS, noteVfxColor } from './noteVfx.js';
 import './note-vfx.css';
@@ -18,6 +20,7 @@ const sparks = Array.from({ length: 24 }, (_, i) => {
 
 // One transparent vector design; the pitch is always live text, never baked into art.
 export function NeonNote({ pitch, label = pitch, breaking = false, impact = { x: 50, y: 70 } }) {
+  useLanguage();
   return <svg aria-hidden="true" className={`noteVfxArt${breaking ? ' noteVfxArt--break' : ''}`} viewBox="0 0 100 100" style={{ '--vfx-color': noteVfxColor(pitch) }}>
     <g className="noteVfxBody" transform="translate(12.5 12.5) scale(.75)">
     <circle className="noteVfxCore" cx="50" cy="50" r="27" />
@@ -26,7 +29,7 @@ export function NeonNote({ pitch, label = pitch, breaking = false, impact = { x:
       {breaking ? arcs.map((arc, i) => <path key={i} d={arc.path} className="noteVfxShard" style={{ '--dx': `${arc.x}px`, '--dy': `${arc.y}px` }} />) : <circle cx="50" cy="50" r="28" />}
     </g>
     <path className="noteVfxSymbol noteVfxShard" style={{ '--dx': '5px', '--dy': '-10px' }} d="M 53 23 L 53 7 Q 64 10 60 17 Q 60 12 55 12 L 55 23 C 55 29 46 29 47 25 C 48 22 51 22 53 23 Z" />
-    <text className="noteVfxPitch" x="50" y="51" textAnchor="middle" dominantBaseline="middle" fontSize={label.length >= 3 ? 21 : 26}>{label}</text>
+    <text className="noteVfxPitch" x="50" y="51" textAnchor="middle" dominantBaseline="middle" fontSize={label.length >= 3 ? 21 : 26}>{localizeUi(label)}</text>
     </g>
     {breaking ? <>
       <circle className="noteVfxBloom" cx="50" cy="50" r="9" />

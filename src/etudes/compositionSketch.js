@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {compileScoreDocument} from './scoreDocument.js';
 
 // Authored grips, low E → high E; x means a string that must not sound.
@@ -75,15 +76,15 @@ export const compositionSketchDocument={
  format:'fretiva.etude',version:2,id,templateId:'together-composition-sketch',kind:'builtin',
  origin:{templateId:'together-composition-sketch',revision:1},instrument:'guitar',tuning:[64,59,55,50,45,40],
  title:'함께 걷는 길 · 작곡 스케치',english:'Still Walking Together',bpm:64,meter:[4,4],keySignature:'Am',
- purpose:'쓸쓸함을 남긴 채 곁에 있는 존재를 깨닫고 다시 걷는 49마디 핑거스타일 스케치. 마음에 드는 구간을 복사해 직접 바꾸어 보세요.',
+ purpose:ko["etudes.a49BarFingerstyleSketchAboutRecognizingACompanionThroughLonelinessAnd"],
  tips:['Intro 1–4 · Verse 5–12 · Pre 13–20 · Chorus 21–28 · Bridge 29–36 · Final 37–44 · Outro 45–49.',
- '베이스는 엄지, 중음은 검지, 2·1번줄은 중지·약지로 뜯습니다. 후렴의 긴 최고음을 노래하듯 유지하세요.',
- '4마디 Esus4→E7, 28·44·48마디 Gsus4→G는 3박에서 전환합니다. 19→20마디는 2번줄 C→B를 들으세요.',
- '12마디 B7은 Em으로 해결하지 않고 Fmaj7으로 옆걸음합니다. D#→E, F#→F의 반음 이동을 느끼세요.',
- '36마디 E7→Cadd9는 예상한 Am을 미루는 연결입니다. G#→G와 공통음 E가 어둠과 온기를 함께 남깁니다.',
- '마지막 마디 쉼표는 새로운 피킹의 여백입니다. let ring 음들은 끝까지 울립니다.'],
+ ko["etudes.useYourThumbForBassIndexForMiddleVoicesAndMiddleAnd"],
+ ko["etudes.changeOnBeat3ForEsus4E7InBar4AndGsus4"],
+ ko["etudes.b7InBar12SidestepsToFmaj7InsteadOfResolvingToEm"],
+ ko["etudes.e7Cadd9InBar36DelaysTheExpectedAmGGAnd"],
+ ko["etudes.theFinalBarRestLeavesSpaceBetweenNewAttacksNotesMarkedLet"]],
  measures:rows.map(([keys,pattern],bar)=>{
-  const changes=keys.split('/').map(key=>({key,name:SKETCH_VOICINGS[key][0],frets:[...SKETCH_VOICINGS[key][1]].map(f=>f==='x'?null:Number(f))}));
+  const changes=keys.split('/').map((key,index,all)=>({key,startTick:index*1920/all.length,endTick:(index+1)*1920/all.length,name:SKETCH_VOICINGS[key][0],frets:[...SKETCH_VOICINGS[key][1]].map(f=>f==='x'?null:Number(f))}));
   let onset=0;
   const events=pattern.split(' ').map((token,i)=>{
    const [strings,duration]=token.split(':'),rest=strings==='-',grip=changes[changes.length===2&&onset>=960?1:0];
@@ -98,9 +99,9 @@ export const compositionSketchDocument={
    events,sketchVoicings:changes};
  }),
 };
-const result=compileScoreDocument(compositionSketchDocument,{root:'A',level:'중급',style:'발라드',type:'아르페지오',lesson:1000,trackLesson:7});
+const result=compileScoreDocument(compositionSketchDocument,{root:'A',difficultyReason:ko["etudes.intermediateExploreMixedRhythmsPartialVoicingsAndVoiceLeading"],level:ko["etudes.intermediate"],style:ko["etudes.ballad"],type:ko["etudes.arpeggios"],lesson:1000,trackLesson:7});
 if(!result.score||result.errors.length||result.issues.length)throw Error(JSON.stringify(result));
-export const compositionSketch={...result.score,edited:false,pedagogy:{objective:compositionSketchDocument.purpose,prerequisites:[],preparation:'오픈 코드와 5–9프렛 부분 보이싱을 천천히 연결하세요.',instructions:compositionSketchDocument.tips[1],keyBars:[],links:[],checks:['코드 전환, 최고음, 쉼표의 여백을 듣고 마음에 드는 구간을 저장하세요.'],tempo:{start:52,target:64},review:'작곡 스케치 · 실연과 감정 표현은 직접 탐색하세요.'}};
+export const compositionSketch={...result.score,edited:false,pedagogy:{objective:compositionSketchDocument.purpose,prerequisites:[],preparation:ko["etudes.slowlyConnectOpenChordsWithPartialVoicingsAtFrets59"],instructions:compositionSketchDocument.tips[1],keyBars:[],links:[],checks:[ko["etudes.listenToChordChangesTheTopVoiceAndTheSpaceInRests"]],tempo:{start:52,target:64},review:ko["etudes.compositionSketchExplorePerformanceAndExpressionForYourself"]}};
 
 
 

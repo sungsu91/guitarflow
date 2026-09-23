@@ -1,3 +1,6 @@
+import { useLanguage } from "./../../../i18n/react.jsx";
+import { localizeUi } from "./../../../i18n/core.js";
+import { Translation } from "./../../../i18n/react.jsx";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, RotateCcw, SlidersHorizontal } from "lucide-react";
 
@@ -249,6 +252,7 @@ function createProgram(gl) {
 }
 
 function ThreeDLabControlPanel({ defaults, onSettingsChange, settings }) {
+  useLanguage();
   const [open, setOpen] = useState(false);
 
   return (
@@ -260,28 +264,28 @@ function ThreeDLabControlPanel({ defaults, onSettingsChange, settings }) {
         type="button"
       >
         <SlidersHorizontal aria-hidden="true" size={14} />
-        <span>3D LAB 설정</span>
+        <span><Translation id="shooter.3dLabSettings" /></span>
         <ChevronDown aria-hidden="true" size={13} />
       </button>
       {open ? (
         <div className="threeDLabDevPanelBody">
           <div className="threeDLabDevPanelHeading">
-            <span><i />DEV ONLY</span>
-            <strong>Perspective Scene Tuning</strong>
+            <span><i /><Translation id="originalUi.devOnly" /></span>
+            <strong><Translation id="originalUi.perspectiveSceneTuning" /></strong>
           </div>
           {CONTROL_GROUPS.map((group) => (
             <section className="threeDLabControlGroup" key={group.id}>
-              <h4>{group.label}</h4>
+              <h4>{localizeUi(group.label)}</h4>
               {group.controls.map((control) => (
                 <label className="threeDLabDevControl" key={control.key}>
                   <span>
-                    {control.label}
+                    {localizeUi(control.label)}
                     <output>
                       {Number(settings[control.key]).toFixed(control.step >= 1 ? 0 : 2)}{control.suffix ?? ""}
                     </output>
                   </span>
                   <input
-                    aria-label={control.label}
+                    aria-label={localizeUi(control.label)}
                     max={control.max}
                     min={control.min}
                     onChange={(event) => onSettingsChange({
@@ -297,9 +301,7 @@ function ThreeDLabControlPanel({ defaults, onSettingsChange, settings }) {
             </section>
           ))}
           <button className="threeDLabResetButton" onClick={() => onSettingsChange(defaults)} type="button">
-            <RotateCcw aria-hidden="true" size={13} />
-            RESET 3D LAB
-          </button>
+            <RotateCcw aria-hidden="true" size={13} /><Translation id="originalUi.reset3dLab" /></button>
         </div>
       ) : null}
     </aside>
@@ -423,9 +425,9 @@ function ThreeDLabRenderer({
     <div aria-hidden="true" className="threeDLabScene">
       <div className="threeDLabSkyGlow" />
       <canvas className="threeDLabCanvas" ref={canvasRef} />
-      <div className="threeDLabHorizonMark"><span>HORIZON</span></div>
-      <div className="threeDLabRailBadge"><i />PERSPECTIVE CAMERA</div>
-      {webGlFailed ? <div className="threeDLabFallback">WebGL을 사용할 수 없어 3D LAB 장면을 표시할 수 없습니다.</div> : null}
+      <div className="threeDLabHorizonMark"><span><Translation id="originalUi.horizon" /></span></div>
+      <div className="threeDLabRailBadge"><i /><Translation id="originalUi.perspectiveCamera" /></div>
+      {webGlFailed ? <div className="threeDLabFallback"><Translation id="shooter.webglIsUnavailableSoThe3dLabSceneCannotBeDisplayed" /></div> : null}
       {developer && typeof onSettingsChange === "function" ? (
         <ThreeDLabControlPanel
           defaults={defaults}

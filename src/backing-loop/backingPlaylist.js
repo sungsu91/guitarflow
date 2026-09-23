@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 const BACKING_PLAYLIST_STORAGE_KEY = "rifflab-backing-playlist-v3";
 const LEGACY_BACKING_PLAYLIST_STORAGE_KEYS = ["rifflab-backing-playlist-v2", "rifflab-backing-playlist-v1"];
 const CURRENT_QUEUE_ID = "current-queue";
@@ -34,7 +36,7 @@ function normalizeSavedPlaylist(value, fallbackIndex = 0) {
     createdAt: Math.max(0, Number(source.createdAt) || Date.now()),
     id: String(source.id || createBackingPlaylistId()),
     itemIds: normalizeItemIds(source.itemIds),
-    title: normalizeTitle(source.title, `목록 ${fallbackIndex + 1}`),
+    title: normalizeTitle(source.title, formatMessage(ko["backingLoop.playlistValue1"], { value1: fallbackIndex + 1 })),
     updatedAt: Math.max(0, Number(source.updatedAt) || 0),
   };
 }
@@ -44,7 +46,7 @@ function createCurrentQueue(value = {}) {
     createdAt: Math.max(0, Number(value.createdAt) || Date.now()),
     id: CURRENT_QUEUE_ID,
     itemIds: normalizeItemIds(value.itemIds),
-    title: "현재 재생목록",
+    title: ko["backingLoop.currentPlaylist"],
     updatedAt: Math.max(0, Number(value.updatedAt) || 0),
   };
 }
@@ -252,7 +254,7 @@ export function addBackingPlaylistTab(state, options = {}) {
     const match = /^목록\s+(\d+)$/.exec(playlist.title);
     return match ? Math.max(highest, Number(match[1]) || 0) : highest;
   }, 0) + 1;
-  return saveCurrentBackingPlaylist(current, options.title || `목록 ${nextNumber}`, options);
+  return saveCurrentBackingPlaylist(current, options.title || formatMessage(ko["backingLoop.playlistValue1"], { value1: nextNumber }), options);
 }
 
 export function selectBackingPlaylistTab(state, playlistId) {

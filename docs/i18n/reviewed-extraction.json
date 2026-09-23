@@ -1,0 +1,522 @@
+[
+  {
+    "file": "src/App.jsx",
+    "literals": 342
+  },
+  {
+    "file": "src/audio/mediaPermissionGuide.js",
+    "literals": 4
+  },
+  {
+    "file": "src/audio/metronomePreview.js",
+    "literals": 1
+  },
+  {
+    "file": "src/audio/scoreDrums.js",
+    "literals": 1
+  },
+  {
+    "file": "src/audio/scoreInstrument.js",
+    "literals": 1
+  },
+  {
+    "file": "src/audio-studio/useAudioStudio.js",
+    "literals": 36
+  },
+  {
+    "file": "src/backing-loop/backingPlaylist.js",
+    "literals": 1
+  },
+  {
+    "file": "src/backing-loop/useBackingGroovePreview.js",
+    "literals": 1
+  },
+  {
+    "file": "src/backing-loop/useBackingLoop.js",
+    "literals": 57
+  },
+  {
+    "file": "src/chords/additionalChords.js",
+    "literals": 4
+  },
+  {
+    "file": "src/chords/fixedAddVoicings.js",
+    "literals": 28
+  },
+  {
+    "file": "src/components/BackingLoop.jsx",
+    "literals": 4
+  },
+  {
+    "file": "src/components/MenuStatusBadge.jsx",
+    "literals": 8
+  },
+  {
+    "file": "src/etudes/beamOverrides.js",
+    "literals": 8
+  },
+  {
+    "file": "src/etudes/catalog.js",
+    "literals": 94
+  },
+  {
+    "file": "src/etudes/chordStudy.js",
+    "literals": 3
+  },
+  {
+    "file": "src/etudes/compositionSketch.js",
+    "literals": 13
+  },
+  {
+    "file": "src/etudes/convertScoreInstrument.js",
+    "literals": 8
+  },
+  {
+    "file": "src/etudes/curriculum.js",
+    "literals": 138
+  },
+  {
+    "file": "src/etudes/curriculumRevision.js",
+    "literals": 49
+  },
+  {
+    "file": "src/etudes/daylightFingerstyle.js",
+    "literals": 14
+  },
+  {
+    "file": "src/etudes/drawPalmMute.js",
+    "literals": 1
+  },
+  {
+    "file": "src/etudes/drumInput.js",
+    "literals": 5
+  },
+  {
+    "file": "src/etudes/DrumInput.jsx",
+    "literals": 4
+  },
+  {
+    "file": "src/etudes/drumTechniques.js",
+    "literals": 9
+  },
+  {
+    "file": "src/etudes/drumVoices.js",
+    "literals": 4
+  },
+  {
+    "file": "src/etudes/editorCommands.js",
+    "literals": 46
+  },
+  {
+    "file": "src/etudes/EditorScore.jsx",
+    "literals": 6
+  },
+  {
+    "file": "src/etudes/enterMidiNotes.js",
+    "literals": 2
+  },
+  {
+    "file": "src/etudes/EtudeStudio.jsx",
+    "literals": 2
+  },
+  {
+    "file": "src/etudes/exportScorePdf.js",
+    "literals": 1
+  },
+  {
+    "file": "src/etudes/filters.js",
+    "literals": 7
+  },
+  {
+    "file": "src/etudes/FollowPatternControl.jsx",
+    "literals": 2
+  },
+  {
+    "file": "src/etudes/KeyboardScore.js",
+    "literals": 5
+  },
+  {
+    "file": "src/etudes/mixedTechniqueStudies.js",
+    "literals": 26
+  },
+  {
+    "file": "src/etudes/notationData.js",
+    "literals": 4
+  },
+  {
+    "file": "src/etudes/openChordStudies.js",
+    "literals": 55
+  },
+  {
+    "file": "src/etudes/pedagogy.js",
+    "literals": 19
+  },
+  {
+    "file": "src/etudes/pianoInput.js",
+    "literals": 9
+  },
+  {
+    "file": "src/etudes/PracticeFloatingTools.jsx",
+    "literals": 1
+  },
+  {
+    "file": "src/etudes/practiceTips.js",
+    "literals": 35
+  },
+  {
+    "file": "src/etudes/printScore.js",
+    "literals": 13
+  },
+  {
+    "file": "src/etudes/rhythmInput.js",
+    "literals": 6
+  },
+  {
+    "file": "src/etudes/Score.jsx",
+    "literals": 3
+  },
+  {
+    "file": "src/etudes/scoreAnnotations.js",
+    "literals": 5
+  },
+  {
+    "file": "src/etudes/scoreBeatCommands.js",
+    "literals": 4
+  },
+  {
+    "file": "src/etudes/scoreChordDiagram.js",
+    "literals": 6
+  },
+  {
+    "file": "src/etudes/ScoreChordDialog.jsx",
+    "literals": 2
+  },
+  {
+    "file": "src/etudes/scoreDocument.js",
+    "literals": 7
+  },
+  {
+    "file": "src/etudes/ScoreEditor.jsx",
+    "literals": 61
+  },
+  {
+    "file": "src/etudes/scoreInstruments.js",
+    "literals": 27
+  },
+  {
+    "file": "src/etudes/scoreLibrary.js",
+    "literals": 6
+  },
+  {
+    "file": "src/etudes/scoreLineCommands.js",
+    "literals": 3
+  },
+  {
+    "file": "src/etudes/scoreMetadata.js",
+    "literals": 3
+  },
+  {
+    "file": "src/etudes/scoreModel.js",
+    "literals": 39
+  },
+  {
+    "file": "src/etudes/scoreNavigation.js",
+    "literals": 23
+  },
+  {
+    "file": "src/etudes/ScorePlayback.jsx",
+    "literals": 3
+  },
+  {
+    "file": "src/etudes/scoreRangeClipboard.js",
+    "literals": 10
+  },
+  {
+    "file": "src/etudes/scoreRepeats.js",
+    "literals": 1
+  },
+  {
+    "file": "src/etudes/scoreTuning.js",
+    "literals": 8
+  },
+  {
+    "file": "src/etudes/slurs.js",
+    "literals": 1
+  },
+  {
+    "file": "src/etudes/tracks.js",
+    "literals": 60
+  },
+  {
+    "file": "src/etudes/trackStudies.js",
+    "literals": 45
+  },
+  {
+    "file": "src/etudes/tuplets.js",
+    "literals": 8
+  },
+  {
+    "file": "src/etudes/useEtudeMetronome.js",
+    "literals": 2
+  },
+  {
+    "file": "src/etudes/useScoreDrag.js",
+    "literals": 4
+  },
+  {
+    "file": "src/etudes/useScorePreview.js",
+    "literals": 1
+  },
+  {
+    "file": "src/input/midiInput.js",
+    "literals": 8
+  },
+  {
+    "file": "src/launch/SplashIntro.jsx",
+    "literals": 2
+  },
+  {
+    "file": "src/metronome/groove.js",
+    "literals": 28
+  },
+  {
+    "file": "src/metronome/groovePackLibrary.js",
+    "literals": 4
+  },
+  {
+    "file": "src/metronome/recommendedGrooves.js",
+    "literals": 42
+  },
+  {
+    "file": "src/metronome/subdivision.js",
+    "literals": 5
+  },
+  {
+    "file": "src/metronome/useGroovePreview.js",
+    "literals": 1
+  },
+  {
+    "file": "src/mini-chord/capo.js",
+    "literals": 1
+  },
+  {
+    "file": "src/mini-chord/loadLibrary.js",
+    "literals": 7
+  },
+  {
+    "file": "src/mini-chord/notationValidation.js",
+    "literals": 28
+  },
+  {
+    "file": "src/mini-chord/originalPracticeSongs.js",
+    "literals": 17
+  },
+  {
+    "file": "src/mini-chord/personalPracticeProjects.js",
+    "literals": 2
+  },
+  {
+    "file": "src/music/lickTechniques.js",
+    "literals": 12
+  },
+  {
+    "file": "src/omr/tromrAdapter.js",
+    "literals": 3
+  },
+  {
+    "file": "src/pdf/PdfAnnotationLayer.jsx",
+    "literals": 4
+  },
+  {
+    "file": "src/pdf/pdfLibrary.js",
+    "literals": 13
+  },
+  {
+    "file": "src/pdf/scoreFolders.js",
+    "literals": 12
+  },
+  {
+    "file": "src/rhythm/beatPresetStore.js",
+    "literals": 1
+  },
+  {
+    "file": "src/rhythm/chordBeatTimeline.js",
+    "literals": 1
+  },
+  {
+    "file": "src/rhythm/recommendedProgressions.js",
+    "literals": 14
+  },
+  {
+    "file": "src/rhythm/voicingMovementCourses.js",
+    "literals": 216
+  },
+  {
+    "file": "src/shooter/difficultDifficultyScenario.js",
+    "literals": 60
+  },
+  {
+    "file": "src/shooter/easyDifficultyScenario.js",
+    "literals": 15
+  },
+  {
+    "file": "src/shooter/easyRandomDifficulty.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/guitarCabinet.js",
+    "literals": 4
+  },
+  {
+    "file": "src/shooter/maps/assets/abyssalMoonCathedralAssets.js",
+    "literals": 23
+  },
+  {
+    "file": "src/shooter/maps/assets/clockworkOperaAssets.js",
+    "literals": 5
+  },
+  {
+    "file": "src/shooter/maps/assets/coastalCoveAssets.js",
+    "literals": 5
+  },
+  {
+    "file": "src/shooter/maps/assets/lavaCanyonAssets.js",
+    "literals": 7
+  },
+  {
+    "file": "src/shooter/maps/assets/parkAssets.js",
+    "literals": 8
+  },
+  {
+    "file": "src/shooter/maps/assets/riverAssets.js",
+    "literals": 24
+  },
+  {
+    "file": "src/shooter/maps/editor/editorState.js",
+    "literals": 23
+  },
+  {
+    "file": "src/shooter/maps/editor/MapEditPanel.jsx",
+    "literals": 23
+  },
+  {
+    "file": "src/shooter/maps/editor/useMapEditMode.js",
+    "literals": 7
+  },
+  {
+    "file": "src/shooter/maps/events/CoastalChestActor.jsx",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/maps/MapSkinRenderer.jsx",
+    "literals": 4
+  },
+  {
+    "file": "src/shooter/maps/skins/abyssalMoonCathedral.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/maps/skins/autumnMoonTemplePath.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/maps/skins/celestialEclipseClocktower.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/maps/skins/clockworkOperaCitadel.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/maps/skins/coastalCove.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/maps/skins/gachaArcade.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/maps/skins/lavaCanyon.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/maps/skins/moonlitRooftop.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/maps/skins/park.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/maps/skins/pseudo3dTest.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/maps/skins/river.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/maps/skins/scenicMaps.js",
+    "literals": 6
+  },
+  {
+    "file": "src/shooter/maps/skins/threeDLab.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/normalDifficultyScenario.js",
+    "literals": 14
+  },
+  {
+    "file": "src/shooter/noteMonsterAssets.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/pets.js",
+    "literals": 6
+  },
+  {
+    "file": "src/shooter/playHelp.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/pseudo3d/Pseudo3DRenderer.jsx",
+    "literals": 15
+  },
+  {
+    "file": "src/shooter/recording/cameraBeauty.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/recording/canvasPaintTexture.js",
+    "literals": 3
+  },
+  {
+    "file": "src/shooter/recording/recordingMedia.js",
+    "literals": 8
+  },
+  {
+    "file": "src/shooter/recording/sceneCapture.js",
+    "literals": 2
+  },
+  {
+    "file": "src/shooter/recording/ShooterRecording.jsx",
+    "literals": 20
+  },
+  {
+    "file": "src/shooter/results/shareResult.js",
+    "literals": 4
+  },
+  {
+    "file": "src/tuner/tunerHeadstockDesigns.js",
+    "literals": 15
+  },
+  {
+    "file": "src/tuner/tunerMath.js",
+    "literals": 35
+  },
+  {
+    "file": "src/tuner/tunerPresets.js",
+    "literals": 14
+  }
+]

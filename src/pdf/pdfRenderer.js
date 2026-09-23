@@ -1,3 +1,6 @@
+import { localizeUi } from "../i18n/core.js";
+import ko from "../i18n/locales/ko.js";
+import { formatMessage } from "../i18n/format.js";
 import {getDocument,GlobalWorkerOptions} from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {createPdfPageCache,pdfRasterKey} from './pdfPageCache.js';
@@ -10,7 +13,7 @@ export const pdfPageCache=createPdfPageCache({load:async blob=>{
 }});
 const blobKeys=new WeakMap();let nextBlob=0;
 export function pdfDocumentKey(blob,id){if(id)return id;if(!blobKeys.has(blob))blobKeys.set(blob,`blob:${++nextBlob}`);return blobKeys.get(blob);}
-export function copyPdfCanvas(item){const canvas=document.createElement('canvas');canvas.width=item.canvas.width;canvas.height=item.canvas.height;canvas.getContext('2d').drawImage(item.canvas,0,0);canvas.setAttribute('aria-label',`PDF ${item.pageNumber}페이지`);return canvas;}
+export function copyPdfCanvas(item){const canvas=document.createElement('canvas');canvas.width=item.canvas.width;canvas.height=item.canvas.height;canvas.getContext('2d').drawImage(item.canvas,0,0);canvas.setAttribute('aria-label',localizeUi(formatMessage(ko["pdf.pdfPageValue1"], { value1: item.pageNumber })));return canvas;}
 export async function renderPdfPage(pdf,documentKey,pageNumber,options,signal){
  const key=pdfRasterKey(documentKey,pageNumber,options),cached=pdfPageCache.get(key);if(cached)return {...cached,cacheHit:true};
  signal?.throwIfAborted();const page=await pdf.getPage(pageNumber);signal?.throwIfAborted();

@@ -1,6 +1,7 @@
+import { readFileSync } from "./helpers/i18n-source.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFileSync } from "node:fs";
+
 import vm from "node:vm";
 import { arrangeBuiltinPianoEvents, chooseBuiltinPianoVoicing, getBuiltinChordPitchClasses,
   markBuiltinPianoProgression, matchesBuiltinMiniSlots, resolveMiniChordPianoPerformance } from "../src/audio/builtinPianoPerformance.js";

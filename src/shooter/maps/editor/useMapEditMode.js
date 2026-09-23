@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { isEditableShooterMap, resolveLayeredShooterMap } from "../registry.js";
@@ -29,18 +30,18 @@ async function requestMapLayoutSave(skinId, placements) {
 function getSaveErrorMessage(error) {
   const message = String(error?.message ?? error ?? "");
   if (message.includes("Invalid creature landing surface")) {
-    return "개구리 착지점이 삭제된 돌·연잎을 참조하고 있습니다.";
+    return ko["shooter.aFrogLandingPointReferencesADeletedRockOrLilyPad"];
   }
   if (message.includes("Invalid map asset identity")) {
-    return "등록이 해제된 맵 오브젝트가 포함되어 있습니다.";
+    return ko["shooter.theLayoutContainsMapObjectsThatAreNoLongerRegistered"];
   }
   if (message.includes("Map asset instance limit exceeded")) {
-    return "한 개만 배치할 수 있는 맵 오브젝트가 중복되어 있습니다.";
+    return ko["shooter.theLayoutDuplicatesAMapObjectThatAllowsOnlyOneInstance"];
   }
   if (message.includes("Local editor access only")) {
-    return "맵 저장은 이 PC의 로컬 개발 화면에서만 가능합니다.";
+    return ko["shooter.mapsCanOnlyBeSavedFromTheLocalDevelopmentViewOnThis"];
   }
-  return "저장 요청을 완료하지 못했습니다. 변경값은 편집 화면에 그대로 남아 있습니다.";
+  return ko["shooter.couldNotCompleteTheSaveRequestYourChangesRemainInTheEditor"];
 }
 
 export function isMapEditModeRequested() {
@@ -964,7 +965,7 @@ export default function useMapEditMode(
     if (!hasChanges) {
       if (typeof beforeFinish === "function" && await beforeFinish() === false) {
         setSaveStatus("error");
-        setSaveError("화면 보정값을 저장하지 못했습니다.");
+        setSaveError(ko["shooter.couldNotSaveDisplayAdjustments"]);
         return false;
       }
       setSaveError("");
@@ -975,7 +976,7 @@ export default function useMapEditMode(
     if (!savedPlacements) return false;
     if (typeof beforeFinish === "function" && await beforeFinish() === false) {
       setSaveStatus("error");
-      setSaveError("화면 보정값을 저장하지 못했습니다.");
+      setSaveError(ko["shooter.couldNotSaveDisplayAdjustments"]);
       return false;
     }
     const appliedPlacements = clonePlacementSnapshot(savedPlacements);

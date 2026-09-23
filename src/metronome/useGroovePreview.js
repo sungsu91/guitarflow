@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import {useEffect, useRef, useState} from 'react';
 import {scheduleGrooveStep, createGrooveVoiceState} from './groove.js';
 import {TIME_SIGNATURE_OPTIONS} from './options.js';
@@ -53,7 +54,7 @@ export function useGroovePreview(prepare, bpm, onError) {
       schedule();s.timer=setInterval(schedule,AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS);setLoading(false);
     }catch {
       if(token!==s.token)return;
-      stop();onError('미리 듣기 음원을 불러오지 못했습니다. 다시 시도해 주세요.');
+      stop();onError(ko["metronome.couldnTLoadPreviewAudioTryAgain"]);
     }
   }
   return {active,loading,play,stop};

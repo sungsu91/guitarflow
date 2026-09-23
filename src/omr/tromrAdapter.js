@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import {createBlankDocument, newId, fingeringCandidates, compileDocumentV2} from '../etudes/scoreModel.js';
 
 // Strict prototype boundary: unsupported tokens remain visible, never rounded,
@@ -26,10 +28,10 @@ export function parseTromr(text) {
 }
 
 export function convertTromr(parsed,{octaveShift,positions,bpm,title,sourcePdfId,runId}) {
-  if(parsed.unsupported.length)throw Error('미지원·미인식 기호가 있어 변환을 중단했습니다. 원시 결과를 확인하세요.');
-  if(![0,-12].includes(octaveShift))throw Error('일반 오선보인지 기타 옥타브 기보인지 선택하세요.');
+  if(parsed.unsupported.length)throw Error(ko["omr.conversionStoppedBecauseOfUnsupportedOrUnrecognizedSymbolsCheckTheRawOutput"]);
+  if(![0,-12].includes(octaveShift))throw Error(ko["omr.chooseStandardNotationOrOctaveTransposingGuitarNotation"]);
   const d=createBlankDocument();
-  Object.assign(d,{title,english:title,purpose:'OMR 시험 변환 · 원본 대조 필요',bpm,meter:parsed.meter,keySignature:parsed.key,
+  Object.assign(d,{title,english:title,purpose:ko["omr.experimentalOmrConversionCompareWithTheOriginal"],bpm,meter:parsed.meter,keySignature:parsed.key,
     origin:{type:'omr-prototype',sourcePdfId,runId},omr:{reviewed:false,engine:'CrispEmbed/TrOMR Q8',octaveShift,raw:parsed.raw,sourceMap:[]}});
   d.measures=parsed.measures.map(events=>{
     const bar={id:newId('bar'),chord:null,harmony:null,events:[]};let onset=0;
@@ -37,7 +39,7 @@ export function convertTromr(parsed,{octaveShift,positions,bpm,title,sourcePdfId
       const event={id:newId('event'),onset,duration:e.duration,rest:e.rest,technique:null,notes:[]};
       if(!e.rest) {
         const p=positions[e.index];
-        if(!p||!fingeringCandidates(e.midi+octaveShift,d.tuning).some(c=>c.string===p.string&&c.fret===p.fret))throw Error(`${e.index}번 음의 줄·프렛을 확인하세요.`);
+        if(!p||!fingeringCandidates(e.midi+octaveShift,d.tuning).some(c=>c.string===p.string&&c.fret===p.fret))throw Error(formatMessage(ko["omr.checkTheStringAndFretForNoteValue"], { value1: e.index }));
         event.notes=[{id:newId('tone'),string:p.string,fret:p.fret,locked:true}];
       }
       d.omr.sourceMap.push({page:1,measureId:bar.id,eventId:event.id,tokenIndex:e.index,rect:null});

@@ -1,0 +1,10 @@
+[
+  {
+    "file": "src/shooter/recording/ShooterRecording.jsx",
+    "boundaries": 1
+  },
+  {
+    "file": "src/tuner/TunerMode.jsx",
+    "boundaries": 4
+  }
+]

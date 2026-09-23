@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 export const LICK_TECHNIQUES = Object.freeze({
   PICK: "pick",
   HAMMER_ON: "hammer-on",
@@ -128,18 +129,18 @@ export function getLickTechniqueSymbol(technique) {
 
 export function getLickTechniqueLabel(technique) {
   return {
-    [LICK_TECHNIQUES.PICK]: "피킹",
-    [LICK_TECHNIQUES.HAMMER_ON]: "해머링 온",
-    [LICK_TECHNIQUES.PULL_OFF]: "풀오프",
-    [LICK_TECHNIQUES.SLIDE]: "슬라이드",
-    [LICK_TECHNIQUES.SLIDE_UP]: "슬라이드 상승",
-    [LICK_TECHNIQUES.SLIDE_DOWN]: "슬라이드 하강",
-    [LICK_TECHNIQUES.VIBRATO]: "비브라토",
-    [LICK_TECHNIQUES.BEND]: "벤딩",
-    [LICK_TECHNIQUES.BEND_RELEASE]: "벤딩 릴리즈",
-    [LICK_TECHNIQUES.MUTE]: "뮤트",
-    [LICK_TECHNIQUES.HARMONIC]: "내추럴 하모닉",
-    [LICK_TECHNIQUES.REST]: "휴지",
+    [LICK_TECHNIQUES.PICK]: ko["etudes.picking"],
+    [LICK_TECHNIQUES.HAMMER_ON]: ko["music.hammerOn"],
+    [LICK_TECHNIQUES.PULL_OFF]: ko["etudes.pullOff"],
+    [LICK_TECHNIQUES.SLIDE]: ko["etudes.slide"],
+    [LICK_TECHNIQUES.SLIDE_UP]: ko["music.slideUp"],
+    [LICK_TECHNIQUES.SLIDE_DOWN]: ko["music.slideDown"],
+    [LICK_TECHNIQUES.VIBRATO]: ko["etudes.vibrato"],
+    [LICK_TECHNIQUES.BEND]: ko["etudes.bending"],
+    [LICK_TECHNIQUES.BEND_RELEASE]: ko["music.bendRelease"],
+    [LICK_TECHNIQUES.MUTE]: ko["etudes.muted"],
+    [LICK_TECHNIQUES.HARMONIC]: ko["music.naturalHarmonic"],
+    [LICK_TECHNIQUES.REST]: ko["app.restApp"],
   }[normalizeLickTechnique(technique)] ?? "";
 }
 

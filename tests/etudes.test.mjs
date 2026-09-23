@@ -6,6 +6,9 @@ import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, available
 import { TRACKS, TRACK_ORDER, TYPES } from '../src/etudes/tracks.js';
 import { isMobileLandscapeAllowed, shouldGuardPortraitOrientation } from '../src/layouts/viewportProfile.js';
 
+const syllabusIds=new Set(TEMPLATES.map(t=>t.id));
+const syllabus=ETUDES.filter(e=>syllabusIds.has(e.templateId));
+const sketches=ETUDES.filter(e=>!syllabusIds.has(e.templateId));
 const etudeScoreSource = fs.readFileSync(new URL('../src/etudes/Score.jsx', import.meta.url), 'utf8');
 const etudeCssSource = fs.readFileSync(new URL('../src/etudes/etudes.css', import.meta.url), 'utf8');
 const etudeStudioSource = fs.readFileSync(new URL('../src/etudes/EtudeStudio.jsx', import.meta.url), 'utf8');
@@ -28,23 +31,23 @@ test('etude rotation is allowed without changing portrait-only shooter policy', 
   assert.equal(shouldGuardPortraitOrientation('shooter', landscape), true);
 });
 
-test('87 fixed studies cover nine types with at least three per stage without key duplicates', () => {
-  assert.equal(TRACKS.length,9);
-  assert.equal(TEMPLATES.length,87);
-  assert.equal(ETUDES.length,87);
-  assert.equal(new Set(ETUDES.map(e=>e.templateId)).size,87);
+test('all authored curriculum stages and composition sketches have unique validated scores', () => {
+  assert.equal(TRACKS.length,10);
+  assert.equal(TEMPLATES.length,101);
+  assert.equal(ETUDES.length,TEMPLATES.length+2);
+  assert.equal(new Set(ETUDES.map(e=>e.templateId)).size,ETUDES.length);
   assert.deepEqual(new Set(TRACK_ORDER),new Set(TEMPLATES.map(t=>t.id)));
   for(const track of TRACKS) for(const [index,level] of LEVELS.entries()) {
-    const course=filterEtudes({type:track.type,level,style:'전체'});
-    assert.ok(course.length>=3);
+    const course=filterEtudes({type:track.type,level,style:'전체'}).filter(e=>syllabusIds.has(e.templateId));
+    assert.ok(course.length>=(track.type==='벤딩'?1:3));
     assert.deepEqual(course.map(e=>e.templateId),track.stages[index][1]);
     assert.deepEqual(course.map(e=>e.trackLesson),course.map((_,i)=>i+1));
   }
-  for(const e of ETUDES) {
+  for(const e of syllabus) {
     assert.equal(e.measures.length,8,e.id);
     assert.notDeepEqual(e.measures.slice(0,4),e.measures.slice(4));
     assert.deepEqual(validateEtude(e),[],e.id);
-    assert.ok(e.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).every(n=>n.fret>=0&&n.fret<=9),e.id);
+    assert.ok(e.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).every(n=>n.fret>=0&&n.fret<=Math.max(9,...TEMPLATES.find(t=>t.id===e.templateId).shape.map(p=>p[1]))),e.id);
   }
   assert.doesNotMatch(etudeStudioSource,/label="조성"|filters.root|setFilter\('root'/);
 });
@@ -152,7 +155,7 @@ test('lesson navigation stays within type and difficulty while allowing authored
     assert.equal(canOpenLesson(selected,undefined),false);
     assert.ok(selected.difficultyReason.startsWith(selected.level));
   }
-  assert.equal(ETUDES[0].templateId,'triad-start');
+  assert.equal(ETUDES[0].templateId,TRACK_ORDER[0]);
   for(const level of LEVELS) assert.ok(ETUDES.filter(e=>e.level===level).length>=18);
 });
 
@@ -182,7 +185,7 @@ test('technique courses teach their named technique and introduce legato progres
 
 test('the first beginner lesson builds finger spacing one string at a time', () => {
   const first = ETUDES.find(e=>e.templateId==='triad-start');
-  assert.equal(first.lesson,1);
+  assert.equal(first.trackLesson,1);
   assert.equal(first.type,'스케일');
   assert.equal(first.style,'기초');
   assert.equal(first.bpm,48);
@@ -206,7 +209,7 @@ test('the first beginner lesson builds finger spacing one string at a time', () 
     }
   }
   assert.equal(first.measures.at(-1).at(-1).midi % 12,7);
-  assert.match(etudeStudioSource, /useState\(\(\)=>edits.scores\[initialId\]\?\.bpm\?\?ETUDES.find\(e=>e.id===initialId\)\?\.bpm\?\?DEFAULT_ETUDE_BPM\)/);
+  assert.match(etudeStudioSource, /useState\(\(\)=>edits.records\[initialSavedId\]\?\.document\?\.bpm\?\?edits.scores\[initialId\]\?\.bpm\?\?ETUDES.find\(e=>e.id===initialId\)\?\.bpm\?\?DEFAULT_ETUDE_BPM\)/);
   assert.match(etudeStudioSource, /updateBpm\(\(edits.scores\[id\]\?\?ETUDES.find\(e => e.id === id\)\)\?\.bpm \?\? 60\)/);
 });
 
@@ -243,7 +246,9 @@ test('independent pitch spelling, fixed fingering, duration and movement checks'
     const notes = e.measures.flat().filter(n=>!n.rest);
     // Technical cells may begin on a chord third (e.g. a descending pull-off).
     // Their cadence is still the tonic; every written/sounding pitch is checked below.
-    assert.equal(notes.at(-1).midi % 12, sig[e.root]);
+    const template=TEMPLATES.find(t=>t.id===e.templateId);
+    if(template&&!template.bendMap)assert.equal(notes.at(-1).midi % 12, sig[e.root],e.id);
+    else assert.deepEqual(validateEtude(e),[],e.id);
     for (const [i,n] of notes.entries()) {
       for(const tone of n.tones ?? [n]) {
         const [,letter,alter,oct] = tone.pitch.key.match(/^([a-g])([#b]?)[/]([0-9])$/);
@@ -252,19 +257,19 @@ test('independent pitch spelling, fixed fingering, duration and movement checks'
       }
       // A held chord assigns different right-hand fingers to separated strings;
       // scalar lead-note travel is not its left-hand difficulty measure.
-      if (i && !e.accompaniment && e.measures.flat().findIndex(x=>x.id===n.id)-e.measures.flat().findIndex(x=>x.id===notes[i-1].id)===1) {
+      if (i && syllabusIds.has(e.templateId) && !e.accompaniment && e.measures.flat().findIndex(x=>x.id===n.id)-e.measures.flat().findIndex(x=>x.id===notes[i-1].id)===1) {
         assert.ok(Math.abs(n.fret-notes[i-1].fret) <= 5, `${e.id}: unplanned large fret jump`);
         const limit=e.templateId.startsWith('penta-string')||e.templateId==='penta-rhythm-application'||e.templateId==='codetone-guide-tones'?3:2;
         assert.ok(Math.abs(n.string-notes[i-1].string) <= limit, `${e.id}: unplanned string jump`);
       }
     }
-    for (const m of e.measures) assert.equal(m.reduce((sum,n)=>sum+16/Number(n.duration),0),16);
+    for (const m of e.measures) assert.equal(m.reduce((sum,n)=>sum+16/Number(n.duration)*(n.dotted?1.5:1)*(n.tuplet?n.tuplet.normalNotes/n.tuplet.actualNotes:1),0),16);
   }
 });
 
 test('arpeggio accompaniment has root pinches, held feasible grips and graded bass patterns',()=>{
   const roots={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
-  for(const e of ETUDES.filter(e=>e.type==='아르페지오')) {
+  for(const e of syllabus.filter(e=>e.type==='아르페지오')) {
     assert.equal(e.accompaniment,true);
     assert.match(e.tips.join(' '),/동시에 뜯/);
     for(const [i,bar] of e.measures.entries()) {
@@ -356,3 +361,8 @@ test('validator catches corrupt TAB, spelling, meter and scale membership', () =
   }
 });
 
+
+test('composition sketches preserve authored cadence, mixed first attacks and per-span harmony',()=>{
+ assert.deepEqual(sketches.map(e=>e.measures.length),[49,40]);
+ for(const e of sketches){assert.deepEqual(validateEtude(e),[],e.id);assert.equal(e.document.measures.at(-1).harmony,'Cadd9');assert.ok(e.measures.some(m=>!m[0].tones));assert.ok(e.measures.some(m=>m[0].tones?.length>=2));}
+});

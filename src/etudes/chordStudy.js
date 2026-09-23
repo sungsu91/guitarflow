@@ -1,3 +1,6 @@
+import { localizeUi } from "../i18n/core.js";
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 // Compare the complete fingering: a different voicing of the same chord must
 // still be shown. An empty measure breaks the run of repeated diagrams.
 export function chordDiagramVisibility(shapes=[],names=[]) {
@@ -9,7 +12,7 @@ export function drawChordDiagram(svg, shape, name, x, y, options={}) {
   const group=document.createElementNS(ns,'g');
   group.setAttribute('class','etudeChordDiagram');
   group.setAttribute('role','img');
-  group.setAttribute('aria-label',`${name}, 위에서 1번줄부터 ${[...shape.frets].reverse().map(f=>f===null?'뮤트':f+'프렛').join(', ')}`);
+  group.setAttribute('aria-label',localizeUi(formatMessage(ko["etudes.valueFromString1AtTheTopValue"], { value1: name, value2: [...shape.frets].reverse().map(f=>f===null?ko["etudes.muted"]:f+ko["app.fret"]).join(', ') })));
   const add=(tag,attrs,text)=>{const node=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));if(text!==undefined)node.textContent=text;group.append(node);return node;};
   const positive=shape.frets.filter(f=>f>0);
   const base=shape.fretWindow?.start??(shape.frets.includes(0)||!positive.length?1:Math.max(1,Math.min(...positive)));
@@ -50,7 +53,7 @@ export function drawChordRange(svg,{range,points,top,bottom,id}){
  const make=(tag,attrs)=>{const n=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));return n;};
  const xAt=tick=>{const i=Math.max(0,Math.min(points.length-2,points.findLastIndex(p=>p.tick<=tick))),a=points[i],b=points[i+1];return a.x+(b.x-a.x)*Math.max(0,Math.min(1,(tick-a.tick)/(b.tick-a.tick||1)));};
  const left=xAt(range.startTick),right=xAt(range.endTick);
- const group=make('g',{class:'etudeChordRange','pointer-events':'none','aria-label':'코드표 적용 시작과 끝','data-start-tick':range.startTick,'data-end-tick':range.endTick});
+ const group=make('g',{class:'etudeChordRange','pointer-events':'none','aria-label':ko["etudes.chordDiagramStartAndEnd"],'data-start-tick':range.startTick,'data-end-tick':range.endTick});
  const defs=make('defs',{}),gradient=make('linearGradient',{id,x1:'0%',x2:'100%',y1:'0%',y2:'0%'});
  for(const [offset,opacity] of [['0%',.55],['10%',.16],['50%',.08],['90%',.16],['100%',.55]])gradient.append(make('stop',{offset,'stop-color':'#ff345a','stop-opacity':opacity}));
  defs.append(gradient);group.append(defs,make('rect',{x:left,y:top-10,width:Math.max(1,right-left),height:bottom-top+20,rx:4,fill:`url(#${id})`}));

@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 const LAVA_CANYON_PLATFORM_ROOT = "/assets/maps/lava-canyon/platforms";
 const LAVA_CANYON_EFFECT_ROOT = "/assets/maps/lava-canyon/effects";
 const LAVA_CANYON_DRAGON_ROOT = "/assets/maps/lava-canyon/creatures/baby-dragon";
@@ -7,14 +8,14 @@ const LAVA_CANYON_DECORATION_ROOT = "/assets/maps/lava-canyon/decorations";
 export const LAVA_CANYON_ENVIRONMENT_ASSETS = Object.freeze([
   Object.freeze({
     id: "lava-guitar-platform",
-    label: "하단 용암석 기타 발판",
+    label: ko["shooter.lowerLavaRockGuitarPlatform"],
     src: `${LAVA_CANYON_PLATFORM_ROOT}/lava-guitar-platform.png`,
     slot: "midground-environment",
     baseWidth: 1.16,
   }),
   Object.freeze({
     id: "lava-geyser",
-    label: "용암 대분출",
+    label: ko["shooter.lavaEruption"],
     src: `${LAVA_CANYON_EFFECT_ROOT}/lava-geyser.png`,
     slot: "animated-environment",
     baseWidth: 0.5,
@@ -23,7 +24,7 @@ export const LAVA_CANYON_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "lava-boiling-pool",
-    label: "보글거리는 용암 웅덩이",
+    label: ko["shooter.bubblingLavaPool"],
     src: `${LAVA_CANYON_EFFECT_ROOT}/lava-boiling-pool.png`,
     slot: "animated-environment",
     baseWidth: 0.68,
@@ -32,7 +33,7 @@ export const LAVA_CANYON_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "lava-torch-flame",
-    label: "횃불 타오르는 불꽃",
+    label: ko["shooter.torchFlames"],
     src: `${LAVA_CANYON_EFFECT_ROOT}/torch-flame.png`,
     slot: "animated-environment",
     baseWidth: 0.095,
@@ -43,7 +44,7 @@ export const LAVA_CANYON_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-baby-dragon",
-    label: "쉬고 있는 아기 용",
+    label: ko["shooter.restingBabyDragon"],
     src: `${LAVA_CANYON_DRAGON_ROOT}/dragon-idle.png`,
     slot: "animated-environment",
     baseWidth: 0.34,
@@ -73,7 +74,7 @@ export const LAVA_CANYON_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-flying-baby-dragon",
-    label: "비행하는 용",
+    label: ko["shooter.flyingDragon"],
     src: `${LAVA_CANYON_EVENT_ROOT}/baby-dragon-flight-sheet.png`,
     slot: "animated-environment",
     baseWidth: 0.2,
@@ -92,7 +93,7 @@ export const LAVA_CANYON_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "tattered-dragon-banner",
-    label: "펄럭이는 찢어진 용 깃발",
+    label: ko["shooter.flutteringTornDragonBanner"],
     src: `${LAVA_CANYON_DECORATION_ROOT}/tattered-dragon-banner-cloth-01.png`,
     slot: "animated-environment",
     baseWidth: 0.32,

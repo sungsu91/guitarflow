@@ -1,5 +1,6 @@
+import { readFileSync } from "./helpers/i18n-source.mjs";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+
 import test from "node:test";
 
 const appSource = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");

@@ -3,5 +3,5 @@ html body #root main.app.app.app .etudePickerDialog .etudePickerCard{flex-direct
 html body #root main.app.app.app .etudePickerCard>span{flex:1!important;width:auto!important;white-space:normal!important}
 html body #root main.app.app.app .etudePickerCard strong{display:block!important;white-space:normal!important;line-height:1.4!important;overflow:visible!important;text-overflow:clip!important}
 /* Mobile categories keep one row and scroll independently of the score list. */
-html body #root main.app.app.app .etudePickerDialog.is-mobile .etudePickerCategories{flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain!important;scrollbar-width:thin!important;min-height:40px!important;box-sizing:border-box!important}
+html body #root main.app.app.app .etudePickerDialog.is-mobile .etudePickerCategories{flex-wrap:wrap!important;overflow:visible!important;min-height:40px!important;box-sizing:border-box!important}
 html body #root main.app.app.app .etudePickerDialog.is-mobile .etudePickerCategories button{flex:0 0 auto!important;white-space:nowrap!important}

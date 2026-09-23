@@ -1,9 +1,11 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 export const PDF_DB = 'fretiva.pdf.library.v1';
 export const PDF_MAX_BYTES = 100 * 1024 * 1024;
 const stores = ['scores', 'files'];
 function openDatabase() {
   return new Promise((resolve, reject) => {
-    if (!globalThis.indexedDB) return reject(Error('이 브라우저에서는 IndexedDB를 사용할 수 없습니다.'));
+    if (!globalThis.indexedDB) return reject(Error(ko["pdf.indexeddbIsUnavailableInThisBrowser"]));
     const r = indexedDB.open(PDF_DB, 1);
     r.onupgradeneeded = () => {
       r.result.createObjectStore('scores', {keyPath:'id'}).createIndex('fingerprint', 'fingerprint', {unique:true});
@@ -11,7 +13,7 @@ function openDatabase() {
     };
     r.onsuccess = () => resolve(r.result);
     r.onerror = () => reject(r.error);
-    r.onblocked = () => reject(Error('다른 창에서 악보 보관함을 사용 중입니다. 창을 닫고 다시 시도하세요.'));
+    r.onblocked = () => reject(Error(ko["pdf.anotherWindowIsUsingTheScoreLibraryCloseItAndTryAgain"]));
   });
 }
 async function transaction(mode, action) {
@@ -20,7 +22,7 @@ async function transaction(mode, action) {
     let tx;try{tx=db.transaction(stores,mode);}catch(error){db.close();reject(error);return;}
     let result;
     tx.oncomplete = () => {db.close();resolve(result);};
-    tx.onabort = tx.onerror = () => {db.close();reject(tx.fretivaError ?? tx.error ?? Error('악보 저장 작업에 실패했습니다.'));};
+    tx.onabort = tx.onerror = () => {db.close();reject(tx.fretivaError ?? tx.error ?? Error(ko["pdf.couldnTSaveTheScore"]));};
     try { action(tx, value => {result=value;}); } catch(error) {tx.abort();db.close();reject(error);}
   });
 }
@@ -34,18 +36,18 @@ export function savePdf(record, pdfBlob) {
 export function patchPdf(id, patch) {
   return transaction('readwrite',(tx,done) => {
     const store=tx.objectStore('scores');
-    store.get(id).onsuccess=e=>{try{const old=e.target.result;if(!old)throw Error('삭제되었거나 없는 PDF입니다.');const next={...old,...patch,id:old.id,fingerprint:old.fingerprint,updatedAt:new Date().toISOString()};store.put(next);done(next);}catch(error){tx.fretivaError=error;tx.abort();}};
+    store.get(id).onsuccess=e=>{try{const old=e.target.result;if(!old)throw Error(ko["pdf.thisPdfWasDeletedOrDoesNotExist"]);const next={...old,...patch,id:old.id,fingerprint:old.fingerprint,updatedAt:new Date().toISOString()};store.put(next);done(next);}catch(error){tx.fretivaError=error;tx.abort();}};
   });
 }
 export function storageError(error) {
-  if(error?.name==='QuotaExceededError')return '저장 공간이 부족합니다. 원본을 내보낸 후 불필요한 악보를 삭제하고 다시 저장하세요.';
-  if(error?.name==='ConstraintError')return '같은 PDF가 이미 보관함에 있습니다.';
-  return `저장소 오류: ${error?.message??error}. 저장되지 않은 변경은 이 화면에 남아 있습니다.`;
+  if(error?.name==='QuotaExceededError')return ko["pdf.storageIsFullExportOriginalsDeleteUnneededScoresAndSaveAgain"];
+  if(error?.name==='ConstraintError')return ko["pdf.thisPdfIsAlreadyInTheLibrary"];
+  return formatMessage(ko["pdf.storageErrorValue1UnsavedChangesRemainOnThisScreen"], { value1: error?.message??error });
 }
 export async function fingerprintPdf(blob) {
-  if(!blob.size || blob.size>PDF_MAX_BYTES)throw Error('PDF는 100MB 이하 파일을 선택하세요.');
+  if(!blob.size || blob.size>PDF_MAX_BYTES)throw Error(ko["pdf.chooseAPdfOf100MbOrLess"]);
   const bytes=await blob.arrayBuffer();
-  if(!new TextDecoder().decode(bytes.slice(0,1024)).includes('%PDF-'))throw Error('올바른 PDF 파일이 아닙니다.');
+  if(!new TextDecoder().decode(bytes.slice(0,1024)).includes('%PDF-'))throw Error(ko["pdf.thisIsNotAValidPdfFile"]);
   return [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
 }
 export function downloadBlob(blob,name) {
@@ -54,17 +56,17 @@ export function downloadBlob(blob,name) {
 // Binary backup: bounded JSON manifest followed by unmodified PDF bytes.
 // Blobs are never base64-encoded or stored in localStorage.
 export async function exportPdfLibrary() {
-  const records=await listPdfs(),files=[];for(const r of records){const blob=await getPdf(r.id);if(!blob)throw Error('원본이 없는 악보가 있습니다.');files.push(blob);}
+  const records=await listPdfs(),files=[];for(const r of records){const blob=await getPdf(r.id);if(!blob)throw Error(ko["pdf.aScoreSOriginalFileIsMissing"]);files.push(blob);}
   const meta=new TextEncoder().encode(JSON.stringify({format:'fretiva-pdf-backup',version:1,records:records.map((r,i)=>({...r,byteLength:files[i].size}))}));
   const length=new ArrayBuffer(4);new DataView(length).setUint32(0,meta.length);
   return new Blob([length,meta,...files],{type:'application/octet-stream'});
 }
 export async function readBackup(blob) {
   const length=new DataView(await blob.slice(0,4).arrayBuffer()).getUint32(0);
-  if(length>20*1024*1024||length<10||length+4>blob.size)throw Error('백업 파일 형식이 올바르지 않습니다.');
+  if(length>20*1024*1024||length<10||length+4>blob.size)throw Error(ko["pdf.invalidBackupFormat"]);
   const data=JSON.parse(await blob.slice(4,4+length).text());
-  if(data.format!=='fretiva-pdf-backup'||data.version!==1||!Array.isArray(data.records)||data.records.length>1000)throw Error('지원하지 않는 백업입니다.');
+  if(data.format!=='fretiva-pdf-backup'||data.version!==1||!Array.isArray(data.records)||data.records.length>1000)throw Error(ko["pdf.unsupportedBackup"]);
   let offset=4+length;const result=[];
-  for(const record of data.records){if(!Number.isInteger(record.byteLength)||record.byteLength<=0||record.byteLength>PDF_MAX_BYTES||offset+record.byteLength>blob.size)throw Error('백업의 원본 크기를 확인하세요.');const pdfBlob=blob.slice(offset,offset+record.byteLength,'application/pdf');offset+=record.byteLength;result.push({record,pdfBlob});}
-  if(offset!==blob.size)throw Error('백업 파일 길이가 올바르지 않습니다.');return result;
+  for(const record of data.records){if(!Number.isInteger(record.byteLength)||record.byteLength<=0||record.byteLength>PDF_MAX_BYTES||offset+record.byteLength>blob.size)throw Error(ko["pdf.checkTheOriginalFileSizeInTheBackup"]);const pdfBlob=blob.slice(offset,offset+record.byteLength,'application/pdf');offset+=record.byteLength;result.push({record,pdfBlob});}
+  if(offset!==blob.size)throw Error(ko["pdf.invalidBackupFileLength"]);return result;
 }

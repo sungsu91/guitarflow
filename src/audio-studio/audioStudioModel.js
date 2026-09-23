@@ -1,3 +1,5 @@
+import ko from "../i18n/locales/ko.js";
+import { formatMessage } from "../i18n/format.js";
 export const AUDIO_STUDIO_SCHEMA_VERSION = 3;
 
 export const AUDIO_STUDIO_IMPORT_MODES = Object.freeze({
@@ -407,7 +409,7 @@ export function addAudioStudioImportedSources(project, importedSources, {
       track.detectedBpm = sources[0]?.detectedBpm || 0;
       track.name = sources.length === 1
         ? getAudioStudioDisplayName(sources[0].fileName)
-        : `${getAudioStudioDisplayName(sources[0].fileName)} 외 ${sources.length - 1}개`;
+        : formatMessage(ko["audioStudio.value1AndValue2More"], { value1: getAudioStudioDisplayName(sources[0].fileName), value2: sources.length - 1 });
     }
     trackIds.push(track.id);
   }

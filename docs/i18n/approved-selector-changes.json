@@ -1,0 +1,30 @@
+[
+  {
+    "file": "src/etudes/etudeRemote.css",
+    "selectorsOnly": true
+  },
+  {
+    "file": "src/etudes/practiceLayout.css",
+    "selectorsOnly": true
+  },
+  {
+    "file": "src/etudes/scoreEditor.css",
+    "selectorsOnly": true
+  },
+  {
+    "file": "src/pdf/pdfStudio.css",
+    "selectorsOnly": true
+  },
+  {
+    "file": "src/etudes/PracticeFloatingTools.jsx",
+    "attributes": 2
+  },
+  {
+    "file": "src/etudes/PracticeSheet.jsx",
+    "attributes": 2
+  },
+  {
+    "file": "src/etudes/ScoreEditor.jsx",
+    "attributes": 4
+  }
+]

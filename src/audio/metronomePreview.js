@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 import { getMetronomeVolumeSnapshot } from './metronomeVolumeStore.js';
 
 // A separate one-voice preview bus never touches the running transport or its sources.
@@ -20,7 +21,7 @@ export async function previewMetronomeTone(option, accent = true) {
   if (option.src) {
     if (!buffers.has(option.src)) {
       buffers.set(option.src, fetch(option.src).then(r => {
-        if (!r.ok) throw new Error('음원을 불러오지 못했습니다.');
+        if (!r.ok) throw new Error(ko["audio.couldnTLoadAudio"]);
         return r.arrayBuffer();
       }).then(data => context.decodeAudioData(data)).catch(error => { buffers.delete(option.src); throw error; }));
     }

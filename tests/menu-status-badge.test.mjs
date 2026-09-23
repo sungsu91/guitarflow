@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import fs from "node:fs";
+import { readFileSync } from './helpers/i18n-source.mjs';
 import test from "node:test";
 
-const componentSource = fs.readFileSync(new URL("../src/components/MenuStatusBadge.jsx", import.meta.url), "utf8");
-const appSource = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
-const cssSource = fs.readFileSync(new URL("../src/components/menu-status-badge.css", import.meta.url), "utf8");
+const componentSource = readFileSync(new URL("../src/components/MenuStatusBadge.jsx", import.meta.url), "utf8");
+const appSource = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+const cssSource = readFileSync(new URL("../src/components/menu-status-badge.css", import.meta.url), "utf8");
 
 test("menu status badge system exposes the approved status vocabulary", () => {
   for (const status of ["HOT", "NEW", "BETA", "PRO", "DEV", "BEGINNER", "SOLO"]) {

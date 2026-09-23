@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 export const RECOMMENDED_BASS_ROLES = Object.freeze({
   ROOT: "R",
   THIRD: "3",
@@ -45,8 +46,8 @@ const chordStabBar = bar([
 const PRESETS = [
   {
     id: "recommended-bright-start",
-    title: "밝은 시작",
-    description: "밝고 기본적인 팝 리듬 연습",
+    title: ko["rhythm.brightStart"],
+    description: ko["rhythm.brightBasicPopRhythmPractice"],
     key: "C",
     bpm: 92,
     timeSignature: "4/4",
@@ -84,8 +85,8 @@ const PRESETS = [
   },
   {
     id: "recommended-warm-cycle",
-    title: "따뜻한 순환",
-    description: "어쿠스틱 팝 · 부드러운 스트럼",
+    title: ko["rhythm.warmCycle"],
+    description: ko["rhythm.acousticPopGentleStrumming"],
     key: "C",
     bpm: 96,
     timeSignature: "4/4",
@@ -117,8 +118,8 @@ const PRESETS = [
   },
   {
     id: "recommended-power-pop-rock",
-    title: "힘있는 팝록",
-    description: "밴드 스트럼 · 중간 템포 록",
+    title: ko["rhythm.powerPopRock"],
+    description: ko["rhythm.bandStrummingMidTempoRock"],
     key: "G",
     bpm: 112,
     timeSignature: "4/4",
@@ -150,8 +151,8 @@ const PRESETS = [
   },
   {
     id: "recommended-soul-groove",
-    title: "소울 그루브",
-    description: "2박 단위 코드 전환 연습 · 부드러운 소울",
+    title: ko["rhythm.soulGroove"],
+    description: ko["rhythm.twoBeatChordChangesSmoothSoul"],
     key: "C",
     bpm: 88,
     timeSignature: "4/4",
@@ -194,8 +195,8 @@ const PRESETS = [
   },
   {
     id: "recommended-fast-changes",
-    title: "빠른 전환",
-    description: "2박 + 1박 + 1박 코드 전환 연습",
+    title: ko["rhythm.quickChanges"],
+    description: ko["rhythm.chordChangesLastingTwoBeatsOneBeatAndOneBeat"],
     key: "C",
     bpm: 104,
     timeSignature: "4/4",
@@ -239,8 +240,8 @@ const PRESETS = [
   },
   {
     id: "recommended-tension-release",
-    title: "긴장과 해소",
-    description: "2박 단위 자연스러운 진행 연습",
+    title: ko["rhythm.tensionAndRelease"],
+    description: ko["rhythm.flowingProgressionsWithTwoBeatChanges"],
     key: "C",
     bpm: 84,
     timeSignature: "4/4",
@@ -274,8 +275,8 @@ const PRESETS = [
   },
   {
     id: "recommended-blues-walk",
-    title: "블루스 워크",
-    description: "12마디 블루스 기본형 · 루프 턴어라운드",
+    title: ko["rhythm.bluesWalk"],
+    description: ko["rhythm.basic12BarBluesLoopTurnaround"],
     key: "A",
     bpm: 104,
     timeSignature: "4/4",

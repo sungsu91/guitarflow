@@ -1,3 +1,4 @@
+import ko from "../../../i18n/locales/ko.js";
 const COASTAL_COVE_CREATURE_ROOT = "/assets/maps/coastal-cove/creatures/hermit-crab";
 const COASTAL_COVE_HERMIT_CRAB_WALK_ROOT = `${COASTAL_COVE_CREATURE_ROOT}/walk`;
 const COASTAL_COVE_HERMIT_CRAB_WALK_FRAMES = Object.freeze(
@@ -85,7 +86,7 @@ const COASTAL_CHEST_SPAWN_POINTS = Object.freeze([
 export const COASTAL_COVE_ENVIRONMENT_ASSETS = Object.freeze([
   Object.freeze({
     id: "ambient-hermit-crab",
-    label: "움직이는 소라게",
+    label: ko["shooter.movingHermitCrab"],
     src: COASTAL_COVE_HERMIT_CRAB_WALK_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.2,
@@ -105,7 +106,7 @@ export const COASTAL_COVE_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-shark-fin",
-    label: "헤엄치는 상어",
+    label: ko["shooter.swimmingShark"],
     src: COASTAL_COVE_SHARK_SWIM_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.5,
@@ -125,7 +126,7 @@ export const COASTAL_COVE_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "ambient-net-fisher",
-    label: "바다에 투망을 던지는 어부",
+    label: ko["shooter.fisherCastingANet"],
     src: COASTAL_COVE_NET_FISHER_CAST_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.58,
@@ -144,7 +145,7 @@ export const COASTAL_COVE_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "interactive-treasure-chest",
-    label: "상호작용 보물상자",
+    label: ko["shooter.interactiveTreasureChest"],
     src: COASTAL_TREASURE_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.27,
@@ -169,7 +170,7 @@ export const COASTAL_COVE_ENVIRONMENT_ASSETS = Object.freeze([
   }),
   Object.freeze({
     id: "interactive-mimic-chest",
-    label: "상호작용 수상한 상자",
+    label: ko["shooter.interactiveSuspiciousChest"],
     src: COASTAL_TREASURE_FRAMES[0],
     slot: "animated-environment",
     baseWidth: 0.27,

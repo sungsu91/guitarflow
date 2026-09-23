@@ -1,0 +1,23 @@
+[
+  {
+    "file": "src/etudes/etudeRemote.css",
+    "onlyApprovedSelectorChanges": true,
+    "existingDeclarationsUnchanged": true
+  },
+  {
+    "file": "src/etudes/practiceLayout.css",
+    "onlyApprovedSelectorChanges": false,
+    "existingDeclarationsUnchanged": true,
+    "additionalUnrelatedCss": "\n/* Mobile icon buttons must center their SVG without hidden text consuming width. */\nhtml body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[I18N_SELECTOR]{display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important}\nhtml body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[I18N_SELECTOR] svg{flex:0 0 20px!important;width:20px!important;height:20px!important;margin:0!important}\nhtml body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>:is(.etudeViewMenu,.scoreEditMenu)>button svg{flex:0 0 16px!important;width:16px!important;height:16px!important}\n"
+  },
+  {
+    "file": "src/etudes/scoreEditor.css",
+    "onlyApprovedSelectorChanges": true,
+    "existingDeclarationsUnchanged": true
+  },
+  {
+    "file": "src/pdf/pdfStudio.css",
+    "onlyApprovedSelectorChanges": true,
+    "existingDeclarationsUnchanged": true
+  }
+]

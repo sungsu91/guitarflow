@@ -1,3 +1,5 @@
+import ko from "../../i18n/locales/ko.js";
+import { formatMessage } from "../../i18n/format.js";
 export const FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_ID = "fretiva_creative_instrument_pack_v3";
 
 const ASSET_ROOT = "/assets/shooter/instruments/fretiva_creative_instrument_pack_v3";
@@ -31,7 +33,7 @@ export const FRETIVA_CREATIVE_INSTRUMENT_PACK_V3 = Object.freeze(
     canvasHeight: CANVAS_HEIGHT,
     canvasWidth: CANVAS_WIDTH,
     collisionAspectRatio: skin.visibleWidth / VISIBLE_HEIGHT,
-    description: `${skin.title} 원본 투명 PNG 악기 스킨`,
+    description: formatMessage(ko["shooter.valueOriginalTransparentPngInstrumentSkin"], { value1: skin.title }),
     instrumentSkinPack: FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_ID,
     muzzleHeightScale: (CANVAS_HEIGHT - VISIBLE_TOP) / CANVAS_HEIGHT,
     visibleHeight: VISIBLE_HEIGHT,

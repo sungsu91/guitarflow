@@ -1,3 +1,4 @@
+import ko from "../i18n/locales/ko.js";
 const MINI_CHORD_SHARP_ROOT_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const MINI_CHORD_FLAT_ROOT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const MINI_CHORD_FRIENDLY_KEY_ROOT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
@@ -38,7 +39,7 @@ export function normalizeMiniChordAccidentalPreference(value = MINI_CHORD_ACCIDE
 
 function isMiniChordRestToken(value = "") {
   const token = String(value ?? "").trim();
-  return !token || token === "휴지" || token === "-" || /^rest$/i.test(token) || /^n\.?c\.?$/i.test(token);
+  return !token || token === ko["app.restApp"] || token === "-" || /^rest$/i.test(token) || /^n\.?c\.?$/i.test(token);
 }
 
 function getMiniChordPitchIndex(root = "C") {

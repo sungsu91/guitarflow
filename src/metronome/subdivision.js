@@ -1,33 +1,34 @@
+import ko from "../i18n/locales/ko.js";
 export const METRONOME_SUBDIVISION_OPTIONS = Object.freeze([
   Object.freeze({
     id: "quarter",
     label: "♩",
-    longLabel: "4분음표 — 1박당 1회",
+    longLabel: ko["metronome.quarterNotes1PerBeat"],
     clicksPerBeat: 1,
   }),
   Object.freeze({
     id: "eighth",
     label: "♪♪",
-    longLabel: "8분음표 — 1박당 2회",
+    longLabel: ko["metronome.eighthNotes2PerBeat"],
     clicksPerBeat: 2,
   }),
   Object.freeze({
     id: "eighth-triplet",
     label: null,
-    longLabel: "8분 셋잇단음표 — 1박당 3회",
+    longLabel: ko["metronome.eighthNoteTriplets3PerBeat"],
     notation: "eighth-triplet",
     clicksPerBeat: 3,
   }),
   Object.freeze({
     id: "sixteenth",
     label: "♬♬",
-    longLabel: "16분음표 — 1박당 4회",
+    longLabel: ko["metronome.sixteenthNotes4PerBeat"],
     clicksPerBeat: 4,
   }),
   Object.freeze({
     id: "sixteenth-triplet",
     label: null,
-    longLabel: "16분 셋잇단음표 — 1박당 6회",
+    longLabel: ko["metronome.sixteenthNoteTriplets6PerBeat"],
     notation: "sixteenth-triplet",
     clicksPerBeat: 6,
   }),

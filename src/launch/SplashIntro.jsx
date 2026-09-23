@@ -1,3 +1,8 @@
+import { Translation } from "../i18n/react.jsx";
+import ko from "../i18n/locales/ko.js";
+import { localizeUi } from "./../i18n/core.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { useLanguage } from "./../i18n/react.jsx";
 import { useEffect, useRef, useState } from "react";
 import { APP_LAUNCH_TIMINGS } from "./appLaunch";
 
@@ -38,7 +43,7 @@ function getControlledFrameClass(frameId, progress) {
 }
 
 export default function SplashIntro({
-  ariaLabel = "FRETIVA LAB 준비 중",
+  ariaLabel = ko["launch.loadingFretivaLab"],
   exitMs = APP_LAUNCH_TIMINGS.exitMs,
   fallbackMs = APP_LAUNCH_TIMINGS.fallbackMs,
   minimumIntroMs = APP_LAUNCH_TIMINGS.minimumIntroMs,
@@ -46,8 +51,9 @@ export default function SplashIntro({
   progress = null,
   readySettleMs = APP_LAUNCH_TIMINGS.readySettleMs,
   readyPromise,
-  statusText = "FRETIVA LAB 앱을 준비하고 있습니다.",
+  statusText = ko["launch.preparingTheFretivaLabApp"],
 }) {
+  useLanguage();
   const [phase, setPhase] = useState("entering");
   const launchStartedAtRef = useRef(Date.now());
   const normalizedProgress = normalizeProgress(progress);
@@ -109,7 +115,7 @@ export default function SplashIntro({
 
   return (
     <section
-      aria-label={ariaLabel}
+      aria-label={localizeUi(ariaLabel)}
       aria-live="polite"
       className={`launchSplash launchSplash--${phase} ${
         controlledProgress
@@ -144,10 +150,10 @@ export default function SplashIntro({
             <span className="launchSplash__centerFlash" />
             <span className="launchSplash__completionLight" />
             <span className="launchSplash__brand">
-              <strong>FRETIVA</strong>
+              <strong><Translation id="originalUi.fretiva" /></strong>
               <span className="launchSplash__brandSubline">
                 <i />
-                <span>LAB</span>
+                <span><Translation id="originalUi.lab" /></span>
                 <i />
               </span>
               <span className="launchSplash__brandMark" />
@@ -157,7 +163,7 @@ export default function SplashIntro({
 
         {controlledProgress ? (
           <div
-            aria-label={readyToExit ? "테마 준비 완료" : `테마 준비 ${normalizedProgress}%`}
+            aria-label={readyToExit ? translateUi("launch.themeReady") : translateUi("launch.preparingThemeValue1", { value1: normalizedProgress })}
             aria-valuemax="100"
             aria-valuemin="0"
             aria-valuenow={readyToExit ? 100 : normalizedProgress}
@@ -174,7 +180,7 @@ export default function SplashIntro({
           </div>
         ) : null}
       </div>
-      <span className="launchSplash__statusText">{statusText}</span>
+      <span className="launchSplash__statusText">{localizeUi(statusText)}</span>
     </section>
   );
 }

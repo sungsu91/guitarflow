@@ -1,3 +1,5 @@
+import { formatMessage } from "../i18n/format.js";
+import ko from "../i18n/locales/ko.js";
 import {repeatStructure,navigationIssues,navigationOrder} from './scoreNavigation.js';
 import {validateMiniChordRepeatEdit} from '../mini-chord/notationValidation.js';
 
@@ -5,7 +7,7 @@ export const repeatMarks=score=>score.document?.measures??score.repeatMarks??[];
 
 export function repeatIssues(measures) {
  const issues=[];
- measures.forEach((m,i)=>{for(const key of ['repeatStart','repeatEnd'])if(m[key]!==undefined&&typeof m[key]!=='boolean')issues.push(`${i+1}마디: 반복 표시 형식을 확인하세요.`);});
+ measures.forEach((m,i)=>{for(const key of ['repeatStart','repeatEnd'])if(m[key]!==undefined&&typeof m[key]!=='boolean')issues.push(formatMessage(ko["etudes.barValueCheckTheRepeatMarkingFormat"], { value1: i+1 }));});
  const structure=repeatStructure(measures);
  issues.push(...structure.issues,...navigationIssues(measures));
  if(!issues.length)try{navigationOrder(measures,structure.blocks);}catch(error){issues.push(error.message);}
@@ -33,7 +35,7 @@ export function setScoreRepeat(document,bar,action) {
  else return document;
  // A start without its end is editable; contradictory or nested ranges are not.
  const adding=action==='start'?current.repeatStart:action==='end'?current.repeatEnd:false;
- const conflict=adding&&repeatIssues(measures).find(issue=>issue.includes('중첩 반복'));
+ const conflict=adding&&repeatIssues(measures).find(issue=>issue.includes(ko["etudes.nestedRepeat"]));
  if(conflict)throw Error(conflict);
  return {...document,measures};
 }

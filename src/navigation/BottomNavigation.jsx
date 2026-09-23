@@ -1,7 +1,10 @@
+import { t as translateUi } from "./../i18n/core.js";
+import { useLanguage } from "./../i18n/react.jsx";
 import { useLayoutEffect, useRef } from "react";
 
 // Measure the unscaled app container, including when navigation is portalled.
 export default function BottomNavigation({ children, className = "", ...props }) {
+  useLanguage();
   const ref = useRef(null);
   useLayoutEffect(() => {
     const nav = ref.current;
@@ -30,5 +33,5 @@ export default function BottomNavigation({ children, className = "", ...props })
       window.visualViewport?.removeEventListener("resize", sync);
     };
   }, []);
-  return <div ref={ref} data-navigation-layout="floating-bottom-v1" className={`modeSwitch integratedBottomNav ${className}`} aria-label="앱 하단 네비게이션" {...props}>{children}</div>;
+  return <div ref={ref} data-navigation-layout="floating-bottom-v1" className={`modeSwitch integratedBottomNav ${className}`} aria-label={translateUi("navigation.appBottomNavigation")} {...props}>{children}</div>;
 }

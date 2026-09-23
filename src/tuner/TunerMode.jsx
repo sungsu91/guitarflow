@@ -1,3 +1,7 @@
+import { localizeUi } from "./../i18n/core.js";
+import ko from "./../i18n/locales/ko.js";
+import { t as translateUi } from "./../i18n/core.js";
+import { Translation, useLanguage } from "./../i18n/react.jsx";
 import DeviceConnection from '../input/DeviceConnection.jsx';
 import { useAudioInputSelection } from '../input/useInputSelection.js';
 import { mediaPermissionGuide } from "../audio/mediaPermissionGuide.js";
@@ -50,31 +54,31 @@ import { BASS_HEADSTOCK_DESIGNS, GUITAR_HEADSTOCK_DESIGNS, VIOLIN_HEADSTOCK_DESI
 const TUNER_BACKGROUNDS = Object.freeze([
   Object.freeze({
     id: "deep-sea",
-    label: "심해",
+    label: ko["tuner.deepSea"],
     src: "/assets/tuner/just-play-sea-background-deep.webp",
     tone: "dark",
   }),
   Object.freeze({
     id: "sunny-sky",
-    label: "맑은 하늘",
+    label: ko["tuner.clearSky"],
     src: "/assets/tuner/just-play-sea-background-sky.webp",
     tone: "light",
   }),
   Object.freeze({
     id: "starry-night",
-    label: "별빛 밤",
+    label: ko["tuner.starryNight"],
     src: "/assets/tuner/just-play-sea-background-starry-night.webp",
     tone: "dark",
   }),
   Object.freeze({
     id: "moon-clouds",
-    label: "달빛 운해",
+    label: ko["tuner.moonlitClouds"],
     src: "/assets/tuner/just-play-sea-background-moon-clouds.webp",
     tone: "dark",
   }),
   Object.freeze({
     id: "rose-twilight",
-    label: "장미빛 황혼",
+    label: ko["tuner.roseTwilight"],
     src: "/assets/tuner/just-play-sea-background-rose-twilight.webp",
     tone: "dark",
   }),
@@ -113,7 +117,7 @@ const INSTRUMENT_DEFINITIONS = Object.freeze({
     ...GUITAR_HEADSTOCK_DESIGNS[0],
     designs: GUITAR_HEADSTOCK_DESIGNS,
     id: "guitar",
-    label: "기타",
+    label: ko["app.guitar"],
   }),
   bass: Object.freeze({
     autoTarget: true,
@@ -121,13 +125,13 @@ const INSTRUMENT_DEFINITIONS = Object.freeze({
     headstockHotspots: BASS_HEADSTOCK_HOTSPOTS,
     headstockSrc: "/assets/tuner/just-play-bass-headstock.png",
     id: "bass",
-    label: "베이스",
+    label: ko["tuner.bass"],
   }),
   ukulele: Object.freeze({
     ...UKULELE_HEADSTOCK_DESIGNS[0],
     designs: UKULELE_HEADSTOCK_DESIGNS,
     id: "ukulele",
-    label: "우쿨렐레",
+    label: ko["tuner.ukulele"],
   }),
   violin: Object.freeze({
     ...VIOLIN_HEADSTOCK_DESIGNS[0],
@@ -135,7 +139,7 @@ const INSTRUMENT_DEFINITIONS = Object.freeze({
     autoTarget: true,
     preserveDetectedOctave: true,
     id: "violin",
-    label: "바이올린",
+    label: ko["tuner.violin"],
   }),
 });
 
@@ -704,26 +708,28 @@ function OceanWaveCanvas({ energy, status }) {
 }
 
 function TunerRecognitionStatus({ preset, selectedString }) {
+  useLanguage();
   const manualTarget = getTunerStringTarget(preset.strings, selectedString);
 
   return (
-    <div className="tunerHeadstockMode" aria-label={manualTarget == null ? "AUTO, 자동 인식" : `${manualTarget.pitch}, ${selectedString}번 줄 고정`}>
+    <div className="tunerHeadstockMode" aria-label={manualTarget == null ? translateUi("tuner.autoAutomaticDetection") : translateUi("tuner.value1LockedToStringValue2", { value1: manualTarget.pitch, value2: selectedString })}>
       <span>{manualTarget == null ? "AUTO" : "MANUAL"}</span>
       <strong>
         {manualTarget == null
-          ? "자동 인식"
-          : `${manualTarget.pitch} · ${selectedString}번 줄 고정`}
+          ? translateUi("tuner.automaticDetection")
+          : translateUi("tuner.value1StringValue2Locked", { value1: manualTarget.pitch, value2: selectedString })}
       </strong>
-      <small>{manualTarget == null ? "튜닝머신을 누르면 줄 고정" : "같은 튜닝머신을 누르면 자동 복귀"}</small>
+      <small>{manualTarget == null ? translateUi("tuner.tapATuningPegToLockAString") : translateUi("tuner.tapTheSamePegToReturnToAuto")}</small>
     </div>
   );
 }
 
 function TunerHeadstockDesignGesture({ label, onNext }) {
+  useLanguage();
   const swipeRef = useRef(null);
   return (
     <div
-      aria-label={`악기 디자인 변경, 현재 ${label}. 위로 쓸어 올리거나 Enter를 누르세요`}
+      aria-label={translateUi("tuner.changeInstrumentDesignCurrentlyValue1SwipeUpOrPressEnter", { value1: label })}
       className="tunerHeadstockDesignGesture"
       role="button"
       tabIndex={0}
@@ -763,6 +769,7 @@ function TunerHeadstock({
   showMode = true,
   showTarget = false,
 }) {
+  useLanguage();
   const [headstockAvailable, setHeadstockAvailable] = useState(instrument.id === "guitar");
   const manualTarget = getTunerStringTarget(preset.strings, selectedString);
   const manual = manualTarget != null;
@@ -795,16 +802,16 @@ function TunerHeadstock({
       data-instrument={instrument.id}
       data-design={instrument.designId}
       style={{ "--tuner-headstock-fit": instrument.headstockFit ?? "contain" }}
-      aria-label={`${instrument.label} 줄 수동 선택`}
+      aria-label={localizeUi(translateUi("tuner.selectValue1StringManually", { value1: instrument.label }))}
     >
       {showMode ? <TunerRecognitionStatus preset={preset} selectedString={selectedString} /> : null}
       <div className={`tunerHeadstockAsset ${headstockAvailable ? "" : "tunerHeadstockAsset--pending"}`}>
         {(showTarget || instrument.autoTarget) ? (
           <div
-            aria-label={`목표 음 ${displayedPitch}${targetComplete ? ", 정확" : ""}`}
+            aria-label={localizeUi(translateUi("tuner.targetNoteValue1Value2", { value1: displayedPitch, value2: targetComplete ? ko["tuner.inTune"] : "" }))}
             className={`tunerHeadstockTarget ${targetComplete ? "complete" : ""}`}
           >
-            <small>목표 음</small>
+            <small><Translation id="app.targetNote" /></small>
             <strong>
               {targetComplete ? <Check aria-hidden="true" size={18} /> : null}
               {displayedPitch}
@@ -814,18 +821,18 @@ function TunerHeadstock({
         {headstockAvailable ? (
           <img
             key={instrument.headstockSrc}
-            alt={`${instrument.designLabel ?? instrument.label} 튜닝머신 헤드`}
+            alt={localizeUi(translateUi("tuner.value1Headstock", { value1: instrument.designLabel ?? instrument.label }))}
             draggable="false"
             src={instrument.headstockSrc}
           />
         ) : (
           <div className="tunerHeadstockAssetPending" role="status">
-            <strong>{instrument.label}</strong>
-            <small>전용 헤드 이미지 준비 중</small>
+            <strong>{localizeUi(instrument.label)}</strong>
+            <small><Translation id="tuner.headstockImageComingSoon" /></small>
           </div>
         )}
         {instrument.designs?.length > 1 && onNextDesign ? (
-          <TunerHeadstockDesignGesture label={instrument.designLabel} onNext={onNextDesign} />
+          <TunerHeadstockDesignGesture label={localizeUi(instrument.designLabel)} onNext={onNextDesign} />
         ) : null}
         {preset.strings.map((string) => {
           const hotspot = instrument.headstockHotspots[string.stringNumber];
@@ -833,7 +840,7 @@ function TunerHeadstock({
           const selected = selectedString === string.stringNumber;
           return (
             <button
-              aria-label={`${string.stringNumber}번 줄 ${string.pitch}${selected ? ", 선택 해제" : ", 수동 선택"}`}
+              aria-label={localizeUi(translateUi("tuner.stringValue1Value2Value3", { value1: string.stringNumber, value2: string.pitch, value3: selected ? ko["tuner.deselect"] : ko["tuner.selectManually"] }))}
               className={`tunerPegHotspot ${selected ? "tunerPegHotspot--chosen" : ""}`}
               data-selected={selected ? "true" : undefined}
               key={string.stringNumber}
@@ -868,6 +875,7 @@ function TunerHeadstock({
 }
 
 function TunerReadout({ controller, guidance }) {
+  useLanguage();
   const { preset, reading, selectedString } = controller;
   const currentPitch = getTunerDisplayPitch(reading)?.pitch ?? "--";
   const manualTarget = getTunerStringTarget(preset.strings, selectedString);
@@ -879,9 +887,9 @@ function TunerReadout({ controller, guidance }) {
 
   return (
     <section className={`tunerReadoutCard tunerStatus--${guidance.key}`} aria-live="polite">
-      <div className="tunerReadoutStats" aria-label={`현재 ${currentPitch}, 목표 ${targetPitch}, 차이 ${centsText} cents`}>
+      <div className="tunerReadoutStats" aria-label={translateUi("tuner.currentValue1TargetValue2OffsetValue3Cents", { value1: currentPitch, value2: targetPitch, value3: centsText })}>
         <div className="tunerReadoutStat tunerReadoutStat--target">
-          <small>목표 음</small>
+          <small><Translation id="app.targetNote" /></small>
           <strong className={reading.completed ? "tunerReadoutTargetComplete" : ""}>
             {reading.completed ? <Check aria-hidden="true" size={19} /> : null}
             {targetPitch}
@@ -890,15 +898,15 @@ function TunerReadout({ controller, guidance }) {
         </div>
         <div className="tunerReadoutStat">
           <small className={reading.hasSignal ? "tunerSignalActive" : ""}>
-            {reading.hasSignal ? "인식 중" : "현재 음"}
+            {reading.hasSignal ? translateUi("tuner.detecting") : translateUi("app.currentNote")}
           </small>
           <strong>{currentPitch}</strong>
           <b>{reading.hasSignal ? `${reading.frequency.toFixed(2)} Hz` : "-- Hz"}</b>
         </div>
         <div className="tunerReadoutStat">
-          <small>차이</small>
-          <strong>{centsText}</strong>
-          <b>cents</b>
+          <small><Translation id="tuner.offset" /></small>
+          <strong>{localizeUi(centsText)}</strong>
+          <b><Translation id="originalUi.cents" /></b>
         </div>
       </div>
     </section>
@@ -906,6 +914,7 @@ function TunerReadout({ controller, guidance }) {
 }
 
 function TunerSwimmer({ reading }) {
+  useLanguage();
   const fieldRef = useRef(null);
   const swimmerRef = useRef(null);
   const frameARef = useRef(null);
@@ -1024,7 +1033,7 @@ function TunerSwimmer({ reading }) {
           style={{ backgroundImage: `url(${TUNER_SWIMMER_SPRITE_SRC})` }}
         />
         {centsText != null ? (
-          <span className={`tunerSwimmerCents tunerSwimmerCents--${centsSide}`}>{centsText}</span>
+          <span className={`tunerSwimmerCents tunerSwimmerCents--${centsSide}`}>{localizeUi(centsText)}</span>
         ) : null}
       </div>
     </div>
@@ -1032,31 +1041,33 @@ function TunerSwimmer({ reading }) {
 }
 
 function TunerDebugHud({ reading }) {
+  useLanguage();
   if (!TUNER_DEBUG_ENABLED || !reading) return null;
   const format = (value, digits = 2) => (Number.isFinite(value) ? Number(value).toFixed(digits) : "--");
   return (
-    <aside className="tunerDebugHud" aria-label="튜너 개발 진단값">
-      <strong>DEV · {reading.phase} · {reading.stage}</strong>
-      <span>mode <b>{reading.mode}</b></span>
-      <span>YIN peak Hz <b>{format(reading.detectorRawFrequency, 3)}</b></span>
-      <span>raw Hz <b>{format(reading.rawFrequency, 3)}</b></span>
-      <span>filtered Hz <b>{format(reading.filteredFrequency, 3)}</b></span>
-      <span>raw cents <b>{format(reading.rawCents, 1)}</b></span>
-      <span>filtered cents <b>{format(reading.filteredCents, 1)}</b></span>
-      <span>MIDI <b>{format(reading.midiFloat, 3)} → {reading.roundedMidi ?? "--"}</b></span>
-      <span>note index <b>{reading.noteIndex ?? "--"}</b></span>
-      <span>detected <b>{reading.detectedNote} · {reading.noteName} · {reading.solfegeName} · oct {reading.octave ?? "--"}</b></span>
-      <span>target / UI <b>{reading.targetNote} / {reading.uiNote}</b></span>
-      <span>clarity <b>{format(reading.confidence, 3)}</b></span>
-      <span>RMS <b>{format(reading.rms, 5)}</b></span>
-      <span>attack <b>{format(reading.attackThresholdRms, 5)} · {reading.attackPresent ? "ON" : "OFF"}</b></span>
-      <span>release <b>{format(reading.releaseThresholdRms, 5)} · {reading.releasePresent ? "ON" : "OFF"}</b></span>
-      <span>UI left <b>{format(reading.uiPosition, 1)}%</b></span>
+    <aside className="tunerDebugHud" aria-label={translateUi("tuner.tunerDiagnostics")}>
+      <strong><Translation id="originalUi.devTunermode" />{reading.phase} · {reading.stage}</strong>
+      <span><Translation id="originalUi.mode" /><b>{reading.mode}</b></span>
+      <span><Translation id="originalUi.yinPeakHz" /><b>{format(reading.detectorRawFrequency, 3)}</b></span>
+      <span><Translation id="originalUi.rawHz" /><b>{format(reading.rawFrequency, 3)}</b></span>
+      <span><Translation id="originalUi.filteredHz" /><b>{format(reading.filteredFrequency, 3)}</b></span>
+      <span><Translation id="originalUi.rawCents" /><b>{format(reading.rawCents, 1)}</b></span>
+      <span><Translation id="originalUi.filteredCents" /><b>{format(reading.filteredCents, 1)}</b></span>
+      <span><Translation id="originalUi.midi" /><b>{format(reading.midiFloat, 3)} → {reading.roundedMidi ?? "--"}</b></span>
+      <span><Translation id="originalUi.noteIndex" /><b>{reading.noteIndex ?? "--"}</b></span>
+      <span><Translation id="originalUi.detected" /><b>{reading.detectedNote} · {reading.noteName} · {reading.solfegeName}<Translation id="originalUi.oct" />{reading.octave ?? "--"}</b></span>
+      <span><Translation id="originalUi.targetUi" /><b>{reading.targetNote} / {reading.uiNote}</b></span>
+      <span><Translation id="originalUi.clarity" /><b>{format(reading.confidence, 3)}</b></span>
+      <span><Translation id="originalUi.rms" /><b>{format(reading.rms, 5)}</b></span>
+      <span><Translation id="originalUi.attack" /><b>{format(reading.attackThresholdRms, 5)} · {reading.attackPresent ? "ON" : "OFF"}</b></span>
+      <span><Translation id="originalUi.releaseTunermode" /><b>{format(reading.releaseThresholdRms, 5)} · {reading.releasePresent ? "ON" : "OFF"}</b></span>
+      <span><Translation id="originalUi.uiLeft" /><b>{format(reading.uiPosition, 1)}%</b></span>
     </aside>
   );
 }
 
 function TunerGauge({ controller, guidance, showDirectionScale = true }) {
+  useLanguage();
   const { micState, reading, restartMicrophone, selectedString } = controller;
   const manual = selectedString != null || reading.target != null;
   const needsMicAction = ["denied", "error", "unsupported"].includes(micState);
@@ -1072,37 +1083,37 @@ function TunerGauge({ controller, guidance, showDirectionScale = true }) {
     .replaceAll("_", "-");
   const currentPitch = getTunerDisplayPitch(reading)?.pitch ?? "--";
   const guidanceText = manual
-    ? `${directionState} · ${guidance.message}`
-    : guidance.message;
+    ? `${localizeUi(directionState)} · ${localizeUi(guidance.message)}`
+    : localizeUi(guidance.message);
   const guidanceBadgeSrc = needsMicAction ? null : TUNER_GUIDANCE_BADGES[guidance.key];
   const showGuidance = needsMicAction || guidance.key !== "tracking";
   return (
-    <section className={`tunerOceanGauge tunerStatus--${guidance.key}`} aria-label="바다형 튜닝 게이지">
+    <section className={`tunerOceanGauge tunerStatus--${guidance.key}`} aria-label={translateUi("tuner.oceanTuningGauge")}>
       {TUNER_VISUAL_OPTIONS.showWaveTrace ? (
         <OceanWaveCanvas energy={reading.hasSignal ? Math.max(reading.level, 0.16) : 0.08} status={guidance.key} />
       ) : null}
       <div className="tunerGaugeCenter" aria-hidden="true"><span /></div>
       <div
-        aria-label={`현재 음 ${currentPitch}${centsText ? `, ${centsText}` : ""}`}
+        aria-label={translateUi("tuner.currentNoteValue1Value2", { value1: currentPitch, value2: centsText ? `, ${centsText}` : "" })}
         className={`tunerPitchOrb ${trackingClass} ${reading.completed ? "exact" : ""}`}
         style={{ "--tuner-orb-left": `${orbLeft}%` }}
       >
         <strong>{currentPitch}</strong>
-        {centsText ? <small>{centsText}</small> : null}
+        {centsText ? <small>{localizeUi(centsText)}</small> : null}
       </div>
       {TUNER_VISUAL_OPTIONS.showSwimmer ? <TunerSwimmer reading={reading} /> : null}
       {reading.completed ? (
         <div className="tunerExactConfirmation" role="status">
           <span><Check aria-hidden="true" size={18} /></span>
-          <strong>딱 맞아요!</strong>
+          <strong><Translation id="tuner.inTuneTunerMode" /></strong>
         </div>
       ) : null}
       {showDirectionScale && manual ? (
         <>
-          <div className="tunerGaugeLabels" aria-label={`현재 상태 ${directionState}`}>
-            <span>낮음</span>
-            <strong>{reading.completed ? <><Check aria-hidden="true" size={14} /> 정확</> : "정확"}</strong>
-            <span>높음</span>
+          <div className="tunerGaugeLabels" aria-label={translateUi("tuner.currentStatusValue1", { value1: directionState })}>
+            <span><Translation id="tuner.flat" /></span>
+            <strong>{reading.completed ? <><Check aria-hidden="true" size={14} /><Translation id="tuner.inTuneTunerMode2" /></> : translateUi("app.inTune")}</strong>
+            <span><Translation id="tuner.sharp" /></span>
           </div>
           <div className="tunerCentScale" aria-hidden="true">
             <i />
@@ -1119,19 +1130,18 @@ function TunerGauge({ controller, guidance, showDirectionScale = true }) {
               src={guidanceBadgeSrc}
             />
           ) : (
-            <strong className="tunerGuidanceText">{needsMicAction ? (micState === "denied" ? "마이크 권한을 허용해주세요" : "마이크를 켜주세요") : guidanceText}</strong>
+            <strong className="tunerGuidanceText">{needsMicAction ? (micState === "denied" ? translateUi("shooter.allowMicrophoneAccess") : translateUi("tuner.turnOnTheMicrophone")) : guidanceText}</strong>
           )}
-          <small>{micState === "requesting" ? "마이크 권한을 확인하고 있어요" : guidance.detail}</small>
+          <small>{micState === "requesting" ? translateUi("tuner.checkingMicrophonePermission") : guidance.detail}</small>
           {needsMicAction && micState !== "unsupported" ? (
             <button className="tunerMicStartButton" onClick={restartMicrophone} type="button">
-              <Mic aria-hidden="true" size={15} /> 마이크 시작
-            </button>
+              <Mic aria-hidden="true" size={15} /><Translation id="tuner.startMicrophone" /></button>
           ) : null}
         </div>
       ) : null}
       <div className="tunerCoarseHint">
         {manual && reading.hasSignal && Math.abs(reading.cents) > 50
-          ? `${currentPitch}에서 ${reading.target?.pitch}까지 큰 음정 이동 중`
+          ? translateUi("tuner.largePitchShiftFromValue1ToValue2", { value1: currentPitch, value2: reading.target?.pitch })
           : ""}
       </div>
       <TunerDebugHud reading={controller.debugReading} />
@@ -1140,10 +1150,11 @@ function TunerGauge({ controller, guidance, showDirectionScale = true }) {
 }
 
 function TunerDashboard({ controller, guidance, showDirectionScale = true, showReadout = true }) {
+  useLanguage();
   return (
     <section
       className={`tunerTuningPanel ${showReadout ? "" : "tunerTuningPanel--gaugeOnly"} tunerStatus--${guidance.key}`}
-      aria-label="실시간 음정과 튜닝 그래프"
+      aria-label={translateUi("tuner.livePitchAndTuningGraph")}
     >
       {showReadout ? <TunerReadout controller={controller} guidance={guidance} /> : null}
       <TunerGauge controller={controller} guidance={guidance} showDirectionScale={showDirectionScale} />
@@ -1152,11 +1163,12 @@ function TunerDashboard({ controller, guidance, showDirectionScale = true, showR
 }
 
 function TunerMicStatus({ controller }) {
+  useLanguage();
   const micOn = controller.micState === "listening";
   const micBusy = controller.micState === "requesting";
   return (
     <button
-      aria-label={micOn ? "마이크 끄기" : "마이크 켜기"}
+      aria-label={micOn ? translateUi("tuner.turnMicrophoneOff") : translateUi("tuner.turnMicrophoneOn")}
       aria-pressed={micOn}
       className={`tunerMicStatus ${micOn ? "on" : "off"} ${micBusy ? "busy" : ""}`}
       disabled={micBusy}
@@ -1170,16 +1182,17 @@ function TunerMicStatus({ controller }) {
 }
 
 function TunerSettingsSheet({ instrument, onClose, onSelectPreset, preset, presets }) {
+  useLanguage();
   return (
     <div className="tunerSettingsLayer" role="presentation">
-      <button aria-label="튜닝 설정 닫기" className="tunerSettingsDim" onClick={onClose} type="button" />
-      <section aria-label="튜닝 설정" aria-modal="true" className="tunerSettingsSheet" role="dialog">
+      <button aria-label={translateUi("tuner.closeTuningSettings")} className="tunerSettingsDim" onClick={onClose} type="button" />
+      <section aria-label={translateUi("etudes.tuningSettings")} aria-modal="true" className="tunerSettingsSheet" role="dialog">
         <div className="tunerSettingsHeader">
-          <div><span>TUNING</span><strong>{instrument.label} 튜닝</strong></div>
-          <button aria-label="닫기" onClick={onClose} type="button"><X aria-hidden="true" size={20} /></button>
+          <div><span><Translation id="originalUi.tuning" /></span><strong>{localizeUi(instrument.label)}<Translation id="tuner.tuning" /></strong></div>
+          <button aria-label={translateUi("common.close")} onClick={onClose} type="button"><X aria-hidden="true" size={20} /></button>
         </div>
-        <div className="tunerReferenceRow"><span>기준 주파수</span><strong>A4 = 440 Hz</strong></div>
-        <div className="tunerPresetList" role="radiogroup" aria-label="튜닝 프리셋">
+        <div className="tunerReferenceRow"><span><Translation id="tuner.referenceFrequency" /></span><strong><Translation id="originalUi.a4440Hz" /></strong></div>
+        <div className="tunerPresetList" role="radiogroup" aria-label={translateUi("tuner.tuningPreset")}>
           {presets.map((option, index) => (
             <button
               aria-checked={preset.id === option.id}
@@ -1189,28 +1202,29 @@ function TunerSettingsSheet({ instrument, onClose, onSelectPreset, preset, prese
               role="radio"
               type="button"
             >
-              <span>{index === 0 ? "기본" : "고급"}</span>
-              <div><strong>{option.label}</strong><small>{option.noteSummary} · {option.description}</small></div>
+              <span>{index === 0 ? translateUi("app.default") : translateUi("etudes.advanced")}</span>
+              <div><strong>{localizeUi(option.label)}</strong><small>{option.noteSummary} · {localizeUi(option.description)}</small></div>
               {preset.id === option.id ? <Check aria-hidden="true" size={18} /> : <ChevronRight aria-hidden="true" size={18} />}
             </button>
           ))}
         </div>
-        <p>프리셋은 여기에서만 변경돼요. 메인 화면에서는 현재 설정만 작게 표시합니다.</p>
+        <p><Translation id="tuner.changePresetsHereTheMainScreenShowsACompactSummaryOfThe" /></p>
       </section>
     </div>
   );
 }
 
 function TunerInstrumentSheet({ instrument, onClose, onSelectInstrument }) {
+  useLanguage();
   return (
     <div className="tunerSettingsLayer" role="presentation">
-      <button aria-label="악기 선택 닫기" className="tunerSettingsDim" onClick={onClose} type="button" />
-      <section aria-label="악기 선택" aria-modal="true" className="tunerSettingsSheet tunerInstrumentSheet" role="dialog">
+      <button aria-label={translateUi("tuner.closeInstrumentPicker")} className="tunerSettingsDim" onClick={onClose} type="button" />
+      <section aria-label={translateUi("app.chooseInstrument")} aria-modal="true" className="tunerSettingsSheet tunerInstrumentSheet" role="dialog">
         <div className="tunerSettingsHeader">
-          <div><span>INSTRUMENT</span><strong>악기 선택</strong></div>
-          <button aria-label="닫기" onClick={onClose} type="button"><X aria-hidden="true" size={20} /></button>
+          <div><span><Translation id="originalUi.instrument" /></span><strong><Translation id="app.chooseInstrument" /></strong></div>
+          <button aria-label={translateUi("common.close")} onClick={onClose} type="button"><X aria-hidden="true" size={20} /></button>
         </div>
-        <div className="tunerPresetList tunerInstrumentList" role="radiogroup" aria-label="튜너 악기">
+        <div className="tunerPresetList tunerInstrumentList" role="radiogroup" aria-label={translateUi("tuner.tunerInstrument")}>
           {TUNER_INSTRUMENT_OPTIONS.map((option) => (
             <button
               aria-checked={instrument.id === option.id}
@@ -1220,39 +1234,40 @@ function TunerInstrumentSheet({ instrument, onClose, onSelectInstrument }) {
               role="radio"
               type="button"
             >
-              <span>{option.presets[0].strings.length}현</span>
-              <div><strong>{option.label}</strong><small>{option.presets[0].noteSummary} · STANDARD</small></div>
+              <span>{option.presets[0].strings.length}<Translation id="tuner.strings" /></span>
+              <div><strong>{localizeUi(option.label)}</strong><small>{option.presets[0].noteSummary}<Translation id="originalUi.standard" /></small></div>
               {instrument.id === option.id ? <Check aria-hidden="true" size={18} /> : <ChevronRight aria-hidden="true" size={18} />}
             </button>
           ))}
         </div>
-        <p>악기를 선택한 뒤 줄을 연주해 주세요.</p>
+        <p><Translation id="tuner.chooseAnInstrumentThenPlayAString" /></p>
       </section>
     </div>
   );
 }
 
 function TunerTopbar({ controller, onOpenSettings, presetInteractive = true }) {
+  useLanguage();
   const { micState, preset, reading, selectedString } = controller;
   const micConnected = micState === "listening";
   return (
     <header className="tunerTopbar">
-      <div className="tunerTitle"><span>FRETIVA LAB</span><strong>TUNER</strong></div>
+      <div className="tunerTitle"><span><Translation id="originalUi.fretivaLab" /></span><strong><Translation id="originalUi.tuner" /></strong></div>
       <div className={`tunerMicBadge ${micConnected ? "connected" : ""} ${reading.hasSignal ? "hearing" : ""}`}>
         <i aria-hidden="true" />
         <span>{selectedString == null ? "AUTO" : "MANUAL"}</span>
       </div>
       {presetInteractive ? (
-        <button aria-label="튜닝 설정 열기" className="tunerPresetButton" onClick={onOpenSettings} type="button">
-          <span><small>TUNING</small><strong>{preset.label}</strong></span>
+        <button aria-label={translateUi("tuner.openTuningSettings")} className="tunerPresetButton" onClick={onOpenSettings} type="button">
+          <span><small><Translation id="originalUi.tuning" /></small><strong>{localizeUi(preset.label)}</strong></span>
           <ChevronDown aria-hidden="true" size={15} />
         </button>
       ) : (
         <div
-          aria-label={`현재 튜닝 프리셋 ${preset.label}, ${preset.noteSummary}`}
+          aria-label={localizeUi(translateUi("tuner.currentTuningPresetValue1Value2", { value1: preset.label, value2: preset.noteSummary }))}
           className="tunerPresetButton tunerPresetButton--static"
         >
-          <span><small>{preset.noteSummary}</small><strong>{preset.label}</strong></span>
+          <span><small>{preset.noteSummary}</small><strong>{localizeUi(preset.label)}</strong></span>
         </div>
       )}
     </header>
@@ -1260,27 +1275,28 @@ function TunerTopbar({ controller, onOpenSettings, presetInteractive = true }) {
 }
 
 function MobileTunerControls({ activeMenu, controller, onCloseMenu, onOpenInstrument, onOpenSettings, mobile = false }) {
+  useLanguage();
   return (
-    <header className="tunerMobileControls" aria-label="튜너 상단 설정">
+    <header className="tunerMobileControls" aria-label={translateUi("tuner.tunerTopSettings")}>
       {activeMenu ? (
-        <button aria-label="선택 목록 닫기" className="tunerMobileDropdownDismiss" onClick={onCloseMenu} type="button" />
+        <button aria-label={translateUi("tuner.closePicker")} className="tunerMobileDropdownDismiss" onClick={onCloseMenu} type="button" />
       ) : null}
       <div className="tunerMobileControlSlot tunerMobileControlSlot--instrument">
         <button
-          aria-label={`악기 선택, 현재 ${controller.instrument.label}`}
+          aria-label={localizeUi(translateUi("tuner.chooseInstrumentCurrentlyValue1", { value1: controller.instrument.label }))}
           aria-expanded={activeMenu === "instrument"}
           aria-haspopup="listbox"
           className={`tunerMobileSelectButton tunerMobileInstrumentButton ${activeMenu === "instrument" ? "open" : ""}`}
           onClick={onOpenInstrument}
           type="button"
         >
-          <strong>{controller.instrument.label}</strong>
+          <strong>{localizeUi(controller.instrument.label)}</strong>
           <ChevronDown aria-hidden="true" size={13} />
         </button>
         {activeMenu === "instrument" ? (
-          <section aria-label="악기 선택 목록" className="tunerMobileDropdown tunerMobileDropdown--instrument">
-            <small>악기 선택</small>
-            <div role="radiogroup" aria-label="튜너 악기">
+          <section aria-label={translateUi("tuner.instrumentList")} className="tunerMobileDropdown tunerMobileDropdown--instrument">
+            <small><Translation id="app.chooseInstrument" /></small>
+            <div role="radiogroup" aria-label={translateUi("tuner.tunerInstrument")}>
               {TUNER_INSTRUMENT_OPTIONS.map((option) => (
                 <button
                   aria-checked={controller.instrument.id === option.id}
@@ -1293,7 +1309,7 @@ function MobileTunerControls({ activeMenu, controller, onCloseMenu, onOpenInstru
                   role="radio"
                   type="button"
                 >
-                  <span><strong>{option.label}</strong><small>{option.presets[0].noteSummary}</small></span>
+                  <span><strong>{localizeUi(option.label)}</strong><small>{option.presets[0].noteSummary}</small></span>
                   {controller.instrument.id === option.id ? <Check aria-hidden="true" size={15} /> : null}
                 </button>
               ))}
@@ -1303,21 +1319,21 @@ function MobileTunerControls({ activeMenu, controller, onCloseMenu, onOpenInstru
       </div>
       <div className="tunerMobileControlSlot tunerMobileControlSlot--tuning">
         <button
-          aria-label={`튜닝 프리셋 선택, 현재 ${controller.preset.label}`}
+          aria-label={localizeUi(translateUi("tuner.chooseTuningPresetCurrentlyValue1", { value1: controller.preset.label }))}
           aria-expanded={activeMenu === "tuning"}
           aria-haspopup="listbox"
           className={`tunerMobileSelectButton tunerMobilePresetButton ${activeMenu === "tuning" ? "open" : ""}`}
           onClick={onOpenSettings}
           type="button"
         >
-          <strong>{controller.preset.label}</strong>
+          <strong>{localizeUi(controller.preset.label)}</strong>
           <ChevronDown aria-hidden="true" size={13} />
         </button>
         {activeMenu === "tuning" ? (
-          <section aria-label="튜닝 프리셋 목록" className="tunerMobileDropdown tunerMobileDropdown--tuning">
+          <section aria-label={translateUi("tuner.tuningPresetList")} className="tunerMobileDropdown tunerMobileDropdown--tuning">
             <DeviceConnection scope="tuner" mobile={mobile} />
-            <small>{controller.instrument.label} 튜닝</small>
-            <div role="radiogroup" aria-label="튜닝 프리셋">
+            <small>{localizeUi(controller.instrument.label)}<Translation id="tuner.tuning" /></small>
+            <div role="radiogroup" aria-label={translateUi("tuner.tuningPreset")}>
               {controller.presets.map((option) => (
                 <button
                   aria-checked={controller.preset.id === option.id}
@@ -1330,7 +1346,7 @@ function MobileTunerControls({ activeMenu, controller, onCloseMenu, onOpenInstru
                   role="radio"
                   type="button"
                 >
-                  <span><strong>{option.label}</strong><small>{option.noteSummary}</small></span>
+                  <span><strong>{localizeUi(option.label)}</strong><small>{option.noteSummary}</small></span>
                   {controller.preset.id === option.id ? <Check aria-hidden="true" size={15} /> : null}
                 </button>
               ))}
@@ -1386,7 +1402,7 @@ function DesktopTunerLayout({
   return (
     <>
       <div className="tunerDesktopHeader">
-        <div className="tunerTitle"><span>FRETIVA LAB</span><strong>TUNER</strong></div>
+        <div className="tunerTitle"><span><Translation id="originalUi.fretivaLab" /></span><strong><Translation id="originalUi.tuner" /></strong></div>
         <MobileTunerControls
           activeMenu={activeMenu}
           controller={controller}
@@ -1431,7 +1447,7 @@ export default function TunerMode({
   const controller = useTunerController(active);
   useEffect(() => {
     if (active && controller.micState === "denied") {
-      window.alert(mediaPermissionGuide({ mobile }));
+      window.alert(localizeUi(mediaPermissionGuide({ mobile })));
     }
   }, [active, controller.micState, mobile]);
   const [activeSheet, setActiveSheet] = useState(null);
