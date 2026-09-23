@@ -362,22 +362,28 @@ html body .app .editorDesign.etudeEditor--desktop>.etudeEditorStatusMessage{flex
 .editorDesign.etudeEditor--desktop .etudeToolbarMain{flex-wrap:wrap;gap:8px}
 html body .app .editorDesign.etudeEditor--desktop .desktopScoreViewControls .etudeToolbarZoom{display:flex;flex-direction:row;align-items:center;gap:6px;margin:0;font-size:11px}
 /* Fretted mobile controls: narrow arrows, beat actions below grip actions. */
-.editorDesign.mobileScoreWorkspace .mobileCursorPad{grid-template-columns:34px minmax(60px,1fr) 34px 34px 124px}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad{grid-template-columns:34px 66px 34px 34px minmax(0,1fr) 124px}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreBarStepper{grid-column:1 / 3;grid-row:1;width:104px;max-width:100%}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowUp{grid-column:3;grid-row:1}
-.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreLineActions{grid-column:5;grid-row:1}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreLineActions{grid-column:6;grid-row:1}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowLeft{grid-column:1;grid-row:2}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad output{grid-column:2 / 4;grid-row:2;font-size:10px;min-width:0}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowRight{grid-column:4;grid-row:2}
-.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreBeatActions{grid-column:5;grid-row:2;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreBeatActions{grid-column:6;grid-row:2;display:grid;grid-template-columns:1fr 1fr;gap:2px}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreBeatActions button{font-size:11px!important;padding:0 1px!important;min-width:0}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-r{grid-column:1 / 3;grid-row:3;width:104px;max-width:100%}
 .editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowDown{grid-column:3;grid-row:3}
-.editorDesign.mobileScoreWorkspace .mobileCursorPad>.is-delete{grid-column:5;grid-row:3}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad>.is-delete{grid-column:6;grid-row:3}
 
-.editorDesign.mobileScoreWorkspace .scoreResetActions{grid-column:5;grid-row:3;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:2px;min-width:0}
+.editorDesign.mobileScoreWorkspace .scoreResetActions{grid-column:6;grid-row:3;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:2px;min-width:0}
 .editorDesign.mobileScoreWorkspace .scoreResetActions>button{font-size:11px!important;padding:0 2px!important;min-width:0;gap:2px}
 .editorDesign.mobileScoreWorkspace .scoreResetActions>button svg{width:14px;height:14px}
 .editorDesign.mobileScoreWorkspace .scoreResetConfirm{position:absolute;right:0;bottom:calc(100% + 6px);z-index:30;width:190px;padding:10px;border:1px solid var(--ed-line);border-radius:9px;background:var(--ed-surface);box-shadow:0 3px 12px #0003;font-size:12px;text-align:center}
 .editorDesign.mobileScoreWorkspace .scoreResetConfirm>div{display:flex;justify-content:center;gap:6px;margin-top:7px}
 .editorDesign.mobileScoreWorkspace .scoreResetConfirm button{width:64px;font-size:12px!important}
+
+@layer score-workspace {
+ .editorDesign.mobileScoreWorkspace>.etudeEditorPreview{flex:0 0 var(--mobile-score-height,auto);height:var(--mobile-score-height,auto);min-height:0;overflow:hidden}
+ .editorDesign.mobileScoreWorkspace>.etudeEditorPreview:not([style*="--mobile-score-height"]){flex:1}
+ .editorDesign.mobileScoreWorkspace .etudeEditorCanvas{overflow:auto;overscroll-behavior:contain;overflow-anchor:none}
+}

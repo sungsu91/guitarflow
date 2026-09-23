@@ -13,7 +13,10 @@
 .etudeViewMenu label{display:grid;gap:4px;font-size:12px;padding:6px;border-top:1px solid var(--etude-line)}
 .etudeViewMenu select{min-height:44px;max-width:100%;background:var(--etude-panel);color:var(--etude-ink)}
 .etudeViewMenu>div{max-height:min(460px,70dvh);overflow:auto;width:200px}
-.etudeReturnPosition{position:sticky;top:8px;left:8px;z-index:2;min-height:40px;margin:0 0 -40px;display:block!important;background:var(--theme-surface)!important;color:var(--theme-text)!important;border:1px solid var(--theme-accent)!important;box-shadow:0 3px 12px #0002}
+html body main.app.app.app .etudeScoreViewport .etudeReturnPosition{position:sticky;top:8px;left:8px;z-index:2;display:flex!important;align-items:center;gap:5px;width:max-content;height:40px;min-height:40px;margin:0 0 -40px;padding:4px 8px;border:0!important;border-radius:3px!important;background:var(--theme-surface)!important;color:var(--theme-text-muted)!important;box-shadow:none!important;font-size:11px;font-weight:400;white-space:nowrap}
+html body main.app.app.app .etudeScoreViewport .etudeReturnPosition:hover{background:var(--theme-bg-soft)!important;color:var(--theme-text)!important}
+.etudeScoreViewport .etudeReturnPosition:focus-visible{outline:2px solid var(--theme-accent);outline-offset:2px}
+.etudeScoreViewport .etudeReturnPosition svg{width:14px;height:14px;flex:none}
 .etudeSessionWidget .etudeFloatingTransport{flex-wrap:nowrap;gap:4px}
 .etudeSessionWidget .etudeFloatingTransport button{font-size:12px;padding:6px;flex:auto}
 .etudeSessionWidget header{height:28px}

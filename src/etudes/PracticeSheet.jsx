@@ -9,6 +9,7 @@ import './practiceLayout.css';
 const Score=lazy(()=>import('./Score.jsx'));
 export default function PracticeSheet({model,mobile,heading,title,lessonTips,footer}) {
  const [viewOpen,setViewOpen]=useState(false);
+ const [followTarget,setFollowTarget]=useState(null);
  const [notationOpen,setNotationOpen]=useState(false);
  const [editOpen,setEditOpen]=useState(false);
  const [printError,setPrintError]=useState('');

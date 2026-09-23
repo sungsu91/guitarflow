@@ -1,0 +1,3 @@
+.scoreChordDisplayMenu{position:relative;flex:none}
+.scoreChordDisplayChoices{position:absolute;right:0;top:calc(100% + 4px);z-index:30;display:grid;gap:4px;min-width:100px;padding:5px;border:1px solid var(--theme-border-control,#d8d1c8);border-radius:5px;background:var(--theme-surface,#fff);box-shadow:0 3px 10px #0001}
+.scoreChordDisplayChoices button{width:100%;white-space:nowrap}

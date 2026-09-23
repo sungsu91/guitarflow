@@ -91,6 +91,8 @@ function compileLegacyDocument(document,base) {
 export function updateDocumentChordFret(document,bar,string,fret) {
  const next=copy(document),measure=next.measures[bar];
  measure.chord.frets[document.tuning.length-string]=fret;
+ if(measure.chord.blankStrings)measure.chord.blankStrings=measure.chord.blankStrings.filter(s=>s!==string);
+ if(fret>0&&measure.chord.fretWindow)measure.chord.fretWindow={start:Math.min(fret,measure.chord.fretWindow.start),end:Math.max(fret,measure.chord.fretWindow.end)};
  if(fret===null||fret===0)measure.chord.fingers[document.tuning.length-string]=null;
  measure.events=measure.events.map(event=>{
   if(event.rest)return event;

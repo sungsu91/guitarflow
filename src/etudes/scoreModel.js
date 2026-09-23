@@ -1,3 +1,4 @@
+import {chordDiagramErrors} from './scoreChordDiagram.js';
 import {slidePairs} from './slidePairs.js';
 import {soundingMidi,maxFret,HARMONICS} from './scoreTuning.js';
 import {measureMeters} from './scoreMeters.js';
@@ -99,6 +100,7 @@ function compileBar(bar,d) {
  if(bar.chord&&(!Array.isArray(bar.chord.frets)||bar.chord.frets.length!==d.tuning.length||bar.chord.frets.some(f=>f!==null&&(!Number.isInteger(f)||f<0||f>24))||typeof bar.chord.name!=='string'))errors.push('코드표의 이름·각 줄 프렛을 확인하세요.');
  if(bar.chord&&(!Array.isArray(bar.chord.fingers)||bar.chord.fingers.length!==d.tuning.length||bar.chord.fingers.some(f=>f!==null&&![1,2,3,4].includes(f))))errors.push('코드표 손가락은 각 줄 각각 1–4 또는 null입니다.');
  if(bar.chord?.barre){const b=bar.chord.barre;if(!Number.isInteger(b.fret)||b.fret<1||b.fret>24||!Number.isInteger(b.from)||!Number.isInteger(b.to)||b.from>d.tuning.length||b.to<1||b.from<=b.to)errors.push('코드표 바레의 프렛과 시작·끝 줄을 확인하세요.');}
+ errors.push(...chordDiagramErrors(bar.chord,d.tuning.length,capacity,maxFret(d)-(d.capo??0)));
  const result={errors,issues,events};cache.set(bar,{context,result});return result;
 }
 export function compileDocumentV2(d,base={}) {

@@ -51,6 +51,7 @@ export function convertScoreInstrument(document,id){
       // Finger numbers and barre marks describe the old grip, not its pitches.
       bar.chord={...bar.chord,frets:target.map(()=>null),fingers:target.map(()=>null),barre:null};
       converted.forEach(n=>{bar.chord.frets[target.length-n.string]=n.fret;});
+      delete bar.chord.fretWindow;delete bar.chord.blankStrings;
     }
   });
   const events=next.measures.flatMap((m,b)=>m.events.map(e=>({event:e,bar:b+1})));

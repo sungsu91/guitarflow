@@ -37,3 +37,11 @@
 .editorDesign.mobileScoreWorkspace .mobileNotationViews{row-gap:8px}
 .editorDesign.mobileScoreWorkspace .editorInstrumentRow{position:relative;z-index:1;min-height:36px}
 .editorSettingsPopover .editorSettingsBody .editorKeyModes button[aria-pressed=true]{background:var(--score-ink)!important;color:var(--score-paper)!important}
+
+/* Mobile fretted instruments keep instrument, tuning and notation on one row. */
+.editorDesign.mobileScoreWorkspace .editorInstrumentRow--fretted{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr) minmax(0,1.2fr) 48px;gap:4px;min-width:0;min-height:34px}
+@layer score-workspace {
+ .editorDesign.mobileScoreWorkspace .editorInstrumentRow--fretted> :is(select,button){box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;height:34px!important;min-height:34px!important;margin:0!important;font-size:12px!important;line-height:1.3!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .editorDesign.mobileScoreWorkspace .editorInstrumentRow--fretted>select{padding:0 18px 0 6px!important;font-weight:650!important;box-shadow:none!important}
+ .editorDesign.mobileScoreWorkspace .editorInstrumentRow--fretted>button{padding:0 4px!important}
+}

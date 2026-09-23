@@ -1,6 +1,6 @@
 // Each course has its own concert-pitch progression and actual chord grips.
 const grip=(frets,fingers,barre)=>({frets,fingers,...(barre?{barre}:{})});
-const CHORDS={
+export const OPEN_CHORD_SHAPES={
  D:grip([null,null,0,2,3,2],[null,null,null,1,3,2]),
  Dm:grip([null,null,0,2,3,1],[null,null,null,2,3,1]),
  E7:grip([0,2,0,1,0,0],[null,2,null,1,null,null]),
@@ -15,6 +15,7 @@ const CHORDS={
  Emaj7:grip([null,7,9,8,9,7],[null,1,3,2,4,1],{fret:7,from:5,to:1}),
  Em7:grip([null,7,9,7,8,7],[null,1,3,1,2,1],{fret:7,from:5,to:1}),
 };
+const CHORDS=OPEN_CHORD_SHAPES;
 // The fifth is selected for this voicing; it is not always the adjacent string.
 const FIFTH={D:3,Dm:3,E7:5,C:3,Am:4,F:2,G:4,Em:5,D7:3,Bmaj7:4,'D#m':4,Emaj7:4,Em7:4};
 const B='bass', V='fifth';

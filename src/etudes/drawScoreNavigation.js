@@ -27,9 +27,11 @@ export function drawScoreNavigation(context,svg,{mark,previous,next,x,width,top,
  const append=(tag,attributes,text)=>{const node=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attributes))node.setAttribute(key,String(value));if(text)node.textContent=text;group.append(node);return node;};
  const occupied=[...obstacles];
  if(mark.sectionLabel){
-  const label=String(mark.sectionLabel),left=x+4,w=Math.max(24,label.length*8+12),bottom=navigationBottom(left,left+w,top,23,occupied),y=bottom-23;
-  append('rect',{x:left,y,width:w,height:23,rx:2,fill:'#fff',stroke:'#333','stroke-width':1.3,'data-section-label':label});
-  append('text',{x:left+w/2,y:y+16,'text-anchor':'middle','font-family':'Arial','font-size':13,'font-weight':700},label);
+  const label=String(mark.sectionLabel),left=x,metrics=document.createElement('canvas').getContext('2d');metrics.font='bold 13px Arial';
+  const w=Math.max(24,Math.ceil(metrics.measureText(label).width)+12),y=Math.min(top-40,navigationBottom(left,left+w,top,23,occupied)-23);
+  const panel=append('g',{'data-score-annotation':'section'});
+  panel.append(append('rect',{x:left,y,width:w,height:23,rx:2,fill:'#fff',stroke:'#333','stroke-width':1.3,'data-section-label':label}));
+  panel.append(append('text',{x:left+w/2,y:y+16,'text-anchor':'middle','font-family':'Arial','font-size':13,'font-weight':700},label));
   occupied.push({x:left,y,width:w,height:23});
  }
  const glyph=(kind,gx,size)=>{

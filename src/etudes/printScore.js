@@ -85,7 +85,7 @@ export function printEditorScore(container,title,view='both',metadata) {
    const first=placements[i].column===1,last=!placements[i+1]||placements[i+1].row!==placements[i].row;
    const host=document.createElement('div');host.style.cssText='position:fixed;left:-100000px;top:0;visibility:hidden';document.body.append(host);
    try{
-   drawScore(host,{...compiled,document:undefined,slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
+   drawScore(host,{...compiled,document:undefined,slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],annotationOffsets:[m.annotationOffsets],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
     {editor:true,barOffset:i,view,systemFootroom,editorWidth:geometry.cellWidth,engraving:geometry,systemStart:first,systemEnd:last,scoreEnd:i===compiled.measures.length-1,tabRhythm:metadata.viewSettings?.tabRhythm!==false,tabBeamPosition:metadata.viewSettings?.tabBeamPosition,tabPickingPosition:metadata.viewSettings?.tabPickingPosition});
    const svg=host.querySelector('svg');svg.querySelectorAll('.etudeEditorHit,.etudeInputCursor').forEach(el=>el.remove());
    // Keep small annotations readable at physical paper size without changing

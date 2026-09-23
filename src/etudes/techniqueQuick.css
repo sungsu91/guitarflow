@@ -102,3 +102,20 @@ dialog.mobileScoreWorkspace #mobile-tool-note .techniqueGroup>button svg{flex-sh
  html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueGroup>button svg{width:18px!important;height:18px!important;margin:0!important}
  html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueCaption{font-size:10px!important;line-height:11px!important;margin:0!important}
 }
+/* Mobile category navigation uses an underline; values use a filled checked state. */
+@layer score-workspace {
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueCategoryHeader{grid-template-columns:1fr 1fr;gap:0;padding:0;margin:-8px -8px 4px;border-bottom:1px solid #d8cfc5;background:#f5f1eb}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueCategoryHeader :is(.techniqueQuickActions,.techniqueCategoryTabs){display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0;margin:0;align-items:stretch}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueCategoryHeader button{position:relative;margin:0!important;align-self:stretch;flex-direction:row!important;height:42px!important;min-height:42px!important;font-size:12px!important;border:0!important;border-right:1px solid #d8cfc5!important;border-radius:0!important;background:#f5f1eb!important;color:#625b54!important;box-shadow:none!important;padding:4px!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueCategoryHeader button[aria-selected=true]{background:#e9ddd0!important;color:#49382c!important;box-shadow:inset 0 -3px #604733!important;font-weight:750!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueCategoryHeader button[aria-pressed=true]{background:#604733!important;color:#fff!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueBendControls{display:flex;align-items:center;gap:12px;padding:4px 0 8px}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueBendControls>span{font-size:12px;font-weight:650;white-space:nowrap;color:#625547}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .bendAmountOptions{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0;border:1px solid #d2c8bd;border-radius:9px;overflow:hidden;background:#fffdfa}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .bendAmountOptions button{flex-direction:row!important;gap:5px!important;border:0!important;border-right:1px solid #d2c8bd!important;border-radius:0!important;height:38px!important;min-height:38px!important;font-size:13px!important;background:#fffdfa!important;color:#5d5146!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .bendAmountOptions button[aria-checked=true]{background:#604733!important;color:#fff!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueGroup>button{position:relative;background:#f0ebe4!important;border-color:transparent!important;color:#49382c!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueGroup>button[aria-pressed=true]{background:#604733!important;border-color:#604733!important;color:#fff!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueSelectionCheck{position:absolute;right:4px;top:2px;font-size:11px!important;line-height:12px!important;color:inherit!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueValueCheck{font-size:13px!important;color:inherit!important}
+}

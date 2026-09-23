@@ -1,3 +1,6 @@
+import {applyAnnotationOffsets} from './scoreAnnotations.js';
+import {harmonyLabelLines} from './harmonyLabelLayout.js';
+import {LocateFixed} from 'lucide-react';
 import {slurSpans,slurCovers,drawSlurs} from './slurs.js';
 import {rhythmTimeline,rhythmHighlighter} from './rhythmProgress.js';
 
@@ -232,6 +235,10 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const baseWidth=mobile&&landscape?(dense?1100:980):mobile?(enlarged?460:view==='both'?600:400):980;
   const spacing=engraving?null:scoreSpacing(etude,{placements,view,width:editorWidth??baseWidth,barOffset,rhythmicSpacing});
   const width=engraving?engraving.cellWidth:spacing.width;
+  const labelContext=document.createElement('canvas').getContext('2d');
+  labelContext.font='bold 14px Arial';
+  const harmonyLines=etude.measures.map((_,i)=>harmonyLabelLines(etude.chordShapes?.[i]?'':etude.harmony?.[i]||'',Math.max(24,(engraving??spacing.measures[i]).width-43),text=>labelContext.measureText(text).width));
+  const annotationRoom=Math.max(engraving?.annotationRoom??0,Math.max(0,...harmonyLines.map(lines=>(lines.length-1)*18))+(repeatMarks(etude).some(m=>m.sectionLabel)?32:0));
   const chordHeight=etude.chordShapes?.some(Boolean)?120:0;
   const visibleChords=etude.chordDiagramVisible??chordDiagramVisibility(etude.chordShapes,etude.harmony);
   const chordRowGap=chordHeight&&!editor?64:!editor&&etude.harmony?.some(Boolean)?28:0;
@@ -247,7 +254,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const compactTab=responsive&&!editor&&view==='tab';
   const compactRhythm=compactTab&&mobile&&tabBeamPosition==='below';
   const extraTabRoom=compactTab&&etude.measures.some(bar=>bar.some(e=>e.tuplet||e.picking||e.palmMute))?22:0;
-  const rowHeight = (view==='tab'?(compactTab?86:144):view==='staff'?140:(responsive&&!editor?210:228))+extraTabRoom+chordHeight+chordRowGap+headroom+footroom+upperSpace+(tabRhythm&&view!=='staff'?(compactRhythm?45:55):0)+(view==='staff'?0:(stringCount-1)*(TAB_LINE_SPACING-13));
+  const rowHeight = (view==='tab'?(compactTab?86:144):view==='staff'?140:(responsive&&!editor?210:228))+annotationRoom+extraTabRoom+chordHeight+chordRowGap+headroom+footroom+upperSpace+(tabRhythm&&view!=='staff'?(compactRhythm?45:55):0)+(view==='staff'?0:(stringCount-1)*(TAB_LINE_SPACING-13));
   const height = (placements.at(-1)?.row??1) * rowHeight + 50;
   const renderer = new Renderer(element, Renderer.Backends.SVG);
   renderer.resize(width, height);
@@ -267,14 +274,15 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     const placement=placements[index],first=editor?systemStart:placement.column===1;
     const geometry=engraving??spacing.measures[index];
     const x = editor?(systemStart?12:0):geometry.x;
-    const y = 18 + (placement.row-1) * rowHeight+chordHeight+headroom;
+    const y = 18 + (placement.row-1) * rowHeight+chordHeight+headroom+annotationRoom;
     const w = geometry.width;
     const stave = new Stave(x, y, w);
     const tab = new TabStave(x, y + (view==='tab'?0:84+footroom)+upperSpace, w,{num_lines:stringCount,spacing_between_lines_px:TAB_LINE_SPACING});
     if(visibleChords[index]) {
       const shape=etude.chordShapes[index],bottomOffset=32+(shape.frets.length-1)*12+20;
       const top=(view==='tab'?tab:stave).getYForLine(0);
-      drawChordDiagram(element.querySelector('svg'),shape,etude.harmony?.[index]??'',x+12,top-bottomOffset-14-headroom-upperSpace);
+      const diagram=drawChordDiagram(element.querySelector('svg'),shape,etude.harmony?.[index]??'',x+12,top-bottomOffset-14-headroom-upperSpace);
+      diagram.dataset.scoreAnnotation='chord';diagram.dataset.annotationBar=String(index+barOffset);
     }
     if (first) {
       stave.addClef(scoreInstrument(etude.instrument).clef,'default',scoreInstrument(etude.instrument).octaveShift?'8vb':undefined).addKeySignature(etude.keySignature);
@@ -319,11 +327,16 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     measureNumber.setAttribute('text-anchor', 'middle');
     element.querySelector('svg').style.overflow='visible';
     element.querySelector('svg').append(measureNumber);
-    if(etude.harmony?.[index]&&!etude.chordShapes?.[index]) {
+    if((etude.harmony?.[index]||(editor&&etude.chordNameModes?.[index]))&&!etude.chordShapes?.[index]) {
       const group=context.openGroup('etudeHarmonyLabel');
-      group.dataset.scoreBar=String(index);
+      group.dataset.scoreBar=String(index);group.dataset.scoreAnnotation='harmony';group.dataset.annotationBar=String(index+barOffset);
       const top=(view==='tab'?tab:stave).getYForLine(0);
-      context.setFont('Arial',14,'bold').fillText(etude.harmony[index],x+35,top-24-headroom-upperSpace);
+      const label=etude.harmony?.[index]||'코드명',lines=etude.harmony?.[index]?harmonyLines[index]:[label];
+      group.dataset.harmonyText=label;
+      const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.style.cssText='font:bold 14px Arial;fill:#111;stroke:none';
+      lines.forEach((line,i)=>{const span=document.createElementNS(text.namespaceURI,'tspan');span.setAttribute('x',String(x+35));span.setAttribute('y',String(top-24-headroom-upperSpace-(lines.length-1-i)*18));span.textContent=line+(i<lines.length-1?' ':'');text.append(span);});
+      group.append(text);
       context.closeGroup();
     }
     if (first) {context.openGroup('fretiva-both-view');new StaveConnector(stave, tab).setType(StaveConnector.type.BRACKET).setContext(context).draw();context.closeGroup();}
@@ -432,7 +445,8 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       const geometry=document.createElementNS('http://www.w3.org/2000/svg','g');
       geometry.dataset.playbackBar=String(index);geometry.dataset.left=String(x);geometry.dataset.width=String(w);
       geometry.dataset.row=String(placement.row);
-      const rowTop=chordHeight?(placement.row-1)*rowHeight:Math.max(0,(view==='tab'?tab:stave).getYForLine(0)-32-headroom);
+      // Follow the full engraved system, including chord names and upper annotations.
+      const rowTop=(placement.row-1)*rowHeight;
       geometry.dataset.rowTop=String(rowTop);geometry.dataset.rowBottom=String(rowTop+rowHeight);
       geometry.dataset.top=String((view==='tab'?tab:stave).getYForLine(0)-12-headroom);
       geometry.dataset.bottom=String(view==='staff'?stave.getYForLine(4)+28:tab.getYForLine(stringCount-1)+(tabRhythm?60:14));
@@ -517,6 +531,9 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   for(const item of navigation){
     const {notes,tabs,measure,beams,tuplets,top,x,first,start,measureNumberX}=item;
     const obstacles=[...(item.palmMuteObstacles??[]),{x:measureNumberX-8,y:top-24,width:16,height:14}];
+    for(const label of svg.querySelectorAll(`[data-annotation-bar="${item.index}"][data-score-annotation="harmony"],[data-annotation-bar="${item.index}"][data-score-annotation="chord"]`)){
+      const b=label.getBBox();obstacles.push({x:b.x,y:b.y,width:b.width,height:b.height});
+    }
     if(first)obstacles.push({x,y:top-(view==='tab'?0:22),width:start-x,height:65});
     measure.forEach((event,i)=>{
       if(isBlankEvent(event))return;
@@ -536,6 +553,8 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       for(const {tuplet,visible} of tuplets)if(visible){const ns=tuplet.getNotes();obstacles.push({x:ns[0].getTieLeftX()-5,y:tuplet.getYPosition()-16,width:ns.at(-1).getTieRightX()-ns[0].getTieLeftX()+10,height:28});}
     }
     drawScoreNavigation(context,svg,{...item,obstacles});
+    const panel=svg.querySelector('[data-navigation-bar="'+item.index+'"] [data-score-annotation="section"]');if(panel)panel.dataset.annotationBar=String(item.index);
+    applyAnnotationOffsets(svg,item.index,etude.document?.measures?.[item.index]?.annotationOffsets??etude.annotationOffsets?.[item.index-barOffset]);
   }
   alignNavigationEndings(navigation.map(item=>({index:item.index,row:item.row,number:item.mark.ending,node:svg.querySelector(`[data-ending-bar="${item.index}"]`)})));
   drawSlurs(svg,drawn,spans);
@@ -655,7 +674,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
    const highlightedBar=playPosition?(playPosition.getCurrentSlot?.()??playPosition).bar:selectedBar;
    const nodes=[];for(const bar of svg.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':`${index+1}마디에서 시작`,'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>onSelectBar(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelectBar(index);}};svg.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
   },[etude,onSelectBar,selectedBar,playPosition,mobile,enlarged,landscape,view,responsive,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
-  return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume}>현재 위치로</button>}{error && <p role="alert">{error}</p>}<div className="etudeNotation" ref={ref} /></>;
+  return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title="현재 재생 위치로 이동하고 자동 스크롤 재개"><LocateFixed size={14} aria-hidden="true"/><span>현재 위치로</span></button>}{error && <p role="alert">{error}</p>}<div className="etudeNotation" ref={ref} /></>;
 }
 export default memo(Score);
 

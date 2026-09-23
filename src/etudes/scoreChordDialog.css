@@ -1,0 +1,88 @@
+.scoreChordDialog{--chord-brown:#70513b;--chord-line:#ded6cc;box-sizing:border-box;width:min(760px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);padding:0;margin:auto;border:1px solid #c7bcaf;border-radius:20px;background:#fcfaf6;color:#34291f;overflow:hidden;box-shadow:0 24px 80px #21170f40;font-family:inherit}
+.scoreChordDialog[open]{display:flex;flex-direction:column}
+.scoreChordDialog::backdrop{background:#221a1466;backdrop-filter:blur(3px)}
+.scoreChordDialog>header{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--chord-line);flex-shrink:0;background:#fcfaf6}
+.scoreChordDialog h2{font-size:20px;line-height:1.3;margin:0;flex:1;white-space:nowrap}
+.scoreChordDialog .chordDialogContent{overflow:auto;overscroll-behavior:contain;padding:18px;min-height:0}
+.scoreChordDialog .chordLoad{position:relative;flex:0 0 92px;height:36px}.scoreChordDialog .chordLoad>span{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
+.scoreChordDialog .chordNameRow{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px}.scoreChordDialog .chordNameRow>span{font-weight:700;white-space:nowrap}
+.scoreChordDialog .chordCandidates{display:flex;gap:5px;overflow-x:auto;flex:1;min-width:0;align-items:center}.scoreChordDialog .chordCandidates small{color:#8b7b6d;white-space:nowrap;font-size:12px}
+.scoreChordDialog .chordManualName{display:flex;align-items:center;gap:12px;font-size:13px;margin-bottom:12px}.scoreChordDialog .chordManualName input{flex:1;min-width:0}
+.scoreChordDialog .chordFretNavigation{display:flex;justify-content:space-between;align-items:center;gap:6px;margin:4px 0 10px;font-size:12px;color:#8a7765}.scoreChordDialog .chordFretNavigation strong{color:#5f4937;font-weight:600}
+.scoreChordDialog .chordFretboard{display:flex;min-width:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.scoreChordDialog .chordOpenStrings{width:48px;flex:0 0 48px;padding-right:3px;box-sizing:border-box}.scoreChordDialog .chordOpenStrings>div{height:var(--chord-row,40px);display:flex;align-items:center;gap:2px}.scoreChordDialog .chordOpenStrings>div>span{width:12px;font-size:12px;color:#6e5f51;text-align:center}
+.scoreChordDialog .chordFretScroll{overflow-x:auto;overflow-y:hidden;min-width:0;flex:1;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#d9c4a8 transparent}
+.scoreChordDialog .chordFretColumns{display:flex;width:max-content;padding-bottom:4px}
+.scoreChordDialog .chordFretColumn{width:var(--chord-cell);flex:0 0 var(--chord-cell)}
+.scoreChordDialog .chordFretCells{position:relative;border-right:1px solid #9a8c7e;box-sizing:border-box;padding:0}.scoreChordDialog .is-nut .chordFretCells{border-left:4px solid #735d49}
+.scoreChordDialog .chordFretNumber{display:block;text-align:center;font-size:12px;padding:8px 0 5px;color:#6f5a46}
+.scoreChordDialog .chordFingerDot{display:block;width:18px;height:18px;border-radius:50%;background:var(--chord-brown);box-shadow:inset 0 1px 2px #ffffff30;position:relative;z-index:2;pointer-events:none}
+.scoreChordDialog .chordBarreMark{position:absolute;left:calc(50% - 8px);width:16px;background:linear-gradient(90deg,#51d6bc35,#64e8ce80,#51d6bc35);border:1px solid #47bfa780;box-sizing:border-box;box-shadow:0 0 7px #59e4cb55,inset 0 0 5px #a1ffe550;border-radius:10px;pointer-events:none;z-index:1}
+.scoreChordDialog .chordGestureHelp{font-size:11px;text-align:center;color:#917e6c;margin:9px 0 14px;line-height:1.5}
+.scoreChordDialog .chordGripSummary{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 18px;font-size:12px}.scoreChordDialog .chordGripSummary strong{display:block;font-size:18px;letter-spacing:1px;margin:4px 0}.scoreChordDialog .chordGripSummary small{font-size:11px;color:#8d7a67}
+.scoreChordDialog .chordBarreHint{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;margin:8px 0;background:#fff1d2;border-radius:8px;font-size:12px}
+.scoreChordDialog .chordApplication{border:1px solid #e8dece;border-radius:12px;background:#fffcf5;padding:12px}.scoreChordDialog .chordApplicationTitle{display:flex;justify-content:space-between;gap:6px;font-size:12px;margin-bottom:10px}.scoreChordDialog .chordApplicationTitle>span{color:#8b7357}
+.scoreChordDialog .chordRangeTrack{display:flex;position:relative;isolation:isolate;height:34px;margin:0 3px 10px;border-radius:5px;background:#f0eae0;overflow:hidden}.scoreChordDialog .chordRangeTrack>i{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,#efbc4770,#f7da8460 12%,#f7da8430 50%,#f7da8460 88%,#efbc4770);box-shadow:inset 2px 0 #d7a637,inset -2px 0 #d7a637;z-index:-1}.scoreChordDialog .chordRangeTrack>span{flex:1;text-align:center;padding:9px 0;font-size:11px;border-left:1px solid #b7a99150}
+.scoreChordDialog .chordRangeFields{display:flex;gap:12px}.scoreChordDialog .chordRangeFields>label{display:flex;align-items:center;gap:6px;flex:1;min-width:0;font-size:12px;white-space:nowrap}.scoreChordDialog .chordRangeFields select{flex:1;min-width:0}
+.scoreChordDialog .chordWindowSettings{margin:14px 0 0;font-size:12px}.scoreChordDialog .chordWindowSettings summary{padding:8px 0;cursor:pointer}.scoreChordDialog .chordWindowSettings .chordRangeFields{margin-top:6px}
+.scoreChordDialog .chordDialogError{color:#a33725;font-size:13px;margin:10px 0 0}
+.scoreChordDialog>footer{display:flex;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--chord-line);background:#fcfaf6;flex-shrink:0}
+.scoreChordDialog--mobile{width:calc(100vw - 16px);max-height:calc(100dvh - 16px);border-radius:16px}.scoreChordDialog--mobile>header{padding:10px}.scoreChordDialog--mobile h2{font-size:17px}.scoreChordDialog--mobile .chordDialogContent{padding:12px 10px}.scoreChordDialog--mobile>footer{padding:10px 10px max(10px,env(safe-area-inset-bottom))}.scoreChordDialog--mobile .chordNameRow{gap:5px}.scoreChordDialog--mobile .chordGripSummary strong{font-size:16px}
+@layer score-workspace{
+ .editorDesign .scoreChordDialog :is(.chordManualName,.chordRangeFields>label){flex-direction:row!important;margin:0!important;align-items:center!important;color:#675340!important}
+ .editorDesign .scoreChordDialog .chordManualName{margin-bottom:12px!important}
+ .editorDesign .scoreChordDialog :is(.chordManualName,.chordRangeFields>label)> :is(input,select){margin:0!important;flex:1!important;width:0!important}
+ .editorDesign .scoreChordDialog .chordStringLine{position:absolute!important;display:block!important;top:50%!important;left:0!important;width:100%!important;height:1px!important;background:#8c8276!important;pointer-events:none!important}
+ .editorDesign .scoreChordDialog .chordNameRow button[aria-pressed=true]{background:linear-gradient(#70513b,#70513b)!important;color:#fffaf3!important}
+ .editorDesign .scoreChordDialog button{height:36px!important;min-height:36px!important;min-width:0!important;padding:5px 10px!important;font-size:12px!important;line-height:1.3!important;border:1px solid #d8cbbb!important;border-radius:9px!important;background:#fffcf8!important;color:#493729!important;box-shadow:none!important;flex-shrink:0}
+ .editorDesign .scoreChordDialog button[aria-pressed=true]{background:#70513b!important;color:#fffaf3!important;border-color:#70513b!important}
+ .editorDesign .scoreChordDialog button:disabled{opacity:.45!important}
+ .editorDesign .scoreChordDialog>header>button{padding:4px!important;width:32px!important;border:0!important;background:transparent!important}
+ .editorDesign .scoreChordDialog :is(select,input){box-sizing:border-box!important;height:36px!important;min-height:36px!important;max-width:100%!important;width:auto;padding:4px 7px!important;font-size:12px!important;border:1px solid #d8cbbb!important;border-radius:8px!important;background:#fffcf8!important;color:#493729!important}
+ .editorDesign .scoreChordDialog .chordLoad select{width:100%!important}
+ .editorDesign .scoreChordDialog .chordFretNavigation button{height:28px!important;min-height:28px!important;width:30px!important;padding:2px!important}
+ .editorDesign .scoreChordDialog .chordOpenStrings button{width:28px!important;height:36px!important;min-height:36px!important;padding:0!important;font-family:Arial,sans-serif!important;font-size:26px!important;font-weight:400!important;background:#f3eee6!important;border:0!important;border-radius:6px!important}
+ .editorDesign .scoreChordDialog .chordFretCells>button{display:flex!important;align-items:center!important;justify-content:center!important;position:relative;width:100%!important;height:var(--chord-row,40px)!important;min-height:var(--chord-row,40px)!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;transform:none!important;touch-action:pan-x!important;box-shadow:none!important}
+ .editorDesign .scoreChordDialog .chordFretCells>button:before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#8c8276;pointer-events:none}
+ .editorDesign .scoreChordDialog .chordApply{flex:1;min-height:46px!important;height:46px!important;font-size:17px!important;background:#70513b!important;color:#fff!important;border-color:#70513b!important}
+ .editorDesign .scoreChordDialog .chordRemove{height:46px!important;min-height:46px!important;color:#9a4431!important}
+}
+
+/* The fixed fluorescent frame stays still while the fretboard scrolls below it. */
+.scoreChordDialog .chordFretViewport{position:relative;flex:1;min-width:0;isolation:isolate}
+.scoreChordDialog .chordFretViewport .chordFretScroll{width:100%;box-sizing:border-box}
+.scoreChordDialog .chordBeatStrip{display:flex;gap:3px;touch-action:manipulation;user-select:none;min-width:0}
+.scoreChordDialog .chordApplication>small{display:block;font-size:10px;color:#8b7468;margin-top:5px}
+.scoreChordDialog .chordAutoFill{display:flex;flex-direction:row;align-items:center;gap:9px;margin:6px 0 0;font-size:12px}
+.scoreChordDialog .chordAutoFill small{display:block;margin-top:3px;font-size:10px;color:#8a7463;font-weight:400}
+.scoreChordDialog--mobile .chordNameRow{margin-bottom:6px}
+.scoreChordDialog--mobile .chordDialogContent{padding:10px}
+.scoreChordDialog--mobile .chordFretNavigation{margin:0 0 6px}
+.scoreChordDialog--mobile .chordFretNumber{padding:5px 0 3px}
+.scoreChordDialog--mobile .chordGripSummary{margin:8px 0;font-size:11px}
+.scoreChordDialog--mobile .chordGripSummary strong{font-size:15px;margin:2px 0}
+.scoreChordDialog--mobile .chordGestureHelp{font-size:10px;margin:6px 0}
+.scoreChordDialog--mobile .chordApplication{padding:8px;margin-top:8px;background:#fffafa;border-color:#ebd9dd}
+.scoreChordDialog--mobile .chordApplicationTitle{align-items:center;margin-bottom:5px}
+@layer score-workspace{
+ .editorDesign .scoreChordDialog .chordBeatStrip>button{flex-basis:0!important;flex-shrink:1!important;min-width:0!important;height:32px!important;min-height:32px!important;border:1px solid #eed3d9!important;padding:2px!important;font-size:11px!important;background:#fffafa!important;color:#694b51!important;touch-action:manipulation!important;overflow:hidden}
+ .editorDesign .scoreChordDialog .chordBeatStrip>button[aria-checked=true]{background:linear-gradient(#ffedf1,#ffe0e7)!important;color:#a31c3c!important;border-color:#ff6481!important;box-shadow:inset 0 -2px #ff345a!important}
+ .editorDesign .scoreChordDialog .chordApplicationTitle>button{height:24px!important;min-height:24px!important;padding:2px 6px!important;font-size:10px!important}
+ .editorDesign .scoreChordDialog .chordAutoFill{display:flex!important;flex-direction:row!important;align-items:center!important;margin:8px 0 0!important;gap:9px!important}
+ .editorDesign .scoreChordDialog .chordAutoFill>input{appearance:auto!important;flex:0 0 18px!important;width:18px!important;height:18px!important;min-height:18px!important;padding:0!important;margin:0!important;accent-color:#ad304d}
+ .editorDesign .scoreChordDialog--mobile>header{min-height:48px!important;padding:6px 10px!important;margin:0!important}
+ .editorDesign .scoreChordDialog--mobile .chordOpenStrings button{height:28px!important;min-height:28px!important;font-size:23px!important}
+ .editorDesign .scoreChordDialog--mobile .chordApply{height:40px!important;min-height:40px!important;font-size:15px!important}
+}
+
+.scoreChordDialog .chordFretScroll{scroll-snap-type:x mandatory;scrollbar-width:none}
+.scoreChordDialog .chordFretScroll::-webkit-scrollbar{display:none}
+.scoreChordDialog .chordFretColumn{scroll-snap-align:start;box-sizing:border-box}
+.scoreChordDialog .chordFretCount{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 10px;margin:6px 0 8px;font-size:11px;color:#6d5846}
+.scoreChordDialog .chordFretCount output{grid-column:1/-1;text-align:right;font-size:10px;color:#8b7766}
+@layer score-workspace{
+ .editorDesign .scoreChordDialog .chordFretCount{display:grid!important;flex-direction:row!important;margin:6px 0 8px!important}
+ .editorDesign .scoreChordDialog .chordFretCount input[type=range]{appearance:auto!important;width:100%!important;height:26px!important;min-height:26px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;accent-color:#70513b;cursor:ew-resize}
+}
+
+.chordCandidateHelp{display:block;color:var(--muted, #687078);font-size:11px;margin:0 0 6px;}

@@ -6,6 +6,8 @@ export function followPageStart(rows,index,height){
 }
 export function followScrollTarget(rows,index,height,mode,maxScroll){
  const start=mode==='page'?followPageStart(rows,index,height):index;
+ // Keep the title and the first system's annotations visible at the beginning.
+ if(start===0)return 0;
  return Math.max(0,Math.min(maxScroll,rows[start]?.top??0));
 }
 

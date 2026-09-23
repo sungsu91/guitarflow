@@ -51,6 +51,8 @@ export default function usePracticeFollow(root,mode,playing,revision){
   const base=matrix.f-rect.top+scroller.scrollTop;
   const groups=new Map();svg.querySelectorAll('[data-playback-bar]').forEach(g=>{const id=Number(g.dataset.row);if(!groups.has(id))groups.set(id,{top:base+Number(g.dataset.rowTop)*matrix.d,bottom:base+Number(g.dataset.rowBottom)*matrix.d});});
   const rows=[...groups.values()],index=[...groups.keys()].indexOf(row);
+  // Count the heading when measuring the first page of complete systems.
+  if(rows.length)rows[0]={...rows[0],top:0};
   const target=followScrollTarget(rows,index,height,mode,scroller.scrollHeight-scroller.clientHeight+(top-rect.top))-(top-rect.top);
   const instant=backwards||s.dirty||mode==='page'||matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(Math.abs(scroller.scrollTop-target)>2)scroller.scrollTo({top:Math.max(0,target),behavior:instant?'instant':'smooth'});

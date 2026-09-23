@@ -9,3 +9,5 @@ test('horizontal follow leaves lookahead and clamps both score edges',()=>{asser
 test('row changes and backward seeks return the current beat to view',()=>{assert.equal(followHorizontalTarget(100,400,800,800,true),20);assert.equal(followHorizontalTarget(450,400,700,800),370);});
 test('second-bar lookahead starts before the old right-edge trigger',()=>{assert.equal(followHorizontalTarget(220,400,0,500,false,true),80);assert.equal(followHorizontalTarget(220,400,0,500),0);assert.equal(followHorizontalTarget(650,400,300,500,false,true),500);});
 test('fingering follow anchors each rhythmic event at one stable reading point',()=>{assert.equal(followFingeringTarget(100,400,800),0);assert.equal(followFingeringTarget(368,400,800),200);assert.equal(followFingeringTarget(1200,400,800),800);});
+
+test('first system retains the title and mobile top inset on start and repeat',()=>{for(const top of [24,180]){const systems=[{top,bottom:top+180},{top:top+200,bottom:top+380}];for(const mode of ['line','page'])assert.equal(followScrollTarget(systems,0,400,mode,1000),0);assert.equal(followScrollTarget(systems,1,400,'line',1000),top+200);}});

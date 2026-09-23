@@ -63,7 +63,7 @@ export default function MobileScoreInput({drums=false,fretted=true,pitchInput,de
  const toolDock=renderToolDock();
  return <section ref={panel} className={desktop?"desktopScoreInput":"mobileScoreInput"} aria-label="통합 악보 입력">
   {!fretted&&!desktop?cloneElement(pitchInput,{renderControls:(actions,navigationExtras)=><MobileCursorControls navigationExtras={navigationExtras} {...{cursor,event,meter,onKey,onBar}}>{renderToolDock(actions.props.children)}</MobileCursorControls>}):desktop&&!drums?<>{inputPads}{toolDock}</>:<>{toolDock}{inputPads}</>}
-  {feedback&&<div className="mobileEditorFeedback">{feedback}</div>}
+  {(!desktop||feedback)&&<div className="mobileEditorFeedback">{feedback}</div>}
   {playback}
  </section>;
 }
