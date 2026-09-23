@@ -220,7 +220,7 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
   return {width:totalWidth,measures};
 }
 
-export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
+export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabShortStems=Boolean(etude.document?.viewSettings?.tabShortStems),tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
   if(!isFretted(etude.instrument))return drawKeyboardScore(element,etude,{mobile,editor,editorWidth,barOffset,systemStart,systemEnd,measuresPerRow});
   const stringCount=scoreInstrument(etude.instrument).tuning.length;
   const numberOnly=etude.document?.viewSettings?.tabRhythm===false||(editor&&!tabRhythm);
@@ -353,7 +353,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     // Rests belong inside TAB, independently of the optional lower rhythm stems.
     if(!numberOnly)drawTabRests(element.querySelector('svg'),measure,notes,tab.getYForLine((stringCount-1)/2)).dataset.scoreBar=index;
     const beamGeometry=beams.map(beam=>({indices:beam.getNotes().map(note=>notes.indexOf(note)),xs:beam.getNotes().map(note=>note.getStemX()-Stem.WIDTH/2),levels:['4','8'].map(duration=>beam.getBeamLines(duration))}));
-    if(tabRhythm){drawTabRhythm(element.querySelector('svg'),measure,tabs,tab,beamGeometry,tabBeamPosition,{compact:compactRhythm});element.querySelectorAll('.etudeTabRhythm').item(index).dataset.scoreBar=index;}
+    if(tabRhythm){drawTabRhythm(element.querySelector('svg'),measure,tabs,tab,beamGeometry,tabBeamPosition,{compact:compactRhythm,shortStems:tabShortStems});element.querySelectorAll('.etudeTabRhythm').item(index).dataset.scoreBar=index;}
     element.querySelectorAll(`[data-score-bar="${index}"] [data-rhythm-event]`).forEach(node=>{
       node.dataset.rhythmEvents=index+':'+node.dataset.rhythmEvent;
       node.dataset.rhythmRole='note';
@@ -595,7 +595,10 @@ export function renderCachedScore(element, etude, options = {}) {
 function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false }) {
   const rhythmStates=useMemo(()=>rhythmTimeline(practiceRange?{...etude,practiceRange}:etude),[etude,practiceRange]);
   const ref = useRef(null);
-
+  const positionRef=useRef(playPosition);positionRef.current=playPosition;
+  const drawPositionRef=useRef(null);
+  const selectBarRef=useRef(onSelectBar);selectBarRef.current=onSelectBar;
+  const hasPosition=Boolean(playPosition),isPlaying=Boolean(playPosition?.playing),canSelectBar=Boolean(onSelectBar);
   const [availableWidth,setAvailableWidth]=useState(0);
   const [availableHeight,setAvailableHeight]=useState(0);
   useLayoutEffect(()=>{
@@ -614,6 +617,8 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   const follow=usePlaybackFollow(ref,followPlayback&&Boolean(playPosition?.playing));
   const followRef=useRef(follow);followRef.current=(line,current)=>followMode?practiceFollow.follow(line,current):follow(line);
   const [error, setError] = useState('');
+  const [rendering,setRendering]=useState(true);
+  const [renderRevision,setRenderRevision]=useState(0);
   const [landscape, setLandscape] = useState(() => window.matchMedia('(orientation: landscape)').matches);
   useLayoutEffect(() => {
     const query = window.matchMedia('(orientation: landscape)');
@@ -622,6 +627,10 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
     return () => query.removeEventListener('change', update);
   }, []);
   useEffect(() => {
+    setRendering(true);
+    let firstFrame,secondFrame,timer;
+    // Allow loading feedback to paint before synchronous engraving starts.
+    firstFrame=requestAnimationFrame(()=>{secondFrame=requestAnimationFrame(()=>{timer=setTimeout(()=>{
     try {
       const renderZoom=focusLayout?1:zoom;
       renderCachedScore(ref.current, etude, { mobile, enlarged, landscape, view, responsive,rhythmicSpacing:followMode==='fingering',measuresPerRow,editorWidth:responsive?Math.max(240,availableWidth/renderZoom):mobile&&!landscape&&!enlarged?600:undefined });
@@ -637,12 +646,15 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
       setError('');
     }
     catch (e) { ref.current?.replaceChildren(); setError('악보를 표시하지 못했습니다. 다른 연습곡을 선택해 주세요.'); console.error(e); }
+    finally {setRendering(false);setRenderRevision(v=>v+1);}
+    },0);});});
+    return()=>{cancelAnimationFrame(firstFrame);cancelAnimationFrame(secondFrame);clearTimeout(timer);};
   }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth,availableHeight, zoom, measuresPerRow,focusLayout,followMode]);
   useEffect(() => {
     ref.current?.querySelector('svg')?.setAttribute('aria-label', `${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?'오선보':view==='tab'?'TAB':'오선보와 TAB'}`);
-  }, [etude, mobile, enlarged, landscape, bpm, view]);
+  }, [renderRevision,etude, mobile, enlarged, landscape, bpm, view]);
   useEffect(()=>{
-    const root=ref.current,svg=root?.querySelector('svg');if(!svg||!playPosition)return;
+    const root=ref.current,svg=root?.querySelector('svg');if(!svg||!hasPosition)return;
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     Object.entries({class:'savedScorePlayhead',stroke:'var(--riff-danger, #c85d54)','stroke-opacity':1,'stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none','aria-hidden':'true'}).forEach(([key,value])=>line.setAttribute(key,value));
     const wash=line.cloneNode();wash.setAttribute('class','savedScorePlayheadWash');
@@ -650,7 +662,8 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
     svg.append(wash,line);line.style.visibility=wash.style.visibility=progressEnabled?'visible':'hidden';
     const highlight=rhythmHighlighter(svg,rhythmStates);let frame,activeBar,points;
     const draw=()=>{
-      const current=playPosition.getCurrentSlot?.()??playPosition;
+      const position=positionRef.current;if(!position)return;
+      const current=position.getCurrentSlot?.()??position;
       if(activeBar!==current.bar){const bar=svg.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;
         for(const selection of svg.querySelectorAll('[data-start-bar]')){
           const active=Number(selection.dataset.startBar)===current.bar&&progressEnabled;
@@ -658,24 +671,26 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
           selection.setAttribute('stroke',active?'rgba(190,155,98,.3)':'none');
         }
         points=rhythmAnchors(JSON.parse(bar.dataset.points));line.setAttribute('y1',bar.dataset.top);line.setAttribute('y2',bar.dataset.bottom);}
-      const tick=playPosition.getTimelineTick?playPosition.getTimelineTick()-current.barStart:playPosition.getBarTick?.()??points[current.event]?.tick??0;
+      const tick=position.getTimelineTick?position.getTimelineTick()-current.barStart:position.getBarTick?.()??points[current.event]?.tick??0;
       highlight.update(current.barStart+tick,progressEnabled);
 
 
 
       line.dataset.progressMode=followMode??'fingering';
       const x=playheadX(points,tick);line.setAttribute('x1',x);line.setAttribute('x2',x);line.dataset.tick=String(tick);line.dataset.bar=String(current.bar);line.dataset.visit=String(current.visit??0);for(const attr of ['x1','x2','y1','y2'])wash.setAttribute(attr,line.getAttribute(attr));followRef.current(line,current);
-      if(playPosition.playing)frame=requestAnimationFrame(draw);
-    };draw();
-    return()=>{cancelAnimationFrame(frame);line.remove();wash.remove();highlight.clear();};
-  },[playPosition,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode,rhythmProgress,rhythmStates]);
+      if(position.playing)frame=requestAnimationFrame(draw);
+    };drawPositionRef.current=draw;draw();
+    return()=>{drawPositionRef.current=null;cancelAnimationFrame(frame);line.remove();wash.remove();highlight.clear();};
+  },[renderRevision,hasPosition,isPlaying,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode,rhythmProgress,rhythmStates]);
+  useEffect(()=>{if(!isPlaying)drawPositionRef.current?.();},[playPosition,isPlaying]);
   useEffect(()=>{
-   const svg=ref.current?.querySelector('svg');if(!svg||!onSelectBar)return;
-   const highlightedBar=playPosition?(playPosition.getCurrentSlot?.()??playPosition).bar:selectedBar;
-   const nodes=[];for(const bar of svg.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':`${index+1}마디에서 시작`,'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>onSelectBar(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelectBar(index);}};svg.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
-  },[etude,onSelectBar,selectedBar,playPosition,mobile,enlarged,landscape,view,responsive,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
-  return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title="현재 재생 위치로 이동하고 자동 스크롤 재개"><LocateFixed size={14} aria-hidden="true"/><span>현재 위치로</span></button>}{error && <p role="alert">{error}</p>}<div className="etudeNotation" ref={ref} /></>;
+   const svg=ref.current?.querySelector('svg');if(!svg||!canSelectBar)return;
+   const position=positionRef.current,highlightedBar=position?(position.getCurrentSlot?.()??position).bar:selectedBar;
+   const nodes=[];for(const bar of svg.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':`${index+1}마디에서 시작`,'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>selectBarRef.current?.(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectBarRef.current?.(index);}};svg.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
+  },[renderRevision,etude,canSelectBar,selectedBar,hasPosition,mobile,enlarged,landscape,view,responsive,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
+  return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title="현재 재생 위치로 이동하고 자동 스크롤 재개"><LocateFixed size={14} aria-hidden="true"/><span>현재 위치로</span></button>}{error && <p role="alert">{error}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/>악보 준비 중…</span></div><div className="etudeNotation" ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
 }
 export default memo(Score);
+
 
 

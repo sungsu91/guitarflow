@@ -48,7 +48,13 @@ export function printEditorScore(container,title,view='both',metadata) {
  const hint=doc.createElement('p');hint.textContent='A4 세로 · 여백 10mm · 설정한 한 줄 마디 수와 줄 나누기를 유지합니다.';
  toolbar.append(label,download,print,close,hint);doc.body.append(toolbar);
  const main=doc.createElement('main');doc.body.append(main);
+ const status=doc.createElement('div');status.setAttribute('role','status');status.textContent='PDF 미리보기 준비 중…';status.style.cssText='position:fixed;inset:0;z-index:5;display:grid;place-content:center;background:#f5f2ed;color:#514534;font:16px Arial,sans-serif';doc.body.append(status);
  const sheets=[];
+ const fail=error=>{if(win.closed)return;status.textContent='미리보기를 준비하지 못했습니다. 창을 닫고 다시 시도해 주세요.';console.error(error);};
+ // Let the new window paint its status before compiling and engraving the score.
+ win.requestAnimationFrame(()=>win.requestAnimationFrame(()=>win.setTimeout(()=>{
+ if(win.closed)return;
+ try{
  const newSheet=()=>{const frame=doc.createElement('div'),paper=doc.createElement('article');frame.className='sheetFrame';paper.className='a4Sheet';frame.append(paper);main.append(frame);const source=doc.createElement('div');source.className='scoreSource';const image=doc.createElement('img');image.src=new URL(qr,window.location.href).href;image.alt='FRETIVA LAB 앱 접속 QR 코드';image.className='scoreSourceQr';image.style.cssText='width:20mm;height:20mm';const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;qrFrame.append(image,handle);source.append(qrFrame);const header=doc.createElement('header');header.className='scoreHeading';const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);header.append(logo,source);paper.append(header);sheets.push(paper);return paper;};
  let sheet=newSheet();
  const heading=doc.createElement('h1');heading.textContent=title;sheet.querySelector('.scoreHeading').append(heading);
@@ -94,7 +100,27 @@ export function printEditorScore(container,title,view='both',metadata) {
    svg.querySelectorAll('.etudeTechniqueLabel').forEach(label=>{label.style.fontSize=`${Math.max(12,8.5/paperScale)}px`;});
    cell.replaceChildren(doc.importNode(svg,true));cell.style.width=`${geometry.cellWidth/geometry.rowWidth*100}%`;cell.style.marginLeft='0';
    }finally{host.remove();}
-  }}
+  }
+   // Each cell is engraved separately, so section labels, wrapped chord names
+   // and navigation can reserve different amounts of space above its stave.
+   // Align the actual stave origins before pagination, preserving annotations
+   // and the horizontal scale instead of stretching individual measures.
+   const cells=[...section.querySelectorAll('svg')].map(svg=>{
+    const number=svg.querySelector('.etudeMeasureNumber');
+    if(!number)return null;
+    const box=svg.viewBox.baseVal;
+    return {svg,x:box.x,y:box.y,width:box.width,height:box.height,top:Number(number.getAttribute('y'))+4-box.y};
+   }).filter(Boolean);
+   if(cells.length>1){
+    const top=Math.max(...cells.map(cell=>cell.top));
+    const height=Math.max(...cells.map(cell=>cell.height+top-cell.top));
+    for(const cell of cells){
+     cell.svg.setAttribute('viewBox',`${cell.x} ${cell.y-(top-cell.top)} ${cell.width} ${height}`);
+     cell.svg.setAttribute('height',String(height));
+     cell.svg.style.aspectRatio=`${cell.width} / ${height}`;
+    }
+   }
+  }
  };
  const fit=()=>{const scale=Math.min(1,Math.max(1,doc.documentElement.clientWidth-24)/sheets[0].offsetWidth);for(const paper of sheets){paper.style.transform=`scale(${scale})`;paper.parentElement.style.width=`${paper.offsetWidth*scale}px`;paper.parentElement.style.height=`${paper.offsetHeight*scale}px`;}};
  const paginate=()=>{
@@ -110,8 +136,10 @@ export function printEditorScore(container,title,view='both',metadata) {
    if(bottom>limit&&sheet.querySelectorAll('section').length>1){section.remove();sheet=newSheet();sheet.append(section);}
   }
   sheets.forEach((paper,i)=>{const number=doc.createElement('footer');number.className='pageNumber';number.textContent=`${i+1} / ${sheets.length}`;paper.append(number);});
-  label.textContent=`A4 인쇄 미리보기 · ${sheets.length}쪽`;fit();print.disabled=false;download.disabled=false;doc.body.dataset.previewReady='true';
+  label.textContent=`A4 인쇄 미리보기 · ${sheets.length}쪽`;fit();print.disabled=false;download.disabled=false;doc.body.dataset.previewReady='true';status.remove();
  };
- doc.fonts.ready.then(()=>win.requestAnimationFrame(paginate));win.addEventListener('resize',fit);win.focus();
+ doc.fonts.ready.then(()=>win.requestAnimationFrame(()=>{try{paginate();}catch(error){fail(error);}})).catch(fail);win.addEventListener('resize',fit);
+ }catch(error){fail(error);}
+ },0)));win.focus();
 }
 

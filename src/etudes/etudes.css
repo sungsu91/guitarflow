@@ -169,3 +169,12 @@ html body .app .etudeQuickPages>button{min-height:38px;padding:5px 14px!importan
 .etudeStudio--mobile .etudeQuickSelects{grid-template-columns:minmax(0,1fr);gap:6px}
 .etudeQuickBrowse .etudeSelect{min-width:0}
 .etudeQuickBrowse .etudeSelect select{width:100%;min-width:0;text-overflow:ellipsis}
+
+/* Shared feedback inside each platform's score viewport. */
+.scoreRenderFeedback{position:sticky;top:12px;height:0;z-index:20;display:flex;justify-content:center;pointer-events:none}
+.scoreRenderFeedback[hidden]{display:none}
+.scoreRenderBadge{height:44px;display:inline-flex;align-items:center;gap:10px;padding:0 18px;border-radius:24px;background:#fffaf1;color:#514534;box-shadow:0 3px 18px #0002;border:1px solid #ded5c5;font-size:14px;white-space:nowrap}
+.scoreRenderSpinner{width:18px;height:18px;border:2px solid #ded5c5;border-top-color:#806744;border-radius:50%;animation:scoreRenderSpin .8s linear infinite}
+@keyframes scoreRenderSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.scoreRenderSpinner{animation:none}}
+@media print{.scoreRenderFeedback{display:none}}

@@ -60,3 +60,20 @@ test('fingering highlights only the current note glyph and clears in rests/off',
  highlight.update(600);assert.deepEqual(nodes.map(n=>n.active),[false,false,false,false]);
  highlight.update(600,false);assert.ok(nodes.every(n=>!n.active));
 });
+
+test('long-score highlighting touches only entering/leaving glyphs and can restart after clear',()=>{
+ let writes=0;
+ const nodes=Array.from({length:1000},(_,i)=>{
+  const glyph={active:false,classList:{toggle(_name,on){writes++;glyph.active=on;},remove(){writes++;glyph.active=false;}}};
+  return {dataset:{rhythmEvents:`0:${i}`,rhythmTouch:'tab'},querySelectorAll:()=>[glyph],glyph};
+ });
+ const states=[{tick:0,notes:['0:0']},{tick:120,notes:['0:1','0:2']},{tick:240,notes:[]}];
+ const h=rhythmHighlighter({querySelectorAll:()=>nodes},states);
+ h.update(0);assert.equal(writes,1);
+ h.update(60);assert.equal(writes,1);
+ h.update(120);assert.equal(writes,4);assert.ok(nodes[1].glyph.active&&nodes[2].glyph.active);
+ h.update(240);assert.equal(writes,6);
+ h.clear();assert.equal(writes,6);
+ h.update(0);assert.equal(writes,7);h.clear();assert.equal(writes,8);
+ h.update(0);assert.equal(writes,9);assert.equal(nodes[0].glyph.active,true);
+});

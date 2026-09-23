@@ -49,6 +49,13 @@ export function rhythmHighlighter(svg,states){
   const glyphs=node.dataset.rhythmTouch==='tab'?[...node.querySelectorAll('text')]:[...node.querySelectorAll('.vf-notehead')];
   return glyphs.map(glyph=>({node:glyph,keys:node.dataset.rhythmEvents.split(' ')}));
  });
- let previous;
- return {update(tick,enabled=true){const state=enabled?rhythmStateAt(states,tick):null;if(state===previous)return state;previous=state;const notes=new Set(state?.notes??[]);for(const {node,keys} of nodes)node.classList.toggle('rhythm-technique-active',keys.some(key=>notes.has(key)));return state;},clear(){for(const {node} of nodes)node.classList.remove('rhythm-technique-active');}};
+ const byKey=new Map();
+ for(const {node,keys} of nodes)for(const key of keys){if(!byKey.has(key))byKey.set(key,new Set());byKey.get(key).add(node);}
+ let previous,active=new Set();
+ return {update(tick,enabled=true){const state=enabled?rhythmStateAt(states,tick):null;if(state===previous)return state;previous=state;
+  const next=new Set((state?.notes??[]).flatMap(key=>[...(byKey.get(key)??[])]));
+  for(const node of active)if(!next.has(node))node.classList.toggle('rhythm-technique-active',false);
+  for(const node of next)if(!active.has(node))node.classList.toggle('rhythm-technique-active',true);
+  active=next;return state;
+ },clear(){for(const node of active)node.classList.remove('rhythm-technique-active');active.clear();previous=undefined;}};
 }

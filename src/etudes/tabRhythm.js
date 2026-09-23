@@ -13,14 +13,15 @@ export function drawTabRests(parent,events,staffNotes,y) {
  events.forEach((e,i)=>{if(!e.rest||isBlankEvent(e))return;const note=staffNotes?.[i],svg=parent.ownerSVGElement??parent,source=note?svg.querySelector(`[id="vf-${note.getAttribute('id')}"]`):null;if(!source)return;const box=source.getBBox(),rest=source.cloneNode(true);rest.removeAttribute('id');rest.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));rest.setAttribute('transform',`translate(0 ${y-(box.y+box.height/2)})`);rest.setAttribute('class','tabRhythmRest');rest.dataset.rhythmEvent=i;g.append(rest);});
  return g;
 }
-export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',{compact=false}={}) {
+export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',{compact=false,shortStems=position==='detached'}={}) {
+ shortStems=shortStems||position==='detached';
  const ns='http://www.w3.org/2000/svg',g=document.createElementNS(ns,'g');g.setAttribute('class','fretiva-tab-view etudeTabRhythm');g.setAttribute('pointer-events','none');svg.append(g);
- const gap=tab.getYForLine(1)-tab.getYForLine(0),bottom=tab.getYForLine(tab.getNumLines()-1),direction=position==='above'?-1:1,edge=direction<0?tab.getYForLine(0):bottom,base=edge+direction*(gap*2+10-(compact&&direction>0?10:0));
+ const gap=tab.getYForLine(1)-tab.getYForLine(0),bottom=tab.getYForLine(tab.getNumLines()-1),direction=position==='above'?-1:1,edge=direction<0?tab.getYForLine(0):bottom,base=shortStems?edge+direction*28:edge+direction*(gap*2+10-(compact&&direction>0?10:0));
  g.dataset.position=position;g.dataset.sixthY=bottom;g.dataset.beamY=base;g.dataset.lineGap=gap;
  const line=(x1,y1,x2,y2,width,kind,event)=>{const l=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1,y1,x2,y2,stroke:'#171717','stroke-width':width,class:kind}))l.setAttribute(k,v);if(event!==undefined)l.dataset.rhythmEvent=event;g.append(l);};
  const x=i=>tabs[i].getStemX();
  // Simultaneous fret numbers share a rhythm stem outside TAB, never between digits.
- events.forEach((e,i)=>{if(e.rest)return;if(['1','2'].includes(e.duration)){const head=document.createElementNS(ns,'ellipse');for(const [k,v] of Object.entries({cx:x(i),cy:base,rx:e.duration==='1'?6:4.5,ry:3,fill:'white',stroke:'#171717','stroke-width':1.5,class:'tabRhythmLongNote','data-rhythm-event':i}))head.setAttribute(k,v);g.append(head);}if(e.duration==='1')return;const toneYs=[...new Set((e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))].sort((a,b)=>a-b);const anchor=(direction<0?Math.min:Math.max)(...toneYs);line(x(i),anchor+direction*9,x(i),e.duration==='2'?base-direction*4:base,1.4,'tabRhythmStem',i);});
+ events.forEach((e,i)=>{if(e.rest)return;if(['1','2'].includes(e.duration)){const head=document.createElementNS(ns,'ellipse');for(const [k,v] of Object.entries({cx:x(i),cy:base,rx:e.duration==='1'?6:4.5,ry:3,fill:'white',stroke:'#171717','stroke-width':1.5,class:'tabRhythmLongNote','data-rhythm-event':i}))head.setAttribute(k,v);g.append(head);}if(e.duration==='1')return;const toneYs=[...new Set((e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))].sort((a,b)=>a-b);const anchor=(direction<0?Math.min:Math.max)(...toneYs);line(x(i),shortStems?base-direction*20:anchor+direction*9,x(i),e.duration==='2'?base-direction*4:base,1.4,'tabRhythmStem',i);});
  // Reuse the staff engraver's grouping and partial-beam directions. Keep
  // segments per onset so playback can highlight each chord independently.
  const grouped=new Set();

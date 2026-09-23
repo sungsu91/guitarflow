@@ -137,3 +137,20 @@ html body main.app.app.app .etudeBackingDrawer .backingLoopPanel>.backingPanelCl
 
 .etudePracticeLayout.is-focus>.etudeScoreViewport{overflow-x:auto}
 .etudePracticeLayout.is-focus .etudeFocusBarCount{width:76px;min-width:76px;min-height:40px;padding:4px 6px;font-size:12px;border:1px solid var(--theme-border-control);border-radius:6px;flex-shrink:0}
+/* Compact mobile reader actions leave room for printing beside backing loops. */
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools{gap:2px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeViewMenu{flex:0 1 88px!important;min-width:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.scoreEditMenu{flex:0 1 78px!important;min-width:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>:is(.etudeViewMenu,.scoreEditMenu)>button{padding:4px!important;gap:3px!important;width:100%!important;min-width:0!important;font-size:11px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudePrintScore{flex:0 0 32px!important;width:32px!important;min-width:32px!important;padding:4px!important;display:flex!important;align-items:center;justify-content:center}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools{display:flex!important;flex-wrap:nowrap!important;gap:2px!important;min-width:0}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeViewMenu{flex:1 1 66px!important;max-width:82px!important;min-width:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.scoreEditMenu{flex:1 1 66px!important;max-width:76px!important;min-width:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[aria-label="메트로놈"],html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeBackingToggleMount{flex:0 0 36px!important;width:36px!important;min-width:0!important;padding:3px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeBackingToggleMount button{width:36px!important;min-width:0!important;padding:3px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeFavoriteToggle{margin-left:0!important;flex:0 0 30px!important;width:30px!important;min-width:30px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools{justify-content:flex-start!important;column-gap:2px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeViewMenu{flex:0 1 72px!important;max-width:72px!important;margin:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.scoreEditMenu{flex:0 1 70px!important;max-width:70px!important;margin:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[aria-label="메트로놈"]{flex:0 0 32px!important;width:32px!important;max-width:32px!important;min-width:32px!important;margin:0!important;padding:2px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>:is(.etudeViewMenu,.scoreEditMenu)>button{justify-content:center!important;margin:0!important;padding-inline:2px!important;gap:2px!important}
