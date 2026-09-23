@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import mobileSurfaceCss from "./scripts/mobile-surface-css.mjs";
 import { writeFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { ABYSSAL_MOON_CATHEDRAL_ASSETS } from "./src/shooter/maps/assets/abyssalMoonCathedralAssets.js";
@@ -427,6 +428,14 @@ function effectTuningSavePlugin() {
 }
 
 export default defineConfig({
+  server: { headers: securityHeaders() },
+  preview: { headers: securityHeaders() },
   css: { postcss: { plugins: [mobileSurfaceCss()] } },
   plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin()],
 });
+
+// Keep local browser verification aligned with the headers served by Vercel.
+function securityHeaders() {
+  const config = JSON.parse(readFileSync(new URL("./vercel.json", import.meta.url), "utf8"));
+  return Object.fromEntries(config.headers.find((rule) => rule.source === "/(.*)").headers.map(({ key, value }) => [key, value]));
+}

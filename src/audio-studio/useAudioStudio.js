@@ -124,6 +124,9 @@ export default function useAudioStudio() {
   const recordingChunksRef = useRef([]);
   const recordingStartedAtRef = useRef(0);
   const recordingStreamRef = useRef(null);
+  const recordingRequestVersionRef = useRef(0);
+  const recordingPendingRef = useRef(false);
+  const recordingLiveRef = useRef(true);
   const recordingTargetTrackIdRef = useRef("");
   const recordingTimelineStartRef = useRef(0);
   const project = history.present;
@@ -460,19 +463,35 @@ export default function useAudioStudio() {
     setMasterLevel(0);
   }, [clearScheduledPlayback]);
 
-  useEffect(() => () => {
-    clearScheduledPlayback();
-    libraryAudioRef.current?.pause?.();
-    libraryAudioRef.current = null;
-    if (libraryAudioUrlRef.current) URL.revokeObjectURL(libraryAudioUrlRef.current);
-    libraryAudioUrlRef.current = "";
-    window.clearInterval(countInTimerRef.current);
-    const recorder = mediaRecorderRef.current;
-    if (recorder?.state && recorder.state !== "inactive") {
-      try { recorder.stop(); } catch { /* Best-effort cleanup while leaving the route. */ }
-    }
-    recordingStreamRef.current?.getTracks?.().forEach((track) => track.stop());
-    audioContextRef.current = null;
+  useEffect(() => {
+    recordingLiveRef.current = true;
+    setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
+    return () => {
+      recordingLiveRef.current = false;
+      // Cancel acquisition/count-in, but let an existing recording finish its
+      // final data event and retain the clip as it did before route cleanup.
+      const cancelPreparation = recordingPendingRef.current || Boolean(countInTimerRef.current);
+      if (cancelPreparation) ++recordingRequestVersionRef.current;
+      recordingPendingRef.current = false;
+      clearScheduledPlayback();
+      libraryAudioRef.current?.pause?.();
+      libraryAudioRef.current = null;
+      if (libraryAudioUrlRef.current) URL.revokeObjectURL(libraryAudioUrlRef.current);
+      libraryAudioUrlRef.current = "";
+      window.clearInterval(countInTimerRef.current);
+      countInTimerRef.current = 0;
+      const recorder = mediaRecorderRef.current;
+      if (recorder?.state && recorder.state !== "inactive") {
+        try { recorder.stop(); } catch { /* Best-effort cleanup while leaving the route. */ }
+      }
+      recordingStreamRef.current?.getTracks?.().forEach((track) => track.stop());
+      recordingStreamRef.current = null;
+      if (cancelPreparation) {
+        mediaRecorderRef.current = null;
+        recordingChunksRef.current = [];
+      }
+      audioContextRef.current = null;
+    };
   }, [clearScheduledPlayback]);
 
   useEffect(() => {
@@ -521,15 +540,20 @@ export default function useAudioStudio() {
     if (recorder?.state && recorder.state !== "inactive") {
       setRecordingState((current) => ({ ...current, phase: "processing" }));
       try { recorder.stop(); } catch { /* Recorder may have stopped between taps. */ }
+      releaseRecordingInput();
       return;
     }
+    ++recordingRequestVersionRef.current;
+    recordingPendingRef.current = false;
+    mediaRecorderRef.current = null;
     releaseRecordingInput();
     setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
     setNotice("녹음 준비를 취소했습니다.");
   }, [releaseRecordingInput]);
 
   const startRecording = useCallback(async (requestedTrackId = "") => {
-    if (countInTimerRef.current || (mediaRecorderRef.current?.state && mediaRecorderRef.current.state !== "inactive")) {
+    if (!recordingLiveRef.current) return;
+    if (recordingPendingRef.current || countInTimerRef.current || (mediaRecorderRef.current?.state && mediaRecorderRef.current.state !== "inactive")) {
       stopRecording();
       return;
     }
@@ -539,10 +563,18 @@ export default function useAudioStudio() {
     }
     setRecordingState({ beat: 0, phase: "requesting", targetTrackId: requestedTrackId });
     setNotice("마이크 사용 권한을 확인하고 있습니다.");
+    const requestVersion = ++recordingRequestVersionRef.current;
+    const isCurrent = () => requestVersion === recordingRequestVersionRef.current;
+    recordingPendingRef.current = true;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false },
       });
+      if (!recordingLiveRef.current || !isCurrent()) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      recordingPendingRef.current = false;
       recordingStreamRef.current = stream;
       let targetTrackId = requestedTrackId || projectRef.current.tracks.find((track) => !track.clips.length)?.id || "";
       if (!projectRef.current.tracks.some((track) => track.id === targetTrackId)) {
@@ -569,9 +601,13 @@ export default function useAudioStudio() {
       mediaRecorderRef.current = recorder;
       recordingChunksRef.current = [];
       recorder.ondataavailable = (event) => {
+        if (!isCurrent()) return;
         if (event.data?.size) recordingChunksRef.current.push(event.data);
       };
       recorder.onerror = () => {
+        if (!isCurrent()) return;
+        ++recordingRequestVersionRef.current;
+        try { if (recorder.state !== "inactive") recorder.stop(); } catch { /* Release tracks even if the recorder fails. */ }
         releaseRecordingInput();
         mediaRecorderRef.current = null;
         recordingChunksRef.current = [];
@@ -579,6 +615,7 @@ export default function useAudioStudio() {
         setNotice("녹음 중 문제가 발생했습니다. 기존 트랙은 그대로 유지됩니다.");
       };
       recorder.onstop = async () => {
+        if (!isCurrent()) return;
         const durationMs = Math.max(0, performance.now() - recordingStartedAtRef.current);
         const blobType = recorder.mimeType || preferredMimeType || recordingChunksRef.current[0]?.type || "audio/webm";
         const blob = new Blob(recordingChunksRef.current, { type: blobType });
@@ -607,7 +644,9 @@ export default function useAudioStudio() {
             Object.defineProperty(file, "lastModified", { value: Date.now() });
           }
           const context = await ensurePlaybackContext();
+          if (!isCurrent()) return;
           const { decoded } = await decodeAudioStudioFiles([file], { context });
+          if (!isCurrent()) return;
           if (!decoded.length) throw new Error("RECORDING_DECODE_FAILED");
           const [{ audioBuffer, source }] = decoded;
           audioBuffersRef.current.set(source.id, audioBuffer);
@@ -623,9 +662,9 @@ export default function useAudioStudio() {
           setFitProjectRequestId((value) => value + 1);
           setNotice(`“${source.fileName.replace(/\.[^.]+$/, "")}” 녹음과 실제 파형을 추가했습니다.`);
         } catch {
-          setNotice("녹음 파일을 디코딩하지 못했습니다. 브라우저의 녹음 형식 지원을 확인해주세요.");
+          if (isCurrent()) setNotice("녹음 파일을 디코딩하지 못했습니다. 브라우저의 녹음 형식 지원을 확인해주세요.");
         } finally {
-          setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
+          if (isCurrent()) setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
         }
       };
 
@@ -639,10 +678,12 @@ export default function useAudioStudio() {
       }
 
       const startRecorder = () => {
+        if (!isCurrent()) return;
         window.clearInterval(countInTimerRef.current);
         countInTimerRef.current = 0;
         recordingStartedAtRef.current = performance.now();
-        recorder.start(250);
+        try { recorder.start(250); }
+        catch { recorder.onerror(); return; }
         setRecordingState({ beat: 0, phase: "recording", targetTrackId });
         if (getAudioStudioProjectDurationMs(projectRef.current) > recordingTimelineStartRef.current) {
           startPlayback(recordingTimelineStartRef.current);
@@ -657,6 +698,7 @@ export default function useAudioStudio() {
       const beatMs = 60_000 / Math.max(40, Math.min(240, Number(projectRef.current.settings.projectBpm) || 120));
       let elapsedBeats = 0;
       const advanceCountIn = () => {
+        if (!isCurrent()) return;
         elapsedBeats += 1;
         const beat = ((elapsedBeats - 1) % 4) + 1;
         setRecordingState({ beat, phase: "count-in", targetTrackId });
@@ -669,6 +711,8 @@ export default function useAudioStudio() {
       advanceCountIn();
       countInTimerRef.current = window.setInterval(advanceCountIn, beatMs);
     } catch {
+      if (!isCurrent()) return;
+      recordingPendingRef.current = false;
       releaseRecordingInput();
       mediaRecorderRef.current = null;
       setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
@@ -1052,7 +1096,7 @@ export default function useAudioStudio() {
   }, [clearScheduledPlayback, releaseLibraryAudio]);
 
   const goToLibrary = useCallback(() => {
-    if (countInTimerRef.current || (mediaRecorderRef.current?.state && mediaRecorderRef.current.state !== "inactive")) {
+    if (recordingPendingRef.current || countInTimerRef.current || (mediaRecorderRef.current?.state && mediaRecorderRef.current.state !== "inactive")) {
       stopRecording();
       setNotice("녹음을 먼저 마무리하고 있습니다. 완료 후 다시 뒤로가기를 눌러주세요.");
       return;
