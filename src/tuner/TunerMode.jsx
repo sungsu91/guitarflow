@@ -1,3 +1,4 @@
+import { ENGLISH_TUNER_GUIDANCE_BADGES } from "./tunerGuidanceBadges.js";
 import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
@@ -1067,7 +1068,7 @@ function TunerDebugHud({ reading }) {
 }
 
 function TunerGauge({ controller, guidance, showDirectionScale = true }) {
-  useLanguage();
+  const language = useLanguage();
   const { micState, reading, restartMicrophone, selectedString } = controller;
   const manual = selectedString != null || reading.target != null;
   const needsMicAction = ["denied", "error", "unsupported"].includes(micState);
@@ -1085,7 +1086,7 @@ function TunerGauge({ controller, guidance, showDirectionScale = true }) {
   const guidanceText = manual
     ? `${localizeUi(directionState)} · ${localizeUi(guidance.message)}`
     : localizeUi(guidance.message);
-  const guidanceBadgeSrc = needsMicAction ? null : TUNER_GUIDANCE_BADGES[guidance.key];
+  const guidanceBadgeSrc = needsMicAction ? null : (language === "en" ? ENGLISH_TUNER_GUIDANCE_BADGES : TUNER_GUIDANCE_BADGES)[guidance.key];
   const showGuidance = needsMicAction || guidance.key !== "tracking";
   return (
     <section className={`tunerOceanGauge tunerStatus--${guidance.key}`} aria-label={translateUi("tuner.oceanTuningGauge")}>
@@ -1132,7 +1133,7 @@ function TunerGauge({ controller, guidance, showDirectionScale = true }) {
           ) : (
             <strong className="tunerGuidanceText">{needsMicAction ? (micState === "denied" ? translateUi("shooter.allowMicrophoneAccess") : translateUi("tuner.turnOnTheMicrophone")) : guidanceText}</strong>
           )}
-          <small>{micState === "requesting" ? translateUi("tuner.checkingMicrophonePermission") : guidance.detail}</small>
+          <small>{micState === "requesting" ? translateUi("tuner.checkingMicrophonePermission") : localizeUi(guidance.detail)}</small>
           {needsMicAction && micState !== "unsupported" ? (
             <button className="tunerMicStartButton" onClick={restartMicrophone} type="button">
               <Mic aria-hidden="true" size={15} /><Translation id="tuner.startMicrophone" /></button>

@@ -1,7 +1,7 @@
 import ko from "../i18n/locales/ko.js";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AUDIO_BUS_IDS, getAudioBusInput, resumeSharedAudioContext, smoothAudioParam } from '../audio/audioBus.js';
-import { createAudioTransportCursor, collectAudioTransportSteps, getAudioTransportStepSeconds } from '../audio/transportClock.js';
+import { createAudioTransportCursor, collectAudioTransportSteps, getAudioTransportStepSeconds, METRONOME_LOOKAHEAD_SECONDS } from '../audio/transportClock.js';
 import { useMetronomeVolume } from '../audio/metronomeVolumeStore.js';
 
 // The etude reader is commonly used with an unamplified guitar, so start near
@@ -53,14 +53,14 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
       let clickIndex=0,clickCycle=cycleSeconds?Math.floor(cycleOffset/cycleSeconds):0;
       const schedule = () => {
         if (session.current !== s) return;
-        const batch = clicks ? {steps:[]} : collectAudioTransportSteps(s.cursor, { currentTime: context.currentTime, horizonSeconds: 0.1 });
+        const batch = clicks ? {steps:[]} : collectAudioTransportSteps(s.cursor, { currentTime: context.currentTime, horizonSeconds: METRONOME_LOOKAHEAD_SECONDS });
         if (clicks) {
           while(clicks.length){
             if(clickIndex===clicks.length){if(!cycleSeconds||clickCycle+1>=repeatCount)break;clickIndex=0;clickCycle++;}
             const click=clicks[clickIndex],time=origin+click.time+(cycleSeconds?clickCycle*cycleSeconds-cycleOffset:0);
-            if(time>=origin+durationSeconds-1e-7||time>=context.currentTime+0.1)break;
+            if(time>=origin+durationSeconds-1e-7||time>=context.currentTime+METRONOME_LOOKAHEAD_SECONDS)break;
             clickIndex++;
-            if(time>=origin-1e-7)batch.steps.push({...click,time});
+            if(time>=origin-1e-7 && time>=context.currentTime-0.02)batch.steps.push({...click,time});
           }
         } else s.cursor = batch.cursor;
         batch.steps.filter(step=>step.time<origin+durationSeconds-1e-7).forEach(step => {

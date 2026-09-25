@@ -11,16 +11,16 @@ import {measureMeters,meterTicks} from './scoreMeters.js';
 import {maxFret} from './scoreTuning.js';
 import './scoreChordDialog.css';
 
-export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApply,onClose}){
+export default function ScoreChordDialog({document:score,bar,editBar=null,mobile,onApply,onClose}){
   useLanguage();
- const existing=score.measures[bar].chord,count=score.tuning.length,maximum=maxFret(score)-(score.capo??0);
- const meter=measureMeters(score)[bar],unit=1920/meter[1],capacity=meterTicks(meter);
+ const [targetBar,setTargetBar]=useState(editBar??Math.max(0,score.measures.findIndex((m,i)=>i>=bar&&!m.chord)));
+ const existing=editBar===null?null:score.measures[editBar].chord,count=score.tuning.length,maximum=maxFret(score)-(score.capo??0);
+ const meter=measureMeters(score)[targetBar],unit=1920/meter[1],capacity=meterTicks(meter);
  const initialFrets=editableChordFrets(existing,count);
  const [frets,setFrets]=useState(initialFrets),[barre,setBarre]=useState(existing?.barre??null);
  const [fingers,setFingers]=useState(existing?.fingers??Array(count).fill(null));
  const initialWindow=existing?.fretWindow??chordFretWindow(initialFrets,maximum),rowHeight=mobile?32:40;
  const [fretCount,setFretCount]=useState(Math.max(3,Math.min(7,initialWindow.end-initialWindow.start+1)));
- const [autoFill,setAutoFill]=useState(false),[lastInput,setLastInput]=useState('');
  const [manual,setManual]=useState(Boolean(existing)&&!chordNameCandidates(score,initialFrets).includes(existing.name)),[name,setName]=useState(existing?.name??'');
  const [choice,setChoice]=useState(''),[barreStart,setBarreStart]=useState(null),[barrePreview,setBarrePreview]=useState(null);
  const [error,setError]=useState('');
@@ -39,18 +39,20 @@ export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApp
   return [...items,...(standard?Object.entries(OPEN_CHORD_SHAPES).map(([name,shape])=>({label:name,shape:{...shape,name}})):[])];
  },[score]);
  useEffect(()=>{const dialog=ref.current;dialog.showModal();closeButton.current?.focus();return()=>{clearTimeout(timer.current);dialog.close();};},[]);
+ // Commit the final geometry once; animate only composited pixels, never React state per frame.
  useLayoutEffect(()=>{const node=board.current;const resize=()=>setCellWidth(node.clientWidth/fretCount);resize();const observer=new ResizeObserver(resize);observer.observe(node);return()=>observer.disconnect();},[fretCount]);
+ useEffect(()=>{if(globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const animation=board.current.animate([{opacity:.55,transform:'scale(.985)'},{opacity:1,transform:'scale(1)'}],{duration:140,easing:'ease-out'});return()=>animation.cancel();},[fretCount]);
  useLayoutEffect(()=>{const first=Math.min(viewStart.current,maximum-fretCount+1);viewStart.current=first;setVisibleStart(first);board.current.scrollLeft=(first-1)*cellWidth;},[cellWidth,fretCount,maximum]);
  const clearGesture=()=>{clearTimeout(timer.current);gesture.current=null;setBarrePreview(null);};
  const editString=(string,value)=>{setFrets(f=>f.map((v,i)=>i===count-string?value:v));setFingers(f=>f.map((v,i)=>i===count-string?null:v));if(barre&&string>=barre.to&&string<=barre.from&&(value==null||value<barre.fret))setBarre(null);setError('');};
  const finishBarre=(anchor,string)=>{
   if(anchor.string===string){setBarreStart(anchor);return;}
   const next={fret:anchor.fret,from:Math.max(anchor.string,string),to:Math.min(anchor.string,string)};
-  setBarre(next);setBarreStart(null);setBarrePreview(null);
+  setBarre(current=>current?.fret===next.fret&&current.from===next.from&&current.to===next.to?null:next);setBarreStart(null);setBarrePreview(null);
   // Barre is a visual annotation; only explicit string input changes notes.
   setError('');
  };
- const tap=(string,fret)=>{if(barreStart){finishBarre(barreStart,string);return;}editString(string,frets[count-string]===fret?undefined:fret);setLastInput(formatMessage(ko["etudes.stringValueFretValue"], { value1: string, value2: fret }));};
+ const tap=(string,fret)=>{if(barreStart){finishBarre(barreStart,string);return;}editString(string,frets[count-string]===fret?undefined:fret);};
  const down=(e,string,fret)=>{
   if(e.button!==0)return;clearTimeout(timer.current);
   // The fret wire belongs to the cell on its left, including a small touch tolerance.
@@ -67,11 +69,12 @@ export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApp
  const up=e=>{const g=gesture.current;clearTimeout(timer.current);if(!g)return;if(g.long){finishBarre(g,g.endString??g.string);if(e.currentTarget.hasPointerCapture(g.pointer))e.currentTarget.releasePointerCapture(g.pointer);}else if(!g.moved)tap(g.string,g.fret);gesture.current=null;setBarrePreview(null);};
  const scrollToFret=start=>board.current.scrollTo({left:(Math.max(1,Math.min(maximum-fretCount+1,start))-1)*cellWidth,behavior:'smooth'});
  const load=value=>{if(value==='')return;const shape=library[Number(value)].shape,next=editableChordFrets(shape,count),range=shape.fretWindow??chordFretWindow(next,maximum);setFrets(next);setBarre(shape.barre??null);setFingers(shape.fingers??Array(count).fill(null));setName(shape.name);setManual(!chordNameCandidates(score,next).includes(shape.name));setChoice(shape.name);viewStart.current=range.start;setVisibleStart(range.start);setFretCount(Math.max(3,Math.min(7,range.end-range.start+1)));board.current.scrollLeft=(range.start-1)*cellWidth;setBarreStart(null);setError('');};
- const reset=()=>{setFrets(Array(count).fill(undefined));setFingers(Array(count).fill(null));setBarre(null);setBarreStart(null);setManual(false);setName('');setChoice('');setLastInput('');viewStart.current=1;setVisibleStart(1);board.current.scrollLeft=0;setError('');};
+ const reset=()=>{setFrets(Array(count).fill(undefined));setFingers(Array(count).fill(null));setBarre(null);setBarreStart(null);setManual(false);setName('');setChoice('');viewStart.current=1;setVisibleStart(1);board.current.scrollLeft=0;setError('');};
  const submit=()=>{
+  if(score.measures[targetBar].chord&&targetBar!==editBar){setError('이 마디에는 코드표가 있습니다. 다른 마디를 선택하거나 기존 코드표를 눌러 수정·삭제해 주세요.');return;}
   if(!selectedName.trim()){setManual(true);setError(ko["etudes.enterAChordNameOrChooseASuggestedChord"]);return;}
   if(!appliedFrets.some(f=>Number.isInteger(f))){setError(ko["etudes.selectAtLeastOneStringToPlay"]);return;}
-  try{onApply({name:selectedName.trim(),frets:appliedFrets.map(f=>f??null),fingers:fingers.map((f,i)=>appliedFrets[i]>0?f:null),barre:barre&&barre.fret>=window.start&&barre.fret<=window.end?barre:null,blankStrings:appliedFrets.flatMap((f,i)=>f===undefined?[count-i]:[]),fretWindow:window,range:{startTick:0,endTick:Math.min(unit,capacity)}},{autoFill});}catch(e){setError(e.message);}
+  try{onApply({name:selectedName.trim(),frets:appliedFrets.map(f=>f??null),fingers:fingers.map((f,i)=>appliedFrets[i]>0?f:null),barre:barre&&barre.fret>=window.start&&barre.fret<=window.end?barre:null,blankStrings:appliedFrets.flatMap((f,i)=>f===undefined?[count-i]:[]),fretWindow:window,range:{startTick:0,endTick:Math.min(unit,capacity)}},{bar:targetBar});}catch(e){setError(e.message);}
  };
  const displayBarre=barrePreview??barre;
  return <dialog ref={ref} className={`scoreChordDialog scoreChordDialog--${mobile?'mobile':'desktop'}`} aria-label={translateUi("etudes.createChordDiagram")} onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();onClose();}}>
@@ -82,7 +85,7 @@ export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApp
    {manual&&<label className="chordManualName"><Translation id="etudes.chordNames" /><input aria-label={translateUi("etudes.enterChordName")} placeholder={translateUi("etudes.eGCAm7CG")} maxLength={40} value={name} onChange={e=>setName(e.target.value)}/></label>}
    <div className="chordFretNavigation"><button type="button" aria-label={translateUi("etudes.previousFret")} disabled={visibleStart<=1} onClick={()=>scrollToFret(visibleStart-1)}><ChevronLeft size={18}/></button><span><strong>{visibleStart}–{Math.min(maximum,visibleStart+fretCount-1)}<Translation id="etudes.fret" /></strong><Translation id="etudes.swipeToMove" /></span><button type="button" aria-label={translateUi("etudes.nextFret")} disabled={visibleStart>=maximum-fretCount+1} onClick={()=>scrollToFret(visibleStart+1)}><ChevronRight size={18}/></button></div>
    <div className="chordFretboard" style={{'--chord-cell':`${cellWidth}px`,'--chord-row':`${rowHeight}px`,'--chord-board-height':`${rowHeight*count}px`}}>
-    <div className="chordOpenStrings">{Array.from({length:count},(_,i)=>{const string=i+1,value=frets[count-string];return <div key={string}><span>{string}</span><button type="button" aria-label={translateUi("etudes.toggleStringValue1OpenMuted", { value1: string })} title={translateUi("etudes.blankOXBlank")} onClick={()=>{setBarreStart(null);editString(string,value===0?null:value===null?undefined:0);}}>{value===0?'○':value===null?'×':''}</button></div>;})}</div>
+    <div className="chordOpenStrings">{Array.from({length:count},(_,i)=>{const string=i+1,value=frets[count-string];return <div key={string}><button type="button" aria-label={translateUi("etudes.toggleStringValue1OpenMuted", { value1: string })} title={translateUi("etudes.blankOXBlank")} onClick={()=>{setBarreStart(null);editString(string,value===0?null:value===null?undefined:0);}}>{value===0?'○':value===null?'×':''}</button></div>;})}</div>
     <div className="chordFretViewport"><div className="chordFretScroll" ref={board} onScroll={()=>{const first=Math.min(maximum-fretCount+1,Math.max(1,Math.round(board.current.scrollLeft/cellWidth)+1));viewStart.current=first;setVisibleStart(first);if(gesture.current&&!gesture.current.long){gesture.current.moved=true;clearTimeout(timer.current);}}}>
      <div className="chordFretColumns">{Array.from({length:maximum},(_,i)=>i+1).map(fret=><div key={fret} className={`chordFretColumn${fret===1?' is-nut':''}`}>
       <div className="chordFretCells">{Array.from({length:count},(_,i)=>i+1).map(string=><button key={string} type="button" aria-label={translateUi("etudes.stringValue1FretValue2", { value1: string, value2: fret })} aria-pressed={frets[count-string]===fret} onPointerDown={e=>down(e,string,fret)} onPointerMove={move} onPointerUp={up} onPointerCancel={clearGesture} onContextMenu={e=>e.preventDefault()} onClick={e=>{if(e.detail===0)tap(string,fret);}}><span className="chordStringLine"/>{frets[count-string]===fret&&<span className="chordFingerDot"/>}</button>)}{displayBarre?.fret===fret&&<span className="chordBarreMark" style={{top:(displayBarre.to-1)*rowHeight+(rowHeight-16)/2,height:(displayBarre.from-displayBarre.to)*rowHeight+16}}/>}</div>
@@ -90,14 +93,12 @@ export default function ScoreChordDialog({document:score,bar,cursor,mobile,onApp
      </div>)}</div>
     </div></div>
    </div>
-   <label className="chordFretCount"><span><Translation id="etudes.visibleFrets" /><strong>{fretCount}<Translation id="etudes.cells" /></strong></span><input type="range" aria-label={translateUi("etudes.numberOfVisibleFrets")} min="3" max="7" step="1" value={fretCount} onChange={e=>{const n=Number(e.target.value);viewStart.current=Math.min(visibleStart,maximum-n+1);setFretCount(n);setError('');}}/><output>{window.start}–{window.end}<Translation id="etudes.placeFret" /></output></label>
+   <div className="chordFretCount"><span>표시 프렛 <strong>{fretCount}칸</strong></span><div className="chordZoomControls"><button type="button" aria-label="운지표 확대" disabled={fretCount<=3} onClick={()=>setFretCount(n=>Math.max(3,n-1))}>＋</button><button type="button" aria-label="운지표 축소" disabled={fretCount>=7} onClick={()=>setFretCount(n=>Math.min(7,n+1))}>−</button><button type="button" aria-label={translateUi("etudes.resetChordFingering")} onClick={reset}><RotateCcw size={16}/></button></div></div>
 
    {barreStart?<div className="chordBarreHint" role="status">{barreStart.fret}<Translation id="etudes.fretTapTheEndingStringForTheBarre" /><button type="button" onClick={()=>setBarreStart(null)}><Translation id="common.cancel" /></button></div>:<p className="chordGestureHelp"><Translation id="etudes.tapToPlaceTapAgainToClearHoldForBarre" /></p>}
-   <div className="chordGripSummary"><span><Translation id="etudes.selectedFingering" /><strong>{appliedFrets.map(f=>f===undefined?'–':f===null?'X':f).join(' · ')}</strong><small>{count}<Translation id="etudes.1stStringScoreChordDialog" />{lastInput&&` · ${lastInput}`}</small></span><button type="button" aria-label={translateUi("etudes.resetChordFingering")} onClick={reset}><RotateCcw size={16}/><Translation id="app.reset" /></button></div>
-   <label className="chordAutoFill"><input type="checkbox" checked={autoFill} onChange={e=>setAutoFill(e.target.checked)}/><span><Translation id="etudes.insertSelectedFingering" /><small>{autoFill?translateUi("etudes.insertsOnOneBeatOnlyUseCopyBeatInTheScoreTo"):translateUi("etudes.attachTheDiagramOnlyKeepExistingNotes")}</small></span></label>
-   {barre&&<div className="chordBarreHint"><Translation id="etudes.barre" />{barre.fret}<Translation id="etudes.fretScoreChordDialog" />{barre.from}→{barre.to}<Translation id="etudes.stringEditorSettings" /><button type="button" onClick={()=>{setBarre(null);setBarreStart(null);}}><Translation id="etudes.removeBarre" /></button></div>}
+   <div className="chordTargetBar"><label htmlFor="chord-target-bar">적용할 마디</label><div><button type="button" aria-label="이전 적용 마디" disabled={targetBar===0} onClick={()=>{setTargetBar(n=>n-1);setError('');}}><ChevronLeft size={18}/></button><select id="chord-target-bar" value={targetBar} onChange={e=>{setTargetBar(Number(e.target.value));setError('');}}>{score.measures.map((m,i)=><option key={m.id} value={i}>{i+1}마디{m.chord?' · '+m.chord.name:''}</option>)}</select><button type="button" aria-label="다음 적용 마디" disabled={targetBar===score.measures.length-1} onClick={()=>{setTargetBar(n=>n+1);setError('');}}><ChevronRight size={18}/></button></div></div>
    {error&&<p className="chordDialogError" role="alert">{localizeUi(error)}</p>}
   </div>
-  <footer>{existing&&<button type="button" className="chordRemove" onClick={()=>onApply(null)}><Translation id="etudes.deleteChordDiagram" /></button>}<button type="button" className="chordApply" onClick={submit}>{existing?translateUi("etudes.applyChanges"):translateUi("etudes.attachToScore")}</button></footer>
+  <footer>{existing&&<button type="button" className="chordRemove" onClick={()=>onApply(null,{bar:editBar})}><Translation id="etudes.deleteChordDiagram" /></button>}<button type="button" className="chordApply" onClick={submit}>{existing?translateUi("etudes.applyChanges"):translateUi("etudes.attachToScore")}</button></footer>
  </dialog>;
 }

@@ -159,3 +159,21 @@ html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etud
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[data-ui="metronome"]{display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>button[data-ui="metronome"] svg{flex:0 0 20px!important;width:20px!important;height:20px!important;margin:0!important}
 html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>:is(.etudeViewMenu,.scoreEditMenu)>button svg{flex:0 0 16px!important;width:16px!important;height:16px!important}
+
+.etudeStudio--mobile .etudeViewTools .etudeTipToggle{flex:0 0 auto;min-width:30px;padding:4px;font-size:10px}
+.etudeStudio--mobile .etudeViewTools .etudeViewMenu{flex-shrink:0}
+/* Normal mobile toolbar: reserve text widths instead of letting TIP stretch. */
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>.etudeViewMenu{flex:0 0 76px!important;width:76px!important;max-width:76px!important;min-width:76px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>.etudeTipToggle{flex:0 0 30px!important;width:30px!important;min-width:30px!important;max-width:30px!important;padding:4px 2px!important;font-size:11px!important;margin:0!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>button,
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>.etudeViewMenu>button,
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeBackingToggleMount button{height:40px!important;min-height:40px!important;box-sizing:border-box}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeBackingToggleMount{padding:0!important;align-items:center}
+@media(max-width:360px){
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>.etudeViewMenu{flex-basis:60px!important;width:60px!important;min-width:60px!important;max-width:60px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>:is([data-ui="metronome"],.etudeBackingToggleMount,.etudePrintScore,.etudeFavoriteToggle){flex:0 0 26px!important;width:26px!important;min-width:26px!important;max-width:26px!important;padding:2px!important}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>.etudeViewMenu>button svg:first-child{display:none}
+}
+@media(max-width:360px){
+html body #root main.app.app.app .etudeStudio--mobile .scoreWorkspaceActions .scoreWorkspaceActionTrigger{padding-inline:3px!important;gap:2px!important}
+}

@@ -25,7 +25,7 @@ export function createPdfPageCache({load,maxDocuments=2,maxBytes=32*1024*1024,ma
 }
 
 export function pdfRasterKey(documentKey,pageNumber,{width,height,zoom,mobile,crop,dpr=1}){
- return JSON.stringify([documentKey,pageNumber,Math.round(width),zoom==='page'?Math.round(height):0,zoom,mobile,crop.x,crop.y,crop.width,crop.height,dpr]);
+ return JSON.stringify([documentKey,pageNumber,Math.round(width),zoom==='page'?Math.round(height):0,zoom,mobile,crop.x,crop.y,crop.width,crop.height,dpr,crop.cuts??null]);
 }
 
 export function idleWork(callback){

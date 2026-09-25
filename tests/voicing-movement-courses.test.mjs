@@ -325,12 +325,12 @@ test("runtime preserves authored voicings, Root markers, and muted strings", () 
 
 test("voicing course footer stays at two concise practice lines", () => {
   const guideStart = appSource.indexOf('className="stage3VoicingMovementGuide"');
-  const guideConditionStart = appSource.lastIndexOf("{!(isMobileLayout && landscapePlayFocus)", guideStart);
+  const guideConditionStart = appSource.lastIndexOf("{isMobileLayout && !landscapePlayFocus", guideStart);
   const guideEnd = appSource.indexOf("{isMobileLayout && !hasChordTransitionProgression", guideStart);
   const guideSource = appSource.slice(guideStart, guideEnd);
 
   assert.ok(guideConditionStart >= 0 && guideStart > guideConditionStart && guideEnd > guideStart);
-  assert.match(appSource.slice(guideConditionStart, guideStart), /!\(isMobileLayout && landscapePlayFocus\)/);
+  assert.match(appSource.slice(guideConditionStart, guideStart), /isMobileLayout && !landscapePlayFocus/);
   assert.match(guideSource, /<strong>\{chordPracticeCurrent\.uiLabel \|\| chordPracticeCurrent\.positionLabel\}<\/strong>/);
   assert.match(guideSource, /loadedStage3LibraryItem\?\.practiceSummary \|\| loadedStage3LibraryItem\?\.description/);
   assert.doesNotMatch(guideSource, /transitionHint|soundingNotes|tempoStages|twoBeatExtension/);

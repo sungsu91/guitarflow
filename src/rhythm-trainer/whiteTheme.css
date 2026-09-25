@@ -1,0 +1,33 @@
+/* Neutral white palette scoped only to the rhythm trainer and its portals. */
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) .app:has(.rt-workspace) { background:#F8FAFC !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) { --rt-bg:#F8FAFC;--rt-text:#17212B;--rt-muted:#66727E;--rt-border:#DFE5EB;--rt-paper:#F8FAFC;--rt-ink:#17212B;--rt-staff:#9AA7B3;--rt-measure-number:#66727E;--rt-note-active:#334E68;background:#F8FAFC !important;color:#17212B !important;color-scheme:light; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(button,input,select) { background:#FFFFFF !important;color:#17212B !important;border:1px solid #DFE5EB !important;box-shadow:none !important;text-shadow:none !important;background-image:none !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(.rt-intro p,small,.rt-meta span,.rt-quick,.rt-quick button,.rt-result-count,.rt-library-filters label,.rt-guide-meter span,.rt-guide-legend,.rt-guide-beat-label,.rt-guide-score p) { color:#66727E !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(.rt-header,.rt-meta,.rt-quick,.rt-tools,footer,.rt-guide-controls) { background:#F8FAFC !important;border-color:#DFE5EB !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(.rt-score-scroll,.rt-score,.rt-measure,.rt-preview) { background:transparent !important;color:#17212B !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-card { background:#FFFFFF !important;border:1px solid #DFE5EB !important;box-shadow:none !important;--rt-paper:#FFFFFF; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-card.selected { background:#F2FAF6 !important;border-color:#17765A !important;box-shadow:none !important;--rt-paper:#F2FAF6; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-tabs { gap:6px;border-color:#DFE5EB; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-tabs button { border-color:transparent !important;border-radius:8px 8px 0 0; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(.rt-tabs .selected,[role=tab][aria-selected=true]) { background:#E6F3ED !important;color:#17765A !important;border-color:transparent !important;box-shadow:none !important;font-weight:600; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-primary { background:#17765A !important;border-color:#17765A !important;color:#FFFFFF !important;font-weight:600; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) button[aria-pressed=true]:not(.rt-primary) { background:#EDF1F5 !important;color:#17212B !important;border-color:#9AA7B3 !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(button,input,select):focus-visible { outline:2px solid #66727E !important;outline-offset:2px; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-guide-score article { background:#FFFFFF !important;border-color:#DFE5EB !important;--rt-paper:#FFFFFF; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-guide-grid > div { background:#F1F5F9 !important;color:#17212B !important;border-color:#DFE5EB !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-guide-grid [data-action=hold] { background:#F8FAFC !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-guide-grid [data-action=rest] { background:#F0EFF3 !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-guide-grid .is-current { background:#E2EAF2 !important;box-shadow:inset 0 0 0 2px #66727E !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-count-in { background:#F8FAFCEE;color:#17212B; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) .rt-overlay:not(.rt-sheet-overlay) { background:#17212B55 !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) .rt-guide-desktop { border-color:#DFE5EB;box-shadow:0 0 0 100vmax #17212B55; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-library-list { padding-bottom:18px;scroll-padding-bottom:18px; }
+
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(strong,h1,h2,h3,b) { color:#17212B !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) button::before,
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) button::after { content:none !important; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) * { scrollbar-color:#B7C2CC #F8FAFC; scrollbar-width:thin; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-card.selected { color:#17212B !important; }
+/* Portals must remain viewport overlays when the base workspace stylesheet loads later. */
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) .rt-guide { position:fixed; z-index:1200; }
+html body:has(.app.app.app.app.app.theme-light .rt-workspace) .rt-guide-mobile { inset:0; width:100%; height:100dvh; }

@@ -129,8 +129,8 @@ test("rhythm-code landscape reserves the left rail for progression and fretboard
   assert.match(css, /stage3DesktopSideColumn \.stage3LoadToolbar[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\) 70px !important/);
   assert.match(css, /stage3DesktopPrimaryColumn[\s\S]*grid-row: 1 !important[\s\S]*grid-template-rows: minmax\(0, 1fr\) 62px !important/);
   assert.match(css, /stage3DesktopPrimaryColumn \.chordTransitionChart[\s\S]*grid-template-rows: 82px minmax\(0, 1fr\) !important/);
-  assert.match(css, /stage3EmptyProgressionReadout[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important[\s\S]*grid-template-rows: repeat\(2, 28px\) !important/);
-  assert.match(css, /stage3DesktopPrimaryColumn \.currentProgressionReadout[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important[\s\S]*height: 59px !important/);
+  assert.match(css, /stage3EmptyProgressionReadout[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important[\s\S]*grid-template-rows: repeat\(2, 38px\) !important/);
+  assert.match(css, /stage3DesktopPrimaryColumn \.currentProgressionReadout[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important[\s\S]*height: 79px !important/);
   assert.match(css, /stage3ReferenceBeatMetronomeStrip \.referenceBeatMetronomeDot\.beatDot[\s\S]*--beat-dot-size: clamp\(26px, 3\.25vw, 29px\) !important/);
   assert.match(css, /stage3ReferenceBeatMetronomeStrip \.referenceBeatMetronomeDot\.beatDot \{[\s\S]*pointer-events: auto !important[\s\S]*touch-action: manipulation !important/);
   assert.match(css, /stage3ReferenceBeatMetronomeStrip \.beatIndicatorRow \{\s*transform: translateX\(36px\) !important/);
@@ -144,14 +144,15 @@ test("rhythm-code landscape reserves the left rail for progression and fretboard
   assert.match(css, /sharedAccompanimentPanel--training[\s\S]*min-height: 42px !important[\s\S]*miniChordBackingRow[\s\S]*rgba\(235, 219, 194, 0\.56\) !important/);
   assert.match(css, /sharedAccompanimentPanel--training > summary::after[\s\S]*content: "" !important/);
   assert.match(css, /:is\(\.firstPositionTrainingPanel\.referenceTrainingPanel, \.scaleBlockTrainingPanel\.referenceTrainingPanel\)[\s\S]*\.referenceTrainingMainRow > \.referenceBeatMetronomeStrip[\s\S]*radial-gradient\(circle at 50% 18%, rgba\(216, 151, 165, 0\.08\), transparent 62%\)/);
-  assert.match(appSource, /optionsHeaderToggle=\{landscapePlayFocus\}/);
+  assert.doesNotMatch(appSource, /setStage3MetronomeOptionsCollapsed/);
+  assert.match(appSource, /upward=\{isMobileLayout && landscapePlayFocus\}/);
   assert.match(appSource, /toneControlsAfterSubdivision=\{landscapePlayFocus\}/);
   assert.match(appSource, /hidePartSummary=\{landscapePlayFocus\}/);
   assert.match(appSource, /activateDotsOnPointerUp=\{landscapePlayFocus\}/);
   assert.match(appSource, /event\.pointerType !== "touch" && event\.pointerType !== "pen"/);
   assert.match(appSource, /onPointerUp=\{handlePointerUp\}/);
   assert.match(appSource, /Array\.from\(\{ length: landscapePlayFocus \? 8 : 4 \}/);
-  assert.match(sharedAccompanimentSource, /<summary>[\s\S]*반주 사운드[\s\S]*className="sharedAccompanimentMasterToggle"/);
+  assert.match(sharedAccompanimentSource, /<summary\b[^>]*>[\s\S]*반주 사운드[\s\S]*className="sharedAccompanimentMasterToggle"/);
   assert.match(sharedAccompanimentSource, /!hidePartSummary \? <b>\{disabled \? `\$\{lockedLabel\} · 반주 고정` : "드럼 · 베이스 · 피아노"\}<\/b> : null/);
 });
 

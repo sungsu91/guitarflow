@@ -25,7 +25,8 @@ html body main.app.app.app :is(
 
 /* Palette follows the owning app, including its detached navigation portal. */
 .appRuntime {
-  --mobile-nav-clearance: calc(74px + max(10px, env(safe-area-inset-bottom, 0px)));
+  --mobile-nav-height: clamp(64px, calc(54px + 2.5vw), 80px);
+  --mobile-nav-clearance: calc(var(--mobile-nav-height) + 10px + max(10px, env(safe-area-inset-bottom, 0px)));
 }
 .integratedBottomNav {
   --bottom-nav-background: linear-gradient(180deg,#FCF8F2 0%,#F3E7E2 100%);
@@ -55,15 +56,15 @@ html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) 
   /* iOS can move a bottom-anchored fixed element when body scrolling is locked
      (tuner, shooter, and the menu). Use the same dynamic height as the stage,
      measured from the top, instead of WebKit's transient fixed-bottom edge. */
-  inset: calc(100dvh - max(10px, env(safe-area-inset-bottom, 0px)) - 64px) auto auto calc(var(--bottom-nav-left, 0px) + var(--bottom-nav-width, 100%) / 2) !important;
+  inset: calc(100dvh - max(10px, env(safe-area-inset-bottom, 0px)) - var(--mobile-nav-height, 64px)) auto auto calc(var(--bottom-nav-left, 0px) + var(--bottom-nav-width, 100%) / 2) !important;
   transition: none !important;
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
   box-sizing: border-box !important;
-  width: min(calc(var(--bottom-nav-width, 100%) - 20px), 370px) !important;
+  width: calc(var(--bottom-nav-width, 100%) - 2 * clamp(10px, 2vw, 28px) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
   min-width: 0 !important;
   max-width: none !important;
-  height: 64px !important;
+  height: var(--mobile-nav-height, 64px) !important;
   min-height: 0 !important;
   max-height: none !important;
   margin: 0 !important;
@@ -88,7 +89,7 @@ html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) 
   box-sizing: border-box !important;
   width: 100% !important;
   min-width: 0 !important;
-  height: 62px !important;
+  height: 100% !important;
   min-height: 0 !important;
   max-height: none !important;
   margin: 0 !important;
@@ -99,7 +100,7 @@ html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) 
   background: transparent !important;
   box-shadow: none !important;
   color: var(--bottom-nav-muted) !important;
-  font-size: 11px !important;
+  font-size: clamp(11px, calc(9px + .5vw), 14px) !important;
   font-weight: 500 !important;
   line-height: 15px !important;
   letter-spacing: .01em !important;
@@ -119,9 +120,9 @@ html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) 
 }
 
 html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button > svg {
-  flex: 0 0 23px !important;
-  width: 23px !important;
-  height: 23px !important;
+  flex: 0 0 clamp(23px, calc(20px + .75vw), 28px) !important;
+  width: clamp(23px, calc(20px + .75vw), 28px) !important;
+  height: clamp(23px, calc(20px + .75vw), 28px) !important;
   margin: 0 !important;
   color: inherit !important;
   stroke-width: 1.8 !important;

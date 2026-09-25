@@ -41,7 +41,7 @@ test("controlled splash crossfades the supplied FRETIVA storyboard with lightwei
   assert.match(splashStyles, /object-fit: contain/);
   assert.match(
     splashStyles,
-    /@media \(orientation: portrait\)[\s\S]*?width: 100vw;[\s\S]*?height: 100dvh;[\s\S]*?object-fit: cover/,
+    /@media \(orientation: portrait\)[\s\S]*?width: 100vw;[\s\S]*?height: 100lvh;[\s\S]*?object-fit: cover/,
   );
   assert.match(splashStyles, /\.launchSplash__progress[\s\S]*?position: fixed/);
   assert.match(splashStyles, /will-change: opacity/);

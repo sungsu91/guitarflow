@@ -1,3 +1,4 @@
+import * as chordSelection from '../../src/chords/chordSelection.js';
 import { readFile } from "./i18n-source.mjs";
 import * as additional from "../../src/chords/additionalChords.js";
 import * as fixedAdd from "../../src/chords/fixedAddVoicings.js";
@@ -14,7 +15,7 @@ export async function loadChordRuntime(source, injected = {}) {
     if (a < 0 || b < 0) throw new Error(`Missing runtime boundary: ${start}`);
     return source.slice(a, b);
   };
-  const context = vm.createContext({ ...notation, ...theory, ...additional, ...fixedAdd, ...injected, NOTE_FREQUENCIES: {},
+  const context = vm.createContext({ ...chordSelection, ...notation, ...theory, ...additional, ...fixedAdd, ...injected, NOTE_FREQUENCIES: {},
     getCompactFretRange: (notes, barres, fallback, stringStates) => getChordFretWindow({ notes, barres, fallback, stringStates }).fretRange,
   });
   vm.runInContext([

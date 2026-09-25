@@ -33,3 +33,10 @@ export function splitBarRow(rect,count) {
  const n=Math.max(1,Math.min(64,Math.floor(Number(count)||1)));
  return Array.from({length:n},(_,i)=>({...rect,x:rect.x+rect.width*i/n,width:rect.width/n}));
 }
+
+// Editing resumes at the beginning of the current measure, never partway through beat 1.
+export function pdfEditResumePosition(order,held,countTicks=0,loop=false){
+ if(held<countTicks)return 0;
+ const position=barAtTick(order,held-countTicks,loop);
+ return !position||position.ended?0:countTicks+order.slice(0,position.index).reduce((sum,b)=>sum+b.beats,0);
+}

@@ -1,16 +1,16 @@
 {
   "complete": true,
   "scope": "Source string and resource parity audit; browser and hardware coverage are reported separately.",
-  "productionFiles": 367,
+  "productionFiles": 372,
   "parity": {
-    "ko": 5103,
-    "en": 5103,
+    "ko": 5129,
+    "en": 5129,
     "onlyKo": [],
     "onlyEn": [],
     "placeholderMismatch": [],
     "missingReferences": []
   },
-  "referencedKeys": 5070,
+  "referencedKeys": 5096,
   "remainingOccurrences": 82,
   "remainingUnique": 75,
   "classifications": {

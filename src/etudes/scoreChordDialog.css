@@ -86,3 +86,11 @@
 }
 
 .chordCandidateHelp{display:block;color:var(--muted, #687078);font-size:11px;margin:0 0 6px;}
+
+.scoreChordDialog .chordOpenStrings{width:32px;flex-basis:32px}
+.scoreChordDialog .chordZoomControls{display:flex;justify-content:flex-end;gap:6px}
+.scoreChordDialog .chordTargetBar{margin-top:14px;padding:12px;border:1px solid var(--chord-line);border-radius:10px}
+.scoreChordDialog .chordTargetBar>label{font-size:12px;font-weight:600}
+.scoreChordDialog .chordTargetBar>div{display:flex;align-items:center;gap:8px;margin-top:7px}
+.scoreChordDialog .chordTargetBar select{flex:1;min-width:0}
+.scoreChordDialog--mobile .chordTargetBar{padding:8px;margin-top:8px}

@@ -1,9 +1,11 @@
+import {CHORD_ACCIDENTAL_OPTIONS,CHORD_QUALITY_OPTIONS,CHORD_EXTENSION_OPTIONS,isChordExtensionAvailableForQuality,normalizeChordExtensionForQuality,getChordDisplayRoot,getChordNameFromParts} from './chords/chordSelection.js';
 import { localizeUi } from "./i18n/core.js";
 import ko from "./i18n/locales/ko.js";
 import { formatMessage } from "./i18n/core.js";
 import { t as translateUi } from "./i18n/core.js";
 import { Translation, useLanguage } from "./i18n/react.jsx";
 import DeviceConnection from './input/DeviceConnection.jsx';
+import MobileUtilityMenu from './navigation/MobileUtilityMenu.jsx';
 import LanguageSettings from './i18n/LanguageSettings.jsx';
 import { useAudioInputSelection, useMidiConnection } from './input/useInputSelection.js';
 import { getAudioInputSelection, audioInputError, publishAudioInput } from './input/audioInputSelection.js';
@@ -93,6 +95,7 @@ import {
   normalizeTrackerTimerParts,
 } from "./metronome/runtime";
 import AudioStudio from "./audio-studio/AudioStudio";
+const RhythmTrainer = lazy(() => import("./rhythm-trainer/RhythmTrainer.jsx"));
 const EtudeStudio = lazy(() => import("./pdf/PdfStudio.jsx"));
 import GrooveVolumeControl from "./components/GrooveVolumeControl.jsx";
 import MetronomeVolumeControl from "./components/MetronomeVolumeControl.jsx";
@@ -110,7 +113,7 @@ import {
   getRms,
 } from "./tuner/tunerMath.js";
 import {
-  AUDIO_TRANSPORT_LOOKAHEAD_SECONDS,
+  BACKING_TRANSPORT_LOOKAHEAD_SECONDS,
   METRONOME_LOOKAHEAD_SECONDS,
   METRONOME_MENU_LOOKAHEAD_SECONDS,
   AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS,
@@ -2260,64 +2263,6 @@ const CHORD_FLAT_ROOTS = {
   B: "A#",
 };
 const CHORD_ROOTS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const CHORD_ACCIDENTAL_OPTIONS = [
-  { id: "natural", label: ko["app.default"], suffix: "" },
-  { id: "sharp", label: "#", suffix: "#" },
-  { id: "flat", label: "b", suffix: "b" },
-];
-
-const CHORD_QUALITY_OPTIONS = [
-  { id: "major", label: "Major", shortLabel: "" },
-  { id: "minor", label: "Minor", shortLabel: "" },
-  { id: "dim", label: "Dim", shortLabel: "" },
-  { id: "aug", label: "Aug", shortLabel: "" },
-];
-
-const CHORD_EXTENSION_OPTIONS = [
-  { id: "none", label: ko["app.default"], quality: "any" },
-  { id: "7", label: "7", quality: "major" },
-  { id: "maj7", label: "maj7", quality: "major" },
-  { id: "m7", label: "7", quality: "minor" },
-  { id: "m7b5", label: "7♭5", quality: "minor" },
-  { id: "sus2", label: "sus2", quality: "major" },
-  { id: "sus4", label: "sus4", quality: "major" },
-  { id: "7sus4", label: "7sus4", quality: "major" },
-  { id: "6", label: "6", quality: "major" },
-  { id: "6/9", label: "6/9", quality: "major" },
-  { id: "m6", label: "6", quality: "minor" },
-  { id: "add9", label: "add9", quality: ["major", "minor"] },
-  { id: "9", label: "9", quality: "major" },
-  { id: "m9", label: "9", quality: "minor" },
-  { id: "maj9", label: "maj9", quality: "major" },
-  { id: "5", label: "5", quality: "major" },
-  { id: "add2", label: "add2", quality: "major" },
-  { id: "add11", label: "add11", quality: "major" },
-  { id: "maj11", label: "maj11", quality: "major" },
-  { id: "maj13", label: "maj13", quality: "major" },
-  { id: "11", label: "11", quality: "major" },
-  { id: "13", label: "13", quality: "major" },
-  { id: "7b5", label: "7♭5", quality: "major" },
-  { id: "7#5", label: "7♯5", quality: "major" },
-  { id: "7b9", label: "7♭9", quality: "major" },
-  { id: "7#9", label: "7♯9", quality: "major" },
-  { id: "m11", label: "11", quality: "minor" },
-  { id: "m13", label: "13", quality: "minor" },
-  { id: "dim7", label: "dim7", quality: "dim" },
-];
-
-function isChordExtensionAvailableForQuality(option, quality) {
-  if (!option) return false;
-  if (option.quality === "any") return true;
-  if (Array.isArray(option.quality)) return option.quality.includes(quality);
-  return option.quality === quality;
-}
-
-function normalizeChordExtensionForQuality(quality, extension) {
-  const option = CHORD_EXTENSION_OPTIONS.find((item) => item.id === extension);
-  if (isChordExtensionAvailableForQuality(option, quality)) return extension;
-  return "none";
-}
-
 function normalizeChordToken(value = "") {
   return value.trim().replace(/maj7/i, "maj7").replace(/M7$/, "maj7");
 }
@@ -2331,37 +2276,6 @@ function getChordLookupRoot(baseRoot, accidental = "natural") {
   if (accidental === "sharp") return CHORD_SHARP_ROOTS[baseRoot] ?? `${baseRoot}#`;
   if (accidental === "flat") return CHORD_FLAT_ROOTS[baseRoot] ?? `${baseRoot}b`;
   return baseRoot;
-}
-
-function getChordDisplayRoot(baseRoot, accidental = "natural") {
-  const suffix = CHORD_ACCIDENTAL_OPTIONS.find((option) => option.id === accidental)?.suffix ?? "";
-  return `${baseRoot}${suffix}`;
-}
-
-function getChordNameFromParts(baseRoot, accidental, quality, extension) {
-  const root = getChordDisplayRoot(baseRoot, accidental);
-  if (isAdditionalChord(quality, extension)) return `${root}${extension}`;
-  if (quality === "dim") return `${root}dim`;
-  if (quality === "aug") return `${root}aug`;
-  if (quality === "minor") {
-    if (extension === "m7") return `${root}m7`;
-    if (extension === "m7b5") return `${root}m7b5`;
-    if (extension === "m6") return `${root}m6`;
-    if (extension === "m9") return `${root}m9`;
-    if (extension === "add9") return `${root}m(add9)`;
-    return `${root}m`;
-  }
-  if (extension === "7") return `${root}7`;
-  if (extension === "maj7") return `${root}maj7`;
-  if (extension === "9") return `${root}9`;
-  if (extension === "maj9") return `${root}maj9`;
-  if (extension === "sus2") return `${root}sus2`;
-  if (extension === "sus4") return `${root}sus4`;
-  if (extension === "7sus4") return `${root}7sus4`;
-  if (extension === "6") return `${root}6`;
-  if (extension === "6/9") return `${root}6/9`;
-  if (extension === "add9") return `${root}add9`;
-  return root;
 }
 
 const CHORD_SHAPE_TEMPLATES = {
@@ -3965,7 +3879,7 @@ const STAGE3_AUTO_REST_CHORD = Object.freeze({
   stringStates: {},
   visibleFrets: [0, 3],
 });
-const BACKING_SCHEDULE_AHEAD_SECONDS = AUDIO_TRANSPORT_LOOKAHEAD_SECONDS;
+const BACKING_SCHEDULE_AHEAD_SECONDS = BACKING_TRANSPORT_LOOKAHEAD_SECONDS;
 const BACKING_DEBUG_LOG_STORAGE_KEY = "rifflab.debugBacking";
 const BACKING_PART_TIMING_COMPENSATION_SECONDS = {
   bass: 0.006,
@@ -6221,13 +6135,18 @@ function MetronomeSelectControl({
     const managedMenuWidth = managedListMode
       ? Math.min(340, viewportWidth - viewportPadding * 2)
       : 0;
-    const desiredWidth = matchTriggerWidth && !hasOptionDescriptions
+    let desiredWidth = matchTriggerWidth && !hasOptionDescriptions
       ? Math.min(rect.width, viewportWidth - viewportPadding * 2)
       : Math.min(
           Math.max(minContentWidth, contentWidth, wideToneMenuWidth, managedMenuWidth, hasOptionDescriptions ? 286 : 0, rect.width),
           viewportWidth - viewportPadding * 2,
         );
-    const left = Math.max(viewportPadding, Math.min(rect.left, viewportWidth - desiredWidth - viewportPadding));
+    const mobileToolbar = controlRef.current.closest('.viewport-mobile-surface .stage3LoadToolbar');
+    const toolbarRect = mobileToolbar?.getBoundingClientRect();
+    const menuLeftEdge = toolbarRect ? Math.max(viewportPadding, toolbarRect.left + 6) : viewportPadding;
+    const menuRightEdge = toolbarRect ? Math.min(viewportWidth - viewportPadding, toolbarRect.right - 6) : viewportWidth - viewportPadding;
+    desiredWidth = Math.min(desiredWidth, menuRightEdge - menuLeftEdge);
+    const left = Math.max(menuLeftEdge, Math.min(rect.left, menuRightEdge - desiredWidth));
     const directionSpace = nextDirection === "up" ? topSpace : bottomSpace;
     const maxHeight = Math.max(72, Math.min(280, directionSpace));
     setOpenDirection(nextDirection);
@@ -6321,7 +6240,7 @@ function MetronomeSelectControl({
         </b>
         {panelDirectionIndicator ? (
           <i aria-hidden="true" className="metronomeSelectPanelDirection">
-            {open ? <ChevronDown size={14} strokeWidth={2.6} /> : <ChevronUp size={14} strokeWidth={2.6} />}
+            {((open ? openDirection : (dropdownDirection || openDirection)) === "up") !== open ? <ChevronUp size={14} strokeWidth={2.6} /> : <ChevronDown size={14} strokeWidth={2.6} />}
           </i>
         ) : <i aria-hidden="true">⌄</i>}
       </button>
@@ -14040,6 +13959,7 @@ const SHOOTER_GUITAR_CABINET_OPEN_DELAY_MS = 480;
 const SHOOTER_GUITAR_CABINET_MOVE_DELAY_MS = 520;
 
 const APP_MODES = {
+  RHYTHM_TRAINER: "rhythm-trainer",
   ETUDES: "etudes",
   MENU: "menu",
   CURRICULUM: "curriculum",
@@ -14054,6 +13974,7 @@ const APP_MODES = {
 };
 
 const APP_ROUTES = {
+  RHYTHM_TRAINER: "#rhythm-trainer",
   ETUDES: "#etudes",
   MAIN: "#main",
   FRETBOARD_VIEWER: "#fretboard",
@@ -14098,6 +14019,8 @@ function isAudioStudioEnabled() {
 function getRouteFromHash(hash) {
   const normalizedHash = hash || APP_DEFAULT_ROUTE;
   switch (normalizedHash) {
+    case APP_ROUTES.RHYTHM_TRAINER:
+      return { appMode: APP_MODES.RHYTHM_TRAINER, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.ETUDES:
       return { appMode: APP_MODES.ETUDES, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.FRETBOARD_VIEWER:
@@ -14137,6 +14060,7 @@ function getRouteFromHash(hash) {
 }
 
 function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
+  if (appMode === APP_MODES.RHYTHM_TRAINER) return APP_ROUTES.RHYTHM_TRAINER;
   if (appMode === APP_MODES.ETUDES) return APP_ROUTES.ETUDES;
   if (appMode === APP_MODES.FRETBOARD_VIEWER) return APP_ROUTES.FRETBOARD_VIEWER;
   if (appMode === APP_MODES.CURRICULUM) return APP_ROUTES.CURRICULUM;
@@ -14160,6 +14084,7 @@ function getInitialAppRoute() {
 }
 
 function getDesktopSidebarActiveKey(appMode, categoryId) {
+  if (appMode === APP_MODES.RHYTHM_TRAINER) return "rhythm-trainer";
   if (appMode === APP_MODES.ETUDES) return "etudes";
   if (appMode === APP_MODES.TUNER) return "tuner";
   if (appMode === APP_MODES.FRETBOARD_VIEWER) return "fretboard";
@@ -16963,9 +16888,6 @@ function App({ onReady }) {
   );
   const [stage3MetronomeSoundOn, setStage3MetronomeSoundOn] = useState(
     initialStage3SettingsRef.current.metronomeSoundOn,
-  );
-  const [stage3MetronomeOptionsCollapsed, setStage3MetronomeOptionsCollapsed] = useState(
-    () => viewportProfile.isMobileSurface && viewportProfile.isLandscape,
   );
   const [metronomeCountIn, setMetronomeCountIn] = useState(false);
   const [metronomeCountInBars, setMetronomeCountInBars] = useState(0);
@@ -20674,7 +20596,8 @@ function App({ onReady }) {
       * signature.beats
       * clicksPerBeat
     );
-    const positionSeconds = exactStepPosition * stepSeconds;
+    const isReferencePractice = appModeRef.current === APP_MODES.PRACTICE && ["first-position", "scale-block"].includes(selectedCategoryIdRef.current);
+    const positionSeconds = isReferencePractice ? Math.max(0, gameTimeRef.current / 1000) : exactStepPosition * stepSeconds;
     const originTime = audio.currentTime + Math.max(0, leadSeconds) - positionSeconds;
     metronomeAudioOriginTimeRef.current = originTime;
     metronomeAudioScheduleKeyRef.current = `${bpmRef.current}:${signature.id}:${subdivision.id}:${grooveModeRef.current}`;
@@ -20706,7 +20629,7 @@ function App({ onReady }) {
     if (
       !audio
       || !metronomeAudioSchedulerRunningRef.current
-      || appModeRef.current !== APP_MODES.METRONOME
+      || !(appModeRef.current === APP_MODES.METRONOME || (appModeRef.current === APP_MODES.PRACTICE && ["first-position", "scale-block"].includes(selectedCategoryIdRef.current)))
       || gameStateRef.current !== GAME_STATES.PLAYING
       || countInActiveRef.current
     ) return;
@@ -20731,10 +20654,10 @@ function App({ onReady }) {
       const subdivisionIndex = index % clicksPerBeat;
       const completedBar = Math.floor(index / ticksPerMeasure);
       const coachCycleBars = Math.max(1, coachPlayBarsRef.current + coachMuteBarsRef.current);
-      const coachMuted = coachModeEnabledRef.current
+      const coachMuted = appModeRef.current === APP_MODES.METRONOME && coachModeEnabledRef.current
         && coachMuteBarsRef.current > 0
         && completedBar % coachCycleBars >= coachPlayBarsRef.current;
-      if (!coachMuted && grooveModeRef.current === "groove") {
+      if (!coachMuted && appModeRef.current === APP_MODES.METRONOME && grooveModeRef.current === "groove") {
         if (metronomeOnRef.current) scheduleGrooveStep({audio,
           output:getAudioBusInput(AUDIO_BUS_IDS.GROOVE, audio) || audio.destination,
           buffers:metronomeSampleBuffersRef.current, pattern:groovePatternRef.current,
@@ -22997,7 +22920,11 @@ function App({ onReady }) {
         return;
       }
 
-      gameTimeRef.current += deltaMs;
+      if (!metronomeAudioSchedulerRunningRef.current) startMetronomeAudioScheduler();
+      const audio = audioRef.current;
+      if (!audio) return;
+      gameTimeRef.current = Math.max(0, audio.currentTime - metronomeAudioOriginTimeRef.current) * 1000;
+      if (audio.currentTime < metronomeAudioOriginTimeRef.current) return;
       if (metronomeTrackerModeRef.current === "timer") {
         const totalTimerMs = metronomeTrackerTimerTotalMsRef.current;
         const elapsedMs = totalTimerMs > 0 ? Math.min(gameTimeRef.current, totalTimerMs) : gameTimeRef.current;
@@ -23043,7 +22970,7 @@ function App({ onReady }) {
       if (subdivisionIndex === 0) {
         setBeat(beatInBar);
       }
-      playPatternTick(beatInBar, subdivisionIndex);
+      // Clicks are queued on the audio clock, independently of visual frames.
 
       if (!advancesEverySubdivision && subdivisionIndex !== 0) return;
 
@@ -23065,7 +22992,7 @@ function App({ onReady }) {
       setReferenceStepTick((value) => value + 1);
       setFeedback(ko["app.nextNote"]);
     },
-    [playCountInVoice, playPatternTick, selectedCategory.sequence, setState],
+    [playCountInVoice, startMetronomeAudioScheduler, selectedCategory.id, selectedCategory.sequence, setState],
   );
 
   const runShooterFrame = useCallback(
@@ -26270,6 +26197,25 @@ function App({ onReady }) {
     });
   }, [requestNavigationCommit, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
+  const showRhythmTrainer = useCallback(() => {
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: APP_ROUTES.RHYTHM_TRAINER,
+      mode: APP_MODES.RHYTHM_TRAINER,
+    }, () => {
+      if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
+      stopBackingScheduler();
+      stopMic();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.RHYTHM_TRAINER;
+      setAppMode(APP_MODES.RHYTHM_TRAINER);
+      setState(GAME_STATES.IDLE);
+    });
+  }, [requestNavigationCommit, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
+
   const showAudioStudio = useCallback(() => {
     if (!audioStudioEnabled) return;
     const sourceMode = appModeRef.current;
@@ -26402,11 +26348,11 @@ function App({ onReady }) {
   }, [gameState]);
 
   useEffect(() => {
-    if (appMode === APP_MODES.METRONOME && gameState === GAME_STATES.PLAYING) return;
+    if ((appMode === APP_MODES.METRONOME || (appMode === APP_MODES.PRACTICE && ["first-position", "scale-block"].includes(selectedCategoryId))) && gameState === GAME_STATES.PLAYING) return;
     if (metronomeAudioSchedulerRunningRef.current || metronomeScheduledSourcesRef.current.size) {
       stopMetronomeAudioScheduler({ preservePosition: gameState === GAME_STATES.PAUSED });
     }
-  }, [appMode, gameState, stopMetronomeAudioScheduler]);
+  }, [appMode, gameState, selectedCategoryId, stopMetronomeAudioScheduler]);
 
   useEffect(() => () => {
     stopMetronomeAudioScheduler();
@@ -29229,7 +29175,9 @@ function App({ onReady }) {
     };
   }, [appMode, closeMiniChordFloatingEditors, miniChordActiveBarIndex, miniChordChordPickerSlot]);
 
-  const contentHeader = appMode === APP_MODES.ETUDES
+  const contentHeader = appMode === APP_MODES.RHYTHM_TRAINER
+      ? { title: ko["app.rhythmTrainer"], subtitle: "" }
+    : appMode === APP_MODES.ETUDES
       ? { title: ko["app.scorePractice"], subtitle: ko["app.notationTabPhrasePractice"] }
     : appMode === APP_MODES.FRETBOARD_VIEWER
       ? { title: ko["app.fretboardApp"], subtitle: ko["app.quicklyFindNotesAndChordPositions"] }
@@ -30039,12 +29987,15 @@ function App({ onReady }) {
     prepareStage3BackingSession,
   ]);
 
+  const stage3LandscapeStorage = isMobileLayout && viewportProfile.isLandscape;
   const stage3StorageLoadSelect = (
     <MetronomeSelectControl
       ariaLabel={translateUi("app.loadSavedChordProgression")}
       className="stage3StorageLoadSelect"
-      dropdownDirection="down"
-      label={translateUi("app.selectCustomProgression")}
+      triggerLabel={stage3LandscapeStorage ? translateUi("app.load") : undefined}
+      dropdownDirection={stage3LandscapeStorage ? "up" : "down"}
+      panelDirectionIndicator={stage3LandscapeStorage}
+      label={translateUi(isMobileLayout && !viewportProfile.isLandscape ? "app.loadCustomProgression" : "app.selectCustomProgression")}
       matchTriggerWidth
       onChange={(slotId) => {
         const item = stage3QuickSlots.find((slot) => slot.id === slotId);
@@ -30052,7 +30003,7 @@ function App({ onReady }) {
         editStage3StorageItem(item);
       }}
       options={[
-        { id: "", label: ko["app.selectCustomProgression"], disabled: true },
+        { id: "", label: ko[isMobileLayout && !viewportProfile.isLandscape ? "app.loadCustomProgression" : "app.selectCustomProgression"], disabled: true },
         ...stage3QuickSlots.map((item) => ({
           id: item.id,
           label: getStage3SavedTitle(item),
@@ -30065,6 +30016,7 @@ function App({ onReady }) {
 
   const stage3StorageComposerActions = (
     <div aria-label={translateUi("app.savedProgressionActions")} className="stage3StorageComposerActions stage3StorageActionSegment">
+      {stage3LandscapeStorage ? stage3StorageLoadSelect : null}
       <button className="stage3StoragePrimaryAction" disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button"><Translation id="common.save" /></button>
       <button
         disabled={
@@ -30077,6 +30029,109 @@ function App({ onReady }) {
       ><Translation id="common.delete" /></button>
       <button onClick={resetStage3StorageComposer} type="button"><Translation id="app.reset" /></button>
     </div>
+  );
+
+  const stage3StorageFretboardPreview = (
+                <div
+                  aria-label={translateUi("app.value1Value2ChordReferenceFretboard", { value1: stage3StorageSelectedChordName, value2: stage3StorageChordPositionLabel })}
+                  className="stage3ChordMiniReference"
+                >
+                  <div className="stage3ChordMiniReferenceHeading">
+                    <strong>{stage3StorageSelectedChordName}</strong>
+                    <small>{localizeUi(stage3StorageChordPositionLabel)}</small>
+                  </div>
+                  <EditableChordFretboard
+                    className="stageChordSharedFretboard stage3ChordMiniReferenceFretboard fitRange"
+                    initialFretboard={stage3StorageInitialFretboard}
+                    key={stage3StorageFretboardEditorKey}
+                    ref={stage3StorageFretboardEditorRef}
+                    rootNote={stage3StorageSelectedChord?.root ?? ""}
+                  />
+                </div>
+  );
+  const stage3StorageProgressionPreview = (
+<div className="stage3InlineProgressionRow">
+                <span><Translation id="app.sequence" /></span>
+                <div className="progressionChipList">
+                  {hasStage3StorageProgression ? stage3StorageProgressionMeasures.map((measure) => (
+                    <div className="rhythmChordMeasure" key={`storage-measure-${measure.measureIndex}`}>
+                      {measure.items.map(({ beatLength, chord, index, isAutoRest, startBeat }) => isAutoRest ? (
+                        <strong
+                          className="stage3AutomaticRestChip"
+                          key={`storage-auto-rest-${startBeat}`}
+                          style={{ "--rhythm-chord-beats": beatLength }}
+                        >
+                          <button
+                            aria-disabled="true"
+                            aria-label={translateUi("app.autoRestValue1", { value1: getRhythmChordBeatLabel(beatLength) })}
+                            className="stage3ProgressionEditButton stage3ProgressionRestButton stage3AutomaticRestButton"
+                            tabIndex={-1}
+                            type="button"
+                          >
+                            <span aria-hidden="true" className="stage3AutomaticRestSymbol">𝄽</span>
+                          </button>
+                        </strong>
+                      ) : (
+                        <strong
+                          key={`storage-inline-${chord.id}-${chord.positionId}-${index}`}
+                          style={{ "--rhythm-chord-beats": beatLength }}
+                        >
+                          <button
+                            aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}${chord.isRest ? "" : translateUi("app.edit")}`}
+                            className={`${stage3StorageChordEditingIndex === index ? "selected " : ""}stage3ProgressionEditButton${chord.isRest ? " stage3ProgressionRestButton" : ""}`}
+                            disabled={chord.isRest}
+                            onClick={chord.isRest ? undefined : () => editStage3StorageChordEntry(stage3StorageChordIds[index], index)}
+                            type="button"
+                          >
+                            <span>{chord.displayName}</span>
+                            <small>{localizeUi(getRhythmChordBeatLabel(chord.beatLength))}</small>
+                          </button>
+                          <button
+                            aria-label={translateUi("app.removeValue1Value2", { value1: chord.displayName, value2: getRhythmChordBeatLabel(chord.beatLength) })}
+                            onClick={() => {
+                              setStage3StorageChordIds((ids) => ids.filter((_, chordIndex) => chordIndex !== index));
+                              setStage3StorageChordEditingIndex(null);
+                            }}
+                            type="button"
+                          >
+                            ×
+                          </button>
+                        </strong>
+                      ))}
+                    </div>
+                  )) : (
+                    <small className="chordProgressionEmpty"><Translation id="app.chooseAChordToAdd" /></small>
+                  )}
+                </div>
+                {isDesktopLayout && stage3StorageStrumRows.some((row) => row.length) ? (
+                  <div aria-label={translateUi("app.strummingPatternsByRow")} className="stage3ProgressionStrumAssignments">
+                    {stage3StorageStrumRows.map((row, rowIndex) => row.length ? (
+                      <div
+                        className="stage3ProgressionStrumAssignment is-assigned"
+                        data-progression-row={rowIndex + 1}
+                        key={`storage-progression-strum-row-${rowIndex}`}
+                      >
+                        <b>{rowIndex + 1}<Translation id="app.row" /></b>
+                        <StrumPattern pattern={row} />
+                      </div>
+                    ) : null)}
+                  </div>
+                ) : null}
+              </div>
+  );
+  const stage3StorageStrumPreview = (
+!isDesktopLayout ? <div className="stage3InlineStrum" aria-label={translateUi("app.addedPatterns")}>
+                <span><Translation id="app.addedPatterns" /></span>
+                <div className="strumPreviewList">
+                  {stage3StorageStrumPattern.length ? (
+                    normalizeStrumPatternGroups(stage3StorageStrumPattern).filter((row) => row.length).map((row, index) => (
+                      <StrumPattern key={`storage-inline-strum-row-${index}`} pattern={row} />
+                    ))
+                  ) : (
+                    <small className="chordProgressionEmpty"><Translation id="app.chooseAPatternToAdd" /></small>
+                  )}
+                </div>
+              </div> : null
   );
 
   const stage3DesktopMetronomeSoundToggle = (
@@ -30118,6 +30173,7 @@ function App({ onReady }) {
       <MetronomeSelectControl
         ariaLabel={translateUi("app.voiceLeadingCourse")}
         className="stage3LoadSelect stage3RecommendedLoadSelect stage3VoicingCourseSelect"
+        panelDirectionIndicator
         dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
         label={translateUi("app.voiceLeading")}
         matchTriggerWidth
@@ -30267,6 +30323,7 @@ function App({ onReady }) {
         getBackingVolumeValue={getBackingVolumeValue}
         handleBackingVolumeInput={handleBackingVolumeInput}
         onOpenAudioStudio={showAudioStudio}
+        onOpenRhythmTrainer={showRhythmTrainer}
         onOpenEtudes={showEtudes}
         onOpenFretboard={showFretboardViewer}
         onOpenHelp={() => {
@@ -30304,21 +30361,9 @@ function App({ onReady }) {
             className="utilityMenuPanel"
             id="utility-menu-panel"
           >
-            <div className="utilityMenuHeader">
-              <div>
-                <strong><Translation id="app.menu" /></strong>
-              </div>
-              <button
-                aria-label={translateUi("app.closeMenu")}
-                onClick={closeUtilityMenu}
-                type="button"
-              >
-                <X aria-hidden="true" size={22} />
-              </button>
-            </div>
-            <div className="utilityMenuBody">
-            <LanguageSettings />
-            {themeMenuVisible ? (
+            <MobileUtilityMenu onClose={closeUtilityMenu}
+              settings={<><h3 className="utilitySettingsLabel"><Translation id="menu.general" /></h3><LanguageSettings />
+            {themeMenuVisible ? (<> <h3 className="utilitySettingsLabel"><Translation id="menu.display" /></h3>
               <section className="utilityThemePanel" aria-label={translateUi("app.themeSettings")}>
                 <div className="utilityThemeHeader">
                   <div>
@@ -30345,81 +30390,8 @@ function App({ onReady }) {
                   ))}
                 </div>
               </section>
-            ) : null}
-            <nav className="utilityMenuList" aria-label={translateUi("app.moreFeatures")}>
-              <button aria-current={desktopSidebarActiveKey === "etudes" ? "page" : undefined} className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive" onClick={showEtudes} type="button">
-                <span className="utilityMenuIcon" aria-hidden="true"><Music2 size={19} /></span>
-                <div className="utilityMenuText"><strong className="utilityMenuTitle"><span className="utilityMenuTitleLabel"><Translation id="app.scorePractice" /></span><span className="etudeProMark"><Translation id="originalUi.pro" /></span></strong><small><Translation id="app.notationTabPhrasePractice" /></small></div>
-                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-              </button>
-              <button
-                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
-                aria-current={desktopSidebarActiveKey === "stage1" ? "page" : undefined}
-                onClick={() => showIndependentPracticeCategory("first-position")}
-                type="button"
-              >
-                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">1</span>
-                <div className="utilityMenuText">
-                  <UtilityMenuTitle status="BEGINNER"><Translation id="app.singleNotes" /></UtilityMenuTitle>
-                  <small><Translation id="app.learnNotePositionsFromCThroughThreeChordPractice" /></small>
-                </div>
-                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-              </button>
-              <button
-                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
-                aria-current={desktopSidebarActiveKey === "stage2" ? "page" : undefined}
-                onClick={() => showIndependentPracticeCategory("scale-block")}
-                type="button"
-              >
-                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">2</span>
-                <div className="utilityMenuText">
-                  <UtilityMenuTitle status="SOLO"><Translation id="app.scalesPentatonics" /></UtilityMenuTitle>
-                  <small><Translation id="app.positionsPhrasePractice" /></small>
-                </div>
-                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-              </button>
-              <button
-                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
-                aria-current={desktopSidebarActiveKey === "stage3" ? "page" : undefined}
-                onClick={showCurriculum}
-                type="button"
-              >
-                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">3</span>
-                <div className="utilityMenuText">
-                  <UtilityMenuTitle status="HOT"><Translation id="app.rhythmChords" /></UtilityMenuTitle>
-                  <small><Translation id="app.practiceChordChangesWithAMetronome" /></small>
-                </div>
-                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-              </button>
-              <button
-                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
-                aria-current={desktopSidebarActiveKey === "mini-chord" ? "page" : undefined}
-                onClick={showMiniChordMaker}
-                type="button"
-              >
-                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">4</span>
-                <div className="utilityMenuText">
-                  <UtilityMenuTitle status="DEV"><Translation id="menu.miniBacking" /></UtilityMenuTitle>
-                  <small><Translation id="app.buildChordProgressionsAndBackingTracks" /></small>
-                </div>
-                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-              </button>
-              {audioStudioEnabled ? (
-                <button
-                  className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive audioStudioMenuItem"
-                  aria-current={desktopSidebarActiveKey === "audio-studio" ? "page" : undefined}
-                  onClick={showAudioStudio}
-                  type="button"
-                >
-                  <span className="utilityMenuIcon" aria-hidden="true"><AudioLines size={19} /></span>
-                  <div className="utilityMenuText">
-                    <UtilityMenuTitle status="DEV"><Translation id="menu.audioStudio" /></UtilityMenuTitle>
-                    <small><Translation id="originalUi.mixAudioLibrary" /></small>
-                  </div>
-                  <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-                </button>
-              ) : null}
-              <section className="utilitySoundPanel" aria-label={translateUi("app.soundRhythm")}>
+            </>) : null}
+<h3 className="utilitySettingsLabel"><Translation id="menu.sound" /></h3><section className="utilitySoundPanel" aria-label={translateUi("app.soundRhythm")}>
                 <details className="utilitySoundDetails">
                   <summary>
                     <span className="utilityMenuIcon" aria-hidden="true">
@@ -30478,8 +30450,96 @@ function App({ onReady }) {
                     ><Translation id="app.resetSound" /></button>
                   </div>
                 </details>
-              </section>
+              </section><p className="utilityMenuVersion" aria-label={translateUi("app.appValue1", { value1: APP_VERSION_LABEL })}><Translation id="originalUi.fretivaLabApp" />{APP_VERSION_LABEL}
+            </p>
+              {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive utilityAppRefresh"
+                type="button"
+                onClick={() => window.location.reload()}
+                disabled={shooterRecordingActive || (appMode === APP_MODES.SHOOTER && (gameState === GAME_STATES.PLAYING || shooterCountInLabel !== null))}
+              >
+                <span className="utilityMenuIcon" aria-hidden="true"><RotateCw size={19} /></span>
+                <div className="utilityMenuText"><strong><Translation id="app.refresh" /></strong><small><Translation id="app.reloadThisScreen" /></small></div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button> : null}
+</>}
+              pro={<>             <button className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive" onClick={showRhythmTrainer} type="button"><span className="utilityMenuIcon"><Music2 size={19}/></span><div className="utilityMenuText"><strong className="utilityMenuTitle"><span className="utilityMenuTitleLabel"><Translation id="app.rhythmTrainer" /></span><span className="etudeProMark"><Translation id="originalUi.pro" /></span></strong><small><Translation id="app.rhythmTrainerDescription" /></small></div><span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span></button>
+              <button aria-current={desktopSidebarActiveKey === "etudes" ? "page" : undefined} className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive" onClick={showEtudes} type="button">
+                <span className="utilityMenuIcon" aria-hidden="true"><Music2 size={19} /></span>
+                <div className="utilityMenuText"><strong className="utilityMenuTitle"><span className="utilityMenuTitleLabel"><Translation id="app.scorePractice" /></span><span className="etudeProMark"><Translation id="originalUi.pro" /></span></strong><small><Translation id="app.notationTabPhrasePractice" /></small></div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button>
+</>}
+              basic={<>              <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "stage1" ? "page" : undefined}
+                onClick={() => showIndependentPracticeCategory("first-position")}
+                type="button"
+              >
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">1</span>
+                <div className="utilityMenuText">
+                  <UtilityMenuTitle status="BEGINNER"><Translation id="app.singleNotes" /></UtilityMenuTitle>
+                  <small><Translation id="app.learnNotePositionsFromCThroughThreeChordPractice" /></small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button>
               <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "stage2" ? "page" : undefined}
+                onClick={() => showIndependentPracticeCategory("scale-block")}
+                type="button"
+              >
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">2</span>
+                <div className="utilityMenuText">
+                  <UtilityMenuTitle status="SOLO"><Translation id="app.scalesPentatonics" /></UtilityMenuTitle>
+                  <small><Translation id="app.positionsPhrasePractice" /></small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button>
+              <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "stage3" ? "page" : undefined}
+                onClick={showCurriculum}
+                type="button"
+              >
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">3</span>
+                <div className="utilityMenuText">
+                  <UtilityMenuTitle status="HOT"><Translation id="app.rhythmChords" /></UtilityMenuTitle>
+                  <small><Translation id="app.practiceChordChangesWithAMetronome" /></small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button>
+</>}
+              dev={<>
+              <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "mini-chord" ? "page" : undefined}
+                onClick={showMiniChordMaker}
+                type="button"
+              >
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">4</span>
+                <div className="utilityMenuText">
+                  <UtilityMenuTitle status="DEV" statusLabel={translateUi("menu.unfinished")}><Translation id="menu.miniBacking" /></UtilityMenuTitle>
+                  <small><Translation id="app.buildChordProgressionsAndBackingTracks" /></small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button>
+              {audioStudioEnabled ? (
+                <button
+                  className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive audioStudioMenuItem"
+                  aria-current={desktopSidebarActiveKey === "audio-studio" ? "page" : undefined}
+                  onClick={showAudioStudio}
+                  type="button"
+                >
+                  <span className="utilityMenuIcon" aria-hidden="true"><AudioLines size={19} /></span>
+                  <div className="utilityMenuText">
+                    <UtilityMenuTitle status="DEV" statusLabel={translateUi("menu.unfinished")}><Translation id="menu.audioStudio" /></UtilityMenuTitle>
+                    <small><Translation id="originalUi.mixAudioLibrary" /></small>
+                  </div>
+                  <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+                </button>
+              ) : null}</>}
+              footer={<>              <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
                 onClick={() => {
                   setUtilityMenuOpen(false);
@@ -30490,21 +30550,12 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon" aria-hidden="true"><CircleHelp size={19} /></span>
                 <div className="utilityMenuText">
-                  <strong><Translation id="app.guideHelp" /></strong>
+                  <strong><Translation id="menu.helpShort" /></strong>
                   <small><Translation id="app.practiceFeaturesAndInstructions" /></small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
-              {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <button
-                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
-                type="button"
-                onClick={() => window.location.reload()}
-                disabled={shooterRecordingActive || (appMode === APP_MODES.SHOOTER && (gameState === GAME_STATES.PLAYING || shooterCountInLabel !== null))}
-              >
-                <span className="utilityMenuIcon" aria-hidden="true"><RotateCw size={19} /></span>
-                <div className="utilityMenuText"><strong><Translation id="app.refresh" /></strong><small><Translation id="app.reloadThisScreen" /></small></div>
-                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-              </button> : null}
+              <ShooterShareButton menu compact score={appMode === APP_MODES.SHOOTER ? score : shooterRecords.recent[0]?.score ?? 0} bestScore={shooterRecords.best.score} />
               <a
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive utilityMenuItemExternal utilityMenuItemInstagram"
                 href="https://www.instagram.com/sungsu91_/"
@@ -30524,11 +30575,8 @@ function App({ onReady }) {
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </a>
-              <ShooterShareButton menu score={appMode === APP_MODES.SHOOTER ? score : shooterRecords.recent[0]?.score ?? 0} bestScore={shooterRecords.best.score} />
-            </nav>
-            <p className="utilityMenuVersion" aria-label={translateUi("app.appValue1", { value1: APP_VERSION_LABEL })}><Translation id="originalUi.fretivaLabApp" />{APP_VERSION_LABEL}
-            </p>
-            </div>
+</>}
+            />
           </aside>
         </div>
         </UtilityMenuSurface>
@@ -30610,7 +30658,7 @@ function App({ onReady }) {
       ) : null}
 
       {appMode !== APP_MODES.MENU
-        && !(appMode === APP_MODES.ETUDES && isMobileLayout)
+        && !([APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode) && isMobileLayout)
         && !shooterRecordingActive
         && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled)
         && !hideFretboardLandscapeNavigation
@@ -30662,6 +30710,7 @@ function App({ onReady }) {
         </BottomNavigation>
       </section></MobileNavigationSurface>}
 
+      {appMode === APP_MODES.RHYTHM_TRAINER ? <Suspense fallback={<p>…</p>}><RhythmTrainer beatTone={metronomeTone} countVoiceMode={metronomeCountInVoiceMode} mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer}/></Suspense> : null}
       {appMode === APP_MODES.ETUDES ? <Suspense fallback={<p><Translation id="app.preparingScorePractice" /></p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense> : null}
 
       {isAppModeMounted(APP_MODES.TUNER) ? (
@@ -33572,10 +33621,10 @@ function App({ onReady }) {
                 {isShooterRandomDifficulty(shooterDifficulty) ? (
                   <span>
                     {shooterDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
-                      ? SHOOTER_EASY_RANDOM_RANGE_LABEL
+                      ? localizeUi(SHOOTER_EASY_RANDOM_RANGE_LABEL)
                       : shooterDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM
                         ? translateUi("app.openStringsFret12RandomIncludingSharps")
-                        : SHOOTER_NORMAL_RANDOM_RANGE_LABEL}
+                        : localizeUi(SHOOTER_NORMAL_RANDOM_RANGE_LABEL)}
                   </span>
                 ) : null}
               </div>
@@ -33957,7 +34006,7 @@ function App({ onReady }) {
                 style={{ animation: "none" }}
               >
                 <strong>{localizeUi(shooterScenarioCountdown.sectionLabel)}</strong>
-                <span>{shooterScenarioCountdown.sectionAnnouncement}</span>
+                <span>{localizeUi(shooterScenarioCountdown.sectionAnnouncement)}</span>
                 <b style={{ fontSize: 32, lineHeight: 1.2 }}>{shooterScenarioCountdown.seconds}</b>
               </div>
             ) : null}
@@ -34591,7 +34640,7 @@ function App({ onReady }) {
               <div>
                 <strong><Translation id="app.library" /></strong>
               </div>
-              {stage3StorageLoadSelect}
+              {!stage3LandscapeStorage ? stage3StorageLoadSelect : null}
               <button aria-label={translateUi("app.closeSavedProgressions")} autoFocus onClick={closeStage3StorageRoom} type="button">
                 <X aria-hidden="true" size={18} />
               </button>
@@ -34621,22 +34670,12 @@ function App({ onReady }) {
             ) : null}
             <div className="stage3StorageChordBuilder" aria-label={translateUi("app.chooseSavedChordsAndStrummingPatterns")}>
               <div className="stage3ChordBuilderPanel" aria-label={translateUi("app.chordBuilder")}>
-                <div
-                  aria-label={translateUi("app.value1Value2ChordReferenceFretboard", { value1: stage3StorageSelectedChordName, value2: stage3StorageChordPositionLabel })}
-                  className="stage3ChordMiniReference"
-                >
-                  <div className="stage3ChordMiniReferenceHeading">
-                    <strong>{stage3StorageSelectedChordName}</strong>
-                    <small>{localizeUi(stage3StorageChordPositionLabel)}</small>
-                  </div>
-                  <EditableChordFretboard
-                    className="stageChordSharedFretboard stage3ChordMiniReferenceFretboard fitRange"
-                    initialFretboard={stage3StorageInitialFretboard}
-                    key={stage3StorageFretboardEditorKey}
-                    ref={stage3StorageFretboardEditorRef}
-                    rootNote={stage3StorageSelectedChord?.root ?? ""}
-                  />
-                </div>
+                {stage3LandscapeStorage ? <div className="stage3StorageLandscapePreview">
+                  {stage3StorageFretboardPreview}
+                  {stage3StorageProgressionPreview}
+                  {stage3StorageStrumPreview}
+                  {stage3StorageComposerActions}
+                </div> : stage3StorageFretboardPreview}
 
                 <ChordBuilderOptionSection layout="cols-5" showTitle title={translateUi("app.range")}>
                   {CHORD_VIEWER_POSITIONS.map((position) => (
@@ -34767,7 +34806,7 @@ function App({ onReady }) {
                   </div>
                 </div>
               </div>
-              <div className="stage3AddRow">
+              <div className="stage3AddRow" style={{"--selected-chord-label": JSON.stringify(translateUi("app.selectedChord")), "--reset-label": JSON.stringify(translateUi("app.reset"))}}>
                 <strong>
                   <span><Translation id="app.selectedChord" /></span>
                   <b>{stage3StorageSelectedChord ? stage3StorageSelectedChordName : translateUi("app.comingSoon")}</b>
@@ -34805,87 +34844,9 @@ function App({ onReady }) {
                   ><Translation id="app.1BeatRest" /></button>
                 </div>
               </div>
-              <div className="stage3InlineProgressionRow">
-                <span><Translation id="app.sequence" /></span>
-                <div className="progressionChipList">
-                  {hasStage3StorageProgression ? stage3StorageProgressionMeasures.map((measure) => (
-                    <div className="rhythmChordMeasure" key={`storage-measure-${measure.measureIndex}`}>
-                      {measure.items.map(({ beatLength, chord, index, isAutoRest, startBeat }) => isAutoRest ? (
-                        <strong
-                          className="stage3AutomaticRestChip"
-                          key={`storage-auto-rest-${startBeat}`}
-                          style={{ "--rhythm-chord-beats": beatLength }}
-                        >
-                          <button
-                            aria-disabled="true"
-                            aria-label={translateUi("app.autoRestValue1", { value1: getRhythmChordBeatLabel(beatLength) })}
-                            className="stage3ProgressionEditButton stage3ProgressionRestButton stage3AutomaticRestButton"
-                            tabIndex={-1}
-                            type="button"
-                          >
-                            <span aria-hidden="true" className="stage3AutomaticRestSymbol">𝄽</span>
-                          </button>
-                        </strong>
-                      ) : (
-                        <strong
-                          key={`storage-inline-${chord.id}-${chord.positionId}-${index}`}
-                          style={{ "--rhythm-chord-beats": beatLength }}
-                        >
-                          <button
-                            aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}${chord.isRest ? "" : translateUi("app.edit")}`}
-                            className={`${stage3StorageChordEditingIndex === index ? "selected " : ""}stage3ProgressionEditButton${chord.isRest ? " stage3ProgressionRestButton" : ""}`}
-                            disabled={chord.isRest}
-                            onClick={chord.isRest ? undefined : () => editStage3StorageChordEntry(stage3StorageChordIds[index], index)}
-                            type="button"
-                          >
-                            <span>{chord.displayName}</span>
-                            <small>{localizeUi(getRhythmChordBeatLabel(chord.beatLength))}</small>
-                          </button>
-                          <button
-                            aria-label={translateUi("app.removeValue1Value2", { value1: chord.displayName, value2: getRhythmChordBeatLabel(chord.beatLength) })}
-                            onClick={() => {
-                              setStage3StorageChordIds((ids) => ids.filter((_, chordIndex) => chordIndex !== index));
-                              setStage3StorageChordEditingIndex(null);
-                            }}
-                            type="button"
-                          >
-                            ×
-                          </button>
-                        </strong>
-                      ))}
-                    </div>
-                  )) : (
-                    <small className="chordProgressionEmpty"><Translation id="app.chooseAChordToAdd" /></small>
-                  )}
-                </div>
-                {isDesktopLayout && stage3StorageStrumRows.some((row) => row.length) ? (
-                  <div aria-label={translateUi("app.strummingPatternsByRow")} className="stage3ProgressionStrumAssignments">
-                    {stage3StorageStrumRows.map((row, rowIndex) => row.length ? (
-                      <div
-                        className="stage3ProgressionStrumAssignment is-assigned"
-                        data-progression-row={rowIndex + 1}
-                        key={`storage-progression-strum-row-${rowIndex}`}
-                      >
-                        <b>{rowIndex + 1}<Translation id="app.row" /></b>
-                        <StrumPattern pattern={row} />
-                      </div>
-                    ) : null)}
-                  </div>
-                ) : null}
-              </div>
-              {!isDesktopLayout ? <div className="stage3InlineStrum" aria-label={translateUi("app.addedPatterns")}>
-                <span><Translation id="app.addedPatterns" /></span>
-                <div className="strumPreviewList">
-                  {stage3StorageStrumPattern.length ? (
-                    normalizeStrumPatternGroups(stage3StorageStrumPattern).filter((row) => row.length).map((row, index) => (
-                      <StrumPattern key={`storage-inline-strum-row-${index}`} pattern={row} />
-                    ))
-                  ) : (
-                    <small className="chordProgressionEmpty"><Translation id="app.chooseAPatternToAdd" /></small>
-                  )}
-                </div>
-              </div> : null}
-              {!isDesktopLayout ? stage3StorageComposerActions : null}
+              {!stage3LandscapeStorage ? stage3StorageProgressionPreview : null}
+              {!stage3LandscapeStorage ? stage3StorageStrumPreview : null}
+              {!isDesktopLayout && !stage3LandscapeStorage ? stage3StorageComposerActions : null}
             </div>
           </div>
             {isDesktopLayout ? stage3StorageComposerActions : null}
@@ -34918,7 +34879,7 @@ function App({ onReady }) {
               {hasChordTransitionProgression ? (
               <div className="referenceHeader stage3ProgressionHeader">
                 <div>
-                  <div className="stage3ChartTitleRow">
+                  {!isMobileLayout ? <div className="stage3ChartTitleRow">
                     <span className="stage3ChartTitleText">
                       {stage3CurrentProgressionTitle}
                     </span>
@@ -34933,7 +34894,7 @@ function App({ onReady }) {
                         />
                       </span>
                     ) : null}
-                  </div>
+                  </div> : null}
                   <div className="currentProgressionReadout" aria-label={translateUi("app.currentChordProgression")}>
                     {chordTransitionProgressionMeasures.map((measure) => {
                       const isCurrentMeasure = measure.items.some(({ endBeat, index, isAutoRest, startBeat }) => (
@@ -35032,7 +34993,7 @@ function App({ onReady }) {
                 showStringNames
                 stringStates={chordPracticeFretboardView.stringStates}
               />
-              {!(isMobileLayout && landscapePlayFocus)
+              {isMobileLayout && !landscapePlayFocus
                 && isStage3VoicingMovementItem(loadedStage3LibraryItem)
                 && hasChordTransitionProgression ? (
                 <div className="stage3VoicingMovementGuide" aria-live="polite">
@@ -35171,18 +35132,17 @@ function App({ onReady }) {
             inputId="stage3-metronome-options"
             onAccentToneChange={changeStage3MetronomeAccentTone}
             onBpmChange={changeStage3Bpm}
-            onOptionsCollapseChange={isMobileLayout ? setStage3MetronomeOptionsCollapsed : null}
             onSubdivisionChange={changeStage3MetronomeSubdivision}
             onTimeSignatureChange={changeStage3MetronomeTimeSignature}
             onWeakToneChange={changeStage3MetronomeWeakTone}
-            optionsHeaderToggle={landscapePlayFocus}
+            optionsHeaderToggle={false}
             showAccent={false}
             showBpmControls={false}
             showCountIn={false}
             showRepeat={false}
             splitToneControls
             optionsCollapseLabel={translateUi("app.metronomeSettings")}
-            optionsCollapsed={isMobileLayout && stage3MetronomeOptionsCollapsed}
+            optionsCollapsed={false}
             subdivision={stage3MetronomeSubdivision}
             timeSignature={stage3MetronomeTimeSignature}
             tone={stage3MetronomeAccentTone}
@@ -35191,6 +35151,7 @@ function App({ onReady }) {
           />
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--training"
+            upward={isMobileLayout && landscapePlayFocus}
             defaultExpanded={!isMobileLayout || !viewportProfile.isLandscape}
             disabled={stage3RecommendedAccompanimentLocked}
             hidePartSummary={landscapePlayFocus}
@@ -35203,6 +35164,12 @@ function App({ onReady }) {
             onVolumeInput={handleBackingVolumeInput}
             parts={sharedAccompanimentParts}
           />
+          {(!isMobileLayout || landscapePlayFocus) && isStage3VoicingMovementItem(loadedStage3LibraryItem) && hasChordTransitionProgression ? (
+            <div className={isMobileLayout ? "stage3LandscapeGuide" : "stage3DesktopGuide"} aria-live="polite">
+              <strong>{localizeUi(chordPracticeCurrent.uiLabel || chordPracticeCurrent.positionLabel)}</strong>
+              <p>{localizeUi(loadedStage3LibraryItem?.practiceSummary || loadedStage3LibraryItem?.description)}</p>
+            </div>
+          ) : null}
           </div>
         </section>
         </>

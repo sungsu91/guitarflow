@@ -36,18 +36,15 @@ test("rhythm code places its four metronome dropdowns above accompaniment", () =
   assert.match(optionsBlock, /onSubdivisionChange=\{changeStage3MetronomeSubdivision\}/);
   assert.match(optionsBlock, /onAccentToneChange=\{changeStage3MetronomeAccentTone\}/);
   assert.match(optionsBlock, /onWeakToneChange=\{changeStage3MetronomeWeakTone\}/);
-  assert.match(optionsBlock, /onOptionsCollapseChange=\{isMobileLayout \? setStage3MetronomeOptionsCollapsed : null\}/);
-  assert.match(optionsBlock, /optionsCollapsed=\{isMobileLayout && stage3MetronomeOptionsCollapsed\}/);
+  assert.doesNotMatch(optionsBlock, /onOptionsCollapseChange=/);
+  assert.match(optionsBlock, /optionsCollapsed=\{false\}/);
   assert.match(
     appSource,
-    /className="sharedAccompanimentPanel--training"\s+defaultExpanded=\{!isMobileLayout \|\| !viewportProfile\.isLandscape\}/,
+    /className="sharedAccompanimentPanel--training"\s+upward=\{isMobileLayout && landscapePlayFocus\}\s+defaultExpanded=\{!isMobileLayout \|\| !viewportProfile\.isLandscape\}/,
   );
   assert.doesNotMatch(optionsBlock, /changeTrainingMetronomeTimeSignature|changeMetronomeAccentTone|changeMetronomeWeakTone/);
-  assert.equal((appSource.match(/onOptionsCollapseChange=\{isMobileLayout/g) ?? []).length, 1);
-  assert.match(
-    appSource,
-    /stage3MetronomeOptionsCollapsed, setStage3MetronomeOptionsCollapsed\] = useState\(\s*\(\) => viewportProfile\.isMobileSurface && viewportProfile\.isLandscape/,
-  );
+  assert.equal((appSource.match(/onOptionsCollapseChange=\{isMobileLayout/g) ?? []).length, 0);
+  assert.doesNotMatch(appSource, /setStage3MetronomeOptionsCollapsed/);
   assert.match(appSource, /optionsCollapsed \? "펼침" : "접기"/);
 });
 

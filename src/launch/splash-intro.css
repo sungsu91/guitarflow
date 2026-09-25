@@ -47,6 +47,8 @@ html.app-is-launching {
   scrollbar-color: transparent #020202;
 }
 
+html.app-is-launching,
+html.app-is-launching body,
 html.app-is-theme-loading,
 html.app-is-theme-loading body {
   overflow: hidden;
@@ -72,7 +74,7 @@ html.app-is-launching::-webkit-scrollbar-track {
   display: grid;
   width: 100vw;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100lvh;
   overflow: hidden;
   padding: 0;
   place-items: center;
@@ -552,7 +554,7 @@ html.app-is-launching::-webkit-scrollbar-track {
 
   to {
     opacity: 0;
-    transform: scale(0.99);
+    transform: scale(1);
   }
 }
 
@@ -575,7 +577,8 @@ html.app-is-launching::-webkit-scrollbar-track {
   .launchSplash__stage,
   .launchSplash--controlled .launchSplash__stage {
     width: 100vw;
-    height: 100dvh;
+    height: 100vh;
+    height: 100lvh;
     aspect-ratio: auto;
   }
 

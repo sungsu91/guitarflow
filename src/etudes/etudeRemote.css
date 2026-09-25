@@ -171,17 +171,16 @@ html body #root .app .etudeFloatingTheme .etudeBeatRow button.etudeBeat.is-downb
 html body main.app.app.app .etudeFloatingTheme .etudeRemote--mobileBottom .etudeRemoteBeats>button{position:absolute;top:2px;right:2px;width:32px;min-height:32px;height:32px;padding:6px}
 /* The last system needs enough scroll travel to reach the reading area above
    the mobile transport, even when the score viewport extends below the screen. */
-body:has(.etudeRemote--mobileBottom) .mobileLayoutShell .etudeCompactTools .etudeSheet::after{content:'';display:block;height:min(72dvh,720px);pointer-events:none}
 /* Paint the stationary viewport, not a narrow sheet that moves horizontally. */
 .mobileLayoutShell .etudeCompactTools .etudeScoreViewport{background:#fff}
 .mobileLayoutShell .etudeCompactTools .etudeSheet{background:transparent!important}
 .mobileLayoutShell .etudeCompactTools .etudeNotation svg{overflow:hidden}
 
 .etudeRemoteBeats .practiceCurrentBar{white-space:nowrap;font-size:11px;font-variant-numeric:tabular-nums;color:inherit}
-/* A muted beat keeps its timing pulse, with a quiet check inside the circle. */
+/* A muted beat keeps its timing pulse, with a quiet cross inside the circle. */
 .etudeBeat i{position:relative}
-.etudeBeat i .etudeBeatMuteCheck{position:absolute;inset:2px;width:calc(100% - 4px)!important;height:calc(100% - 4px)!important;fill:none!important;stroke:#8b8b8b!important;stroke-width:1.6;opacity:.55;pointer-events:none}
-.etudeBeat i .etudeBeatMuteCheck path{stroke:inherit!important;fill:none!important}
+.etudeBeat i .etudeBeatMuteMark{position:absolute;inset:2px;width:calc(100% - 4px)!important;height:calc(100% - 4px)!important;fill:none!important;stroke:#8b8b8b!important;stroke-width:1.6;opacity:.55;pointer-events:none}
+.etudeBeat i .etudeBeatMuteMark path{stroke:inherit!important;fill:none!important}
 /* Desktop floating controls have their own compact layout and drag surfaces. */
 .desktopLayout .etudeRemote:not(.etudeHudRemote) .etudeRemoteBeats{display:flex;align-items:center;gap:6px;touch-action:none;cursor:grab;user-select:none}
 .desktopLayout .etudeRemote:not(.etudeHudRemote) .etudeRemoteBeats>.etudeBeatRow{flex:1;min-width:0}
@@ -221,3 +220,16 @@ html body #root main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etude
 .desktopLayout .etudeRemote:not(.etudeHudRemote):active{cursor:grabbing}
 
 .etudeRemote--mobileBottom,.etudeBackingDrawer--movable{touch-action:none;user-select:none}
+
+/* Mobile score sound is available beside the volume control without opening settings. */
+.etudeRemoteControls.etudeRemoteControls--scoreSound {
+  grid-template-columns: minmax(60px, 1.2fr) repeat(5, minmax(40px, 1fr));
+  gap: 3px;
+}
+html body main.app.app.app .etudeFloatingTheme .etudeRemote .etudeRemoteScoreSound {
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+}

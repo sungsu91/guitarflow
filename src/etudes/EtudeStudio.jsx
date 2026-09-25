@@ -1,3 +1,4 @@
+import DifficultyStars from './DifficultyStars.jsx';
 import { formatMessage } from "../i18n/format.js";
 import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
@@ -13,7 +14,7 @@ import { lessonCourse, canOpenLesson } from './filters.js';
 import './practiceLayout.css';
 import './etudes.css';
 import {toScoreDocument,compileScoreDocument} from './scoreDocument.js';
-import {loadLibrary,saveLibraryDocument} from './scoreLibrary.js';
+import {loadLibrary,saveLibraryDocument,renameLibraryDocument,deleteLibraryDocument} from './scoreLibrary.js';
 import {copyDocument,createBlankDocument} from './scoreModel.js';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
@@ -42,7 +43,6 @@ function LessonTips({ model }) {
   const commonTips = selected.accompaniment ? FINGERSTYLE_PRACTICE_TIPS : COMMON_PRACTICE_TIPS;
   const examples = selected.accompaniment ? FINGERSTYLE_EXAMPLES : PICKING_EXAMPLES;
   return <section className="etudeLesson" aria-label={translateUi("etudes.practiceCurriculum")}>
-    <div className="etudeLessonNav"><button type="button" disabled={index <= 0} onClick={() => model.openLesson(course[index - 1])}><Translation id="etudes.previousEtudeStudio" /></button><span><span>{localizeUi(selected.type)} · {localizeUi(selected.level)}</span><strong>{index + 1} / {course.length}</strong></span><button type="button" disabled={index < 0 || index === course.length - 1} onClick={() => model.openLesson(course[index + 1])}><Translation id="etudes.nextEtudeStudio" /></button></div>
     <details key={selected.id} className="etudeTips"><summary><strong><Translation id="app.tipPracticeGuide" /></strong><ChevronDown size={24} aria-hidden="true" /></summary>
       <p><strong><Translation id="etudes.learningGoal" /></strong> · {localizeUi(selected.pedagogy.objective)}</p><p className="etudePrerequisite">{localizeUi(selected.pedagogy.preparation)}</p>
       {selected.pedagogy.prerequisites.length>0&&<p><Translation id="etudes.prerequisite" />{selected.pedagogy.prerequisites.map(id=>localizeUi(ETUDES.find(e=>e.templateId===id)?.title??id)).join(' → ')}</p>}
@@ -58,10 +58,10 @@ function LessonTips({ model }) {
 }
 
 
-export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, initialId=DEFAULT_ETUDE_ID, initialSavedId='' }) {
+export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, pdfScores=[], onSelectPdf, onManagePdf, onSelectionChange, importBusy=false, initialId=DEFAULT_ETUDE_ID, initialSavedId='' }) {
   useLanguage();
   const [edits,setEdits]=useState(loadEdits);
-  const readFavorites=()=>{try{return {values:loadScoreFolders(localStorage).favorites,error:''};}catch(e){return {values:{},error:e.message};}};
+  const readFavorites=()=>{try{const data=loadScoreFolders(localStorage);return {data,values:data.favorites,error:''};}catch(e){return {values:{},error:e.message};}};
   const [favoriteStore,setFavoriteStore]=useState(readFavorites);
   useEffect(()=>{const refresh=e=>{if(!e||e.type==='focus'||e.key===SCORE_FOLDERS_KEY)setFavoriteStore(readFavorites());};window.addEventListener('storage',refresh);window.addEventListener('focus',refresh);return()=>{window.removeEventListener('storage',refresh);window.removeEventListener('focus',refresh);};},[]);
   const [editing,setEditing]=useState(null);
@@ -76,14 +76,16 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, i
   const session=usePracticeSession(selected,bpm,updateBpm);
   const {controller,layout}=session;
   const filters=selected?{type:selected.type,level:selected.level,style:ko["app.all"]}:undefined;
-  const select = id => { controller.current?.stop(); setSavedId(''); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
-  const selectSaved=id=>{controller.current?.stop();setSavedId(id);updateBpm(savedScores.find(r=>r.document.id===id)?.document.bpm??list.find(e=>e.id===selectedId)?.bpm??60);};
+  const select = id => { controller.current?.stop(); setSavedId(''); setSelectedId(id); onSelectionChange?.(id,''); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
+  const selectSaved=id=>{controller.current?.stop();setSavedId(id);onSelectionChange?.(selectedId,id);updateBpm(savedScores.find(r=>r.document.id===id)?.document.bpm??list.find(e=>e.id===selectedId)?.bpm??60);};
   const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:[ko["etudes.thisBrowserCannotSaveLocallyExportAFileInstead"]]};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
   const canEdit=Boolean(savedRecord)||import.meta.env.DEV;
   const editScore=score=>{if(!canEdit)return;controller.current?.stop();setEditing(savedRecord?structuredClone(savedRecord.document):copyDocument(toScoreDocument(score)));};
   const favoriteKey=savedId?`score:${savedId}`:`score:etude:${selected.id}`;
-  const toggleFavorite=()=>{try{const data=loadScoreFolders(localStorage);const next=updateScoreFolders(localStorage,{type:'favorite',keys:[favoriteKey],value:!data.favorites[favoriteKey]});setFavoriteStore({values:next.favorites,error:''});}catch(e){setFavoriteStore(current=>({...current,error:formatMessage(ko["etudes.couldNotSaveFavoritesValue"], { value1: e.message })}));}};
-  const model = { ...session, favorites:favoriteStore.values,isFavorite:Boolean(favoriteStore.values[favoriteKey]),toggleFavorite, createScore:()=>{controller.current?.stop();setEditing(createBlankDocument());},canEdit, savedScores,savedId,selectSaved,editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
+  const toggleFavorite=()=>{try{const data=loadScoreFolders(localStorage);const next=updateScoreFolders(localStorage,{type:'favorite',keys:[favoriteKey],value:!data.favorites[favoriteKey]});setFavoriteStore({data:next,values:next.favorites,error:''});}catch(e){setFavoriteStore(current=>({...current,error:formatMessage(ko["etudes.couldNotSaveFavoritesValue"], { value1: e.message })}));}};
+  const organize=operation=>{const data=updateScoreFolders(localStorage,operation);setFavoriteStore({data,values:data.favorites,error:''});};
+  const manageScore=async(action,entry,title)=>{controller.current?.stop();if(entry.pdf)await onManagePdf?.(action,entry.pdf,title);else {const result=action==='rename'?renameLibraryDocument(localStorage,entry.id,title,ETUDES):deleteLibraryDocument(localStorage,entry.id,ETUDES);if(!result.saved)throw Error(result.errors.join(' '));setEdits(loadEdits());if(action==='delete'&&savedId===entry.id)select(selectedId);}};
+  const model = { ...session, importBusy, importPdf:()=>{controller.current?.stop();onImportPdf?.();},folderData:favoriteStore.data,organize,manageScore, pdfScores,selectPdf:record=>{controller.current?.stop();onSelectPdf?.(record);}, favorites:favoriteStore.values,isFavorite:Boolean(favoriteStore.values[favoriteKey]),toggleFavorite, createScore:()=>{controller.current?.stop();setEditing(createBlankDocument());},canEdit, savedScores,savedId,selectSaved,editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
  };

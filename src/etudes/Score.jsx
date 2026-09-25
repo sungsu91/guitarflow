@@ -160,7 +160,8 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
   placements.forEach((placement,i)=>{
     const meter=meters[i],capacity=meterTicks(meter),meterChanged=i>0&&meter.join()!==meters[i-1].join();
     const first=placement.column===1,stave=new Stave(0,0,1000),tab=new TabStave(0,0,1000,{num_lines:scoreInstrument(etude.instrument).tuning.length,spacing_between_lines_px:TAB_LINE_SPACING});
-    if(first){stave.addClef(scoreInstrument(etude.instrument).clef,'default',scoreInstrument(etude.instrument).octaveShift?'8vb':undefined).addKeySignature(etude.keySignature);addInstrumentTabClef(tab);}
+    if(first){stave.addClef(scoreInstrument(etude.instrument).clef,'default',scoreInstrument(etude.instrument).octaveShift?'8vb':undefined).addKeySignature(etude.keySignature);}
+    if(i+barOffset===0)addInstrumentTabClef(tab);
     if(i+barOffset===0||meterChanged){stave.addTimeSignature(meter.join('/'));if(view==='tab')addTabTimeSignature(tab,meter.join('/'));}
     if(!first){stave.setBegBarType(Barline.type.NONE);tab.setBegBarType(Barline.type.NONE);}
     if(repeatMarks(etude)[i]?.repeatStart){stave.setBegBarType(Barline.type.REPEAT_BEGIN);tab.setBegBarType(Barline.type.REPEAT_BEGIN);}
@@ -176,10 +177,10 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
     const navigationWidth=command?command.length*8+16:0;
     (rows[placement.row-1]??=[]).push({index:i,prefix,points,inset,tail,navigationWidth,capacity});
   });
-  // Reserve the same opening-symbol area across systems, including the
-  // first time signature, so later systems do not shift their beat columns.
+  // Staff systems keep aligned beat columns. TAB-only rows reserve space
+  // only for symbols actually drawn in that row.
   const openingPrefix=Math.max(0,...rows.map(bars=>bars[0]?.prefix??0));
-  rows.forEach(bars=>{if(bars[0])bars[0].inset+=openingPrefix-bars[0].prefix;});
+  if(view!=='tab')rows.forEach(bars=>{if(bars[0])bars[0].inset+=openingPrefix-bars[0].prefix;});
   const specs=rows.map(bars=>{
     let scale=0;
     for(const bar of bars){
@@ -291,8 +292,8 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     }
     if (first) {
       stave.addClef(scoreInstrument(etude.instrument).clef,'default',scoreInstrument(etude.instrument).octaveShift?'8vb':undefined).addKeySignature(etude.keySignature);
-      addInstrumentTabClef(tab);
     }
+    if(index+barOffset===0)addInstrumentTabClef(tab);
     if (index + barOffset === 0||meterChanged) {stave.addTimeSignature(meter.join('/'));if(view==='tab')addTabTimeSignature(tab,meter.join('/'));}
     if(!first){stave.setBegBarType(Barline.type.NONE);tab.setBegBarType(Barline.type.NONE);}
     // Adjacent editor measures use separate SVGs. VexFlow draws a SINGLE
@@ -311,7 +312,14 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     const start = view==='tab'?tab.getNoteStartX():Math.max(stave.getNoteStartX(), tab.getNoteStartX());
     stave.setNoteStartX(start);
     tab.setNoteStartX(start);
-    const staffGroup=context.openGroup('fretiva-staff-view');staffGroup.dataset.repeatStart=String(Boolean(marks.repeatStart));staffGroup.dataset.repeatEnd=String(Boolean(marks.repeatEnd));staffGroup.dataset.systemStart=String(first);staffGroup.dataset.timeSignature=String(index+barOffset===0);staffGroup.dataset.measure=String(index+barOffset);stave.draw(); context.closeGroup(); const tabGroup=context.openGroup('fretiva-tab-view');tabGroup.dataset.tabTimeSignature=String(view==='tab'&&index+barOffset===0);tab.draw(); context.closeGroup();
+    const staffGroup=context.openGroup('fretiva-staff-view');staffGroup.dataset.repeatStart=String(Boolean(marks.repeatStart));staffGroup.dataset.repeatEnd=String(Boolean(marks.repeatEnd));staffGroup.dataset.systemStart=String(first);staffGroup.dataset.timeSignature=String(index+barOffset===0);staffGroup.dataset.measure=String(index+barOffset);stave.draw(); context.closeGroup(); const tabGroup=context.openGroup('fretiva-tab-view');tabGroup.dataset.tabTimeSignature=String(view==='tab'&&index+barOffset===0);tab.draw();
+    // Center the actual digit bounds within the TAB strings, independent of
+    // VexFlow's five-line staff defaults and the instrument's string count.
+    for(const signature of tabGroup.querySelectorAll('.vf-timesignature')){
+      const box=signature.getBBox(),center=tab.getYForLine((stringCount-1)/2);
+      signature.setAttribute('transform',`translate(0 ${center-box.y-box.height/2})`);
+    }
+    context.closeGroup();
     if(editor&&!systemEnd&&!marks.repeatEnd){
       for(const [staff,group] of [[stave,staffGroup],[tab,tabGroup]]){
         const boundary=document.createElementNS('http://www.w3.org/2000/svg','line');
@@ -366,7 +374,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     for(const list of [notes,tabs])list.forEach((note,i)=>{const node=noteElement(note);if(node){node.dataset.scoreBar=index;node.dataset.scoreEvent=i;node.dataset.rhythmEvents=index+':'+i;node.dataset.rhythmRole='note';if(list===tabs&&!measure[i].rest)node.dataset.rhythmTouch='tab';}});
     measure.forEach((event,i)=>{
       const px=tabs[i].getAbsoluteX(),py=tabPickingPosition==='above'?tab.getYForLine(0)-(tabRhythm&&tabBeamPosition==='above'?((measure.some(e=>e.tuplet)?70:48)+2*(TAB_LINE_SPACING-13)):(measure.some(e=>e.palmMute)?36:14)):tab.getYForLine(stringCount-1)+(tabRhythm&&tabBeamPosition!=='above'?((measure.some(e=>e.tuplet)?72:56)+2*(TAB_LINE_SPACING-13)):25),svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
-      const text=[event.pickStroke==='down'?'Π':event.pickStroke==='up'?'V':'',...(event.tones??[event]).map(n=>[n.finger?`L${n.finger}`:'',n.rightFinger??''].filter(Boolean).join('/'))].filter(Boolean).join(' ');
+      const text=[event.pickStroke==='down'?'Π':event.pickStroke==='up'?'V':'',...(event.tones??[event]).map(n=>[!etude.chordShapes?.[index]&&n.finger?`L${n.finger}`:'',n.rightFinger??''].filter(Boolean).join('/'))].filter(Boolean).join(' ');
       if(text){const pickGroup=context.openGroup('fretiva-tab-view');pickGroup.setAttribute('data-picking-position',tabPickingPosition);const label=document.createElementNS(ns,'text');Object.entries({x:tabs[i].getStemX(),y:py+(tabPickingPosition==='below'&&measure.some(e=>e.technique==='H'||e.technique==='P')?12:0),'text-anchor':'middle',class:'tabPickingLabel'}).forEach(([k,v])=>label.setAttribute(k,String(v)));label.style.cssText='font:600 11px Arial,sans-serif;fill:#111;stroke:#111;stroke-width:.15;paint-order:stroke fill';label.textContent=text;label.dataset.rhythmEvents=index+':'+i;label.dataset.rhythmRole='picking';pickGroup.append(label);context.closeGroup();}
       if(editor&&event.pickStroke){const hit=document.createElementNS(ns,'rect');Object.entries({x:px-10,y:py-17,width:24,height:26,class:'etudeEditorHit etudePickHit fretiva-tab-view','data-event':i,'data-string':(event.tones??[event])[0].string,'data-mode':'tab','data-cursor-x':px-12,'data-cursor-y':py-17,fill:'transparent'}).forEach(([k,v])=>hit.setAttribute(k,v));svg.append(hit);}
     });

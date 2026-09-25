@@ -30,7 +30,7 @@ test("mini chord and rhythm training render the exact shared accompaniment panel
 test("shared panel owns collapse, sound controls, beat selection, and settings entry", () => {
   assert.match(panelSource, /<details/);
   assert.match(panelSource, /리듬 사용자 설정/);
-  assert.match(panelSource, /<summary>[\s\S]*sharedAccompanimentSettingsButton[\s\S]*리듬 사용자 설정[\s\S]*<\/summary>/);
+  assert.match(panelSource, /<summary\b[^>]*>[\s\S]*sharedAccompanimentSettingsButton[\s\S]*리듬 사용자 설정[\s\S]*<\/summary>/);
   assert.doesNotMatch(panelSource, /sharedAccompanimentSettingsBar/);
   assert.match(panelSource, /event\.preventDefault\(\);[\s\S]*event\.stopPropagation\(\);/);
   assert.match(

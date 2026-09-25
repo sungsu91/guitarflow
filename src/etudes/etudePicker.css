@@ -5,3 +5,22 @@ html body #root main.app.app.app .etudePickerCard strong{display:block!important
 /* Mobile categories keep one row and scroll independently of the score list. */
 html body #root main.app.app.app .etudePickerDialog.is-mobile .etudePickerCategories{flex-wrap:wrap!important;overflow:visible!important;min-height:40px!important;box-sizing:border-box!important}
 html body #root main.app.app.app .etudePickerDialog.is-mobile .etudePickerCategories button{flex:0 0 auto!important;white-space:nowrap!important}
+/* The active source follows the open score, not the picker being browsed. */
+html body #root main.app.app.app .etudeQuickSelects .etudePickerTrigger.is-current-score{background:color-mix(in srgb,var(--theme-accent,#947651) 18%,var(--theme-surface,#fff))!important;border-color:var(--theme-accent,#947651)!important;color:var(--theme-text,#493b30)!important}
+/* The unified practice room has one heading and explicit authoring actions. */
+html body #root main.app .scoreWorkspaceHeading{margin:6px 0 10px;padding:8px 12px;border-bottom:1px solid var(--theme-border-control,#ddd)}
+html body #root main.app .scoreWorkspaceHeading h1{margin:0;font-size:17px;line-height:24px;font-weight:650;color:var(--theme-text)}
+html body #root main.app.app.app .etudePickerDialog header .etudePickerEdit{margin-left:auto!important;width:auto!important;min-width:44px!important;padding-inline:8px!important;font-size:12px!important}
+html body #root main.app.app.app .etudePickerDialog .etudePickerCategories{max-height:132px;overflow-y:auto!important;align-content:flex-start}
+html body #root main.app.app.app .etudePickerDialog .etudePickerCategories button{display:inline-flex;align-items:center;gap:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+html body #root main.app.app.app .etudePickerDialog .etudePickerManage{display:flex;flex-wrap:wrap;gap:4px;padding:6px 12px 10px;flex-shrink:0;border-bottom:1px solid #e7e2dc}
+html body #root main.app.app.app .etudePickerDialog .etudePickerManage button{display:inline-flex;align-items:center;gap:3px;min-height:32px!important;font-size:11px!important;padding:4px 7px!important}
+html body #root main.app.app.app .etudePickerDialog .etudePickerManage button:disabled{opacity:.4!important}
+html body #root main.app .pickerManageDialog{width:min(380px,calc(100vw - 32px));box-sizing:border-box}
+html body #root main.app .pickerManageDialog :is(input,select){width:100%;min-width:0;box-sizing:border-box}
+
+@media(max-width:360px){html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout .etudeViewTools>.etudeViewMenu{flex-basis:54px!important;max-width:54px!important}}
+
+html body #root main.app .scoreWorkspaceHeading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+html body #root main.app .scoreWorkspaceHeading .libraryStorageCompact{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:4px 7px;font-size:11px;white-space:nowrap;background:var(--theme-surface);color:var(--theme-text);border:1px solid var(--theme-border-control);border-radius:6px}
+.etudeTopTips{margin:0 0 8px}.etudeTopTips .etudeLesson{margin-top:0}

@@ -2,6 +2,7 @@ import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
+import { BACKING_TRANSPORT_LOOKAHEAD_SECONDS } from '../audio/transportClock.js';
 import {isFretted} from './scoreInstruments.js';
 import PracticeTransport from './PracticeTransport.jsx';
 import {performedMeasures,practiceClicks,measureMeters} from './scoreMeters.js';
@@ -60,7 +61,7 @@ export default function ScorePlayback({drumAudio,volume=1,score:sourceScore,prac
     if(session.current!==s)return;
     while(s.soundReady){
      if(s.index>=s.voices.length){if(!s.nextVoices.length||s.voiceCycle+1>=repeats)break;s.voices=s.nextVoices;s.index=0;s.voiceCycle++;}
-     if(s.voices[s.index].start+s.start+s.voiceCycle*timeline.duration>=ctx.currentTime+.4)break;
+     if(s.voices[s.index].start+s.start+s.voiceCycle*timeline.duration>=ctx.currentTime+BACKING_TRANSPORT_LOOKAHEAD_SECONDS)break;
      const start=s.voices[s.index].start,group=[];
      while(s.index<s.voices.length&&Math.abs(s.voices[s.index].start-start)<1e-7)group.push(s.voices[s.index++]);
      if(s.soundReady)s.output.schedule(group,s.start+start+s.voiceCycle*timeline.duration,s.instrument,s.piano);

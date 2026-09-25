@@ -12,7 +12,7 @@ for(const file of files){
  const check=(key,node)=>{if(typeof key!=='string')return;references.push({file,key});if(!Object.hasOwn(ko,key)||!Object.hasOwn(en,key))missing.push({file,key,start:node.start});};
  walk(ast,node=>{
   if(node.type==='CallExpression'&&aliases.has(node.callee.name))check(node.arguments[0]?.value,node);
-  if(node.type==='MemberExpression'&&node.object.name==='ko')check(node.property.value,node);
+  if(node.type==='MemberExpression'&&['ko','en'].includes(node.object.name))check(node.property.value,node);
   if(node.type==='JSXOpeningElement'&&node.name.name==='Translation')check(node.attributes.find(a=>a.name?.name==='id')?.value?.value,node);
  });
  for(const entry of inspect(file).entries){

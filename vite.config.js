@@ -428,6 +428,9 @@ function effectTuningSavePlugin() {
 }
 
 export default defineConfig({
+  // Scan the application entry only, not archived builds or browser test HTML.
+  optimizeDeps: { entries: ["index.html"] },
+  resolve: { dedupe: ["react", "react-dom"] },
   server: { headers: securityHeaders() },
   preview: { headers: securityHeaders() },
   css: { postcss: { plugins: [mobileSurfaceCss()] } },

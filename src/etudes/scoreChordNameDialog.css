@@ -1,0 +1,33 @@
+.scoreChordNameDialog .chordNamePreview{display:block;text-align:center;font-size:28px;font-weight:700;color:#70513b;margin:0 0 12px}
+.scoreChordNameDialog fieldset{border:0;padding:0;margin:0 0 10px;min-width:0}
+.scoreChordNameDialog legend{font-size:11px;font-weight:600;margin-bottom:5px;color:#675340}
+.scoreChordNameDialog .chordNameChoices{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.scoreChordNameDialog .chordNameChoices--root{grid-template-columns:repeat(7,minmax(0,1fr))}
+.scoreChordNameDialog .chordNameChoices--accidental{grid-template-columns:repeat(3,minmax(0,1fr))}
+.scoreChordNameDialog .chordNameCategory{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+.scoreChordNameDialog>footer{align-items:flex-end}
+.scoreChordNameDialog .chordTargetBar{flex:1;min-width:0;margin:0;padding:0;border:0}
+.scoreChordNameDialog .chordTargetBar>div{margin-top:4px;gap:4px}
+.scoreChordNameDialog .chordTargetBar>label{font-size:10px}
+.scoreChordNameDialog.scoreChordDialog--mobile{inset:max(8px,env(safe-area-inset-top)) 0 auto;margin:0 auto;border-radius:12px}
+.scoreChordNameDialog.scoreChordDialog--mobile .chordDialogContent{overflow:visible;flex:none;padding:8px 10px}
+.scoreChordNameDialog.scoreChordDialog--mobile .chordNamePreview{font-size:21px;margin:0;max-width:35%;overflow-wrap:anywhere}
+.scoreChordNameDialog.scoreChordDialog--mobile .chordNameChoices--extension{grid-template-columns:repeat(5,minmax(0,1fr))}
+@layer score-workspace{
+ .editorDesign .scoreChordNameDialog .chordNameChoices button{width:100%!important;padding:4px 2px!important;height:32px!important;min-height:32px!important}
+ .editorDesign .scoreChordNameDialog .chordNameCategory button[aria-selected=true]{background:#70513b!important;color:white!important;border-color:#70513b!important}
+ .editorDesign .scoreChordNameDialog>footer .chordApply{flex:0 0 auto!important;width:auto!important;height:36px!important;min-height:36px!important;font-size:13px!important;padding:5px 12px!important}
+ .editorDesign .scoreChordNameDialog.scoreChordDialog--mobile>header{min-height:40px!important;padding:4px 10px!important}
+ .editorDesign .scoreChordNameDialog.scoreChordDialog--mobile h2{font-size:14px!important}
+ .editorDesign .scoreChordNameDialog.scoreChordDialog--mobile>footer{padding:8px 10px!important}
+ .editorDesign .scoreChordNameDialog .chordNameDelete{font-size:11px!important;height:28px!important;min-height:28px!important;padding:3px 6px!important}
+}
+@media(max-height:520px){.scoreChordNameDialog.scoreChordDialog--mobile .chordDialogContent{overflow:auto;flex:1}}
+@layer score-workspace{
+ .editorDesign .scoreChordNameDialog .chordTargetBar>div>button{flex:0 0 28px!important;width:28px!important;padding:3px!important}
+ .editorDesign .scoreChordNameDialog .chordTargetBar select{flex:1 1 0!important;width:0!important;min-width:0!important;padding:3px!important}
+}
+/* This builder is part of the score workspace, directly below the score. */
+.editorDesign .scoreChordNameDialog,
+.editorDesign .scoreChordNameDialog.scoreChordDialog--mobile{position:relative;inset:auto;margin:0 auto;width:100%;max-width:760px;max-height:none;flex:none;box-shadow:0 2px 8px #21170f14}
+.scoreChordNameDialog::backdrop{background:transparent;backdrop-filter:none}

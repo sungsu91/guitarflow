@@ -88,3 +88,5 @@ html body #scoreLibraryHome.pdfStudio--mobile{padding:0 16px calc(24px + env(saf
 #scoreLibraryHome .libraryHeadingActions{display:flex;align-items:center;gap:14px}
 #scoreLibraryHome .libraryGroup .libraryFolderIcon{color:var(--score-accent);background:var(--score-soft)}
 #scoreLibraryHome .libraryGroup button.libraryFolderOpen{min-height:84px}
+
+#scoreLibraryHome .libraryActions .libraryImportPractice{grid-column:1 / -1}

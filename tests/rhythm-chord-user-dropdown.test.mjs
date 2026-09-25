@@ -227,7 +227,7 @@ test("saved rhythm progressions load into the editor directly from the storage d
   assert.match(actionSource, />\s*저장\s*</);
   assert.match(actionSource, />\s*삭제\s*</);
   assert.match(actionSource, />\s*초기화\s*</);
-  assert.match(appSource, /\{!isDesktopLayout \? stage3StorageComposerActions : null\}/);
+  assert.match(appSource, /\{!isDesktopLayout && !stage3LandscapeStorage \? stage3StorageComposerActions : null\}/);
   assert.match(appSource, /\{isDesktopLayout \? stage3StorageComposerActions : null\}/);
   assert.match(
     desktopCss,
@@ -272,7 +272,7 @@ test("rhythm storage uses a themed trigger-width dropdown instead of the native 
 
   assert.ok(storagePickerStart >= 0 && storagePickerEnd > storagePickerStart);
   assert.match(appSource, /matchTriggerWidth = false/);
-  assert.match(storagePickerSource, /dropdownDirection="down"/);
+  assert.match(storagePickerSource, /dropdownDirection=\{stage3LandscapeStorage \? "up" : "down"\}/);
   assert.match(storagePickerSource, /matchTriggerWidth/);
   assert.doesNotMatch(storagePickerSource, /<select/);
   assert.match(appCss, /> \.metronomeSelectPortal\.stage3StorageLoadSelect \{[\s\S]*?z-index: 7200 !important/);
@@ -608,7 +608,7 @@ test("mobile rhythm storage stays inset and keeps actions after content without 
 
   assert.match(
     appSource,
-    /className="stage3StorageDialogHeading stage3StorageDialogHeading--mobile"[\s\S]*?<strong>저장실<\/strong>[\s\S]*?\{stage3StorageLoadSelect\}[\s\S]*?<X aria-hidden="true" size=\{18\} \/>/,
+    /className="stage3StorageDialogHeading stage3StorageDialogHeading--mobile"[\s\S]*?<strong>저장실<\/strong>[\s\S]*?\{!stage3LandscapeStorage \? stage3StorageLoadSelect : null\}[\s\S]*?<X aria-hidden="true" size=\{18\} \/>/,
   );
   assert.match(appCss, /Mobile rhythm storage: keep the primary save action visible on first entry/);
   assert.match(appCss, /height: min\(calc\(100dvh - 20px\), 810px\) !important/);

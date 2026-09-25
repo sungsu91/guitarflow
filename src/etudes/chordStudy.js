@@ -25,7 +25,6 @@ export function drawChordDiagram(svg, shape, name, x, y, options={}) {
   for(let row=0;row<shape.frets.length;row++) {
     const cy=gy+row*gap;
     add('line',{x1:gx,x2:gx+gridWidth,y1:cy,y2:cy,stroke:'#333','stroke-width':1,'data-string':row+1});
-    text(gx-27,cy+4,String(row+1),11,'#444',{'class':'etudeChordStringLabel','data-string':row+1});
   }
   for(let i=0;i<=columns;i++)add('line',{x1:gx+i*step,x2:gx+i*step,y1:gy,y2:gy+(shape.frets.length-1)*gap,stroke:'#333','stroke-width':i===0&&base===1?3:1});
   if(shape.fretWindow)for(let i=0;i<columns;i++)text(gx+(i+.5)*step,gy+(shape.frets.length-1)*gap+16,String(base+i),Math.min(10,step*.8));

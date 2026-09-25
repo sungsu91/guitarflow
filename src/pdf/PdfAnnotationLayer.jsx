@@ -1,9 +1,10 @@
+import {isCutPoint} from './pdfGapCuts.js';
 import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Hand,PenLine,Type,Crop,Undo2,Redo2,Check,X,Trash2,Move,Settings2,Columns4} from 'lucide-react';
+import {Scissors,Hand,PenLine,Type,Crop,Undo2,Redo2,Check,X,Trash2,Move,Settings2,Columns4} from 'lucide-react';
 import {ANNOTATION_COLORS,originalPoint,projectRect,resizeCrop,moveStroke} from './pdfAnnotations.js';
 import './pdfAnnotationTools.css';
 
@@ -20,7 +21,7 @@ export function PdfAnnotationToolbar({tool,choose,pen,setPen,undo,redo,canUndo,c
    <label><Translation id="pdf.opacity" /><input aria-label={translateUi("pdf.penOpacity")} type="range" min=".1" max="1" step=".1" value={pen.opacity} onChange={e=>setPen({...pen,opacity:Number(e.target.value)})}/></label>
   </div>}
   <div className="pdfAnnotationIcons" role="toolbar" aria-label={translateUi("pdf.pdfEditingTools")}>
-   {[["select",ko["pdf.moveSelect"],Hand],["pen",ko["pdf.pen"],PenLine],["text",ko["pdf.text"],Type],["crop",ko["pdf.cropMargins"],Crop],["bar",ko["pdf.setBars"],Columns4]].map(([key,label,Icon])=><button key={key} type="button" aria-label={localizeUi(label)} title={localizeUi(label)} aria-pressed={tool===key} onClick={()=>{if(key==='pen'&&tool==='pen'){setSettings(v=>!v);}else{choose(key);setSettings(key==='pen');}}}><Icon size={21}/></button>)}
+   {[["select",ko["pdf.moveSelect"],Hand],["pen",ko["pdf.pen"],PenLine],["text",ko["pdf.text"],Type],["crop",ko["pdf.cropMargins"],Crop],["cut",ko["pdf.cutGap"],Scissors],["bar",ko["pdf.setBars"],Columns4]].map(([key,label,Icon])=><button key={key} type="button" aria-label={localizeUi(label)} title={localizeUi(label)} aria-pressed={tool===key} onClick={()=>{if(key==='pen'&&tool==='pen'){setSettings(v=>!v);}else{choose(key);setSettings(key==='pen');}}}><Icon size={21}/></button>)}
    <button type="button" aria-label={translateUi("pdf.undoPdfEdit")} disabled={!canUndo} onClick={undo}><Undo2 size={21}/></button><button type="button" aria-label={translateUi("pdf.redoPdfEdit")} disabled={!canRedo} onClick={redo}><Redo2 size={21}/></button>
   </div>
  </div>;
@@ -33,9 +34,11 @@ export default function PdfAnnotationLayer({paperRef,size,crop,page,pageEdit,too
   useLanguage();
  const livePath=useRef(null),gesture=useRef(null),frame=useRef(0),form=useRef(null),text=useRef(null);
  const [selected,setSelected]=useState(null),[properties,setProperties]=useState(false),[cropPreview,setCropPreview]=useState(null);
- const h=1000*(size.height/crop.height)/(size.width/crop.width),drawing=editing&&tool==='pen',cropping=editing&&tool==='crop';
+ const h=1000*size.height/size.width,drawing=editing&&tool==='pen',cropping=editing&&tool==='crop';
  const draft=noteDraft?.page===page?noteDraft:null;
  const projection=r=>projectRect(r,crop);
+ const inkPoints=points=>points.filter(p=>!isCutPoint(p[1],crop)).map(([x,y])=>{const p=projection({x,y,width:0,height:0});return [p.x,p.y];});
+ const inkPath=points=>pathData(inkPoints(points),h);
  const toPoint=e=>{const r=paperRef.current.getBoundingClientRect();return originalPoint({x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))},crop);};
  const cancelGesture=()=>{cancelAnimationFrame(frame.current);frame.current=0;const g=gesture.current;if(g?.node)g.node.style.transform=g.transform??'';gesture.current=null;livePath.current?.setAttribute('d','');setCropPreview(null);};
  useEffect(()=>{
@@ -50,13 +53,13 @@ export default function PdfAnnotationLayer({paperRef,size,crop,page,pageEdit,too
   window.visualViewport?.addEventListener('resize',reveal);return()=>window.visualViewport?.removeEventListener('resize',reveal);
  },[draft?.id]);
  const capture=(e,data)=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();gesture.current={...data,id:e.pointerId,start:toPoint(e),client:{x:e.clientX,y:e.clientY},node:e.currentTarget,transform:e.currentTarget.style.transform};e.currentTarget.setPointerCapture(e.pointerId);};
- const beginPen=e=>{if(!drawing||e.button!==0)return;const point=toPoint(e);capture(e,{kind:'pen',points:[[point.x,point.y]],pen:{...pen}});livePath.current.setAttribute('d',pathData([[point.x,point.y],[point.x+.00001,point.y]],h));};
- const move=e=>{const g=gesture.current;if(!g||g.id!==e.pointerId)return;e.preventDefault();e.stopPropagation();const p=toPoint(e);g.end=p;
+ const beginPen=e=>{if(!drawing||e.button!==0)return;const point=toPoint(e);capture(e,{kind:'pen',points:[[point.x,point.y]],pen:{...pen}});livePath.current.setAttribute('d',inkPath([[point.x,point.y],[point.x+.00001,point.y]]));};
+ const move=e=>{const g=gesture.current;if(!g||g.id!==e.pointerId)return;e.preventDefault();e.stopPropagation();const p=toPoint(e);g.end=p;g.dx=e.clientX-g.client.x;g.dy=e.clientY-g.client.y;
   if(g.kind==='pen'){for(const event of e.nativeEvent?.getCoalescedEvents?.()??[e]){const pt=toPoint(event),last=g.points.at(-1);if(Math.hypot(pt.x-last[0],pt.y-last[1])>.0002)g.points.push([pt.x,pt.y]);}if(g.points.length>20000)g.points=g.points.filter((_,i)=>i%2===0);}
   if(frame.current)return;frame.current=requestAnimationFrame(()=>{frame.current=0;if(gesture.current!==g)return;
-   if(g.kind==='pen')livePath.current?.setAttribute('d',pathData(g.points,h));
+   if(g.kind==='pen')livePath.current?.setAttribute('d',inkPath(g.points));
    if(g.kind==='crop')setCropPreview(resizeCrop(g.rect,g.handle,g.end,crop));
-   if(['note','saved-note','stroke'].includes(g.kind))g.node.style.transform=`translate(${(g.end.x-g.start.x)/crop.width*size.width}px,${(g.end.y-g.start.y)/crop.height*size.height}px) ${g.transform??''}`;
+   if(['note','saved-note','stroke'].includes(g.kind))g.node.style.transform=`translate(${g.dx}px,${g.dy}px) ${g.transform??''}`;
   });
  };
  const end=e=>{const g=gesture.current;if(!g||g.id!==e.pointerId)return;e.preventDefault();e.stopPropagation();cancelAnimationFrame(frame.current);frame.current=0;gesture.current=null;g.node.style.transform=g.transform??'';const p=toPoint(e),distance=Math.hypot(e.clientX-g.client.x,e.clientY-g.client.y);
@@ -72,12 +75,12 @@ export default function PdfAnnotationLayer({paperRef,size,crop,page,pageEdit,too
  const existingNote=Boolean(draft&&(pageEdit?.notes??[]).some(n=>n.id===draft.id));
  const notePos=draft?projection({...draft,width:0,height:0}):null;
  return <div className="pdfAnnotationLayer" data-tool={editing?tool:'view'}>
-  <svg className="pdfInkLayer" viewBox={`${crop.x*1000} ${crop.y*h} ${crop.width*1000} ${crop.height*h}`} preserveAspectRatio="none" style={{pointerEvents:drawing?'auto':'none',touchAction:'none'}} onPointerDown={beginPen} {...gestures}>
-   {(pageEdit?.strokes??[]).map(stroke=><g key={stroke.id} data-pdf-stroke={stroke.id}><path d={pathData(stroke.points,h)} fill="none" stroke={ANNOTATION_COLORS[stroke.color]??ANNOTATION_COLORS.brown} strokeWidth={stroke.width*1000} opacity={stroke.opacity} strokeLinecap="round" strokeLinejoin="round"/>{editing&&tool==='select'&&<path d={pathData(stroke.points,h)} fill="none" stroke="transparent" strokeWidth={Math.max(stroke.width*1000,18*1000/(size.width/crop.width))} pointerEvents="stroke" style={{touchAction:'none',cursor:'move'}} onPointerDown={e=>{capture(e,{kind:'stroke',item:stroke});if(gesture.current)gesture.current.node=e.currentTarget.parentNode;}} {...gestures}/>}</g>)}
-   {selectedStroke&&tool==='select'&&<rect x={Math.min(...selectedStroke.points.map(p=>p[0]))*1000-5} y={Math.min(...selectedStroke.points.map(p=>p[1]))*h-5} width={(Math.max(...selectedStroke.points.map(p=>p[0]))-Math.min(...selectedStroke.points.map(p=>p[0])))*1000+10} height={(Math.max(...selectedStroke.points.map(p=>p[1]))-Math.min(...selectedStroke.points.map(p=>p[1])))*h+10} fill="none" stroke="#806346" strokeWidth={1.5*1000/(size.width/crop.width)} strokeDasharray="5 4" pointerEvents="none"/>}
-   <path ref={livePath} fill="none" stroke={ANNOTATION_COLORS[pen.color]} strokeWidth={pen.width*1000} opacity={pen.opacity} strokeLinecap="round" strokeLinejoin="round"/>
+  <svg className="pdfInkLayer" viewBox={`0 0 1000 ${h}`} preserveAspectRatio="none" style={{pointerEvents:drawing?'auto':'none',touchAction:'none'}} onPointerDown={beginPen} {...gestures}>
+   {(pageEdit?.strokes??[]).filter(stroke=>stroke.points.some(p=>!isCutPoint(p[1],crop))).map(stroke=><g key={stroke.id} data-pdf-stroke={stroke.id}><path d={inkPath(stroke.points)} fill="none" stroke={ANNOTATION_COLORS[stroke.color]??ANNOTATION_COLORS.brown} strokeWidth={stroke.width*1000/crop.width} opacity={stroke.opacity} strokeLinecap="round" strokeLinejoin="round"/>{editing&&tool==='select'&&<path d={inkPath(stroke.points)} fill="none" stroke="transparent" strokeWidth={Math.max(stroke.width*1000/crop.width,18*1000/size.width)} pointerEvents="stroke" style={{touchAction:'none',cursor:'move'}} onPointerDown={e=>{capture(e,{kind:'stroke',item:stroke});if(gesture.current)gesture.current.node=e.currentTarget.parentNode;}} {...gestures}/>}</g>)}
+   {selectedStroke&&tool==='select'&&<rect x={Math.min(...inkPoints(selectedStroke.points).map(p=>p[0]))*1000-5} y={Math.min(...inkPoints(selectedStroke.points).map(p=>p[1]))*h-5} width={(Math.max(...inkPoints(selectedStroke.points).map(p=>p[0]))-Math.min(...inkPoints(selectedStroke.points).map(p=>p[0])))*1000+10} height={(Math.max(...inkPoints(selectedStroke.points).map(p=>p[1]))-Math.min(...inkPoints(selectedStroke.points).map(p=>p[1])))*h+10} fill="none" stroke="#806346" strokeWidth={1.5*1000/size.width} strokeDasharray="5 4" pointerEvents="none"/>}
+   <path ref={livePath} fill="none" stroke={ANNOTATION_COLORS[pen.color]} strokeWidth={pen.width*1000/crop.width} opacity={pen.opacity} strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
-  {(pageEdit?.notes??[]).filter(n=>n.id!==draft?.id).map(note=>{const p=projection({...note,width:0,height:0});return <button key={note.id} type="button" tabIndex={editing?0:-1} data-pdf-note={note.id} className="pdfAnnotationText" style={{left:`${p.x*100}%`,top:`${p.y*100}%`,fontSize:size.width/crop.width*note.size,color:ANNOTATION_COLORS[note.color],transform:note.rotation?`rotate(${note.rotation}deg)`:undefined,pointerEvents:editing&&['select','text'].includes(tool)?'auto':'none',touchAction:'none',cursor:editing?'grab':undefined}} onPointerDown={e=>{if(editing&&!noteDraft)capture(e,{kind:'saved-note',item:note});else e.stopPropagation();}} {...gestures} onClick={e=>{e.stopPropagation();if(editing&&e.detail===0)onSelectNote(note,page);}}>{note.text}</button>;})}
+  {(pageEdit?.notes??[]).filter(n=>n.id!==draft?.id&&!isCutPoint(n.y,crop)).map(note=>{const p=projection({...note,width:0,height:0});return <button key={note.id} type="button" tabIndex={editing?0:-1} data-pdf-note={note.id} className="pdfAnnotationText" style={{left:`${p.x*100}%`,top:`${p.y*100}%`,fontSize:size.width/crop.width*note.size,color:ANNOTATION_COLORS[note.color],transform:note.rotation?`rotate(${note.rotation}deg)`:undefined,pointerEvents:editing&&['select','text'].includes(tool)?'auto':'none',touchAction:'none',cursor:editing?'grab':undefined}} onPointerDown={e=>{if(editing&&!noteDraft)capture(e,{kind:'saved-note',item:note});else e.stopPropagation();}} {...gestures} onClick={e=>{e.stopPropagation();if(editing&&e.detail===0)onSelectNote(note,page);}}>{note.text}</button>;})}
   {editing&&tool==='text'&&!draft&&<div className="pdfTextTarget" onPointerDown={e=>{if(e.button===0)capture(e,{kind:'text'});}} onPointerUp={e=>{const g=gesture.current;gesture.current=null;if(g?.kind==='text'&&Math.hypot(e.clientX-g.client.x,e.clientY-g.client.y)<9){e.stopPropagation();onTextPoint(toPoint(e),page);}}} onPointerCancel={cancelGesture}/>}
   {draft&&<form ref={form} className="pdfInlineText" aria-label={translateUi("pdf.editPdfTextNote")} style={{left:Math.max(0,Math.min(notePos.x*size.width,size.width-190)),top:`${notePos.y*100}%`,maxWidth:Math.min(240,size.width)}} onPointerDown={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()} onSubmit={e=>{e.preventDefault();onSaveNote();setProperties(false);}}>
    <input ref={text} aria-label={translateUi("pdf.scoreNote")} enterKeyHint="done" maxLength={1000} style={{width:`${Math.max(70,Math.min(210,(draft.text.length+2)*size.width/crop.width*draft.size))}px`,fontSize:Math.max(16,size.width/crop.width*draft.size),color:ANNOTATION_COLORS[draft.color]}} value={draft.text} onChange={e=>onNoteDraft({...draft,text:e.target.value})} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();onCancelNote();}}}/>

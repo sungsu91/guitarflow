@@ -5,7 +5,7 @@ import {Share2, ChevronRight} from 'lucide-react';
 import {createShooterResultPng, shooterShareResult, shareShooterResult, usesMobileImageSharing} from './shareResult.js';
 import './shooter-results.css';
 
-export default function ShooterShareButton({score=0,bestScore=0,menu=false}){
+export default function ShooterShareButton({score=0,bestScore=0,menu=false,compact=false}){
   useLanguage();
   const result=useMemo(()=>shooterShareResult(score,bestScore),[score,bestScore]);
   const [prepared,setPrepared]=useState(null),[status,setStatus]=useState(''),[busy,setBusy]=useState(false);
@@ -18,7 +18,7 @@ export default function ShooterShareButton({score=0,bestScore=0,menu=false}){
     sharing.current=true;setBusy(true);setStatus('');
     try{setStatus(await shareShooterResult(result,linkOnly?null:prepared.file));}finally{sharing.current=false;setBusy(false);}
   };
-  return <>
+  const content = <>
     <button type="button" className={menu?'utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive shooterShareMenuButton':'shooterResultButton'} onClick={share} disabled={!ready||busy} aria-label={translateUi("shooter.share")}>
       {menu?<><span className="utilityMenuIcon" aria-hidden="true"><Share2 size={19}/></span><div className="utilityMenuText"><strong className="utilityMenuTitle"><Translation id="shooter.share" /></strong><small>{ready?(separateLink?translateUi("shooter.noteShooterScoreImage"):translateUi("shooter.noteShooterScoreGameLink")):translateUi("shooter.preparingResultImage")}</small></div><span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20}/></span></>:<><Share2 size={17} aria-hidden="true"/>{!ready?translateUi("shooter.preparingImage"):busy?translateUi("shooter.sharing"):translateUi("shooter.share")}</>}
     </button>
@@ -28,4 +28,5 @@ export default function ShooterShareButton({score=0,bestScore=0,menu=false}){
     {status==='copied'&&<p className="shooterShareFeedback" role="status"><Translation id="shooter.gameLinkCopied" /></p>}
     {status==='manual'&&<div className="shooterShareFeedback" role="status"><p><Translation id="shooter.sharingAndAutomaticCopyingAreUnavailablePressAndHoldTheLinkBelow" /></p><input aria-label={translateUi("shooter.gameLinkToShare")} readOnly value={result.url} onFocus={event=>event.target.select()}/></div>}
   </>;
+  return menu && compact ? <details className="utilityShareMenu"><summary><Share2 size={20} aria-hidden="true"/><span>{translateUi('shooter.share')}</span></summary><div className="utilitySharePopover">{content}</div></details> : content;
 }

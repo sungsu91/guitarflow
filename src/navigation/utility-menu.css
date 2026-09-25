@@ -94,3 +94,60 @@ html body #root #utility-menu-panel .utilityMenuTitleLabel { width:auto !importa
 html body #root .utilityMenuSurface > .utilityMenuLayer { z-index:100300 !important; }
 html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary) { max-height:none !important; grid-template-areas:none !important; grid-template-rows:auto !important; }
 html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary) > * { grid-area:auto !important; }
+/* Mobile menu: one panel, independently scrolling features, persistent footer. */
+html body #root #utility-menu-panel { display:block !important; width:min(calc(100vw - 24px),380px) !important; right:max(12px,env(safe-area-inset-right)) !important; bottom:max(12px,env(safe-area-inset-bottom)) !important; height:min(860px,calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom)))) !important; max-height:calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom))) !important; }
+html body #root #utility-menu-panel .utilityMenuMain { height:100%; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; }
+html body #root #utility-menu-panel .utilityMenuActions { display:flex; gap:2px; }
+html body #root #utility-menu-panel .utilityMenuHeader { min-height:58px; padding:4px 10px 4px 18px !important; }
+html body #root #utility-menu-panel .utilityMenuHeader button { background:transparent !important; border:0 !important; border-radius:8px !important; }
+html body #root #utility-menu-panel .utilityCategoryTabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); padding:0 14px; border-bottom:1px solid var(--menu-border); }
+html body #root #utility-menu-panel .utilityCategoryTabs button { min-width:0; min-height:46px; border:0; border-bottom:2px solid transparent; border-radius:0; background:transparent; color:var(--menu-muted); box-shadow:none; padding:8px 4px; font-size:14px; font-weight:500; transform:none; }
+html body #root #utility-menu-panel .utilityCategoryTabs button[aria-selected=true] { color:var(--menu-accent); border-bottom-color:var(--menu-accent); background:var(--menu-selected); font-weight:750; }
+html body #root #utility-menu-panel .utilityMenuBody { padding:4px 14px 16px; }
+html body #root #utility-menu-panel .utilityFeatureGroup h3,
+html body #root #utility-menu-panel .utilitySettingsLabel { color:var(--menu-muted); font-size:12px; font-weight:700; letter-spacing:.04em; margin:16px 4px 5px; }
+html body #root #utility-menu-panel .utilityMenuItem { border:0 !important; border-bottom:1px solid color-mix(in srgb,var(--menu-border) 65%,transparent) !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; padding:12px 2px !important; min-height:72px !important; }
+html body #root #utility-menu-panel .utilityMenuItem:hover { background:var(--menu-selected) !important; box-shadow:none !important; }
+html body #root #utility-menu-panel .utilityMenuTitle { grid-template-columns:minmax(0,1fr) auto !important; gap:4px !important; }
+html body #root #utility-menu-panel .utilityMenuIcon { background:transparent !important; }
+html body #root #utility-menu-panel .utilityMenuFooter { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; padding:6px 8px; border-top:1px solid var(--menu-border); background:var(--menu-surface); }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuItem { display:flex !important; flex-direction:column; justify-content:center; gap:2px !important; min-height:60px !important; padding:4px 2px !important; border:0 !important; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuItem + .utilityMenuItem { border-left:1px solid var(--menu-border) !important; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuIcon { width:24px !important; height:24px !important; min-width:24px !important; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuText strong { font-size:12px !important; text-align:center !important; }
+html body #root #utility-menu-panel .utilityMenuFooter :is(small,.utilityMenuChevron) { display:none !important; }
+html body #root #utility-menu-panel .utilitySettingsSheet { position:absolute; inset:0; display:grid; grid-template-rows:auto minmax(0,1fr); background:var(--menu-bg); z-index:2; }
+html body #root #utility-menu-panel .utilitySettingsBody { min-height:0; overflow:auto; overscroll-behavior:contain; padding:0 14px 20px; }
+html body #root #utility-menu-panel .utilitySettingsBody .utilityThemePanel { padding:14px 2px 18px !important; border-bottom:1px solid var(--menu-border) !important; }
+html body #root #utility-menu-panel .utilitySettingsBody .utilitySoundDetails > summary { background:transparent !important; border:0 !important; box-shadow:none !important; padding:12px 0 !important; }
+html body #root #utility-menu-panel .utilitySoundSliders { min-width:0; }
+html body #root #utility-menu-panel .utilitySoundSliders input { max-width:100%; min-width:0; }
+@media (max-height:500px) { html body #root #utility-menu-panel { bottom:12px !important; height:calc(100dvh - 24px) !important; max-height:calc(100dvh - 24px) !important; } }
+html body #root #utility-menu-panel .utilityMenuFooter { position:relative; }
+html body #root #utility-menu-panel .utilityShareMenu { min-width:0; border-left:1px solid var(--menu-border); color:var(--menu-title); }
+html body #root #utility-menu-panel .utilityShareMenu > summary { min-height:60px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; list-style:none; cursor:pointer; font-size:12px; font-weight:700; }
+html body #root #utility-menu-panel .utilityShareMenu > summary::-webkit-details-marker { display:none; }
+html body #root #utility-menu-panel .utilitySharePopover { position:absolute; bottom:calc(100% + 6px); left:8px; right:8px; padding:10px; max-height:240px; overflow:auto; border:1px solid var(--menu-border); border-radius:12px; background:var(--menu-bg); box-shadow:0 6px 24px #0002; z-index:3; }
+html body #root #utility-menu-panel .utilitySharePopover .utilityMenuItem { flex-direction:row !important; min-height:48px !important; }
+html body #root #utility-menu-panel .utilitySharePopover input { width:100%; box-sizing:border-box; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuTitle { display:block !important; }
+html body #root #utility-menu-panel .utilityFeatureGroup .utilityMenuItem { border:0 !important; border-bottom:1px solid var(--menu-border) !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; padding:12px 2px !important; min-height:76px !important; }
+html body #root #utility-menu-panel .utilityCategoryTabs button { border:0 !important; border-bottom:2px solid transparent !important; border-radius:0 !important; background:transparent !important; color:var(--menu-muted) !important; box-shadow:none !important; transform:none !important; }
+html body #root #utility-menu-panel .utilityCategoryTabs button[aria-selected=true] { border-bottom-color:var(--menu-accent) !important; background:color-mix(in srgb,var(--menu-tile) 45%,transparent) !important; color:var(--menu-accent) !important; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuItemInstagram { background:transparent !important; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuInstagramIcon svg { color:var(--menu-accent) !important; stroke:currentColor !important; }
+/* Keep the existing ivory surfaces; soften only the white-theme volume rails. */
+html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range] { appearance:none !important; -webkit-appearance:none !important; background:transparent !important; border:0 !important; box-shadow:none !important; accent-color:#998477 !important; }
+html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-webkit-slider-runnable-track { height:5px !important; background:#ded3cb !important; border:0 !important; box-shadow:none !important; }
+html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-webkit-slider-thumb { appearance:none !important; -webkit-appearance:none !important; width:16px !important; height:16px !important; margin-top:-5.5px !important; background:#998477 !important; border:2px solid #fffaf6 !important; border-radius:50% !important; box-shadow:0 1px 3px #6754491a !important; }
+html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-moz-range-track { height:5px !important; background:#ded3cb !important; border:0 !important; border-radius:999px !important; }
+html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-moz-range-thumb { width:12px !important; height:12px !important; background:#998477 !important; border:2px solid #fffaf6 !important; border-radius:50% !important; box-shadow:0 1px 3px #6754491a !important; }
+/* Refresh is the final settings action, aligned to the bottom when space allows. */
+html body #root #utility-menu-panel .utilitySettingsBody { display:flex; flex-direction:column; }
+html body #root #utility-menu-panel .utilitySettingsBody > * { flex-shrink:0; }
+html body #root #utility-menu-panel .utilitySettingsBody .utilityAppRefresh { margin-top:auto !important; }
+html body #root #utility-menu-panel .utilitySettingsBody .utilityMenuVersion { padding-bottom:12px !important; }
+/* Align status badges with the complete title + description, not the title baseline. */
+html body #root #utility-menu-panel .utilityFeatureGroup .utilityMenuText:has(.etudeProMark, .utilityMenuStatusBadge) { position:relative !important; padding-right:68px !important; box-sizing:border-box !important; }
+html body #root #utility-menu-panel .utilityFeatureGroup .utilityMenuTitle { display:block !important; }
+html body #root #utility-menu-panel .utilityFeatureGroup .utilityMenuTitle > :is(.etudeProMark,.utilityMenuStatusBadge) { position:absolute !important; top:50% !important; right:0 !important; transform:translateY(-50%) !important; width:60px !important; min-width:60px !important; height:25px !important; min-height:25px !important; margin:0 !important; padding:0 7px !important; font-size:12px !important; border-radius:7px !important; }

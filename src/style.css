@@ -3666,7 +3666,7 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
   }
 
   .stage3AddRow strong::before {
-    content: "선택 코드";
+    content: var(--selected-chord-label);
     color: #f8fafc;
     font-size: 11px;
     font-weight: 850;
@@ -3686,7 +3686,7 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
   }
 
   .stage3AddRow button:last-child::after {
-    content: "초기화";
+    content: var(--reset-label);
     position: static;
     inset: auto;
     opacity: 1;
@@ -42314,7 +42314,7 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
 }
 
 .miniChordMakerPanelCompact .miniChordBackingPanel summary::after {
-  content: "접기";
+  content: attr(data-collapse-label);
   display: inline-grid;
   place-items: center;
   min-width: 34px;
@@ -42332,7 +42332,7 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
 }
 
 .miniChordMakerPanelCompact .miniChordBackingPanel:not([open]) summary::after {
-  content: "펼침";
+  content: attr(data-expand-label);
 }
 
 .miniChordMakerPanelCompact .miniChordBackingRows {
@@ -44883,7 +44883,7 @@ html body .app.theme-light :is(
   .viewerChordPositionGroup button.selected,
   .chordChipGroup button.selected,
   .stage3SegmentControl button.selected,
-  .stage3LoadSelect .metronomeSelectButton[aria-expanded="true"],
+  .stage3LoadSelect .metronomeSelectButton:is([aria-expanded="true"],[aria-current="true"]),
   .metronomeSelectOption.selected,
   .stage3BackingSelectRow button.selected,
   .stage3BackingPartSegment button.selected,
@@ -45358,7 +45358,7 @@ html body .app.theme-light :is(
   .viewerChordPositionGroup button.selected,
   .chordChipGroup button.selected,
   .stage3SegmentControl button.selected,
-  .stage3LoadSelect .metronomeSelectButton[aria-expanded="true"],
+  .stage3LoadSelect .metronomeSelectButton:is([aria-expanded="true"],[aria-current="true"]),
   .metronomeSelectOption.selected,
   .stage3BackingSelectRow button.selected,
   .stage3BackingPartSegment button.selected,
@@ -46024,7 +46024,7 @@ html body .app.theme-light.theme-light :is(
   .stage3BackingPartSegment button.selected,
   .stage3BackingBandRow button.selected,
   .stage3SegmentControl button.selected,
-  .stage3LoadSelect .metronomeSelectButton[aria-expanded="true"]
+  .stage3LoadSelect .metronomeSelectButton:is([aria-expanded="true"],[aria-current="true"])
 ) {
   border-color: rgba(128, 85, 45, 0.52) !important;
   background:
@@ -64651,7 +64651,7 @@ html body .sharedAccompanimentPanel > summary b {
 }
 
 html body .sharedAccompanimentPanel > summary::after {
-  content: "접기" !important;
+  content: attr(data-collapse-label) !important;
   display: inline-grid !important;
   place-items: center !important;
   min-width: 34px !important;
@@ -64669,7 +64669,7 @@ html body .sharedAccompanimentPanel:not([open]) > summary {
 }
 
 html body .sharedAccompanimentPanel:not([open]) > summary::after {
-  content: "펼침" !important;
+  content: attr(data-expand-label) !important;
 }
 
 html body .sharedAccompanimentPanel > summary .sharedAccompanimentSettingsButton {
@@ -74328,3 +74328,15 @@ html body .desktopLayout .shooterArena--desktopPortrait:not(.shooterArena--mapEd
 .viewerSampleCredits summary { cursor: pointer; }
 .viewerSampleCredits p { margin: 6px 0; }
 .viewerSampleCredits a { color: inherit; text-decoration: underline; margin-right: 8px; }
+
+/* Beat feedback is a timing signal, not a decorative hover transition. */
+html body #root main.app.app.app :is(.beatDot, .beatDot__glyph, .beatDot__innerMark, .trainingBeatDotPlain, .trainingBeatDotPlain__dot, .etudeBeat, .etudeBeat > i) {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Playback chord highlights must land with the beat, without button fades. */
+html body #root main.app.app.app .chordTransitionBody .currentProgressionReadout :is(.rhythmChordMeasure, button, button > span, button > small) {
+  transition: none !important;
+  animation: none !important;
+}

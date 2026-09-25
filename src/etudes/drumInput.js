@@ -1,9 +1,10 @@
 import ko from "../i18n/locales/ko.js";
+import {measureLayout} from './measureLayout.js';
 import {setDrumVoiceDuration,isLowerDrum,drumVoiceRhythm} from './drumVoices.js';
 import {newId} from './scoreModel.js';
 import {enterMidiNotes} from './enterMidiNotes.js';
 import {inputRhythm} from './rhythmInput.js';
-import {nextEntry,setEventDuration} from './editorCommands.js';
+import {nextEntry,setEventDuration,deleteTone} from './editorCommands.js';
 import {ticksOf,patchEvent} from './scoreModel.js';
 export function drumRest(document,cursor,rhythm){const e=document.measures[cursor.bar].events[cursor.event];if(e.notes.length&&!e.rest)throw Error(ko["etudes.thereIsAlreadyAHitHereSelectAndDeleteItBeforeEntering"]);return inputRhythm(document,cursor,rhythm,'rest');}
 export function advanceDrum(document,cursor,rhythm){const e=document.measures[cursor.bar].events[cursor.event],changed=e.blank?drumRest(document,cursor,rhythm):{document,...rhythm};return {...changed,...nextEntry(changed.document,cursor)};}
@@ -30,6 +31,30 @@ export function fillDrumMeasure(document,cursor,pitches,rhythm){
  let at=start,changed={document:next},state={...rhythm,session:null};
  while(at<end){const index=next.measures[cursor.bar].events.findIndex(e=>e.onset===at);if(index<0)throw Error(ko["etudes.theInputPositionDoesNotMatchTheExistingRhythm"]);changed=enterDrumNotes(next,{...cursor,event:index},pitches,state);next=changed.document;at+=ticksOf(drumVoiceRhythm(next.measures[cursor.bar].events[index],isLowerDrum(pitches[0])));state={...state,session:changed.completed?null:changed.session};}
  return {...changed,document:next,cursor:{...cursor,noteId:undefined},session:null,tupletMode:rhythm.tupletMode};
+}
+
+function drumRowBars(document,cursor){
+ const layout=measureLayout(document.measures,document.viewSettings?.measuresPerRow??1,document.viewSettings?.systemBreaks??[]);
+ return layout.flatMap((p,index)=>p.row===layout[cursor.bar].row?[index]:[]);
+}
+export function drumRowHasPitches(document,cursor,pitches){
+ const bars=drumRowBars(document,cursor);
+ return pitches.every(midi=>bars.some(bar=>document.measures[bar].events.some(e=>e.notes.some(n=>n.midi===midi))));
+}
+export function deleteDrumRow(document,cursor,pitches){
+ let next=document;
+ for(const bar of drumRowBars(document,cursor))document.measures[bar].events.forEach((e,event)=>{
+  for(const note of e.notes)if(pitches.includes(note.midi))next=deleteTone(next,{...cursor,bar,event,noteId:note.id,midi:note.midi,lowerRest:false});
+ });
+ return next;
+}
+// Fill the displayed system, including its first bar when input is in the middle.
+export function fillDrumRow(document,cursor,pitches,rhythm){
+ const onset=document.measures[cursor.bar].events[cursor.event].onset;
+ const filledBars=drumRowBars(document,cursor);
+ let changed={document};
+ for(const bar of filledBars)changed=fillDrumMeasure(changed.document,{...cursor,bar,event:0},pitches,rhythm);
+ return {...changed,filledBars,cursor:{...cursor,event:changed.document.measures[cursor.bar].events.findIndex(e=>e.onset===onset),noteId:undefined}};
 }
 
 export function insertDrumLowerRest(document,cursor){

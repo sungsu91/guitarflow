@@ -1,3 +1,4 @@
+import {normalizeGapCuts,pageVisibleHeight,compactY,expandY} from './pdfGapCuts.js';
 export const ANNOTATION_COLORS={brown:'#60462f',black:'#202020',red:'#b52c29',blue:'#2565ac',green:'#247449'};
 const colorValue=value=>Object.hasOwn(ANNOTATION_COLORS,value)?value:'brown';
 const unit=value=>Math.max(0,Math.min(1,value));
@@ -6,8 +7,11 @@ const marginKeys=['top','right','bottom','left'];
 const validMargins=m=>m&&marginKeys.every(k=>Number.isFinite(m[k])&&m[k]>=0)&&m.left+m.right<=.95&&m.top+m.bottom<=.95;
 // Legacy crop rectangles describe retained content. New edits store removed edge margins.
 export function pageCrop(edit){
- if(validMargins(edit?.margins)){const m=edit.margins;return {x:m.left,y:m.top,width:1-m.left-m.right,height:1-m.top-m.bottom};}
- return rectValid(edit?.crop)?edit.crop:FULL_PAGE;
+ let rect=FULL_PAGE;
+ if(validMargins(edit?.margins)){const m=edit.margins;rect={x:m.left,y:m.top,width:1-m.left-m.right,height:1-m.top-m.bottom};}
+ else if(rectValid(edit?.crop))rect=edit.crop;
+ const cuts=normalizeGapCuts(edit?.cuts),result=cuts.length?{...rect,cuts}:rect;
+ return pageVisibleHeight(result)>=.01?result:rect;
 }
 export function removalCrop(selection,edit){
  const c=pageCrop(edit),r=selection;
@@ -38,12 +42,12 @@ export function normalizePageEdits(source,count){
   const crop=rectValid(value.crop)?Object.fromEntries(['x','y','width','height'].map(k=>[k,value.crop[k]])):null;
   const notes=(Array.isArray(value.notes)?value.notes:[]).filter(n=>n&&typeof n.id==='string'&&Number.isFinite(n.x)&&Number.isFinite(n.y)&&n.x>=0&&n.x<=1&&n.y>=0&&n.y<=1).slice(0,200).map(n=>({id:n.id,text:String(n.text??'').slice(0,1000),x:n.x,y:n.y,size:Math.max(.015,Math.min(.08,Number(n.size)||.035)),color:colorValue(n.color),...(Number.isFinite(n.rotation)?{rotation:n.rotation}:{})}));
   const strokes=(Array.isArray(value.strokes)?value.strokes:[]).filter(s=>s&&typeof s.id==='string'&&Array.isArray(s.points)).slice(0,1000).map(s=>({id:s.id,points:s.points.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).slice(0,20000).map(p=>p.map(unit)),color:colorValue(s.color),width:Math.max(.0005,Math.min(.02,Number(s.width)||.003)),opacity:Math.max(.1,Math.min(1,Number(s.opacity)||1))})).filter(s=>s.points.length>0);
-  result[page]={crop,notes,...(strokes.length?{strokes}:{}),...(validMargins(value.margins)?{margins:Object.fromEntries(marginKeys.map(k=>[k,value.margins[k]]))}:{})};
+  result[page]={crop,notes,...(normalizeGapCuts(value.cuts).length?{cuts:normalizeGapCuts(value.cuts)}:{}),...(strokes.length?{strokes}:{}),...(validMargins(value.margins)?{margins:Object.fromEntries(marginKeys.map(k=>[k,value.margins[k]]))}:{})};
  }
  return result;
 }
-export function projectRect(rect,crop=FULL_PAGE){return {...rect,x:(rect.x-crop.x)/crop.width,y:(rect.y-crop.y)/crop.height,width:rect.width/crop.width,height:rect.height/crop.height};}
-export function originalPoint(point,crop=FULL_PAGE){return {x:crop.x+point.x*crop.width,y:crop.y+point.y*crop.height};}
+export function projectRect(rect,crop=FULL_PAGE){if(!crop.cuts?.length)return {...rect,x:(rect.x-crop.x)/crop.width,y:(rect.y-crop.y)/crop.height,width:rect.width/crop.width,height:rect.height/crop.height};return {...rect,x:(rect.x-crop.x)/crop.width,y:compactY(rect.y,crop)/pageVisibleHeight(crop),width:rect.width/crop.width,height:(compactY(rect.y+rect.height,crop)-compactY(rect.y,crop))/pageVisibleHeight(crop)};}
+export function originalPoint(point,crop=FULL_PAGE){if(!crop.cuts?.length)return {x:crop.x+point.x*crop.width,y:crop.y+point.y*crop.height};return {x:crop.x+point.x*crop.width,y:expandY(point.y*pageVisibleHeight(crop),crop)};}
 
 export function cropMargins(rect){return {top:rect.y,right:Math.max(0,1-rect.x-rect.width),bottom:Math.max(0,1-rect.y-rect.height),left:rect.x};}
 export function resizeCrop(rect,handle,point,bounds=FULL_PAGE){

@@ -4,29 +4,21 @@ import { formatMessage } from "./../i18n/core.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import '../pdf/scoreWorkspaceTheme.css';
-import {FilePlus2,Plus} from 'lucide-react';
 import {LibraryHeader,LibraryStorage} from './LibraryChrome.jsx';
 import './libraryDesign.css';
 import {normalizePdfBarEntry} from './pdfBarRows.js';
 import ScoreLibraryTabs from './ScoreLibraryTabs.jsx';
 import {normalizePageEdits} from './pdfAnnotations.js';
-import ScoreFolderList from './ScoreFolderList.jsx';
-import {lazy,Suspense,useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {listPdfs,getPdf,findPdf,savePdf,patchPdf,deletePdf,fingerprintPdf,storageError,downloadBlob,exportPdfLibrary,readBackup} from './pdfLibrary.js';
+import {lazy,Suspense,useEffect,useRef,useState} from 'react';
+import {listPdfs,getPdf,savePdf,patchPdf,deletePdf,validatePdfFile,uniquePdfTitle,storageError,downloadBlob,exportPdfLibrary,readBackup} from './pdfLibrary.js';
 import {inspectPdf} from './pdfRenderer.js';
-import {loadLibrary,saveLibraryDocument,renameLibraryDocument,deleteLibraryDocument,markLibraryPracticed} from '../etudes/scoreLibrary.js';
-import {createBlankDocument} from '../etudes/scoreModel.js';
-import {ETUDES} from '../etudes/catalog.js';
 import './pdfStudio.css';
 import './scoreFileBrowser.css';
 import './scoreLibraryTheme.css';
 import './scoreLibraryMobile.css';
 const preloadPdfPractice=()=>import('./PdfPractice.jsx');
 const PdfPractice=lazy(preloadPdfPractice);
-const ScoreEditor=lazy(()=>import('../etudes/ScoreEditor.jsx'));
-const EditablePractice=lazy(()=>import('./EditablePractice.jsx'));
 const Lessons=lazy(()=>import('../etudes/EtudeStudio.jsx'));
-function readEditableLibrary(){try{return loadLibrary(localStorage,ETUDES);}catch{return {records:{},errors:[ko["pdf.editableScoreStorageIsUnavailable"]]};}}
 const meters=['2/4','3/4','4/4','5/4','6/8','7/8','9/8','12/8'];
 export function pdfMetadata(source={}) {
  const count=Math.max(1,Math.floor(Number(source.pageCount)||1));
@@ -41,61 +33,52 @@ function MetadataDialog({record,onSave,onClose,busy,error}) {
 }
 export default function PdfStudio({mobile,onOpenMenu,onExit}) {
   useLanguage();
- const [lessonSavedId,setLessonSavedId]=useState('');
- const [mode,setMode]=useState('lessons'),[records,setRecords]=useState([]),[library,setLibrary]=useState(()=>readEditableLibrary()),[editing,setEditing]=useState(null),[opened,setOpened]=useState(null),[pending,setPending]=useState(null),[remove,setRemove]=useState(null),[duplicate,setDuplicate]=useState(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(''),[search,setSearch]=useState(''),[sort,setSort]=useState('practice'),[estimate,setEstimate]=useState(null);
- const [libraryFilter,setLibraryFilter]=useState('all'),[folderId,setFolderId]=useState(null),[scoreOpened,setScoreOpened]=useState(null),[rename,setRename]=useState(null);
- const studio=useRef(null),firstView=useRef(true),pdfClose=useRef(null),input=useRef(null),backup=useRef(null);
- const refresh=async()=>{try{setRecords(await listPdfs());setEstimate(await navigator.storage?.estimate?.());}catch(e){setError(storageError(e));}setLibrary(readEditableLibrary());};
+ const [lessonSavedId,setLessonSavedId]=useState(''),[lessonId,setLessonId]=useState(undefined);
+ const [records,setRecords]=useState([]),[opened,setOpened]=useState(null),[pending,setPending]=useState(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(''),[estimate,setEstimate]=useState(null);
+ const [transfer,setTransfer]=useState(null);
+ const practiceInput=useRef(null);
+ const studio=useRef(null),pdfClose=useRef(null),input=useRef(null),backup=useRef(null);
+ const refresh=async()=>{try{setRecords(await listPdfs());setEstimate(await navigator.storage?.estimate?.());}catch(e){setError(storageError(e));}};
  useEffect(()=>{void refresh();},[]);
- useLayoutEffect(()=>{if(firstView.current){firstView.current=false;return;}if(mobile)return;studio.current.querySelector('.scoreTabsAnchor,.libraryTabAnchor')?.scrollIntoView({block:'start'});},[mode,opened?.record.id,scoreOpened?.id]);
  const open=async (record,edit=false)=>{void preloadPdfPractice();setBusy(true);setError('');try{const blob=await getPdf(record.id);if(!blob)throw Error(ko["pdf.noOriginalPdfIsStoredImportABackupOrTheOriginalAgain"]);setOpened({record,blob,edit});}catch(e){setError(e.message);}finally{setBusy(false);}};
- const importPdfFile=async (blob,openAfterSave=false)=>{if(!blob){input.current.click();return;}setBusy(true);setError('');setMessage(ko["pdf.checkingPdfAndPreparingTheFirstPage"]);try{const fingerprint=await fingerprintPdf(blob),existing=await findPdf(fingerprint);if(existing){setDuplicate(existing);setMessage(ko["pdf.thisPdfIsAlreadySaved"]);return;}const info=await inspectPdf(blob);const record={...pdfMetadata({title:blob.name.replace(/\.pdf$/i,''),...info,zoom:'fit'}),...info,id:crypto.randomUUID(),fingerprint,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastPracticedAt:null};setPending({record,blob,openAfterSave});setMessage(ko["pdf.reviewTheDetailsThenSave"]);}catch(e){setError(e.name==='PasswordException'?ko["pdf.chooseAnUnlockedPdfCopy"]:e.message);}finally{setBusy(false);}};
- const importPdf=e=>{const blob=e.target.files?.[0];e.target.value='';if(blob)void importPdfFile(blob);};
- const importScorePdf=blob=>{setMode('pdf');setScoreOpened(null);void importPdfFile(blob,true);};
- const save=async draft=>{setBusy(true);setError('');try{const record={...draft,...pdfMetadata(draft),updatedAt:new Date().toISOString()};if(pending.blob)await savePdf(record,pending.blob);else await patchPdf(record.id,record);pending.onSaved?.(record);if(pending.openAfterSave&&pending.blob)setOpened({record,blob:pending.blob});setPending(null);setMessage(ko["pdf.pdfScoreSavedToDevice"]);await refresh();}catch(e){setError(storageError(e));}finally{setBusy(false);}};
- const saveScore=document=>{try{const result=saveLibraryDocument(localStorage,document,ETUDES);if(result.saved){setLibrary(readEditableLibrary());if(scoreOpened?.id===document.id)setScoreOpened(document);}return result;}catch(e){return {saved:false,errors:[e.message]};}};
- const restore=async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;setBusy(true);setError('');let added=0,skipped=0;try{for(const {record:old,pdfBlob} of await readBackup(file)){const fingerprint=await fingerprintPdf(pdfBlob);if(await findPdf(fingerprint)){skipped++;continue;}const info=await inspectPdf(pdfBlob),record={...pdfMetadata({...old,pageCount:info.pageCount}),...info,id:crypto.randomUUID(),fingerprint,createdAt:Number.isFinite(Date.parse(old.createdAt))?old.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastPracticedAt:Number.isFinite(Date.parse(old.lastPracticedAt))?old.lastPracticedAt:null};await savePdf(record,pdfBlob);added++;}setMessage(formatMessage(ko["pdf.restoredValue1KeptValue2ExistingMatchingPdfs"], { value1: added, value2: skipped }));}catch(e){setError(formatMessage(ko["pdf.stoppedAfterRestoringValue1Value2"], { value1: added, value2: storageError(e) }));}finally{await refresh();setBusy(false);}};
- const items=[...records.map(r=>({id:r.id,type:'pdf',title:r.title,count:r.pageCount,bpm:r.bpm,position:r.lastPracticedAt?formatMessage(ko["pdf.pageValue1"], { value1: r.lastPage }):null,practice:r.lastPracticedAt,added:r.createdAt,search:`${r.title} ${r.artist??''} ${(r.tags??[]).join(' ')}`,record:r})),...Object.values(library.records).map(r=>({id:r.document.id,type:'score',title:r.document.title,count:r.document.measures?.length??0,bpm:r.document.bpm,practice:r.lastPracticedAt,added:r.createdAt??r.updatedAt,search:r.document.title,unreadable:r.status==='unreadable',record:r}))];
- const filtered=items.filter(r=>r.search.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>sort==='title'?a.title.localeCompare(b.title,'ko'):sort==='bpm'?(a.bpm??0)-(b.bpm??0):sort==='added'?String(b.added??'').localeCompare(String(a.added??'')):String(b.practice??'').localeCompare(String(a.practice??''))||String(b.added??'').localeCompare(String(a.added??'')));
- const openScore=item=>{const result=markLibraryPracticed(localStorage,item.id,ETUDES);if(!result.saved)setError(result.errors.join(' '));setScoreOpened(null);setOpened(null);setLessonSavedId(item.id);setMode('lessons');setMessage('');};
- const renameItem=async title=>{setBusy(true);setError('');try{if(rename.type==='pdf')await patchPdf(rename.id,{title});else{const r=renameLibraryDocument(localStorage,rename.id,title,ETUDES);if(!r.saved)throw Error(r.errors.join(' '));}setRename(null);await refresh();}catch(e){setError(e.message);}finally{setBusy(false);}};
- const switchTab=next=>{const apply=()=>{setMode(next);setOpened(null);setScoreOpened(null);setMessage('');void refresh();};if(opened){void pdfClose.current?.(apply);return;}apply();};
-
+ const importPdfFile=async (blob,openAfterSave=false)=>{if(!blob){input.current.click();return;}setBusy(true);setError('');setMessage(ko["pdf.checkingPdfAndPreparingTheFirstPage"]);try{await validatePdfFile(blob);const title=uniquePdfTitle(await listPdfs(),blob.name.replace(/\.pdf$/i,''));const info=await inspectPdf(blob);const record={...pdfMetadata({title,...info,zoom:'fit'}),...info,id:crypto.randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastPracticedAt:null};setPending({record,blob,openAfterSave});setMessage(ko["pdf.reviewTheDetailsThenSave"]);}catch(e){setError(e.name==='PasswordException'?ko["pdf.chooseAnUnlockedPdfCopy"]:e.message);}finally{setBusy(false);}};
+ const importPdf=e=>{const blob=e.target.files?.[0];e.target.value='';if(blob)void importPdfFile(blob,true);};
+ const importScorePdf=blob=>{void importPdfFile(blob,true);};
+ const save=async draft=>{setBusy(true);setError('');try{let record={...draft,...pdfMetadata(draft),updatedAt:new Date().toISOString()};if(pending.blob)record=await savePdf(record,pending.blob);else await patchPdf(record.id,record);pending.onSaved?.(record);if(pending.openAfterSave&&pending.blob)setOpened({record,blob:pending.blob});setPending(null);setMessage(ko["pdf.pdfScoreSavedToDevice"]);await refresh();}catch(e){setError(storageError(e));}finally{setBusy(false);}};
+ const restore=async (e,practice=false)=>{
+  const file=e.target.files?.[0];e.target.value='';if(!file)return;setBusy(true);setError('');let added=0,skipped=0;
+  try{
+   const entries=await readBackup(file);let single=null;
+   for(const {record:old,pdfBlob} of entries){
+    await validatePdfFile(pdfBlob);const existing=(await listPdfs()).find(r=>r.id===old.id);
+    if(existing&&(!practice||entries.length!==1)){skipped++;continue;}
+    const info=await inspectPdf(pdfBlob),record={...pdfMetadata({...old,pageCount:info.pageCount}),...info,id:existing?.id??(typeof old.id==='string'&&old.id?old.id:crypto.randomUUID()),fingerprint:existing?.fingerprint,createdAt:existing?.createdAt??(Number.isFinite(Date.parse(old.createdAt))?old.createdAt:new Date().toISOString()),updatedAt:new Date().toISOString(),lastPracticedAt:Number.isFinite(Date.parse(old.lastPracticedAt))?old.lastPracticedAt:null};
+    if(existing){setTransfer({record,pdfBlob});return;}
+    const saved=await savePdf(record,pdfBlob);added++;single={record:saved,blob:pdfBlob};
+   }
+   setMessage(formatMessage(ko["pdf.restoredValue1KeptValue2ExistingMatchingPdfs"], {value1:added,value2:skipped}));
+   if(practice&&entries.length===1&&single)setOpened(single);
+  }catch(e){setError(formatMessage(ko["pdf.stoppedAfterRestoringValue1Value2"], {value1:added,value2:storageError(e)}));}
+  finally{await refresh();setBusy(false);}
+ };
  const run=async action=>{setBusy(true);setError('');try{await action();}catch(e){setError(storageError(e));}finally{setBusy(false);}};
  const storageContent=<><p><Translation id="pdf.storedOnlyInThisBrowserOnThisDeviceBrowserDataCleanupOr" /></p>{estimate&&<p><Translation id="pdf.siteStorage" />{(estimate.usage/1048576).toFixed(1)}<Translation id="pdf.mbQuota" />{(estimate.quota/1048576).toFixed(0)}<Translation id="originalUi.mb" /></p>}<button type="button" onClick={()=>void run(async()=>{const granted=await navigator.storage?.persist?.();setMessage(granted?ko["pdf.persistentStorageWasGranted"]:ko["pdf.theBrowserDidNotGrantPersistentStorageKeepABackup"]);})}><Translation id="pdf.requestPersistentStorage" /></button><button type="button" disabled={busy||!records.length} onClick={()=>void run(async()=>downloadBlob(await exportPdfLibrary(),'FRETIVA-PDF-library.fretiva-pdf'))}><Translation id="pdf.backUpPdfLibrary" /></button><button type="button" disabled={busy} onClick={()=>backup.current.click()}><Translation id="pdf.restorePdfBackup" /></button><p><Translation id="pdf.pdfBackupsIncludeOriginalsMarginCropsTextNotesBarsAndPracticeSettings" /></p></>;
- const top=<ScoreLibraryTabs library={!opened} mode={mode} onChange={switchTab}/>;
- const additions=<div className="libraryActions"><button type="button" disabled={busy} onClick={()=>input.current.click()}><FilePlus2 size={20}/><Translation id="app.importPdf" /></button><button type="button" onClick={()=>setEditing(createBlankDocument())}><Plus size={20}/><Translation id="app.createScore" /></button></div>;
+ const top=<ScoreLibraryTabs><LibraryStorage mobile={mobile} compact>{storageContent}<button type="button" disabled={busy} onClick={()=>practiceInput.current.click()}><Translation id="pdf.importPracticeFile"/></button></LibraryStorage></ScoreLibraryTabs>;
 
- return <section id={!opened?'scoreLibraryHome':undefined} ref={studio} data-library-view={!opened&&!scoreOpened?mode:undefined} className={`pdfStudio ${mobile?'pdfStudio--mobile':'pdfStudio--desktop'}`}>
+ return <section id={!opened?'scoreLibraryHome':undefined} ref={studio} data-library-view={!opened?'lessons':undefined} className={`pdfStudio ${mobile?'pdfStudio--mobile':'pdfStudio--desktop'}`}>
   {!opened&&<LibraryHeader mobile={mobile} onMenu={onOpenMenu} onExit={onExit}/>}
   <input ref={input} type="file" accept="application/pdf,.pdf" hidden aria-label={translateUi("pdf.choosePdfFile")} onChange={importPdf}/><input ref={backup} type="file" accept=".fretiva-pdf" hidden aria-label={translateUi("pdf.choosePdfBackup")} onChange={restore}/>
+  <input ref={practiceInput} type="file" accept=".fretiva-pdf" hidden aria-label={translateUi("pdf.importPracticeFile")} onChange={e=>void restore(e,true)}/>
   {(!mobile||!opened)&&top}
   {error&&<p role="alert" className="pdfError">{localizeUi(error)}</p>}{message&&!opened&&<p role="status">{localizeUi(message)}</p>}
-  <div id="score-library-panel" role="tabpanel" aria-labelledby={`score-tab-${mode}`}>
-  {opened?<Suspense fallback={<div className="pdfOpeningPreview"><header><strong>{opened.record.title}</strong><span>{opened.record.lastPage} / {opened.record.pageCount}</span></header>{opened.record.thumbnail&&<img src={opened.record.thumbnail} alt={translateUi("pdf.savedFirstPagePreview")}/>}</div>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{setOpened(null);void refresh();}}/></Suspense>:scoreOpened?<Suspense fallback={<p><Translation id="etudes.preparingScore" /></p>}><EditablePractice key={scoreOpened.id} document={scoreOpened} savedScores={items.filter(item=>item.type==='score'&&!item.unreadable)} onSelectScore={id=>{const item=items.find(item=>item.type==='score'&&item.id===id&&!item.unreadable);if(item)openScore(item);}} mobile={mobile} editing={Boolean(editing)||Boolean(remove)} onDelete={()=>setRemove({id:scoreOpened.id,type:'score',title:scoreOpened.title})} onCreate={()=>setEditing(createBlankDocument())} onEdit={()=>setEditing(scoreOpened)} onClose={()=>{setScoreOpened(null);void refresh();}}/></Suspense>:mode==='lessons'?<>
-   <Suspense fallback={<p><Translation id="pdf.preparingPracticePiece" /></p>}><Lessons initialSavedId={lessonSavedId} {...{mobile,onOpenMenu,onExit}} onImportPdf={importScorePdf}/></Suspense>
-  </>:<>
-   {additions}
-   {library.errors.map(e=><p role="alert" key={e}>{localizeUi(e)}</p>)}
-   <ScoreFolderList sort={sort} onSort={setSort} onSearch={setSearch} filter={libraryFilter} onFilterChange={setLibraryFilter} items={filtered} allItems={items} search={search} mobile={mobile} busy={busy} folderId={folderId} onFolderChange={setFolderId} onOpen={item=>item.type==='pdf'?void open(item.record):openScore(item)} onRename={setRename} onDelete={setRemove}/>
-   <LibraryStorage mobile={mobile}>{storageContent}</LibraryStorage>
+  <div id="score-library-panel" role="region" aria-label={translateUi("score.practiceRoom")}>
+  {opened?<Suspense fallback={<div className="pdfOpeningPreview"><header><strong>{opened.record.title}</strong><span>{opened.record.lastPage} / {opened.record.pageCount}</span></header>{opened.record.thumbnail&&<img src={opened.record.thumbnail} alt={translateUi("pdf.savedFirstPagePreview")}/>}</div>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{setOpened(null);void refresh();}}/></Suspense>:<>
+   <Suspense fallback={<p><Translation id="pdf.preparingPracticePiece" /></p>}><Lessons importBusy={busy} pdfScores={records} onSelectPdf={record=>{void open(record);}} onManagePdf={async(action,record,title)=>{if(action==='rename')await patchPdf(record.id,{title});else await deletePdf(record.id);await refresh();}} onSelectionChange={(id,saved)=>{setLessonId(id);setLessonSavedId(saved);}} initialId={lessonId} initialSavedId={lessonSavedId} {...{mobile,onOpenMenu,onExit}} onImportPdf={importScorePdf}/></Suspense>
   </>}
   </div>
   {pending&&<MetadataDialog key={pending.record.id} record={pending.record} {...{busy,error}} onSave={save} onClose={()=>setPending(null)}/>}
-  {rename&&<RenameDialog title={rename.title} busy={busy} error={error} onSave={renameItem} onClose={()=>setRename(null)}/>}
-  {remove&&<Confirm text={localizeUi(translateUi("pdf.deleteValue1Value2FromThisDevice", { value1: remove.title, value2: remove.type==='pdf'?ko["pdf.originalPdfAndSettings"]:ko["pdf.editableScore"] }))} busy={busy} onCancel={()=>setRemove(null)} onConfirm={()=>void run(async()=>{if(remove.type==='pdf')await deletePdf(remove.id);else{const result=deleteLibraryDocument(localStorage,remove.id,ETUDES);if(!result.saved)throw Error(result.errors.join(' '));}if(scoreOpened?.id===remove.id)setScoreOpened(null);setRemove(null);setMessage(ko["pdf.scoreDeleted"]);await refresh();})}/>}
-  {duplicate&&<Confirm text={translateUi("pdf.thePdfValue1AlreadyExistsOpenTheExistingScore", { value1: duplicate.title })} onCancel={()=>setDuplicate(null)} onConfirm={()=>{void open(duplicate);setDuplicate(null);}}/>}
-  {editing&&<Suspense fallback={<p><Translation id="pdf.preparingEditor" /></p>}><ScoreEditor compactImport key={editing.id} document={editing} mobile={mobile} onClose={()=>{setEditing(null);void refresh();}} onSave={saveScore} onImportPdf={importScorePdf}/></Suspense>}
+  {transfer&&<Confirm text={translateUi("pdf.replacePracticeConfirm",{title:transfer.record.title})} busy={busy} onCancel={()=>setTransfer(null)} onConfirm={()=>void run(async()=>{await savePdf(transfer.record,transfer.pdfBlob);setOpened({record:transfer.record,blob:transfer.pdfBlob});setTransfer(null);await refresh();})}/>}
  </section>;
 }
 function Confirm({text,onConfirm,onCancel,busy}) {
   useLanguage();const ref=useRef(null);useEffect(()=>{ref.current.showModal();},[]);return <dialog className="pdfDialog" ref={ref} aria-label={translateUi("common.confirm")} onCancel={e=>{if(busy)e.preventDefault();else onCancel();}}><p>{text}</p><footer><button type="button" disabled={busy} onClick={onCancel}><Translation id="common.cancel" /></button><button type="button" disabled={busy} onClick={onConfirm}><Translation id="common.confirm" /></button></footer></dialog>;}
-
-function RenameDialog({title,busy,error,onSave,onClose}){
-  useLanguage();
- const ref=useRef(null),[value,setValue]=useState(title);
- useEffect(()=>{ref.current.showModal();},[]);
- return <dialog ref={ref} className="pdfDialog" aria-label={translateUi("pdf.renameScore")} onCancel={e=>{if(busy)e.preventDefault();else onClose();}}><form onSubmit={e=>{e.preventDefault();if(value.trim())void onSave(value.trim());}}><h2><Translation id="audioStudio.rename" /></h2><label><Translation id="app.title" /><input autoFocus required maxLength="200" value={value} onChange={e=>setValue(e.target.value)}/></label>{error&&<p role="alert">{localizeUi(error)}</p>}<footer><button type="button" disabled={busy} onClick={onClose}><Translation id="common.cancel" /></button><button type="submit" disabled={busy||!value.trim()}><Translation id="common.save" /></button></footer></form></dialog>;
-}
-
-import './librarySafeArea.css';

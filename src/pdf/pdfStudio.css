@@ -227,3 +227,14 @@ html body main.app.app.app.app.app .pdfStudio button.pdfBarRow.is-emphasized{bac
 html body .app .pdfStudio .pdfInlineCount>button{width:auto;min-height:44px;height:auto;border-radius:6px!important}
 .pdfStudio .pdfInlineCount>button:nth-last-child(2){grid-column:1/4}
 .pdfStudio .pdfRowStartNumber{left:0;top:-15px;width:auto;white-space:nowrap;text-align:left;font-size:10px;background:var(--pdf-bg);padding:1px 3px;border-radius:3px}
+
+.pdfPractice--desktop .pdfPracticeHeader{flex-wrap:wrap}
+
+.pdfBarBoundary{width:24px;margin-left:-12px;background:transparent;pointer-events:auto;touch-action:none;cursor:ew-resize;z-index:7}
+.pdfBarBoundary::after{content:'';position:absolute;left:11px;top:0;bottom:0;width:2px;background:#916734}
+.pdfBarBoundary::before,.pdfRowEdge::after{content:'';position:absolute;left:7px;top:50%;width:10px;height:20px;margin-top:-10px;border:1px solid #916734;border-radius:3px;background:#fffaf0}
+.pdfRowEdge{position:absolute;top:0;bottom:0;width:24px;touch-action:none;cursor:ew-resize;z-index:7}
+.pdfRowEdge--left{left:-12px}.pdfRowEdge--right{right:-12px}
+
+/* Fit-page geometry must not feed back through appearing/disappearing scrollbars. */
+.pdfStudio .pdfViewport.pdfViewport--pageFit{overflow:hidden}

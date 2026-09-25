@@ -74,6 +74,7 @@ export default function DesktopSidebarNavigation({
   accompanimentControlsDisabled = false,
   onOpenAudioStudio,
   onOpenEtudes,
+  onOpenRhythmTrainer,
   onOpenFretboard,
   onOpenHelp,
   onOpenMetronome,
@@ -102,6 +103,7 @@ export default function DesktopSidebarNavigation({
         </div>
       </div>
 
+      <LanguageSettings desktop />
       <nav className="desktopSidebarNav" aria-label={translateUi("navigation.mainScreens")}>
         <div className="desktopSidebarGroup">
           <DesktopSidebarItem active={activeKey === "tuner"} icon={Radio} label={translateUi("menu.tuner")} onClick={onOpenTuner} />
@@ -116,6 +118,7 @@ export default function DesktopSidebarNavigation({
           <DesktopSidebarItem active={activeKey === "stage1"} index="①" label={translateUi("app.singleNotes")} mark={translateUi("app.beginner")} onClick={onOpenSingleNote} tone="beginner" />
           <DesktopSidebarItem active={activeKey === "stage2"} index="②" label={translateUi("app.scalesPentatonics")} mark="SOLO" onClick={onOpenScale} tone="solo" />
           <DesktopSidebarItem active={activeKey === "stage3"} index="③" label={translateUi("navigation.rhythmChords")} mark="HOT •" onClick={onOpenRhythm} tone="rhythm" />
+          <DesktopSidebarItem active={activeKey === "rhythm-trainer"} icon={Music2} label={translateUi("app.rhythmTrainer")} mark="PRO" tone="arranger" onClick={onOpenRhythmTrainer} />
           <DesktopSidebarItem active={activeKey === "etudes"} icon={Music2} label={translateUi("app.scorePractice")} mark="PRO" onClick={onOpenEtudes} tone="arranger" />
         </div>
 
@@ -152,7 +155,6 @@ export default function DesktopSidebarNavigation({
               <ChevronDown className="desktopSidebarChevron" size={16} aria-hidden="true" />
             </summary>
             <div className="desktopSidebarSoundControls">
-              <LanguageSettings desktop />
               {inputControls}
               <MetronomeVolumeControl className="desktopSidebarSoundRow" />
               {backingVolumeControls.map((control) => {

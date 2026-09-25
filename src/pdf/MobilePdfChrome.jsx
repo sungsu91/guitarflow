@@ -1,21 +1,24 @@
 import { t as translateUi } from "./../i18n/core.js";
+import { localizeUi } from '../i18n/core.js';
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {useEffect,useRef,useState} from 'react';
-import {ArrowLeft,MoreVertical} from 'lucide-react';
+import {ArrowLeft,MoreVertical,LocateFixed} from 'lucide-react';
 import './mobilePdfChrome.css';
 
-export function MobilePdfHeader({title,editing,onBack,onDone,onAction,saveState,page,pageCount,original}){
+export function MobilePdfHeader({title,editing,onBack,onLocate,canLocate,onDone,onAction,saveState,page,pageCount,original}){
   useLanguage();
  const [menu,setMenu]=useState(false),root=useRef(null);
  useEffect(()=>{const close=e=>{if(!root.current?.contains(e.target))setMenu(false);};document.addEventListener('pointerdown',close,true);return()=>document.removeEventListener('pointerdown',close,true);},[]);
  const act=name=>{setMenu(false);onAction(name);};
  return <header className="mobilePdfHud" ref={root}>
-  <button type="button" aria-label={translateUi("pdf.backToMyScores")} onClick={onBack}><ArrowLeft size={21}/></button>
+  <button type="button" aria-label={translateUi("score.backToRoom")} onClick={onBack}><ArrowLeft size={21}/></button>
   <h1>{title}</h1>
+  <button type="button" aria-label={translateUi("pdf.goToCurrentPosition")} title={translateUi("pdf.goToCurrentPosition")} disabled={!canLocate} onClick={onLocate}><LocateFixed size={20}/></button>
   <button type="button" aria-label={translateUi("pdf.pdfDocumentMenu")} aria-expanded={menu} onClick={()=>{setMenu(v=>!v);}}><MoreVertical size={19}/></button>
   <button type="button" aria-label={translateUi("pdf.quickPdfEdit")} aria-pressed={editing} onClick={onDone}>{editing?translateUi("common.done"):translateUi("common.edit")}</button>
   {menu&&<div className="mobilePdfMenu" role="group" aria-label={translateUi("pdf.pdfDocumentActions")}>
-   <small>{page} / {pageCount}<Translation id="pdf.pages" /><span role="status">{saveState}</span></small>
+   <small>{page} / {pageCount}<Translation id="pdf.pages" /><span role="status">{localizeUi(saveState)}</span></small>
+   <button onClick={()=>act('export')}><Translation id="pdf.exportPracticeFile" /></button>
    <button onClick={()=>act('info')}><Translation id="pdf.documentDetails" /></button>
    <button onClick={()=>act('fit')}><Translation id="components.fitWidth" /></button><button onClick={()=>act('reset')}><Translation id="pdf.resetCrop" /></button>
    <button onClick={()=>act('original')}>{original?translateUi("pdf.editedView"):translateUi("pdf.originalView")}</button><button onClick={()=>act('fullscreen')}><Translation id="pdf.fullscreen" /></button>

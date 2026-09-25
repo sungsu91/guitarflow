@@ -3,7 +3,7 @@ import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import { Lock, Settings, Volume2, VolumeX } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useLayoutEffect, useEffect, useRef, useState } from "react";
 
 function SharedAccompanimentVolumeSlider({ disabled, onVolumeCommit, onVolumeInput, part }) {
   useLanguage();
@@ -40,6 +40,7 @@ function SharedAccompanimentVolumeSlider({ disabled, onVolumeCommit, onVolumeInp
 export function SharedAccompanimentPanel({
   className = "",
   defaultExpanded = true,
+  upward = false,
   disabled = false,
   hidePartSummary = false,
   lockedLabel = ko["app.recommendedProgressions"],
@@ -53,7 +54,11 @@ export function SharedAccompanimentPanel({
   parts = [],
 }) {
   useLanguage();
+  const dockRef=useRef(null);
+  const Body=upward?'div':Fragment;
+  useEffect(()=>{if(upward)setExpanded(false);},[upward]);
   const [expanded, setExpanded] = useState(Boolean(defaultExpanded));
+  useLayoutEffect(()=>{if(!upward)return;const place=()=>dockRef.current?.style.setProperty('--accompaniment-flyout-height',Math.max(0,dockRef.current.getBoundingClientRect().top-10)+'px');place();window.addEventListener('resize',place);window.visualViewport?.addEventListener('resize',place);return()=>{window.removeEventListener('resize',place);window.visualViewport?.removeEventListener('resize',place);};},[upward,expanded]);
   const [beatValueOverrides, setBeatValueOverrides] = useState({});
   const [enabledOverrides, setEnabledOverrides] = useState({});
   const beatValueKey = parts.map((part) => `${part.id}:${part.beatValue}`).join("|");
@@ -94,15 +99,15 @@ export function SharedAccompanimentPanel({
   }, [disabled]);
 
   return (
-    <details
+    <details ref={dockRef}
       aria-disabled={disabled}
-      className={`sharedAccompanimentPanel miniChordBackingPanel ${className}`.trim()}
+      className={`sharedAccompanimentPanel miniChordBackingPanel ${className} ${upward?"sharedAccompanimentPanel--upward":""}`.trim()}
       data-accompaniment-locked={disabled ? "true" : undefined}
       onToggle={(event) => setExpanded(event.currentTarget.open)}
       open={expanded}
       title={disabled ? translateUi("rhythm.value1BackingSoundIsFixed", { value1: lockedLabel }) : undefined}
     >
-      <summary>
+      <summary data-collapse-label={translateUi("app.collapse")} data-expand-label={translateUi("app.expand")}>
         <span>
           {disabled ? <Lock aria-hidden="true" size={12} /> : null}<Translation id="rhythm.backingSound" /><button
             type="button"
@@ -133,9 +138,10 @@ export function SharedAccompanimentPanel({
         >
           <Settings aria-hidden="true" size={13} /><Translation id="app.customRhythms" /></button>
       </summary>
+      <Body {...(upward?{className:"sharedAccompanimentFlyout"}:{})}>
       {disabled && lockedNotice ? (
         <p className="sharedAccompanimentLockNotice" role="note">
-          {lockedNotice}
+          {localizeUi(lockedNotice)}
         </p>
       ) : null}
       <div className="miniChordBackingRows sharedAccompanimentRows">
@@ -201,6 +207,7 @@ export function SharedAccompanimentPanel({
           );
         })}
       </div>
+      </Body>
     </details>
   );
 }

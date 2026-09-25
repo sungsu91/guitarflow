@@ -19,21 +19,23 @@ test("menu status badge system exposes the approved status vocabulary", () => {
 test("menu applies status badges without changing the item actions", () => {
   assert.match(appSource, /<UtilityMenuTitle status="BEGINNER">단일 음 위치 익히기<\/UtilityMenuTitle>/);
   assert.match(appSource, /<UtilityMenuTitle status="SOLO">스케일 · 펜타토닉<\/UtilityMenuTitle>/);
-  assert.match(appSource, /<UtilityMenuTitle status="DEV">미니반주<\/UtilityMenuTitle>/);
-  assert.match(appSource, /<UtilityMenuTitle status="DEV">오디오 스튜디오<\/UtilityMenuTitle>/);
+  assert.ok(appSource.includes('<UtilityMenuTitle status="DEV" statusLabel="미완성">미니반주</UtilityMenuTitle>'));
+  assert.ok(appSource.includes('<UtilityMenuTitle status="DEV" statusLabel="미완성">오디오 스튜디오</UtilityMenuTitle>'));
   assert.match(appSource, /<UtilityMenuTitle status="HOT">리듬 &amp; 코드<\/UtilityMenuTitle>/);
   assert.match(appSource, /onClick=\{showAudioStudio\}/);
   assert.match(appSource, /onClick=\{showCurriculum\}/);
 });
 
 test("audio studio follows mini backing in the utility menu", () => {
-  const miniBackingIndex = appSource.indexOf('<UtilityMenuTitle status="DEV">미니반주</UtilityMenuTitle>');
-  const audioStudioIndex = appSource.indexOf('<UtilityMenuTitle status="DEV">오디오 스튜디오</UtilityMenuTitle>');
-  const soundPanelIndex = appSource.indexOf('<section className="utilitySoundPanel"', audioStudioIndex);
+  const miniBackingIndex = appSource.indexOf('<UtilityMenuTitle status="DEV" statusLabel="미완성">미니반주</UtilityMenuTitle>');
+  const audioStudioIndex = appSource.indexOf('<UtilityMenuTitle status="DEV" statusLabel="미완성">오디오 스튜디오</UtilityMenuTitle>');
+  const devGroupIndex = appSource.indexOf('dev={<>');
+  const footerIndex = appSource.indexOf('footer={<>', audioStudioIndex);
 
   assert.ok(miniBackingIndex >= 0);
   assert.ok(audioStudioIndex > miniBackingIndex);
-  assert.ok(soundPanelIndex > audioStudioIndex);
+  assert.ok(devGroupIndex < miniBackingIndex);
+  assert.ok(footerIndex > audioStudioIndex);
 });
 
 test("badge layout reserves compact fixed width and theme-specific palettes", () => {

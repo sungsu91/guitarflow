@@ -18,11 +18,11 @@ function Filters({filter,onFilter}){
   useLanguage();return <nav className="libraryFilters" aria-label={translateUi("pdf.scoreListFilter")}>{[['all',ko["app.all"]],['recent',ko["pdf.recentPractice"]],['favorites',ko["etudes.favorites"]]].map(([key,label])=><button key={key} type="button" aria-pressed={filter===key} onClick={()=>onFilter(key)}>{localizeUi(label)}</button>)}</nav>;}
 export function MobileLibraryTools(props){return <div className="libraryTools libraryTools--mobile"><SearchField {...props}/><Filters {...props}/><SortField {...props}/></div>;}
 export function DesktopLibraryTools(props){return <div className="libraryTools libraryTools--desktop"><SearchField {...props}/><SortField {...props}/><Filters {...props}/></div>;}
-export function LibraryStorage({children,mobile}){
+export function LibraryStorage({children,mobile,compact=false}){
   useLanguage();
  const [open,setOpen]=useState(false),ref=useRef(null);
  useEffect(()=>{if(open)ref.current.showModal();},[open]);
  const heading=<><HardDrive size={27}/><span><strong><Translation id="app.localStorageAndBackups" /></strong><small><Translation id="pdf.manageScoresOnThisDevice" /></small></span><ChevronRight size={20}/></>;
- if(!mobile)return <details className="libraryStorageCard"><summary>{heading}</summary><div>{children}</div></details>;
- return <><button type="button" className="libraryStorageCard" aria-haspopup="dialog" onClick={()=>setOpen(true)}>{heading}</button>{open&&<dialog ref={ref} className="pdfDialog" aria-label={translateUi("pdf.deviceStorageAndBackup")} onCancel={()=>setOpen(false)}><header className="libraryStorageHeading"><h2><Translation id="app.localStorageAndBackups" /></h2><button type="button" onClick={()=>setOpen(false)}><Translation id="common.close" /></button></header>{children}</dialog>}</>;
+ if(!mobile&&!compact)return <details className="libraryStorageCard"><summary>{heading}</summary><div>{children}</div></details>;
+ return <><button type="button" className={compact?"libraryStorageCompact":"libraryStorageCard"} aria-haspopup="dialog" onClick={()=>setOpen(true)}>{compact?<><HardDrive size={15}/><Translation id="app.localStorageAndBackups" /></>:heading}</button>{open&&<dialog ref={ref} className="pdfDialog" aria-label={translateUi("pdf.deviceStorageAndBackup")} onCancel={()=>setOpen(false)}><header className="libraryStorageHeading"><h2><Translation id="app.localStorageAndBackups" /></h2><button type="button" onClick={()=>setOpen(false)}><Translation id="common.close" /></button></header>{children}</dialog>}</>;
 }

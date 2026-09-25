@@ -12,10 +12,10 @@ export default function UtilityMenuSurface({ children, theme, onClose }) {
     const releaseTouch = panel ? containModalTouch(panel) : () => {};
     panel?.querySelector(".utilityMenuHeader button")?.focus({ preventScroll: true });
     const handleKey = event => {
-      if (event.key === "Escape") { event.preventDefault(); onClose(); }
+      if (event.key === "Escape" && !panel?.querySelector('#utility-settings')) { event.preventDefault(); event.stopPropagation(); onClose(); }
       if (event.key !== "Tab" || !panel) return;
       const controls = [...panel.querySelectorAll('button:not(:disabled), a[href], summary, input:not(:disabled), [tabindex="0"]')]
-        .filter(node => node.getClientRects().length);
+        .filter(node => node.getClientRects().length && !node.closest('[inert]'));
       const first = controls[0], last = controls.at(-1);
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }

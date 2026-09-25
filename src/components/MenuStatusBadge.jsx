@@ -14,7 +14,7 @@ const MENU_STATUS_META = Object.freeze({
 
 export const MENU_STATUS_TYPES = Object.freeze(Object.keys(MENU_STATUS_META));
 
-export function MenuStatusBadge({ status }) {
+export function MenuStatusBadge({ status, label }) {
   useLanguage();
   const normalizedStatus = typeof status === "string" ? status.trim().toUpperCase() : "";
   const meta = MENU_STATUS_META[normalizedStatus];
@@ -27,16 +27,16 @@ export function MenuStatusBadge({ status }) {
       data-menu-status={normalizedStatus}
       title={localizeUi(meta.label)}
     >
-      {localizeUi(meta.text ?? normalizedStatus)}
+      {label ?? localizeUi(meta.text ?? normalizedStatus)}
     </span>
   );
 }
 
-export function UtilityMenuTitle({ children, status = "" }) {
+export function UtilityMenuTitle({ children, status = "", statusLabel }) {
   return (
     <strong className="utilityMenuTitle">
       <span className="utilityMenuTitleLabel">{children}</span>
-      {status ? <MenuStatusBadge status={status} /> : null}
+      {status ? <MenuStatusBadge status={status} label={statusLabel} /> : null}
     </strong>
   );
 }

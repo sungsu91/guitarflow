@@ -19,7 +19,7 @@ export function printEditorScore(container,title,view='both',metadata) {
  const measures=[...container.querySelectorAll('[data-draw-count]')].map(host=>({svg:host.shadowRoot?.querySelector('svg'),measure:host.closest('[data-layout-row]')})).filter(item=>item.svg);
  if(!measures.length&&!metadata)throw Error(translateUi("etudes.prepareADisplayableScoreFirst"));
  const win=window.open('','_blank','width=1000,height=800');if(!win)throw Error(translateUi("etudes.allowThePrintPreviewPopupAndTryAgain"));
- const doc=win.document;doc.title=translateUi("etudes.valueA4PrintPreview", { value1: title });doc.documentElement.lang=getLanguage();
+ const doc=win.document;doc.title=title?.trim()||ko["components.scores"];doc.documentElement.lang=getLanguage();
  const viewport=doc.createElement('meta');viewport.name='viewport';viewport.content='width=device-width, initial-scale=1';doc.head.append(viewport);
  const style=doc.createElement('style');
  style.textContent=`
@@ -31,6 +31,7 @@ export function printEditorScore(container,title,view='both',metadata) {
  button{font:inherit;min-height:40px;padding:8px 12px;border:1px solid #cec4b9;border-radius:8px;background:white;color:#493a2f;cursor:pointer}
  main{padding:16px 0}.sheetFrame{position:relative;margin:0 auto 16px}
  .a4Sheet{position:relative;width:210mm;height:297mm;padding:10mm;background:white;transform-origin:top left;box-shadow:0 2px 12px #0002}
+ .a4Sheet{filter:grayscale(1)}.a4Sheet .etudeChordBarre{stroke:#555;stroke-opacity:1;stroke-width:3;fill:none}
  .scoreHeading{display:grid;grid-template-columns:92px minmax(0,1fr) 92px;grid-template-rows:auto auto;column-gap:12px;align-items:center;margin-bottom:10px}.scoreBrand{grid-column:1;grid-row:1/3;align-self:center}.scoreBrand img{display:block;width:23mm;height:23mm;object-fit:contain}.scoreSource{grid-column:3;grid-row:1/3;font:10px Arial,sans-serif;text-align:right;color:#666}.scoreHeading h1{grid-column:2;grid-row:1}.scoreHeading .scoreCredit{grid-column:2;grid-row:2;margin-bottom:0}
  h1{font:700 30px Arial,sans-serif;text-align:center;margin:0 0 10px;overflow-wrap:anywhere}.scoreCredit{text-align:center;font-size:13px;margin:0 0 20px;overflow-wrap:anywhere}
  section{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0;break-inside:avoid}section>div{min-width:0}

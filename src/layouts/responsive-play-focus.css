@@ -1690,10 +1690,10 @@ html body main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFoc
   .stage3DesktopPrimaryColumn .stage3EmptyProgressionReadout {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(2, 28px) !important;
+  grid-template-rows: repeat(2, 38px) !important;
   align-items: stretch !important;
   width: 100% !important;
-  height: 59px !important;
+  height: 79px !important;
   margin: 0 !important;
   gap: 3px !important;
   overflow: hidden !important;
@@ -1703,8 +1703,8 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
   .stage3DesktopPrimaryColumn .stage3EmptyProgressionMeasure {
   display: grid !important;
   width: 100% !important;
-  height: 28px !important;
-  min-height: 28px !important;
+  height: 38px !important;
+  min-height: 38px !important;
   padding: 1px 2px !important;
 }
 
@@ -1712,7 +1712,7 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
   .stage3DesktopPrimaryColumn .stage3EmptyProgressionMeasure > span {
   display: block !important;
   width: 100% !important;
-  height: 22px !important;
+  height: 32px !important;
   border: 1px solid rgba(169, 123, 66, 0.16) !important;
   border-radius: 7px !important;
   background: rgba(255, 252, 246, 0.34) !important;
@@ -1732,7 +1732,7 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
 html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus
   .stage3DesktopPrimaryColumn .chordTransitionChart > .referenceHeader > div {
   display: grid !important;
-  grid-template-rows: 18px 59px !important;
+  grid-template-rows: 79px !important;
   width: 100% !important;
   height: 80px !important;
   min-width: 0 !important;
@@ -1749,12 +1749,12 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
   .stage3DesktopPrimaryColumn .currentProgressionReadout {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  grid-auto-rows: 28px !important;
+  grid-auto-rows: 38px !important;
   align-items: stretch !important;
   width: 100% !important;
-  height: 59px !important;
-  min-height: 59px !important;
-  max-height: 59px !important;
+  height: 79px !important;
+  min-height: 79px !important;
+  max-height: 79px !important;
   margin: 0 !important;
   gap: 3px !important;
   overflow-x: hidden !important;
@@ -1766,9 +1766,9 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
   .stage3DesktopPrimaryColumn .currentProgressionReadout > .rhythmChordMeasure {
   display: flex !important;
   width: 100% !important;
-  height: 28px !important;
+  height: 38px !important;
   min-width: 0 !important;
-  min-height: 28px !important;
+  min-height: 38px !important;
   padding: 1px 2px !important;
   gap: 1px !important;
 }
@@ -1778,10 +1778,11 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
   flex: 1 1 0 !important;
   width: auto !important;
   min-width: 0 !important;
-  height: 24px !important;
-  min-height: 24px !important;
+  height: 34px !important;
+  min-height: 34px !important;
   padding: 1px 2px !important;
   overflow: hidden !important;
+  font-size: 13px !important;
 }
 
 html body main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus
@@ -5433,3 +5434,137 @@ html body #root .mobileLayoutShell main.app.viewport-tablet.viewport-portrait
   width: var(--responsive-content-width) !important;
   max-width: 1120px !important;
 }
+/* Mobile landscape rhythm controls: fixed lower sound dock and complete settings grid. */
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn{
+ position:relative!important;display:flex!important;flex-direction:column!important;overflow:visible!important;scrollbar-gutter:auto!important;padding:0!important;box-sizing:border-box!important;
+}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn>.stage3StandaloneMetronomeControl{
+ flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;
+}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3StandaloneMetronomeControl .metronomeOptions{
+ display:block!important;height:auto!important;min-height:0!important;max-height:none!important;padding:6px!important;overflow:visible!important;
+}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3StandaloneMetronomeControl .rhythmSettings{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;width:100%!important;
+}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3StandaloneMetronomeControl .rhythmSetting{
+ display:flex!important;align-items:center!important;gap:4px!important;grid-area:auto!important;min-width:0!important;width:auto!important;
+}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3StandaloneMetronomeControl .rhythmSettingLabel{font-size:10px!important;white-space:nowrap!important;flex:none!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3StandaloneMetronomeControl .rhythmSettingTrigger{flex:1!important;min-width:0!important;width:0!important;min-height:34px!important;height:34px!important;padding:4px!important;font-size:11px!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn>.sharedAccompanimentPanel--upward{
+ position:relative!important;bottom:auto!important;left:auto!important;right:auto!important;flex:0 0 42px!important;z-index:50!important;max-height:none!important;height:42px!important;overflow:visible!important;
+}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .sharedAccompanimentFlyout{
+ position:absolute;bottom:calc(100% + 5px);left:0;right:0;max-height:calc(100dvh - 60px);overflow:auto;border:1px solid var(--theme-border-control,#b18b45);border-radius:12px;background:var(--theme-surface,#fff);box-shadow:0 -4px 18px #0004;
+}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .sharedAccompanimentPanel--upward>summary::after{transform:translateY(2px) rotate(225deg)!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .sharedAccompanimentPanel--upward[open]>summary::after{transform:translateY(-2px) rotate(45deg)!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .sharedAccompanimentFlyout{background:#fcfaf5!important}
+html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.landscapePlayFocus .sharedAccompanimentFlyout{background:#211e18!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .sharedAccompanimentFlyout{max-height:var(--accompaniment-flyout-height,calc(100dvh - 60px));box-sizing:border-box}
+
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn{justify-content:flex-start!important;gap:5px!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn .stage3MobileTransportDeck{flex:0 0 auto!important;margin:0!important;align-self:stretch!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn>.stage3StandaloneMetronomeControl{flex:0 0 auto!important;margin:0!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3LandscapeGuide{flex:1 1 auto;min-height:0;overflow:auto;padding:5px 8px;border:1px solid var(--theme-border-control,#886b3f);border-radius:10px;font-size:11px;line-height:1.35}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3LandscapeGuide p{margin:2px 0 0;font-size:10px}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn>.sharedAccompanimentPanel--training.sharedAccompanimentPanel--upward>summary::after{transform:translateY(2px) rotate(225deg)!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn>.sharedAccompanimentPanel--training.sharedAccompanimentPanel--upward[open]>summary::after{transform:translateY(-2px) rotate(45deg)!important}
+html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapePlayFocus .stage3DesktopSideColumn .stage3LoadToolbar{height:42px!important;min-height:42px!important;flex:0 0 42px!important}
+
+/* Compact mobile landscape library. */
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom{padding:8px!important;gap:5px!important;grid-template-rows:36px minmax(0,1fr)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageDialogHeading{min-height:36px!important;height:36px!important;padding:0 4px!important;margin:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:3px 8px!important;padding:0!important;scrollbar-gutter:auto!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;margin:0!important;padding:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .chordBuilderOptionSection{padding:0!important;min-height:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .chordBuilderChipGrid{gap:2px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .chordBuilderChip{height:22px!important;min-height:22px!important;padding:1px 3px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3StrumPickRow{grid-column:1!important;grid-row:2!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3AddRow{grid-column:2!important;grid-row:2!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3InlineProgressionRow{grid-column:1!important;grid-row:3!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3InlineStrum{grid-column:2!important;grid-row:3!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom :is(.stage3StrumPickRow,.stage3AddRow,.stage3InlineProgressionRow,.stage3InlineStrum){margin:0!important;padding:3px 0!important;min-height:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom :is(.stage3InlineProgressionRow,.stage3InlineStrum)>div{min-height:30px!important;padding:3px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3StorageComposerActions{grid-row:4!important;padding:3px 0!important;background:var(--studio-surface)!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom{background:var(--studio-surface)!important;color:var(--studio-text)!important;border-color:var(--studio-border)!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom :is(.stage3StorageDialogHeading,.stage3StorageComposerActions){background:var(--studio-surface)!important;color:var(--studio-text)!important;border-color:var(--studio-border)!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom :is(button:not(.stage3ChordMiniReference button):not(.strumPatternStep),.chordBuilderChip,.stage3InlineProgression,.stage3InlineStrum){background:var(--studio-control)!important;color:var(--studio-text)!important;border-color:var(--studio-border)!important;box-shadow:none!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom button.selected{background:var(--studio-selected)!important;border-color:var(--studio-accent)!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom button:disabled{opacity:.45!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom :is(strong,label,p,small){color:inherit}
+
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposer{grid-template-rows:minmax(0,1fr)!important;padding:0 4px 4px!important;gap:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder{grid-row:1!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom :is(.stage3StorageDialogHeading strong,.stage3ChordMiniReferenceTitle,.chordBuilderOptionLabel,.chordBuilderOptionSection>strong,.stage3ChordMiniReference strong,.stage3ChordMiniReference span,.stage3AddRow,.stage3StrumPickRow,.stage3InlineProgressionRow){color:var(--studio-text)!important}
+
+/* Keep the preview and composed sequence left, editing actions right. */
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:none!important;grid-auto-rows:max-content!important;align-items:start!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3ChordBuilderPanel{display:contents!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.stage3ChordMiniReference{grid-column:1!important;grid-row:1 / 6!important;align-self:start!important;border:0!important;padding:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.chordBuilderOptionSection:nth-child(2){grid-column:2!important;grid-row:1!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.chordBuilderOptionSection:nth-child(3){grid-column:2!important;grid-row:2!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.chordBuilderOptionSection:nth-child(4){grid-column:2!important;grid-row:3!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.chordBuilderOptionSection:nth-child(5){grid-column:2!important;grid-row:4!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.chordBuilderOptionSection:nth-child(6){grid-column:2!important;grid-row:5!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3InlineProgressionRow{grid-column:1!important;grid-row:6!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3InlineStrum{grid-column:1!important;grid-row:7!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3AddRow{grid-column:2!important;grid-row:7!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3StrumPickRow{grid-column:2!important;grid-row:8!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3StorageComposerActions{grid-column:2!important;grid-row:6!important;position:static!important;inset:auto!important;display:flex!important;gap:5px!important;min-height:38px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>button{flex:1!important;min-width:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumInlineControl{display:flex!important;flex-wrap:wrap!important;gap:4px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumDraftInline{width:100%!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3ChordMiniReferenceHeading small{color:var(--studio-text)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumPickRow>span,.stage3AddRow strong,.stage3InlineStrum>span{color:var(--studio-text)!important}
+
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom :is(.progressionChipList,.strumPreviewList){background:var(--studio-control)!important;border-color:var(--studio-border)!important;color:var(--studio-text)!important}
+html body #root main.app.app.app .stage3StorageDialog.stage3StorageRoom :is(.stage3InlineProgressionRow>span,.stage3InlineStrum>span,.stage3AddRow strong,.stage3AddRow strong>span,.stage3AddRow strong>b,.stage3AddRow strong>small,.chordProgressionEmpty){color:var(--studio-text)!important}
+
+/* One scrolling surface includes the library heading and all editor controls. */
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom{display:block!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:stable!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageDialogHeading{position:static!important;inset:auto!important;margin-bottom:5px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposer{display:block!important;overflow:visible!important;height:auto!important;max-height:none!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder{height:auto!important;max-height:none!important;overflow:visible!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .progressionChipList .rhythmChordMeasure{display:flex!important;flex-wrap:wrap!important;gap:4px!important;width:auto!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .progressionChipList .rhythmChordMeasure>strong{display:flex!important;align-items:stretch!important;flex:none!important;width:auto!important;min-width:86px!important;background:var(--studio-control)!important;border-color:var(--studio-border)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .progressionChipList .rhythmChordMeasure>strong>.stage3ProgressionEditButton{flex:1!important;width:auto!important;min-width:50px!important;position:static!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .progressionChipList .rhythmChordMeasure>strong>button:not(.stage3ProgressionEditButton){position:static!important;flex:0 0 28px!important;width:28px!important;min-width:28px!important;height:auto!important;margin:0!important;padding:3px!important;background:transparent!important;color:var(--studio-text)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .progressionChipList .rhythmChordMeasure>strong>button::before{background:none!important}
+
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom :is(.stage3AddRow,.stage3StrumPickRow,.stage3StorageComposerActions) button:not(.strumPatternStep){height:28px!important;min-height:28px!important;padding:3px 7px!important;font-size:11px!important;border-radius:7px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder>.stage3StorageComposerActions{min-height:34px!important;justify-content:flex-end!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>button{flex:0 1 86px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>button:nth-of-type(1){background:color-mix(in srgb,var(--studio-control) 78%,#b79b65)!important;border-color:color-mix(in srgb,var(--studio-border) 65%,#b79b65)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>button:nth-of-type(2){background:color-mix(in srgb,var(--studio-control) 85%,#a1776b)!important;border-color:color-mix(in srgb,var(--studio-border) 70%,#a1776b)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>button:nth-of-type(3){background:color-mix(in srgb,var(--studio-control) 85%,#8d9680)!important;border-color:color-mix(in srgb,var(--studio-border) 70%,#8d9680)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom :is(.stage3StrumChoiceButtons,.stage3StrumActionSegment){gap:4px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumDraftInline{min-height:20px!important;padding:1px 0!important}
+
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumPickRow{grid-template-columns:36px minmax(0,1fr)!important;gap:4px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumInlineControl{display:flex!important;flex-wrap:wrap!important;gap:4px!important;align-items:center!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom :is(.stage3StrumChoiceButtons,.stage3StrumActionSegment){display:flex!important;flex:0 0 auto!important;width:auto!important;gap:3px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumChoiceButtons>button{flex:none!important;width:27px!important;min-width:27px!important;padding:2px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumActionSegment>button{flex:none!important;width:auto!important;min-width:38px!important;padding:2px 4px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumDraftInline .strumPatternStep{background:transparent!important;border:0!important;box-shadow:none!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumDraftInline .strumPatternStep.hit{color:var(--studio-accent)!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StrumDraftInline .strumPatternStep.ghost{color:color-mix(in srgb,var(--studio-text) 35%,transparent)!important}
+
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>.stage3StorageLoadSelect{flex:0 1 86px!important;min-width:0!important;width:auto!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions .metronomeSelectButton{width:100%!important;height:28px!important;min-height:28px!important;padding:3px 7px!important;font-size:11px!important;border-radius:7px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageDialogHeading{display:flex!important;justify-content:space-between!important}
+
+/* Portrait progression chips reserve their width for the chord label. */
+html body #root main.app.app.app.viewport-mobile-surface.viewport-portrait .stage3StorageDialog.stage3StorageRoom .stage3InlineProgressionRow .progressionChipList{padding-top:9px!important;padding-right:8px!important;padding-bottom:5px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-portrait .stage3StorageDialog.stage3StorageRoom .stage3InlineProgressionRow .rhythmChordMeasure{overflow:visible!important;gap:8px!important;padding-right:4px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-portrait .stage3StorageDialog.stage3StorageRoom .stage3InlineProgressionRow .rhythmChordMeasure>strong{position:relative!important;overflow:visible!important;padding:0!important;gap:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-portrait .stage3StorageDialog.stage3StorageRoom .stage3InlineProgressionRow .rhythmChordMeasure>strong>.stage3ProgressionEditButton{padding:4px 8px!important;min-width:32px!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-portrait .stage3StorageDialog.stage3StorageRoom .stage3InlineProgressionRow .rhythmChordMeasure>strong>button:not(.stage3ProgressionEditButton){position:absolute!important;top:-7px!important;right:-6px!important;z-index:2!important;width:16px!important;min-width:16px!important;height:16px!important;min-height:16px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:var(--studio-surface)!important;color:var(--studio-text)!important;border:1px solid var(--studio-border)!important;display:grid!important;place-items:center!important;font-size:11px!important;line-height:1!important}
+
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageLandscapePreview{grid-column:1!important;grid-row:1 / 9!important;display:flex;flex-direction:column;gap:5px;min-width:0;align-self:start}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageLandscapePreview>.stage3ChordMiniReference{min-height:0!important;padding:0!important;border:0!important;margin:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageLandscapePreview>.stage3StorageComposerActions{position:static!important;display:flex!important;gap:5px!important;width:100%!important;padding:4px 0!important;margin:0!important;background:transparent!important;min-height:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageLandscapePreview :is(.stage3InlineProgressionRow,.stage3InlineStrum){width:100%!important;min-width:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>.stage3StorageLoadSelect{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+html body #root main.app.app.app.viewport-mobile-surface.viewport-landscape .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions>.stage3StorageLoadSelect::before,.stage3StorageComposerActions>.stage3StorageLoadSelect::after{content:none!important}

@@ -692,7 +692,7 @@ html body #root .app .chordTransitionPanel :is(.stage3LoadToolbar button,.stage3
   background:var(--studio-control)!important;border-color:var(--studio-border)!important;
   color:var(--studio-text)!important;box-shadow:none!important;text-shadow:none!important;
 }
-html body #root .app .chordTransitionPanel .stage3LoadToolbar button[aria-expanded=true],
+html body #root .app .chordTransitionPanel .stage3LoadToolbar button:is([aria-expanded=true],[aria-current=true]),
 html body #root .app .chordTransitionPanel .stage3MetronomeSoundToggle[aria-pressed=true] {
   background:var(--studio-selected)!important;border-color:var(--studio-accent)!important;
 }
@@ -823,4 +823,25 @@ html body #root .app .etudeBackingDrawer .backingLoopTrackInfo.is-drag-handle {
   box-shadow:none!important;
   color:var(--studio-player-text)!important;
 }
+}
+
+/* Keep the mobile sound icon below the full label in either language. */
+@media (max-width: 767px) {
+  html body main.app.app.app .chordTransitionPanel .stage3MetronomeSoundToggle--mobile span {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+  }
+  html body main.app.app.app .chordTransitionPanel .stage3MetronomeSoundToggle--mobile svg {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+  html body main.app.app.app .chordTransitionPanel .stage3MetronomeSoundToggle--mobile b {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    align-self: center !important;
+  }
+  html body main.app.app.app .chordTransitionPanel .stage3StandaloneMetronomeControl
+    > .metronomeOptions:not(.metronomeOptions--collapsed) .metronomeOptionsCollapseButton {
+    top: -24px !important;
+  }
 }

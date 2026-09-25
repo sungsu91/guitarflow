@@ -1,0 +1,55 @@
+/* The guide is an independent screen; the underlying practice DOM retains its scroll. */
+.rt-guide { position:fixed; inset:0; z-index:1200; background:#2c3137; color:#e4e7eb; --rt-ink:#e4e7eb; --rt-paper:#30353b; --rt-staff:#626c77; --rt-measure-number:#a9b4c0; --rt-note-active:#9ed6bd; display:flex; flex-direction:column; padding:0; overflow:hidden; font-size:14px; }
+.rt-guide > header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; flex:none; border-bottom:1px solid #47505a; }
+.rt-guide header small { display:block; font-size:11px; color:#b2becb; margin-top:3px; }
+.rt-guide button,.rt-guide select,.rt-guide input { font:inherit; color:inherit; border:1px solid #56616c; background:#373f48; border-radius:8px; padding:7px 9px; }
+.rt-guide header button { font-size:22px; }
+.rt-guide-body { flex:1; min-height:0; overflow:auto; padding:12px 14px; }
+.rt-guide-meter { display:flex; align-items:center; gap:9px; }
+.rt-guide-meter span { font-size:11px; color:#b8c5d1; }
+.rt-guide-select { margin:12px 0; }
+.rt-guide-select > label { display:flex; align-items:center; gap:10px; font-size:12px; }
+.rt-guide-select nav { display:flex; overflow-x:auto; gap:6px; padding:9px 0 4px; }
+.rt-guide-select nav button { white-space:nowrap; flex:none; }
+.rt-guide button[aria-pressed="true"] { background:#39654f; border-color:#9ed6bd; }
+.rt-guide-heading { display:flex; flex-wrap:wrap; gap:5px 10px; align-items:baseline; }
+.rt-guide-heading small,.rt-guide-legend { font-size:11px; color:#c0cbc5; }
+.rt-guide-legend { margin:8px 0; }
+.rt-guide-score article { background:#30353b; border:1px solid #4a545f; border-radius:10px; padding:8px 0; margin-bottom:9px; }
+.rt-guide-beat-label { padding-left:12px; color:#b8c5d1; }
+.rt-guide-score .rt-score { padding:0; }
+.rt-guide-score .rt-measure { display:block; width:100%; height:auto; max-height:100px; }
+.rt-guide-grid { display:grid; margin:0 3.889% 0 8.333%; gap:0; text-align:center; }
+.rt-guide-grid > div { padding:5px 0; border:1px solid #525e66; background:#35423e; font-size:13px; }
+.rt-guide-grid [data-action="hold"] { background:#353e47; }
+.rt-guide-grid [data-action="rest"] { background:#493d42; }
+.rt-guide-grid b,.rt-guide-grid small { display:block; }
+.rt-guide-grid b { font-size:20px; }
+.rt-guide-grid small { font-size:10px; line-height:1.4; }
+.rt-guide-grid .is-current { box-shadow:inset 0 0 0 2px #a9eaca; color:#d2ffe8; background:#446554; }
+.rt-guide-score p { margin:9px 12px 2px; font-size:12px; line-height:1.6; color:#cbd7d0; }
+.rt-guide > footer.rt-guide-controls { padding:10px 14px max(10px,env(safe-area-inset-bottom)); flex:none; border-top:1px solid #4a545f; background:#272d33; }
+.rt-guide-controls > div { display:flex; align-items:center; justify-content:space-between; gap:5px; }
+.rt-guide-controls label { font-size:11px; }
+.rt-guide-tempo input { width:62px; font-size:17px; font-weight:700; }
+.rt-guide-sound { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:8px 0; }
+.rt-guide-sound select { max-width:70%; }
+.rt-guide-controls > button { width:100%; min-height:40px; background:#39654f; }
+.rt-guide-desktop { inset:5vh max(24px,calc((100vw - 900px)/2)); border:1px solid #56616c; border-radius:16px; box-shadow:0 0 0 100vmax #10151bce; }
+.rt-guide-desktop .rt-guide-score { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.rt-guide-desktop .rt-guide-score article:only-child { grid-column:1/-1; max-width:650px; width:100%; justify-self:center; }
+.rt-header .rt-header-actions { display:flex; align-items:center; gap:2px; }
+.rt-header .rt-header-actions button { padding:5px 7px; font-size:11px; }
+@media (max-height:600px) and (orientation:landscape) {
+ .rt-guide-mobile .rt-guide-body { padding-right:225px; }
+ .rt-guide-mobile > footer.rt-guide-controls { position:absolute; right:0; top:65px; bottom:0; width:210px; }
+ .rt-guide-mobile .rt-guide-controls > div { flex-wrap:wrap; }
+ .rt-guide-mobile .rt-guide-sound { flex-direction:column; align-items:stretch; }
+ .rt-guide-mobile .rt-guide-sound select { max-width:100%; }
+}
+.rt-guide .rt-score,.rt-guide .rt-measure { background:#30353b !important; }
+.rt-guide-controls > button.rt-primary { background:#39654f; }
+.rt-guide-mobile .rt-guide-score .rt-measure { height:62px; max-height:none; }
+.rt-guide-mobile .rt-guide-grid > div { padding:3px 0; }
+.rt-guide-mobile .rt-guide-grid b { font-size:18px; }
+.rt-guide-mobile .rt-guide-score p { margin-top:6px; font-size:11px; }

@@ -5,7 +5,7 @@ export default function LanguageSettings({ desktop = false }) {
   const language = useLanguage();
   if (desktop) {
     return (
-      <label className="desktopSidebarSoundRow">
+      <label className="desktopSidebarSoundRow desktopSidebarLanguage">
         <span><strong>{t('settings.language')}</strong></span>
         <select aria-label={t('settings.language')} value={language} onChange={event => setLanguage(event.target.value)}>
           <option value="ko">한국어</option>

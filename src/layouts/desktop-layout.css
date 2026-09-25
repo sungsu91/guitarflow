@@ -4117,3 +4117,95 @@
     opacity: 1 !important;
   }
 }
+
+@media(min-width:1024px){
+ .desktopSidebar > .desktopSidebarLanguage{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;padding:0 7px 10px}
+ .desktopSidebarLanguage > span{font-size:12px}
+ .desktopSidebarLanguage select{width:auto;min-width:110px;max-width:65%;font-size:12px;min-height:36px}
+}
+
+/* Desktop rhythm guidance belongs below the accompaniment controls. */
+html body #root .app .stage3DesktopSideColumn>.stage3DesktopGuide{position:static;flex:0 0 auto;min-width:0;padding:10px 12px;border:1px solid var(--studio-border);border-radius:12px;background:var(--studio-control);color:var(--studio-text);font-size:12px;line-height:1.45}
+html body #root .app .stage3DesktopGuide p{margin:3px 0 0;color:var(--studio-muted,var(--studio-text));font-size:11px}
+
+/* Desktop library uses one scroll surface with separated compact builder groups. */
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom{display:block!important;width:min(1120px,calc(100vw - 48px))!important;height:auto!important;max-height:calc(100dvh - 40px)!important;overflow:auto!important;padding:12px!important;scrollbar-gutter:stable!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3StorageComposer{display:block!important;height:auto!important;max-height:none!important;overflow:visible!important;padding:0!important;margin:0!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3StorageTopBar{position:static!important;display:flex!important;justify-content:space-between!important;margin:0 0 12px!important;padding:0!important;height:34px!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder{display:grid!important;grid-template-columns:1fr 1fr!important;height:auto!important;max-height:none!important;overflow:visible!important;gap:10px!important;padding:0!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel{grid-column:1 / -1!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px 16px!important;align-items:start!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.stage3ChordMiniReference{grid-column:1!important;grid-row:1 / 6!important;position:static!important;display:grid!important;grid-template-rows:auto auto!important;padding:0!important;gap:8px!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3ChordMiniReferenceHeading{position:static!important;display:flex!important;justify-content:space-between!important;min-height:28px!important;color:var(--studio-text)!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3ChordMiniReferenceHeading :is(strong,small){color:var(--studio-text)!important;opacity:1!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3ChordMiniReferenceFretboard.fitRange{width:100%!important;max-width:none!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3ChordBuilderPanel>.chordBuilderOptionSection{grid-column:2!important;grid-row:auto!important;border:1px solid var(--studio-border)!important;background:var(--studio-control)!important;border-radius:9px!important;padding:6px 8px!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .chordBuilderChipGrid{gap:4px!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .chordBuilderChip{height:28px!important;min-height:28px!important;padding:3px 6px!important;font-size:11px!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom :is(.stage3StrumPickRow,.stage3AddRow,.stage3InlineProgressionRow){grid-column:1 / -1!important;grid-row:auto!important;margin:0!important;min-width:0!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3AddRow>strong{background:transparent!important;border:0!important;box-shadow:none!important;padding:4px!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3AddRow>strong::before{content:none!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom >.stage3StorageComposerActions{position:static!important;display:flex!important;justify-content:flex-end!important;gap:8px!important;padding:12px 0 0!important;margin-top:10px!important;min-height:0!important;background:transparent!important;box-shadow:none!important}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom >.stage3StorageComposerActions>button{height:34px!important;min-height:34px!important;min-width:90px!important;padding:4px 16px!important}
+
+/* Desktop rhythm: give the remaining column height to the explanation. */
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3DesktopSideColumn:has(> .stage3DesktopGuide) {
+  grid-template-rows: auto auto auto minmax(112px, 1fr);
+}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3DesktopSideColumn > .sharedAccompanimentPanel--training {
+  height: auto;
+  align-self: start !important;
+}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3DesktopSideColumn > .stage3DesktopGuide {
+  align-self: stretch;
+  min-height: 112px;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3DesktopGuide p {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Keep desktop chord changes from moving the dialog and its controls. */
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .chordBuilderOptionSection--tensions-2row {
+  min-height: 170px !important;
+  box-sizing: border-box;
+  align-content: start;
+}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .chordBuilderChip[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--studio-accent) 24%, var(--studio-control)) !important;
+  border-color: var(--studio-accent) !important;
+  color: var(--studio-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  box-shadow: inset 0 0 0 1px var(--studio-accent) !important;
+  font-weight: 800 !important;
+}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3StorageTopBarClose,
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3StorageTopBarClose:is(:hover,:focus,:active) {
+  position: static !important;
+  display: grid !important;
+  place-items: center;
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 1px solid var(--studio-border) !important;
+  border-radius: 8px !important;
+  transform: none !important;
+  box-shadow: none !important;
+  background: var(--studio-control) !important;
+  color: var(--studio-text) !important;
+}
+html body #root main.app.app.app:not(.viewport-mobile-surface) .stage3StorageDialog.stage3StorageRoom .stage3StorageTopBarClose svg {
+  width: 18px !important;
+  height: 18px !important;
+  transform: none !important;
+}

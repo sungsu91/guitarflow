@@ -123,7 +123,8 @@
 .editorDesign.etudeEditor--desktop{width:min(1640px,98vw);height:96dvh;max-height:96dvh;display:flex;flex-direction:column;gap:6px;padding:12px 16px;overflow:hidden;border-radius:16px}
 .editorDesign.etudeEditor--desktop>header{flex-shrink:0;margin:0;min-height:52px;padding:0 0 6px;border-bottom:1px solid var(--ed-line)}
 .editorDesign.etudeEditor--desktop .etudeInputPalette{background:var(--ed-soft);border-radius:12px;padding:6px}
-.editorDesign.etudeEditor--desktop .etudeToolbarStrip{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.editorDesign.etudeEditor--desktop .etudeToolbarStrip{display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex:1 1 620px;overflow:visible}
+.editorDesign.etudeEditor--desktop .desktopNotationViews{flex-wrap:wrap;min-width:0;max-width:100%;box-sizing:border-box}
 .editorDesign .desktopNotationViews{display:flex;gap:2px;background:var(--ed-soft);padding:3px;border-radius:10px;margin-right:6px}
 .editorDesign .desktopNotationViews button{min-height:36px;padding:4px 10px}
 

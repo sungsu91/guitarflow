@@ -24,10 +24,7 @@ test("add9, dominant 9, and maj9 keep distinct chord-tone formulas", () => {
 
 test("dominant 9 is available to every shared chord selection and persistence path", async () => {
   const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
-  const extensionOptions = appSource.slice(
-    appSource.indexOf("const CHORD_EXTENSION_OPTIONS"),
-    appSource.indexOf("function isChordExtensionAvailableForQuality"),
-  );
+  const extensionOptions = await readFile(new URL('../src/chords/chordSelection.js', import.meta.url), 'utf8');
   const shapeTemplates = appSource.slice(
     appSource.indexOf("const CHORD_SHAPE_TEMPLATES"),
     appSource.indexOf("const CHORD_BUILDER_POSITION_TEMPLATES"),
@@ -35,7 +32,7 @@ test("dominant 9 is available to every shared chord selection and persistence pa
 
   assert.match(extensionOptions, /\{ id: "add9", label: "add9", quality: \["major", "minor"\] \}[\s\S]*?\{ id: "9", label: "9", quality: "major" \}[\s\S]*?\{ id: "m9"/);
   assert.match(appSource, /suffix === "9"[\s\S]*?extension: "9"[\s\S]*?displayName: `\$\{root\}9`/);
-  assert.match(appSource, /extension === "9"[\s\S]*?return `\$\{root\}9`/);
+  assert.match(extensionOptions, /extension === "9"[\s\S]*?return `\$\{root\}9`/);
   assert.match(shapeTemplates, /"9": \[[\s\S]*?id: "e9"[\s\S]*?id: "a9"/);
   assert.match(appSource, /extension: stage3StorageSelectedChord\.extension/);
   assert.match(appSource, /CHORD_EXTENSION_OPTIONS\.some\(\(option\) => option\.id === entry\.extension\)/);

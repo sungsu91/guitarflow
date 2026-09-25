@@ -10,7 +10,7 @@ export function applyAnnotationOffsets(svg,bar,offsets){
   node.setAttribute('transform',`translate(${x} ${y})`);
  }
 }
-export function bindAnnotationEditing(svg,{offsets,onMove,onName}){
+export function bindAnnotationEditing(svg,{offsets,onMove,onName,onChord,onNameEdit}){
  const ns='http://www.w3.org/2000/svg';
  for(const node of svg.querySelectorAll('[data-score-annotation]')){
   const kind=node.dataset.scoreAnnotation,box=node.getBBox();
@@ -23,7 +23,7 @@ export function bindAnnotationEditing(svg,{offsets,onMove,onName}){
   let gesture=null,suppress=false;
   const local=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());};
   const editName=()=>{
-   if(kind!=='harmony'||node.querySelector('foreignObject'))return;
+   if(kind==='chord'){onChord?.();return;}if(kind!=='harmony'||node.querySelector('foreignObject'))return;if(onNameEdit){onNameEdit();return;}
    const field=document.createElementNS(ns,'foreignObject');
    for(const [k,v] of Object.entries({x:box.x,y:box.y-3,width:Math.max(110,box.width+16),height:30}))field.setAttribute(k,v);
    const input=document.createElementNS('http://www.w3.org/1999/xhtml','input');
@@ -41,6 +41,6 @@ export function bindAnnotationEditing(svg,{offsets,onMove,onName}){
   node.onpointerup=e=>{if(!gesture)return;e.stopPropagation();const g=gesture;gesture=null;suppress=g.moved;if(node.hasPointerCapture(g.id))node.releasePointerCapture(g.id);if(g.moved)onMove(kind,g.next);};
   node.onpointercancel=()=>{if(gesture)node.setAttribute('transform',`translate(${gesture.origin.x} ${gesture.origin.y})`);gesture=null;};
   node.onclick=e=>{e.stopPropagation();if(!suppress)editName();suppress=false;};
-  node.onkeydown=e=>{if(e.target!==node)return;if(e.key==='Enter'&&kind==='harmony'){e.preventDefault();e.stopPropagation();editName();return;}const direction={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(direction){e.preventDefault();e.stopPropagation();const old=annotationOffset(offsets?.[kind]),step=e.shiftKey?10:1;onMove(kind,{x:old.x+direction[0]*step,y:old.y+direction[1]*step});}};
+  node.onkeydown=e=>{if(e.target!==node)return;if((e.key==='Enter'||e.key===' ')&&(kind==='harmony'||kind==='chord')){e.preventDefault();e.stopPropagation();editName();return;}const direction={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(direction){e.preventDefault();e.stopPropagation();const old=annotationOffset(offsets?.[kind]),step=e.shiftKey?10:1;onMove(kind,{x:old.x+direction[0]*step,y:old.y+direction[1]*step});}};
  }
 }
