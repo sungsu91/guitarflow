@@ -1,4 +1,5 @@
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
+import { useChordCatalogWindow } from './fretboard/useChordCatalogWindow.js';
 import {CHORD_ACCIDENTAL_OPTIONS,CHORD_QUALITY_OPTIONS,CHORD_EXTENSION_OPTIONS,isChordExtensionAvailableForQuality,normalizeChordExtensionForQuality,getChordDisplayRoot,getChordNameFromParts} from './chords/chordSelection.js';
 import { localizeUi } from "./i18n/core.js";
 import ko from "./i18n/locales/ko.js";
@@ -3504,6 +3505,7 @@ const ChordMiniCard = memo(function ChordMiniCard({
   chord,
   getChordStringState,
   onSelect,
+  showDiagram,
   showChordFingeringGuide,
 }) {
   const miniNotes = useMemo(
@@ -3536,23 +3538,26 @@ const ChordMiniCard = memo(function ChordMiniCard({
   return (
     <button
       className="chordMiniCard"
+      data-chord-id={chord.id}
       onClick={handleClick}
       type="button"
     >
       <span>{chord.displayName}</span>
-      <Fretboard
-        barres={chord.barres ?? []}
-        className="chordMiniSharedFretboard"
-        fretRange={miniFretRange}
-        mode="chord"
-        notes={miniNotes}
-        rootNote=""
-        selectedNotes={["__chord-shape-only__"]}
-        showFingering={showChordFingeringGuide}
-        showFretNumbers
-        showStringNames={false}
-        stringStates={stringStates}
-      />
+      {showDiagram ? (
+        <Fretboard
+          barres={chord.barres ?? []}
+          className="chordMiniSharedFretboard"
+          fretRange={miniFretRange}
+          mode="chord"
+          notes={miniNotes}
+          rootNote=""
+          selectedNotes={["__chord-shape-only__"]}
+          showFingering={showChordFingeringGuide}
+          showFretNumbers
+          showStringNames={false}
+          stringStates={stringStates}
+        />
+      ) : null}
     </button>
   );
 });
@@ -3565,6 +3570,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
   showChordFingeringGuide,
 }) {
   useLanguage();
+  const { gridRef, revealFocusedCard, visibleChordIds } = useChordCatalogWindow(group.chords);
   const dragStateRef = useRef(null);
   const suppressClickUntilRef = useRef(0);
   const stopPointerDrag = useCallback((pointerId) => {
@@ -3630,6 +3636,8 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
         aria-label={localizeUi(translateUi("app.value1ChordFingeringsValue2", { value1: group.root, value2: desktopDraggable ? ko["app.dragLeftOrRightWithTheMouse"] : "" }))}
         className="chordMiniGrid"
         data-desktop-draggable={desktopDraggable ? "true" : undefined}
+        ref={gridRef}
+        onFocusCapture={revealFocusedCard}
         onClickCapture={suppressDraggedCardClick}
         onDragStart={(event) => {
           if (desktopDraggable) event.preventDefault();
@@ -3646,6 +3654,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
             getChordStringState={getChordStringState}
             key={chord.id}
             onSelect={onSelectChord}
+            showDiagram={visibleChordIds.has(chord.id)}
             showChordFingeringGuide={showChordFingeringGuide}
           />
         ))}
@@ -18539,7 +18548,7 @@ function App({ onReady }) {
       null
     );
   }, [getChordFromSelector]);
-  const availableChordExtensionOptions = CHORD_EXTENSION_OPTIONS
+  const availableChordExtensionOptions = useMemo(() => CHORD_EXTENSION_OPTIONS
     .filter((extension) => isChordExtensionAvailableForQuality(extension, viewerChordQuality))
     .map((extension) => {
       const isSupported = isChordViewerSelectionSupported(viewerChordQuality, extension.id);
@@ -18551,7 +18560,7 @@ function App({ onReady }) {
         disabled: !isSupported || !chord,
         hasDiagram: Boolean(chord),
       };
-    });
+    }), [getChordFromSelector, viewerChordAccidental, viewerChordBaseRoot, viewerChordQuality]);
   const getChordStringState = useCallback((chord, stringNumber) => {
     const note = chord?.notes?.find((item) => item.stringNumber === stringNumber);
     if (!note) return "x";
@@ -18622,7 +18631,6 @@ function App({ onReady }) {
           ? viewerChordDebugInfo.generatedChordName
           : ko["app.guitarFretboardInformation"];
   const viewerChordPositionData = useMemo(() => {
-    if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return {};
     return buildChordReferencePositionMap({
       root: viewerChordRoot,
       quality: viewerChordQuality,
@@ -18631,7 +18639,7 @@ function App({ onReady }) {
       hint: selectedStoredChord?.hint ?? selectedBuiltChord?.hint,
       storedChord: selectedStoredChord,
     });
-  }, [selectedBuiltChord, selectedStoredChord, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerMode, viewerSelectedChordName]);
+  }, [selectedBuiltChord, selectedStoredChord, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerSelectedChordName]);
   const viewerCurrentChordPosition =
     viewerChordPosition === CHORD_VIEWER_POSITION_ALL
       ? viewerChordPositionData.position1
