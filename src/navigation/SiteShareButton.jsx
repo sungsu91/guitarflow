@@ -40,7 +40,7 @@ export default function SiteShareButton({ desktop = false }) {
   return <>
     <button type="button" className={desktop ? 'desktopSidebarNavItem' : 'utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive'} onClick={share} disabled={busy}>
       <span className={desktop ? 'desktopSidebarIcon' : 'utilityMenuIcon'} aria-hidden="true"><Share2 size={19} /></span>
-      <span className={desktop ? 'desktopSidebarLabel' : 'utilityMenuText'}>{t('app.shareSite')}</span>
+      <span className={desktop ? 'desktopSidebarLabel' : 'utilityMenuText'}>{desktop ? t('app.shareSite') : <strong>{t('app.shareSite')}</strong>}</span>
     </button>
     {status === 'copied' && <p className="shooterShareFeedback" role="status">{t('app.siteLinkCopied')}</p>}
     {status === 'manual' && <div className="shooterShareFeedback" role="status"><p>{t('app.copySiteLink')}</p><input aria-label={t('app.siteLink')} readOnly value={SITE_SHARE_URL} onFocus={event => event.target.select()} /></div>}

@@ -111,10 +111,14 @@ html body #root #utility-menu-panel .utilityMenuItem:hover { background:var(--me
 html body #root #utility-menu-panel .utilityMenuTitle { grid-template-columns:minmax(0,1fr) auto !important; gap:4px !important; }
 html body #root #utility-menu-panel .utilityMenuIcon { background:transparent !important; }
 html body #root #utility-menu-panel .utilityMenuFooter { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; padding:6px 8px; border-top:1px solid var(--menu-border); background:var(--menu-surface); }
-html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuItem { display:flex !important; flex-direction:column; justify-content:center; gap:2px !important; min-height:60px !important; padding:4px 2px !important; border:0 !important; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuItem { display:flex !important; flex-direction:column; align-items:center !important; justify-content:center; gap:4px !important; min-height:60px !important; padding:6px 2px !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; text-align:center !important; }
 html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuItem + .utilityMenuItem { border-left:1px solid var(--menu-border) !important; }
 html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuIcon { width:24px !important; height:24px !important; min-width:24px !important; }
 html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuText strong { font-size:12px !important; text-align:center !important; }
+html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuText { font-size:12px !important; line-height:1.4 !important; text-align:center !important; }
+html body #root #utility-menu-panel .utilityMenuFooter > .shooterShareFeedback { grid-column:1 / -1; width:100%; min-width:0; box-sizing:border-box; margin:6px 0 0; padding:8px; color:var(--menu-title); background:var(--menu-tile); border-radius:8px; font-size:12px; text-align:center; }
+html body #root #utility-menu-panel .utilityMenuFooter > .shooterShareFeedback input { width:100%; min-width:0; box-sizing:border-box; font-size:16px; }
+html body #root #utility-menu-panel .utilityMenuFooter > .utilityMenuItemInstagram { grid-column:3; grid-row:1; }
 html body #root #utility-menu-panel .utilityMenuFooter :is(small,.utilityMenuChevron) { display:none !important; }
 html body #root #utility-menu-panel .utilitySettingsSheet { position:absolute; inset:0; display:grid; grid-template-rows:auto minmax(0,1fr); background:var(--menu-bg); z-index:2; }
 html body #root #utility-menu-panel .utilitySettingsBody { min-height:0; overflow:auto; overscroll-behavior:contain; padding:0 14px 20px; }

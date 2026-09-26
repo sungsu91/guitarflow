@@ -5153,4 +5153,7 @@ export default {
   "pdf.resetGapCuts": "Restore removed strips",
   "pdf.cutGapTooLarge": "Select a smaller strip to remove.",
   "pdf.cutGapTouchesBar": "The strip overlaps a bar region. Select a gap between bars or adjust the bar region first.",
+  "etudes.printTitle": "Print title",
+  "etudes.printDescription": "Print description",
+  "etudes.showPrintDescription": "Show description",
 };

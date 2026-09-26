@@ -5153,4 +5153,7 @@ export default {
   "pdf.resetGapCuts": "잘라낸 간격 복원",
   "pdf.cutGapTooLarge": "잘라낼 간격을 더 작게 지정해 주세요.",
   "pdf.cutGapTouchesBar": "마디 영역과 겹칩니다. 마디 사이의 간격을 선택하거나 마디 영역을 먼저 조절해 주세요.",
+  "etudes.printTitle": "출력 제목",
+  "etudes.printDescription": "출력 설명",
+  "etudes.showPrintDescription": "설명 표시",
 };

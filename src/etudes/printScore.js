@@ -8,8 +8,9 @@ import {drawScore,scoreSpacing} from './Score.jsx';
 import {compileScoreDocument} from './scoreDocument.js';
 import brand from './assets/fretiva-lab-logo-print.png';
 import sourceFrameCss from './scoreSourceFrame.css?raw';
+import a4PrintCss from '../printing/a4Print.css?raw';
 import qr from './score-source-qr.png';
-import {SCORE_SOURCE_HANDLE} from './scoreSource.js';
+import {SCORE_SOURCE_HANDLE,SCORE_SOURCE_URL} from './scoreSource.js';
 import {scoreCredit} from './scoreMetadata.js';
 import {measureLayout} from './measureLayout.js';
 import {slurSpans} from './slurs.js';
@@ -20,6 +21,7 @@ export function printEditorScore(container,title,view='both',metadata) {
  if(!measures.length&&!metadata)throw Error(translateUi("etudes.prepareADisplayableScoreFirst"));
  const win=window.open('','_blank','width=1000,height=800');if(!win)throw Error(translateUi("etudes.allowThePrintPreviewPopupAndTryAgain"));
  const doc=win.document;doc.title=title?.trim()||ko["components.scores"];doc.documentElement.lang=getLanguage();
+ let printTitle=title||'',printDescription=metadata?scoreCredit(metadata):'';
  const viewport=doc.createElement('meta');viewport.name='viewport';viewport.content='width=device-width, initial-scale=1';doc.head.append(viewport);
  const style=doc.createElement('style');
  style.textContent=`
@@ -28,6 +30,9 @@ export function printEditorScore(container,title,view='both',metadata) {
  *{box-sizing:border-box}body{margin:0;color:#111;background:#e8e5e1;font-family:Arial,sans-serif}
  .previewToolbar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;padding:12px;background:#faf8f5;border-bottom:1px solid #d7d0c7}
  .previewToolbar strong{font-size:15px}.previewToolbar p{flex-basis:100%;text-align:center;font-size:12px;margin:0;color:#625b54}
+ .previewMeta{display:grid;gap:12px;max-width:794px;margin:12px auto 0;padding:16px;background:#faf8f5;border:1px solid #d7d0c7;border-radius:10px}
+ .previewMeta label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#493a2f}.previewMeta input,.previewMeta textarea{width:100%;min-width:0;min-height:44px;font:16px/1.4 Arial,sans-serif;padding:9px;border:1px solid #cec4b9;border-radius:7px;background:white;color:#111}.previewMeta textarea{resize:vertical}.previewMeta .previewDescriptionToggle{flex-direction:row;align-items:center}.previewDescriptionToggle input{width:18px;min-height:18px;height:18px;margin:0}
+ @media screen and (max-width:600px){.previewToolbar{position:static;gap:8px;padding:12px}.previewToolbar strong{flex-basis:100%;text-align:center}.previewMeta{margin:12px}}
  button{font:inherit;min-height:40px;padding:8px 12px;border:1px solid #cec4b9;border-radius:8px;background:white;color:#493a2f;cursor:pointer}
  main{padding:16px 0}.sheetFrame{position:relative;margin:0 auto 16px}
  .a4Sheet{position:relative;width:210mm;height:297mm;padding:10mm;background:white;transform-origin:top left;box-shadow:0 2px 12px #0002}
@@ -35,8 +40,9 @@ export function printEditorScore(container,title,view='both',metadata) {
  .scoreHeading{display:grid;grid-template-columns:92px minmax(0,1fr) 92px;grid-template-rows:auto auto;column-gap:12px;align-items:center;margin-bottom:10px}.scoreBrand{grid-column:1;grid-row:1/3;align-self:center}.scoreBrand img{display:block;width:23mm;height:23mm;object-fit:contain}.scoreSource{grid-column:3;grid-row:1/3;font:10px Arial,sans-serif;text-align:right;color:#666}.scoreHeading h1{grid-column:2;grid-row:1}.scoreHeading .scoreCredit{grid-column:2;grid-row:2;margin-bottom:0}
  h1{font:700 30px Arial,sans-serif;text-align:center;margin:0 0 10px;overflow-wrap:anywhere}.scoreCredit{text-align:center;font-size:13px;margin:0 0 20px;overflow-wrap:anywhere}
  section{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0;break-inside:avoid}section>div{min-width:0}
- svg{width:100%;height:auto;display:block}svg text{fill:#000}svg .vf-tabnote text{font-weight:400!important}.etudeMeasureNumber{font:700 13px Arial}.pageNumber{position:absolute;bottom:5mm;right:10mm;left:10mm;text-align:right;font-size:10px;color:#777;overflow-wrap:anywhere}
- @media print{body{background:white}.previewToolbar{display:none}main{padding:0}.sheetFrame{width:210mm!important;height:297mm!important;margin:0;break-after:page}.sheetFrame:last-child{break-after:auto}.a4Sheet{transform:none!important;box-shadow:none}}
+ svg{width:100%;height:auto;display:block}svg text{fill:#000}svg .vf-tabnote text{font-weight:400!important}.etudeMeasureNumber{font:700 13px Arial}.pageNumber{position:absolute;bottom:5mm;right:10mm;left:10mm;text-align:right;font-size:10px;line-height:14px;color:#777}.printSiteAddress{display:block;text-align:center;padding:0 50px}.scorePageNumber{position:absolute;right:0;bottom:0}
+ @media print{body{background:white}.previewToolbar,.previewMeta{display:none}main{padding:0}.a4Sheet{transform:none!important;box-shadow:none}}
+ ${a4PrintCss}
  ${view==='staff'?'.vf-fretiva-tab-view,.fretiva-tab-view,.vf-fretiva-both-view{display:none}':view==='tab'?'.vf-fretiva-staff-view,.vf-fretiva-both-view{display:none}':''}`;
  doc.head.append(style);
  const toolbar=doc.createElement('header');toolbar.className='previewToolbar';
@@ -45,13 +51,21 @@ export function printEditorScore(container,title,view='both',metadata) {
   const download=doc.createElement('button');download.textContent=translateUi("etudes.savePdf");download.disabled=true;
  download.onclick=async()=>{
   download.disabled=true;download.textContent=translateUi("etudes.creatingPdf");
-  try{const {blob,name}=await exportScorePdf(sheets,title);const url=URL.createObjectURL(blob);const link=doc.createElement('a');link.href=url;link.download=name;doc.body.append(link);link.click();link.remove();win.setTimeout(()=>URL.revokeObjectURL(url),60000);}
+  try{const {blob,name}=await exportScorePdf(sheets,printTitle);const url=URL.createObjectURL(blob);const link=doc.createElement('a');link.href=url;link.download=name;doc.body.append(link);link.click();link.remove();win.setTimeout(()=>URL.revokeObjectURL(url),60000);}
   catch(error){win.alert(localizeUi(translateUi("etudes.couldNotSavePdf")+error.message));}
   finally{download.disabled=false;download.textContent=translateUi("etudes.savePdf");}
  };
  const close=doc.createElement('button');close.textContent=translateUi("common.close");close.onclick=()=>win.close();
  const hint=doc.createElement('p');hint.textContent=translateUi("etudes.a4Portrait10MmMarginsPreservesYourBarsPerLineAndLine");
  toolbar.append(label,download,print,close,hint);doc.body.append(toolbar);
+ const edit=doc.createElement('div');edit.className='previewMeta';
+ const titleLabel=doc.createElement('label');titleLabel.textContent=translateUi('etudes.printTitle');
+ const titleInput=doc.createElement('input');titleInput.className='previewPrintTitle';titleInput.value=printTitle;titleInput.maxLength=200;titleInput.disabled=true;titleLabel.append(titleInput);
+ const descriptionLabel=doc.createElement('label');descriptionLabel.textContent=translateUi('etudes.printDescription');
+ const descriptionInput=doc.createElement('textarea');descriptionInput.className='previewPrintDescription';descriptionInput.value=printDescription;descriptionInput.rows=2;descriptionInput.maxLength=500;descriptionInput.disabled=true;descriptionLabel.append(descriptionInput);
+ const toggleLabel=doc.createElement('label');toggleLabel.className='previewDescriptionToggle';
+ const descriptionToggle=doc.createElement('input');descriptionToggle.type='checkbox';descriptionToggle.checked=true;descriptionToggle.disabled=true;toggleLabel.append(descriptionToggle,doc.createTextNode(translateUi('etudes.showPrintDescription')));
+ edit.append(titleLabel,descriptionLabel,toggleLabel);doc.body.append(edit);
  const main=doc.createElement('main');doc.body.append(main);
  const status=doc.createElement('div');status.setAttribute('role','status');status.textContent=translateUi("etudes.preparingPdfPreview");status.style.cssText='position:fixed;inset:0;z-index:5;display:grid;place-content:center;background:#f5f2ed;color:#514534;font:16px Arial,sans-serif';doc.body.append(status);
  const sheets=[];
@@ -60,10 +74,10 @@ export function printEditorScore(container,title,view='both',metadata) {
  win.requestAnimationFrame(()=>win.requestAnimationFrame(()=>win.setTimeout(()=>{
  if(win.closed)return;
  try{
- const newSheet=()=>{const frame=doc.createElement('div'),paper=doc.createElement('article');frame.className='sheetFrame';paper.className='a4Sheet';frame.append(paper);main.append(frame);const source=doc.createElement('div');source.className='scoreSource';const image=doc.createElement('img');image.src=new URL(qr,window.location.href).href;image.alt=translateUi("etudes.fretivaLabAppQrCode");image.className='scoreSourceQr';image.style.cssText='width:20mm;height:20mm';const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;qrFrame.append(image,handle);source.append(qrFrame);const header=doc.createElement('header');header.className='scoreHeading';const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);header.append(logo,source);paper.append(header);if(sheets.length)header.remove();sheets.push(paper);return paper;};
+ const newSheet=()=>{const frame=doc.createElement('div'),paper=doc.createElement('article');frame.className='sheetFrame';paper.className='a4Sheet';frame.setAttribute('data-print-frame','');paper.setAttribute('data-print-page','');frame.append(paper);main.append(frame);const source=doc.createElement('div');source.className='scoreSource';const image=doc.createElement('img');image.src=new URL(qr,window.location.href).href;image.alt=translateUi("etudes.fretivaLabAppQrCode");image.className='scoreSourceQr';image.style.cssText='width:20mm;height:20mm';const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;qrFrame.append(image,handle);source.append(qrFrame);const header=doc.createElement('header');header.className='scoreHeading';const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);header.append(logo,source);paper.append(header);if(sheets.length)header.remove();sheets.push(paper);return paper;};
  let sheet=newSheet();
- const heading=doc.createElement('h1');heading.textContent=title;sheet.querySelector('.scoreHeading').append(heading);
- if(metadata){const credit=doc.createElement('p');credit.className='scoreCredit';credit.textContent=scoreCredit(metadata);sheet.querySelector('.scoreHeading').append(credit);}
+ const heading=doc.createElement('h1');heading.textContent=printTitle;sheet.querySelector('.scoreHeading').append(heading);
+ const credit=doc.createElement('p');credit.className='scoreCredit';credit.textContent=printDescription;sheet.querySelector('.scoreHeading').append(credit);
  let row=null,section;const sections=[];
  for(const {svg,measure} of measures){
   const nextRow=measure?.dataset.layoutRow;
@@ -132,18 +146,21 @@ export function printEditorScore(container,title,view='both',metadata) {
   if(win.closed)return;
   // Add pages instead of shrinking notation to force a fixed system count.
   const gap=12;
-  renderForPrint(view==='tab'?paperWidth*1.65:paperWidth);
   sections.forEach(section=>section.remove());
+  sheets.slice(1).forEach(paper=>paper.parentElement.remove());sheets.splice(1);sheet=sheets[0];
+  sheet.querySelectorAll('.pageNumber').forEach(number=>number.remove());
   for(const section of sections){
    section.style.width='100%';section.style.marginBottom=gap+'px';sheet.append(section);
    const bottom=section.offsetTop+section.offsetHeight;
    const limit=sheet.clientHeight-parseFloat(win.getComputedStyle(sheet).paddingBottom)-12;
    if(bottom>limit&&sheet.querySelectorAll('section').length>1){section.remove();sheet=newSheet();sheet.append(section);}
   }
-  sheets.forEach((paper,i)=>{const number=doc.createElement('footer');number.className='pageNumber';number.textContent=`${title} ${i+1}/${sheets.length}`;paper.append(number);});
+  sheets.forEach((paper,i)=>{const number=doc.createElement('footer');number.className='pageNumber';const address=doc.createElement('span');address.className='printSiteAddress';address.textContent=SCORE_SOURCE_URL;const counter=doc.createElement('span');counter.className='scorePageNumber';counter.textContent=`${i+1}/${sheets.length}`;number.append(address,counter);paper.append(number);});
   label.textContent=translateUi("etudes.a4PrintPreviewValuePages", { value1: sheets.length });fit();print.disabled=false;download.disabled=false;doc.body.dataset.previewReady='true';status.remove();
  };
- doc.fonts.ready.then(()=>win.requestAnimationFrame(()=>{try{paginate();}catch(error){fail(error);}})).catch(fail);win.addEventListener('resize',fit);
+ const updateMetadata=()=>{printTitle=titleInput.value;printDescription=descriptionInput.value;heading.textContent=printTitle;credit.textContent=printDescription;credit.hidden=!descriptionToggle.checked;doc.title=printTitle.trim()||ko['components.scores'];paginate();};
+ titleInput.oninput=descriptionInput.oninput=descriptionToggle.onchange=updateMetadata;
+ doc.fonts.ready.then(()=>win.requestAnimationFrame(()=>{try{renderForPrint(view==='tab'?paperWidth*1.65:paperWidth);paginate();titleInput.disabled=descriptionInput.disabled=descriptionToggle.disabled=false;}catch(error){fail(error);}})).catch(fail);win.addEventListener('resize',fit);
  }catch(error){fail(error);}
  },0)));win.focus();
 }
