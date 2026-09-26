@@ -30,6 +30,8 @@ function harness({ countInBars = 0, failStart = false } = {}) {
     getPreferredBackingLoopMimeType: () => '',
     getAudioStudioProjectDurationMs: () => 0,
     currentTimeMs: 0,
+    setLibraryMixId: noop,
+    setLibraryPlaybackStatus: noop,
     setRecordingState: state => { context.state = typeof state === 'function' ? state(context.state) : state; },
     setNotice: value => { context.notice = value; },
     projectRef: { current: { tracks: [{ id: 'track', clips: [] }], settings: { countInBars } } },

@@ -1,0 +1,10 @@
+/* React Activity preserves drafts and removes effects while a mode is hidden.
+   Legacy !important display rules must not override React's inline display:none,
+   including dialogs portaled outside #root. This does not choose a platform. */
+html body #root .appRuntime [style*="display: none"],
+html body #root [style*="display: none"],
+html body > [style*="display: none"] {
+  display: none !important;
+}
+.activityPortalSurface { display: contents; }
+.activityPortalSurface[hidden] { display: none !important; }

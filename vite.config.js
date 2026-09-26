@@ -4,6 +4,7 @@ import mobileSurfaceCss from "./scripts/mobile-surface-css.mjs";
 import { writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { isTrustedLocalEditorRequest } from "./scripts/local-editor-request.mjs";
 
 import { ABYSSAL_MOON_CATHEDRAL_ASSETS } from "./src/shooter/maps/assets/abyssalMoonCathedralAssets.js";
 import { COASTAL_COVE_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/coastalCoveAssets.js";
@@ -123,12 +124,6 @@ export function validateNoteMonsterTunings(input) {
     if (Object.keys(roots).length) output[skinId] = roots;
   }
   return output;
-}
-
-function isLoopbackAddress(address = "") {
-  return address === "127.0.0.1"
-    || address === "::1"
-    || address.startsWith("::ffff:127.");
 }
 
 function finiteNumber(value, min, max) {
@@ -311,7 +306,7 @@ function mapEditorSavePlugin() {
         }
 
         response.setHeader("Content-Type", "application/json; charset=utf-8");
-        if (!isLoopbackAddress(request.socket.remoteAddress)) {
+        if (!isTrustedLocalEditorRequest(request)) {
           response.statusCode = 403;
           response.end(JSON.stringify({ ok: false, error: "Local editor access only" }));
           return;
@@ -351,7 +346,7 @@ function noteMonsterTuningSavePlugin() {
         }
 
         response.setHeader("Content-Type", "application/json; charset=utf-8");
-        if (!isLoopbackAddress(request.socket.remoteAddress)) {
+        if (!isTrustedLocalEditorRequest(request)) {
           response.statusCode = 403;
           response.end(JSON.stringify({ ok: false, error: "Local editor access only" }));
           return;
@@ -395,7 +390,7 @@ function effectTuningSavePlugin() {
         }
 
         response.setHeader("Content-Type", "application/json; charset=utf-8");
-        if (!isLoopbackAddress(request.socket.remoteAddress)) {
+        if (!isTrustedLocalEditorRequest(request)) {
           response.statusCode = 403;
           response.end(JSON.stringify({ ok: false, error: "Local editor access only" }));
           return;

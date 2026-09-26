@@ -3269,10 +3269,10 @@
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
     > .fretboardViewerPanel.fretboardViewerPanel--desktopUnified {
-    --desktop-fretboard-catalog-width: clamp(720px, 53%, 920px);
+    --desktop-fretboard-catalog-width: minmax(0, 1.25fr);
     --desktop-fretboard-column-gap: 18px;
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) var(--desktop-fretboard-catalog-width) !important;
+    grid-template-columns: minmax(320px, 1fr) var(--desktop-fretboard-catalog-width) !important;
     align-items: start;
     gap: var(--desktop-fretboard-column-gap) !important;
     width: 100% !important;
@@ -3355,7 +3355,7 @@
     > .viewerControlPanel.viewerControlPanel
     > .viewerModeTabs.viewerModeTabs {
     justify-self: start !important;
-    width: calc(100% - var(--desktop-fretboard-catalog-width) - var(--desktop-fretboard-column-gap)) !important;
+    width: min(440px, 100%) !important;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.theme-light
@@ -3393,6 +3393,8 @@
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
     > .fretboardViewerPanel--chord > .chordCatalogPanel {
+    grid-column: 2;
+    grid-row: 1 / span 2;
     align-self: start;
     grid-template-rows: auto minmax(0, 1fr) !important;
     height: min(850px, calc(100dvh - 120px)) !important;
@@ -3400,6 +3402,15 @@
     max-height: calc(100dvh - 120px) !important;
     margin-top: 0 !important;
     overflow: hidden !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord > .viewerSampleCredits {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    font-size: 12px;
+    overflow-wrap: anywhere;
   }
 
   #root .desktopLayout .desktopWorkspaceContent > main.app.app.app

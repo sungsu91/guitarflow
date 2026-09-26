@@ -4,6 +4,9 @@ export const NAVIGATION_KEEP_ALIVE_MODES = Object.freeze([
   "fretboard-viewer",
   "metronome",
   "tuner",
+  "rhythm-trainer",
+  "etudes",
+  "audio-studio",
 ]);
 
 const NAVIGATION_KEEP_ALIVE_MODE_SET = new Set(NAVIGATION_KEEP_ALIVE_MODES);

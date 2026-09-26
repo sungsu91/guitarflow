@@ -1,6 +1,7 @@
 import { Profiler, useEffect } from "react";
 import App from "./App.jsx";
 import DesktopLayout from "./layouts/DesktopLayout.jsx";
+import { BackingLoopProvider } from "./components/BackingLoop.jsx";
 import "./style.css";
 import "./components/brand-header.css";
 import "./components/backing-loop.css";
@@ -10,10 +11,10 @@ import "./shooter/maps/map-skins.css";
 import "./shooter/maps/editor/map-editor.css";
 import "./shooter/pseudo3d/pseudo3d.css";
 import "./layouts/desktop-layout.css";
-import "./audio-studio/audio-studio.css";
 import "./tuner/tuner-mode.css";
 import "./shooter/mobile-canonical-viewport.css";
 import "./shooter/mobile-skin-configurator.css";
+import "./shooter/skin-picker-frame.css";
 import "./shooter/desktopHorizontal/desktop-horizontal-battle.css";
 import "./layouts/responsive-play-focus.css";
 import "./layouts/mobile-dark-theme.css";
@@ -24,6 +25,9 @@ import "./components/metronome-settings.css";
 import "./components/rhythm-panel-surfaces.css";
 import "./components/stage3-storage-redesign.css";
 import "./fretboard/viewer-surface.css";
+import "./layouts/desktop-parity.css";
+import "./navigation/activity-visibility.css";
+import "./ui/readability.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";
@@ -181,6 +185,7 @@ export default function AppRuntime({ onReady }) {
 
   return (
     <DesktopLayout>
+      <BackingLoopProvider>
       {navigationPerformanceProbeEnabled ? (
         <>
           <NavigationPerformanceProbe />
@@ -189,6 +194,7 @@ export default function AppRuntime({ onReady }) {
           </Profiler>
         </>
       ) : app}
+      </BackingLoopProvider>
     </DesktopLayout>
   );
 }

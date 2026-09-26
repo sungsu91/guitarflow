@@ -1,0 +1,119 @@
+/* Only the pet's drag handle receives input; combat hitboxes remain independent. */
+.shooterSpritePet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.shooterSpritePetLayer {
+  position: absolute;
+  inset: 0;
+  line-height: 0;
+  pointer-events: none;
+}
+
+html body .shooterSpritePet .shooterSpritePetHandle,
+html body main.app.app.app.shooterMode .shooterArena .shooterSpritePet button.shooterSpritePetHandle {
+  position: absolute;
+  display: block;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  appearance: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html body main.app.app.app.shooterMode .shooterArena .shooterSpritePet button.shooterSpritePetHandle::before,
+html body main.app.app.app.shooterMode .shooterArena .shooterSpritePet button.shooterSpritePetHandle::after {
+  content: none !important;
+}
+
+.shooterSpritePetHandle[data-dragging="true"] { cursor: grabbing !important; }
+.shooterSpritePetHandle:focus-visible { outline: 2px solid #eac37b; outline-offset: 3px; }
+
+.shooterSpritePetCanvas {
+  display: block;
+  pointer-events: none;
+  background: transparent;
+}
+
+.shooterPetSkinPreview--thumbnail img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+/* The longer desktop pet list must not intercept the close button after scrolling. */
+html body .shooterSkinConfigurator--desktopWindow .shooterGuitarPickerModal--pet .shooterGuitarPickerHeader {
+  position: relative;
+  z-index: 7;
+}
+
+html body .shooterGuitarPickerModal[data-pet-controls="true"] {
+  grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+}
+
+.shooterPetControls {
+  position: relative;
+  z-index: 7;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(217, 170, 85, 0.25);
+  border-radius: 9px;
+  color: #f4e4c9;
+  background: #24231f;
+  font-size: 11px;
+}
+.shooterPetSpeedControl { display: grid; grid-template-columns: auto minmax(0, 1fr) 42px; align-items: center; gap: 8px; }
+.shooterPetSpeedControl input { width: 100%; min-width: 0; margin: 0; accent-color: #bb934c; }
+.shooterPetSpeedControl output { text-align: right; font-variant-numeric: tabular-nums; }
+.shooterPetDirectionControl { display: flex; align-items: center; gap: 4px; }
+html body .shooterSkinConfigurator .shooterPetControls .shooterPetDirectionControl button {
+  min-width: 0;
+  min-height: 28px;
+  padding: 3px 8px;
+  font-size: 11px;
+  line-height: 1.2;
+  border-radius: 6px;
+  box-shadow: none;
+  color: #fff0d4 !important;
+  background: #494740 !important;
+}
+.shooterPetDirectionControl > span { margin-right: 4px; }
+html body .shooterSkinConfigurator .shooterPetControls .shooterPetDirectionControl button[aria-pressed="true"] {
+  background: #c49b53 !important;
+  color: #21190d !important;
+}
+.shooterPetResetPosition { margin-left: auto; }
+.shooterPetControls small { font-size: 10px; opacity: 0.75; }
+.shooterPetControls--mobile { padding: 5px 7px; }
+.shooterPetControls--desktop { gap: 7px; padding: 8px 10px; }
+
+:root[data-theme="light"] .shooterPetControls {
+  color: #443a2b;
+  background: #f3ecdf;
+}
+/* Selection is immediate; generic button hover/check motion causes a second beat. */
+html body .shooterSkinConfigurator .shooterSkinOptionCard--pet,
+html body .shooterSkinConfigurator .shooterSkinOptionCard--pet::before,
+html body .shooterSkinConfigurator .shooterSkinOptionCard--pet::after {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}

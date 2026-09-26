@@ -1,0 +1,128 @@
+{
+  "packId": "fretiva_pet_sprite_pack_v1",
+  "version": 1,
+  "format": "rgba_png",
+  "spriteSheet": {
+    "width": 2048,
+    "height": 768,
+    "columns": 8,
+    "rows": 3,
+    "cellWidth": 256,
+    "cellHeight": 256,
+    "frameOrder": "left_to_right",
+    "rowOrder": "top_to_bottom",
+    "anchor": { "x": 128, "y": 224 }
+  },
+  "pets": [
+    {
+      "id": "poodle_apricot",
+      "nameKo": "애프리콧 토이푸들",
+      "atlas": "pets/poodle_apricot/atlas.png",
+      "thumbnail": "pets/poodle_apricot/thumbnail.png",
+      "actions": {
+        "idle": { "row": 0, "frameCount": 8, "fps": 7, "loop": true },
+        "play_bow": { "row": 1, "frameCount": 8, "fps": 9, "loop": true },
+        "happy_roll": { "row": 2, "frameCount": 8, "fps": 10, "loop": true }
+      }
+    },
+    {
+      "id": "border_collie_black_white",
+      "nameKo": "블랙화이트 보더콜리",
+      "atlas": "pets/border_collie_black_white/atlas.png",
+      "thumbnail": "pets/border_collie_black_white/thumbnail.png",
+      "actions": {
+        "attentive_idle": { "row": 0, "frameCount": 8, "fps": 7, "loop": true },
+        "vertical_hop": { "row": 1, "frameCount": 8, "fps": 11, "loop": true },
+        "playful_spin": { "row": 2, "frameCount": 8, "fps": 10, "loop": true }
+      }
+    },
+    {
+      "id": "british_shorthair_blue",
+      "nameKo": "블루 브리티시 쇼트헤어",
+      "atlas": "pets/british_shorthair_blue/atlas.png",
+      "thumbnail": "pets/british_shorthair_blue/thumbnail.png",
+      "actions": {
+        "sleepy_idle": { "row": 0, "frameCount": 8, "fps": 6, "loop": true },
+        "paw_bat": { "row": 1, "frameCount": 8, "fps": 9, "loop": true },
+        "stretch": { "row": 2, "frameCount": 8, "fps": 8, "loop": true }
+      }
+    },
+    {
+      "id": "munchkin_calico",
+      "nameKo": "크림오렌지 삼색 먼치킨",
+      "atlas": "pets/munchkin_calico/atlas.png",
+      "thumbnail": "pets/munchkin_calico/thumbnail.png",
+      "actions": {
+        "doze": { "row": 0, "frameCount": 8, "fps": 6, "loop": true },
+        "pounce": { "row": 1, "frameCount": 8, "fps": 11, "loop": true },
+        "belly_roll": { "row": 2, "frameCount": 8, "fps": 9, "loop": true }
+      }
+    },
+    {
+      "id": "rabbit_snow_white",
+      "nameKo": "스노화이트 토끼",
+      "atlas": "pets/rabbit_snow_white/atlas.png",
+      "thumbnail": "pets/rabbit_snow_white/thumbnail.png",
+      "actions": {
+        "sniff": { "row": 0, "frameCount": 8, "fps": 8, "loop": true },
+        "binky_jump": { "row": 1, "frameCount": 8, "fps": 11, "loop": true },
+        "side_flop": { "row": 2, "frameCount": 8, "fps": 8, "loop": true }
+      }
+    },
+    {
+      "id": "ferret_sable",
+      "nameKo": "세이블 페럿",
+      "atlas": "pets/ferret_sable/atlas.png",
+      "thumbnail": "pets/ferret_sable/thumbnail.png",
+      "actions": {
+        "sniff_stand": { "row": 0, "frameCount": 8, "fps": 8, "loop": true },
+        "war_dance": { "row": 1, "frameCount": 8, "fps": 11, "loop": true },
+        "curl_roll": { "row": 2, "frameCount": 8, "fps": 10, "loop": true }
+      }
+    },
+    {
+      "id": "hamster_golden",
+      "nameKo": "골든 햄스터",
+      "atlas": "pets/hamster_golden/atlas.png",
+      "thumbnail": "pets/hamster_golden/thumbnail.png",
+      "actions": {
+        "seed_nibble": { "row": 0, "frameCount": 8, "fps": 8, "loop": true },
+        "cheek_groom": { "row": 1, "frameCount": 8, "fps": 9, "loop": true },
+        "upright_sniff": { "row": 2, "frameCount": 8, "fps": 8, "loop": true }
+      }
+    },
+    {
+      "id": "chinchilla_silver_lavender",
+      "nameKo": "실버라벤더 친칠라",
+      "atlas": "pets/chinchilla_silver_lavender/atlas.png",
+      "thumbnail": "pets/chinchilla_silver_lavender/thumbnail.png",
+      "actions": {
+        "ear_tail_idle": { "row": 0, "frameCount": 8, "fps": 7, "loop": true },
+        "dust_roll": { "row": 1, "frameCount": 8, "fps": 10, "loop": true },
+        "vertical_jump": { "row": 2, "frameCount": 8, "fps": 11, "loop": true }
+      }
+    },
+    {
+      "id": "hedgehog_chocolate_cream",
+      "nameKo": "초콜릿크림 피그미 고슴도치",
+      "atlas": "pets/hedgehog_chocolate_cream/atlas.png",
+      "thumbnail": "pets/hedgehog_chocolate_cream/thumbnail.png",
+      "actions": {
+        "floor_sniff": { "row": 0, "frameCount": 8, "fps": 8, "loop": true },
+        "curl_ball": { "row": 1, "frameCount": 8, "fps": 9, "loop": true },
+        "waddle": { "row": 2, "frameCount": 8, "fps": 10, "loop": true }
+      }
+    },
+    {
+      "id": "cockatiel_pearl_gray",
+      "nameKo": "펄그레이 왕관앵무",
+      "atlas": "pets/cockatiel_pearl_gray/atlas.png",
+      "thumbnail": "pets/cockatiel_pearl_gray/thumbnail.png",
+      "actions": {
+        "crest_tilt": { "row": 0, "frameCount": 8, "fps": 7, "loop": true },
+        "wing_stretch": { "row": 1, "frameCount": 8, "fps": 8, "loop": true },
+        "side_step": { "row": 2, "frameCount": 8, "fps": 10, "loop": true }
+      }
+    }
+  ]
+}

@@ -141,7 +141,7 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(appSource, /lastPortraitShooterMapIdRef[\s\S]*selectedMap\.landscapeOnly[\s\S]*lastPortraitShooterMapIdRef\.current = selectedMap\.id/);
   assert.match(appSource, /const returnToPortraitShooterMap = useCallback[\s\S]*orientation\?\.unlock[\s\S]*exitFullscreen/);
   assert.match(componentSource, /className="shooterRecordingEntrySlot shooterRecordingEntrySlot--landscapeControl"/);
-  assert.match(appSource, /appMode === APP_MODES\.SHOOTER && !mobileLandscapeShooterActive && typeof document !== "undefined" \? createPortal\([\s\S]*<ShooterPitchMonitor/);
+  assert.match(appSource, /appMode === APP_MODES\.SHOOTER && !mobileLandscapeShooterActive && !helpGuideOpen && !utilityMenuOpen && !appContentInteractionLocked && typeof document !== "undefined" \? createPortal\([\s\S]*<ShooterPitchMonitor/);
   assert.match(appSource, /<ShooterGameOver[\s\S]*score=\{score\}[\s\S]*bestScore=\{shooterRecords.best.score\}/);
   assert.match(appSource, /<ShooterGameOver[\s\S]*onRestart=\{\(\) => startShooter\(\)\}[\s\S]*onExit=\{showMainMenu\}/);
   assert.match(css, /main\.app\.app\.app\.mobileLandscapeShooter/);

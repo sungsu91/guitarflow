@@ -41,7 +41,7 @@ test("desktop navigation is a fixed full sidebar on the left wall", async () => 
   assert.match(styles, /\.desktopSidebarStatusLogo--editor \{\s*color: #9fb6cf !important;/);
   assert.match(styles, /\.desktopSidebarInstagramIcon \{\s*color: var\(--desktop-sidebar-card-icon\);/);
   assert.match(styles, /\.desktopSidebarNavItem--rhythm\.is-active \{[\s\S]*?border-color:[\s\S]*?background:[\s\S]*?inset 3px 0 0/);
-  assert.equal((sidebarSource.match(/<DesktopSidebarSectionHeading>/g) ?? []).length, 2);
+  assert.equal((sidebarSource.match(/<DesktopSidebarSectionHeading>/g) ?? []).length, 3);
   assert.equal((sidebarSource.match(/className="desktopSidebarDivider"/g) ?? []).length, 1);
   [
     "튜너",
@@ -50,9 +50,9 @@ test("desktop navigation is a fixed full sidebar on the left wall", async () => 
     "슈팅게임",
     "단일 음 위치 익히기",
     "스케일 · 펜타토닉",
-    "연습 코스",
-    "리듬 코드 전환",
-    "반주 · 편집",
+    "기본 학습",
+    "리듬 & 코드",
+    "DEV · 개발 중",
     "미니반주",
     "오디오 스튜디오",
     "사운드 및 리듬 설정",
@@ -62,8 +62,7 @@ test("desktop navigation is a fixed full sidebar on the left wall", async () => 
   assert.match(sidebarSource, /mark="초보 ★"/);
   assert.match(sidebarSource, /mark="SOLO"/);
   assert.match(sidebarSource, /mark="HOT •"/);
-  assert.match(sidebarSource, /mark="진행 구성"/);
-  assert.match(sidebarSource, /mark="간편 편집"/);
+  assert.equal((sidebarSource.match(/mark="미완성"/g) ?? []).length, 2);
   assert.doesNotMatch(sidebarSource, /MenuStatusBadge|status="DEV"|index="④"/);
   assert.match(sidebarSource, /<InstagramMark size=\{18\}/);
   assert.doesNotMatch(sidebarSource, /MessagesSquare|@sungsu91_/);

@@ -1,6 +1,7 @@
 import { useRef, useState, useLayoutEffect } from 'react';
 import { Settings, X, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '../i18n/react.jsx';
+import { t } from '../i18n/core.js';
 
 // Only presentation state lives here; settings and navigation remain owned by App.
 export default function MobileUtilityMenu({ onClose, settings, pro, basic, dev, footer }) {
@@ -33,7 +34,7 @@ export default function MobileUtilityMenu({ onClose, settings, pro, basic, dev, 
       </div>
       <div className="utilityMenuBody" id="utility-feature-list" role="tabpanel" aria-labelledby={`menu-tab-${category}`}>
         <nav className="utilityMenuList" aria-label={en ? 'Features' : '기능'}>
-          {[[ 'pro', 'PRO', pro ], [ 'basic', en ? 'Basic learning' : '기본 학습', basic ], [ 'dev', en ? 'DEV · In development' : 'DEV · 개발 중', dev ]].map(([id, label, content]) => category === 'all' || category === id ? <section className="utilityFeatureGroup" key={id}><h3>{label}</h3>{content}</section> : null)}
+          {[[ 'pro', 'PRO', pro ], [ 'basic', t('menu.basicLearning'), basic ], [ 'dev', t('menu.inDevelopment'), dev ]].map(([id, label, content]) => category === 'all' || category === id ? <section className="utilityFeatureGroup" key={id}><h3>{label}</h3>{content}</section> : null)}
         </nav>
       </div>
       <nav className="utilityMenuFooter" aria-label={en ? 'Help and contact' : '도움말 및 문의'}>{footer}</nav>

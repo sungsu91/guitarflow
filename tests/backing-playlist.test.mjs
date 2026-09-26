@@ -35,6 +35,9 @@ test("native audio looping follows repeat settings for standalone and playlist p
   assert.equal(shouldLoopBackingTrack(modes.REPEAT_ALL, false), true);
   // Playlist repeat-all must receive ended events to advance to the next track.
   assert.equal(shouldLoopBackingTrack(modes.REPEAT_ALL, true), false);
+  assert.equal(shouldLoopBackingTrack(modes.REPEAT_ALL, true, 1), true);
+  assert.equal(shouldLoopBackingTrack(modes.REPEAT_ALL, true, 2), false);
+  assert.equal(shouldLoopBackingTrack(modes.SEQUENTIAL, true, 1), false);
   assert.equal(shouldLoopBackingTrack(modes.SHUFFLE, false), false);
   // Completing a non-repeating queue must not turn native looping back on.
   assert.equal(getNextBackingPlaylistIndex({ currentIndex: 1, itemCount: 2 }), -1);
@@ -277,7 +280,7 @@ test("Backing Loop UI uses Playlist as the single queue, import, and saved-list 
   assert.match(playerCss, /\.backingLoopPlaylistDialog \.backingLoopDialogHeading strong[\s\S]*?font-size: 17px;[\s\S]*?letter-spacing: 1\.4px;/);
   assert.match(playerCss, /\.backingLoopPlaylistNavigation button:first-child\.selected[\s\S]*?rgba\(249, 219, 222, 0\.98\)/);
   assert.match(playerCss, /\.backingLoopPlaylistNavigation button:not\(:first-child\)\.selected[\s\S]*?rgba\(251, 226, 166, 0\.98\)/);
-  assert.match(componentSource, /playlistAnchorRef\.current\?\.querySelector\("\.backingLoopMiniPlayer"\)/);
+  assert.match(componentSource, /panel\?\.querySelector\("\.backingLoopMiniPlayer"\)/);
   assert.doesNotMatch(componentSource, /document\.querySelector\("\.backingLoopPanel--mobile \.backingLoopMiniPlayer"\)/);
   assert.match(componentSource, /ref=\{panelRef\}/);
   assert.match(componentSource, /playlistDrawerOpen[\s\S]*?ChevronDown[\s\S]*?ChevronUp/);
@@ -291,7 +294,7 @@ test("Backing Loop UI uses Playlist as the single queue, import, and saved-list 
   assert.match(controllerSource, /shouldRestartBackingPlaylistTrack/);
   assert.match(controllerSource, /playlistState\.playbackMode/);
   assert.match(controllerSource, /playlistState\.shuffleEnabled/);
-  assert.match(controllerSource, /audio\.loop = shouldLoopBackingTrack\(nextMode, Boolean\(playlistPlaybackRef\.current\.playlistId\)\)/);
+  assert.match(controllerSource, /audio\.loop = shouldLoopBackingTrack\(nextMode, Boolean\(playlistPlaybackRef\.current\.playlistId\), playlistPlaybackRef\.current\.itemIds\?\.length\)/);
   assert.match(controllerSource, /saveCurrentBackingPlaylist/);
   assert.match(controllerSource, /loadSavedBackingPlaylist/);
   assert.match(controllerSource, /개 파일을 “\$\{targetTitle\}”에 추가했어요/);

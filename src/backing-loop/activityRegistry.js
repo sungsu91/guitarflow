@@ -1,8 +1,8 @@
 const activeBackingLoops = new Set();
 
-export function registerBackingLoopActivity(ownerMode, deactivate, activate = null) {
+export function registerBackingLoopActivity(ownerMode, deactivate, activate = null, onNavigate = null) {
   if (!ownerMode || typeof deactivate !== "function") return () => {};
-  const entry = { activate, deactivate, ownerMode };
+  const entry = { activate, deactivate, ownerMode, onNavigate };
   activeBackingLoops.add(entry);
   activate?.();
   return () => activeBackingLoops.delete(entry);
@@ -10,7 +10,8 @@ export function registerBackingLoopActivity(ownerMode, deactivate, activate = nu
 
 export function deactivateBackingLoopsExcept(nextMode) {
   activeBackingLoops.forEach((entry) => {
-    if (entry.ownerMode === nextMode) entry.activate?.();
+    if (entry.onNavigate) entry.onNavigate(nextMode);
+    else if (entry.ownerMode === nextMode) entry.activate?.();
     else entry.deactivate();
   });
 }

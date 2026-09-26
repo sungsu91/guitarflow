@@ -16,6 +16,7 @@ import {
   Volume2,
 } from "lucide-react";
 import MetronomeVolumeControl from "../components/MetronomeVolumeControl.jsx";
+import GrooveVolumeControl from "../components/GrooveVolumeControl.jsx";
 import LanguageSettings from '../i18n/LanguageSettings.jsx';
 
 function InstagramMark({ size = 18 }) {
@@ -87,6 +88,7 @@ export default function DesktopSidebarNavigation({
   onOpenTuner,
   onResetSound,
   inputControls,
+  shareControls,
   onSelectTheme,
   themeOptions,
   themeTransitionActive,
@@ -112,24 +114,29 @@ export default function DesktopSidebarNavigation({
           <DesktopSidebarItem active={activeKey === "shooter"} icon={Gamepad2} label={translateUi("menu.shooter")} onClick={onOpenShooter} />
         </div>
 
-        <DesktopSidebarSectionHeading><Translation id="app.practiceCourses" /></DesktopSidebarSectionHeading>
+        <DesktopSidebarSectionHeading>PRO</DesktopSidebarSectionHeading>
 
         <div className="desktopSidebarGroup">
-          <DesktopSidebarItem active={activeKey === "stage1"} index="①" label={translateUi("app.singleNotes")} mark={translateUi("app.beginner")} onClick={onOpenSingleNote} tone="beginner" />
-          <DesktopSidebarItem active={activeKey === "stage2"} index="②" label={translateUi("app.scalesPentatonics")} mark="SOLO" onClick={onOpenScale} tone="solo" />
-          <DesktopSidebarItem active={activeKey === "stage3"} index="③" label={translateUi("navigation.rhythmChords")} mark="HOT •" onClick={onOpenRhythm} tone="rhythm" />
           <DesktopSidebarItem active={activeKey === "rhythm-trainer"} icon={Music2} label={translateUi("app.rhythmTrainer")} mark="PRO" tone="arranger" onClick={onOpenRhythmTrainer} />
           <DesktopSidebarItem active={activeKey === "etudes"} icon={Music2} label={translateUi("app.scorePractice")} mark="PRO" onClick={onOpenEtudes} tone="arranger" />
         </div>
 
-        <DesktopSidebarSectionHeading><Translation id="app.backingEditing" /></DesktopSidebarSectionHeading>
+        <DesktopSidebarSectionHeading><Translation id="menu.basicLearning" /></DesktopSidebarSectionHeading>
+
+        <div className="desktopSidebarGroup">
+          <DesktopSidebarItem active={activeKey === "stage1"} index="①" label={translateUi("app.singleNotes")} mark={translateUi("app.beginner")} onClick={onOpenSingleNote} tone="beginner" />
+          <DesktopSidebarItem active={activeKey === "stage2"} index="②" label={translateUi("app.scalesPentatonics")} mark="SOLO" onClick={onOpenScale} tone="solo" />
+          <DesktopSidebarItem active={activeKey === "stage3"} index="③" label={translateUi("app.rhythmChords")} mark="HOT •" onClick={onOpenRhythm} tone="rhythm" />
+        </div>
+
+        <DesktopSidebarSectionHeading><Translation id="menu.inDevelopment" /></DesktopSidebarSectionHeading>
 
         <div className="desktopSidebarGroup">
           <DesktopSidebarItem
             active={activeKey === "mini-chord"}
             icon={Music2}
             label={translateUi("menu.miniBacking")}
-            mark={translateUi("app.buildProgressions")}
+            mark={translateUi("menu.unfinished")}
             onClick={onOpenMiniChord}
             tone="arranger"
           />
@@ -138,7 +145,7 @@ export default function DesktopSidebarNavigation({
               active={activeKey === "audio-studio"}
               icon={AudioLines}
               label={translateUi("menu.audioStudio")}
-              mark={translateUi("app.quickEditing")}
+              mark={translateUi("menu.unfinished")}
               onClick={onOpenAudioStudio}
               tone="editor"
             />
@@ -157,6 +164,7 @@ export default function DesktopSidebarNavigation({
             <div className="desktopSidebarSoundControls">
               {inputControls}
               <MetronomeVolumeControl className="desktopSidebarSoundRow" />
+              <GrooveVolumeControl className="desktopSidebarSoundRow" />
               {backingVolumeControls.map((control) => {
                 const value = getBackingVolumeValue(control.id);
                 return (
@@ -198,6 +206,7 @@ export default function DesktopSidebarNavigation({
             </div>
           </details>
           <DesktopSidebarItem icon={CircleHelp} label={translateUi("app.guideHelp")} onClick={onOpenHelp} />
+          {shareControls}
           <a
             className="desktopSidebarNavItem desktopSidebarContact"
             href="https://www.instagram.com/sungsu91_/"
@@ -215,13 +224,13 @@ export default function DesktopSidebarNavigation({
           {themeOptions.map((option) => (
             <button
               aria-checked={appTheme === option.id}
-              aria-label={localizeUi(translateUi("navigation.value1Theme", { value1: option.label }))}
+              aria-label={translateUi("navigation.value1Theme", { value1: localizeUi(option.label) })}
               className={appTheme === option.id ? "is-active" : ""}
               disabled={themeTransitionActive}
               key={option.id}
               onClick={() => onSelectTheme(option.id)}
               role="radio"
-              title={localizeUi(translateUi("navigation.value1Theme", { value1: option.label }))}
+              title={translateUi("navigation.value1Theme", { value1: localizeUi(option.label) })}
               type="button"
             >
               {option.id === "light" ? <Sun size={15} aria-hidden="true" /> : <Moon size={15} aria-hidden="true" />}

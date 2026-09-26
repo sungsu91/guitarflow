@@ -1,6 +1,6 @@
 import ko from "../../i18n/locales/ko.js";
 import { formatMessage } from "../../i18n/format.js";
-import manifest from "../../../public/assets/shooter/instruments/fretiva_pink_instrument_skin_pack_v1/skin_manifest.json" with { type: "json" };
+import manifest from "./fretivaPinkInstrumentSkinPackV1.manifest.json" with { type: "json" };
 export const FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_ID = manifest.pack_id;
 // Measure the solid silhouette for collisions; the original PNG stays untouched.
 const BOUNDS = {

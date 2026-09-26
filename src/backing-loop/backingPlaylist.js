@@ -297,9 +297,9 @@ export function reconcileBackingPlaylistState(state, libraryIds) {
   }, queue);
 }
 
-export function shouldLoopBackingTrack(playbackMode, playlistPlaybackActive = false) {
+export function shouldLoopBackingTrack(playbackMode, playlistPlaybackActive = false, playlistItemCount = 0) {
   return playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE
-    || (!playlistPlaybackActive && playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ALL);
+    || ((!playlistPlaybackActive || playlistItemCount === 1) && playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ALL);
 }
 
 export function getNextBackingPlaylistIndex({

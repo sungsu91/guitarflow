@@ -156,3 +156,6 @@ backup/
 # Local verification output and personal library exports
 /output/
 /out-failure.png
+
+# Desktop parity audit backups, isolated builds and browser evidence
+/work/desktop-parity/

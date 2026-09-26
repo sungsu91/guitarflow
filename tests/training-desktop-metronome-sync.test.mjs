@@ -22,7 +22,7 @@ test("single and scale desktop training reuse the standalone metronome component
   );
   assert.match(
     appSource,
-    /selectedCategory\.id === "scale-block" \? \(\s*!isMobileLayout \? \(\s*<BackingLoop\s+desktopPresentation="standalone"\s+mobile=\{false\}\s+ownerMode=\{APP_MODES\.PRACTICE\}/,
+    /selectedCategory\.id === "scale-block" \? \(\s*!isMobileLayout \? \(\s*(?:<>\s*)?<BackingLoop\s+desktopPresentation="standalone"\s+mobile=\{false\}\s+ownerMode=\{APP_MODES\.PRACTICE\}/,
   );
   assert.doesNotMatch(
     appSource,

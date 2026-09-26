@@ -9,8 +9,8 @@
 .rt-guide-meter span { font-size:11px; color:#b8c5d1; }
 .rt-guide-select { margin:12px 0; }
 .rt-guide-select > label { display:flex; align-items:center; gap:10px; font-size:12px; }
-.rt-guide-select nav { display:flex; overflow-x:auto; gap:6px; padding:9px 0 4px; }
-.rt-guide-select nav button { white-space:nowrap; flex:none; }
+.rt-guide-select nav { display:flex; flex-wrap:wrap; gap:6px; padding:9px 0 4px; }
+.rt-guide-select nav button { white-space:normal; overflow-wrap:anywhere; max-width:100%; min-width:0; flex:0 1 auto; }
 .rt-guide button[aria-pressed="true"] { background:#39654f; border-color:#9ed6bd; }
 .rt-guide-heading { display:flex; flex-wrap:wrap; gap:5px 10px; align-items:baseline; }
 .rt-guide-heading small,.rt-guide-legend { font-size:11px; color:#c0cbc5; }
@@ -53,3 +53,29 @@
 .rt-guide-mobile .rt-guide-grid > div { padding:3px 0; }
 .rt-guide-mobile .rt-guide-grid b { font-size:18px; }
 .rt-guide-mobile .rt-guide-score p { margin-top:6px; font-size:11px; }
+
+/* Two beat groups per row, with proportional notation rather than stretched SVGs. */
+.rt-guide .rt-guide-score { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; align-items:start; }
+.rt-guide .rt-guide-score article { min-width:0; margin-bottom:0; }
+.rt-guide .rt-guide-score article:only-child { grid-column:1/-1; width:100%; max-width:280px; justify-self:center; }
+.rt-guide .rt-guide-score .rt-measure { width:100%; height:auto; max-height:none; aspect-ratio:180 / 78; }
+.rt-guide .rt-guide-grid small { overflow-wrap:anywhere; }
+.rt-guide .rt-guide-score article p { overflow-wrap:anywhere; }
+.rt-guide-controls > label:first-child { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.rt-guide-controls > label:first-child select { max-width:78%; }
+html body:has(.app:is(.theme-brand,.theme-dark) .rt-workspace) .rt-score { --rt-progress-dot:#FFD65A; }
+
+/* This body portal is also a workspace. Keep the later workspace defaults from
+   turning it into an in-flow white panel outside the app's theme ancestor. */
+html body .rt-guide.rt-workspace {
+ position:fixed;
+ --rt-bg:#2c3137; --rt-text:#e4e7eb; --rt-muted:#b8c5d1; --rt-border:#56616c;
+ --rt-ink:#e4e7eb; --rt-paper:#30353b;
+ background:var(--rt-bg); color:var(--rt-text); color-scheme:dark;
+}
+html body .rt-guide.rt-guide-mobile { inset:0; width:100%; height:100dvh; }
+html body .rt-guide.rt-workspace :is(button,input,select) { background:#373f48; color:var(--rt-text); }
+html body .rt-guide.rt-workspace :is(strong,b) { color:inherit; }
+html body .rt-guide.rt-workspace .rt-score { color:var(--rt-ink); }
+html body .rt-guide.rt-workspace .rt-guide-grid > div { color:var(--rt-text); }
+html body .rt-guide.rt-workspace button[aria-pressed="true"] { background:#39654f; border-color:#9ed6bd; }

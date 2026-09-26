@@ -2,6 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizedRect,canvasSize,practiceOrder,barAtTick} from '../src/pdf/pdfModel.js';
 import {readBackup,storageError,exportPdfPractice} from '../src/pdf/pdfLibrary.js';
+
+test('malformed backup metadata produces a readable validation error before restoring', async () => {
+ for(const data of [null, {format:'fretiva-pdf-backup',version:1,records:[null]}, {format:'fretiva-pdf-backup',version:1,records:[[]]}]) {
+  const meta=new TextEncoder().encode(JSON.stringify(data).padEnd(10,' ')),length=new ArrayBuffer(4);new DataView(length).setUint32(0,meta.length);
+  await assert.rejects(readBackup(new Blob([length,meta])), error=>error instanceof Error && !(error instanceof TypeError));
+ }
+});
 import {pdfEditResumePosition} from '../src/pdf/pdfModel.js';
 import {pdfPracticeFilename} from '../src/pdf/pdfLibrary.js';
 

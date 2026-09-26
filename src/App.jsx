@@ -1,3 +1,4 @@
+import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
 import {CHORD_ACCIDENTAL_OPTIONS,CHORD_QUALITY_OPTIONS,CHORD_EXTENSION_OPTIONS,isChordExtensionAvailableForQuality,normalizeChordExtensionForQuality,getChordDisplayRoot,getChordNameFromParts} from './chords/chordSelection.js';
 import { localizeUi } from "./i18n/core.js";
 import ko from "./i18n/locales/ko.js";
@@ -6,13 +7,14 @@ import { t as translateUi } from "./i18n/core.js";
 import { Translation, useLanguage } from "./i18n/react.jsx";
 import DeviceConnection from './input/DeviceConnection.jsx';
 import MobileUtilityMenu from './navigation/MobileUtilityMenu.jsx';
+import { createActivityPortal } from './navigation/ActivityPortal.jsx';
 import LanguageSettings from './i18n/LanguageSettings.jsx';
 import { useAudioInputSelection, useMidiConnection } from './input/useInputSelection.js';
 import { getAudioInputSelection, audioInputError, publishAudioInput } from './input/audioInputSelection.js';
 import { midiInput } from './input/midiInput.js';
 import { midiMatchesShooterTarget, midiInputPitch } from './shooter/midiJudgment.js';
 import ShooterGameOver from './shooter/results/ShooterGameOver.jsx';
-import ShooterShareButton from './shooter/results/ShooterShareButton.jsx';
+import SiteShareButton from './navigation/SiteShareButton.jsx';
 import GroovePacks from './metronome/GroovePacks.jsx';
 import GrooveEditor, { MetronomeDockHandle } from './metronome/GrooveEditor.jsx';
 import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore } from './metronome/groove.js';
@@ -22,6 +24,8 @@ import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/f
 import { ADDITIONAL_CHORD_SHAPES, isAdditionalChord, isPermittedChordOmission, parseAdditionalChordName, spellAdditionalChordTone } from "./chords/additionalChords.js";
 import { observeShooterNoteOn } from "./shooter/noteOn.js";
 import ShooterRecording from "./shooter/recording/ShooterRecording.jsx";
+import ShooterSpritePet from "./shooter/ShooterSpritePet.jsx";
+import ShooterPetControls from "./shooter/ShooterPetControls.jsx";
 import MobilePullToRefresh from "./layouts/MobilePullToRefresh.jsx";
 import { useLazyRef } from "./useLazyRef.js";
 import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
@@ -94,7 +98,7 @@ import {
   normalizeAutomatorTimerParts,
   normalizeTrackerTimerParts,
 } from "./metronome/runtime";
-import AudioStudio from "./audio-studio/AudioStudio";
+const AudioStudio = lazy(() => import("./audio-studio/AudioStudio.jsx"));
 const RhythmTrainer = lazy(() => import("./rhythm-trainer/RhythmTrainer.jsx"));
 const EtudeStudio = lazy(() => import("./pdf/PdfStudio.jsx"));
 import GrooveVolumeControl from "./components/GrooveVolumeControl.jsx";
@@ -123,7 +127,7 @@ import {
   getAudioTransportStepSeconds,
 } from "./audio/transportClock.js";
 import BrandHeader from "./components/BrandHeader";
-import BackingLoop from "./components/BackingLoop";
+import BackingLoop, { BackingLoopDock } from "./components/BackingLoop";
 import { UtilityMenuTitle } from "./components/MenuStatusBadge";
 import { deactivateBackingLoopsExcept } from "./backing-loop/activityRegistry.js";
 import Fretboard from "./components/Fretboard";
@@ -3593,7 +3597,6 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
       startX: event.clientX,
       target: event.currentTarget,
     };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
   }, [desktopDraggable]);
   const handlePointerMove = useCallback((event) => {
     const drag = dragStateRef.current;
@@ -3604,6 +3607,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
     }
     const deltaX = event.clientX - drag.startX;
     if (!drag.moved && Math.abs(deltaX) < 5) return;
+    if (!drag.moved) event.currentTarget.setPointerCapture?.(event.pointerId);
     drag.moved = true;
     event.preventDefault();
     event.currentTarget.scrollLeft = drag.scrollLeft - deltaX;
@@ -16774,6 +16778,31 @@ function App({ onReady }) {
   const [guitarLabPurgedIds, setGuitarLabPurgedIds] = useState(getStoredGuitarLabPurgedIds);
   const [guitarLabSelectedDeleteIds, setGuitarLabSelectedDeleteIds] = useState([]);
   const [shooterGuitarPickerOpen, setShooterGuitarPickerOpen] = useState(false);
+  useEffect(() => {
+    if (!shooterGuitarPickerOpen) return undefined;
+    const previous = document.activeElement;
+    const frame = requestAnimationFrame(() => document.querySelector('.shooterGuitarPickerModal button')?.focus());
+    const keydown = (event) => {
+      if (event.defaultPrevented) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setShooterGuitarPickerOpen(false);
+      } else if (event.key === 'Tab') {
+        const controls = [...document.querySelectorAll('.shooterGuitarPickerModal button:not(:disabled), .shooterGuitarPickerModal input, .shooterGuitarPickerModal select')].filter(el => el.getClientRects().length);
+        const next = event.shiftKey ? controls.at(-1) : controls[0];
+        if (controls.length && ((!event.shiftKey && document.activeElement === controls.at(-1)) || (event.shiftKey && document.activeElement === controls[0]))) {
+          event.preventDefault();
+          next.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', keydown);
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    };
+  }, [shooterGuitarPickerOpen]);
   const [shooterPickerInitialTab, setShooterPickerInitialTab] = useState("guitar");
   const [shooterLandscapeHint, setShooterLandscapeHint] = useState("");
   const shooterLandscapeFullscreenRef = useRef(false);
@@ -17541,7 +17570,7 @@ function App({ onReady }) {
     setShooterPetPosition({ ...DEFAULT_SHOOTER_PET_POSITION });
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SHOOTER_PET_SKIN_STORAGE_KEY, nextSkin.id);
-      if (nextSkin.sheetSrc) {
+      if (nextSkin.sheetSrc && nextSkin.renderer !== "atlas") {
         const image = new Image();
         image.src = nextSkin.sheetSrc;
       }
@@ -27328,7 +27357,7 @@ function App({ onReady }) {
   }, [appMode, detected, gameState, selectedCategory.id, selectedPentatonic.notes]);
   const referencePrompt = detectedScaleNote ?? currentPrompt;
   const referenceDisplayPrompt = referencePrompt;
-  const showTrainingNoteGuide = !isMobileLayout || trainingNoteGuideEnabled;
+  const showTrainingNoteGuide = trainingNoteGuideEnabled;
   const displayedReferencePrompt = showTrainingNoteGuide ? referenceDisplayPrompt : null;
   const referencePromptDisplayLabel = displayedReferencePrompt
     ? `${displayedReferencePrompt.solfege ?? getSolfege(displayedReferencePrompt.pitch)} / ${displayedReferencePrompt.pitch}`
@@ -30292,12 +30321,19 @@ function App({ onReady }) {
       style={shooterMobileViewportStyle}
       translate="no"
     >
+      <BackingLoopDock mobile={isMobileLayout} mode={appMode} />
+      {!isMobileLayout && appMode === APP_MODES.SHOOTER && !horizontalShooterActive && !shooterGuitarPickerOpen && !helpGuideOpen && !utilityMenuOpen && gameState === GAME_STATES.PLAYING ? (
+        <button className="desktopShooterPauseControl" type="button" onClick={pauseGame}>
+          <Pause size={17} aria-hidden="true" />
+          {translateUi("app.pause")}
+        </button>
+      ) : null}
       {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <MobilePullToRefresh enabled={!utilityMenuOpen && !helpGuideOpen && !mapEditor.enabled && !shooterRecordingActive && !appContentInteractionLocked && (appMode !== APP_MODES.SHOOTER || (gameState !== GAME_STATES.PLAYING && shooterCountInLabel === null))} /> : null}
       {appMode === APP_MODES.SHOOTER && !mapEditor.enabled ? (
         <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} onLayoutChange={setShooterRecordingLayout} gamePlaying={gameState === GAME_STATES.PLAYING} onReview={pauseGame} />
       ) : null}
-      {appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && typeof document !== "undefined" ? createPortal(
-        <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
+      {appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && !helpGuideOpen && !utilityMenuOpen && !appContentInteractionLocked && typeof document !== "undefined" ? createPortal(
+        <ShooterPitchMonitor mobile={isMobileLayout} arenaRef={shooterArenaRef} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
         shooterRecordingActive && isMobileLayout ? (shooterArenaRef.current?.closest('.shooterPanel') ?? document.body) : document.body,
       ) : null}
       {themeTransition && typeof document !== "undefined"
@@ -30340,6 +30376,7 @@ function App({ onReady }) {
         onOpenTuner={showTunerMode}
         onResetSound={resetSoundSettings}
         inputControls={appMode === APP_MODES.SHOOTER ? <DeviceConnection scope="shooter" /> : null}
+        shareControls={<SiteShareButton desktop />}
         onSelectTheme={selectAppTheme}
         themeOptions={themeMenuVisible ? themeOptions : []}
         themeTransitionActive={Boolean(themeTransition)}
@@ -30555,7 +30592,7 @@ function App({ onReady }) {
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
-              <ShooterShareButton menu compact score={appMode === APP_MODES.SHOOTER ? score : shooterRecords.recent[0]?.score ?? 0} bestScore={shooterRecords.best.score} />
+              <SiteShareButton />
               <a
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive utilityMenuItemExternal utilityMenuItemInstagram"
                 href="https://www.instagram.com/sungsu91_/"
@@ -30585,7 +30622,7 @@ function App({ onReady }) {
       {sharedAccompanimentConfigurationDialogs}
 
       {helpGuideOpen ? (
-        <div className="helpGuideLayer" role="presentation">
+        <HelpGuideDialog label={translateUi("app.userGuideHelp")} onClose={() => { setHelpGuideOpen(false); setOpenHelpSectionId(""); }}>
           <button
             aria-label={translateUi("app.closeUserGuide")}
             className="helpGuideDim"
@@ -30624,7 +30661,7 @@ function App({ onReady }) {
                       <div className={`helpAccordionGroup helpAccordionGroup--${section.group}`}>
                         <span>{HELP_GUIDE_GROUP_LABELS[section.group]}</span>
                       </div>
-                    ) : null}
+      ) : null}
                     <article className={`helpAccordionItem helpAccordionItem--${section.group} ${expanded ? "open" : ""}`}>
                       <button
                         aria-expanded={expanded}
@@ -30652,9 +30689,17 @@ function App({ onReady }) {
                   </section>
                 );
               })}
+<details className="helpSampleCredits">
+              <summary><Translation id="app.guitarAudioBiblicalbricksproductionsCcBy30" /></summary>
+              <p><Translation id="app.basicMajorChordsCBUseOriginalRecordingsTheirVoicingsMayDiffer" /></p>
+              <p><a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer"><Translation id="originalUi.creativeCommonsAttribution30" /></a><Translation id="app.originalFileKeptLeadInSkippedDuringPlayback" /></p>
+              <p>{Object.entries(VIEWER_CHORD_SAMPLES).map(([root, sample]) => (
+                <a key={root} href={sample.source} target="_blank" rel="noreferrer">{sample.title} </a>
+              ))}</p>
+            </details>
             </div>
           </section>
-        </div>
+        </HelpGuideDialog>
       ) : null}
 
       {appMode !== APP_MODES.MENU
@@ -30710,8 +30755,8 @@ function App({ onReady }) {
         </BottomNavigation>
       </section></MobileNavigationSurface>}
 
-      {appMode === APP_MODES.RHYTHM_TRAINER ? <Suspense fallback={<p>…</p>}><RhythmTrainer beatTone={metronomeTone} countVoiceMode={metronomeCountInVoiceMode} mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer}/></Suspense> : null}
-      {appMode === APP_MODES.ETUDES ? <Suspense fallback={<p><Translation id="app.preparingScorePractice" /></p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense> : null}
+      {isAppModeMounted(APP_MODES.RHYTHM_TRAINER) ? <Activity mode={getModeActivityState(appMode, APP_MODES.RHYTHM_TRAINER)}><Suspense fallback={<p>…</p>}><RhythmTrainer beatTone={metronomeTone} countVoiceMode={metronomeCountInVoiceMode} mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer}/></Suspense></Activity> : null}
+      {isAppModeMounted(APP_MODES.ETUDES) ? <Activity mode={getModeActivityState(appMode, APP_MODES.ETUDES)}><Suspense fallback={<p><Translation id="app.preparingScorePractice" /></p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense></Activity> : null}
 
       {isAppModeMounted(APP_MODES.TUNER) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.TUNER)}>
@@ -30886,6 +30931,7 @@ function App({ onReady }) {
             <label className="miniChordSearchField">
               <Music2 size={16} aria-hidden="true" />
               <input
+                aria-label={translateUi("app.enterTitle")}
                 disabled={miniChordEditLocked}
                 maxLength={40}
                 onChange={(event) => setMiniChordTitle(event.currentTarget.value)}
@@ -31547,7 +31593,7 @@ function App({ onReady }) {
                         !
                       </div>
                     ) : null}
-                    {miniChordActiveBarIndex === bar.index && typeof document !== "undefined" ? createPortal((
+                    {miniChordActiveBarIndex === bar.index && typeof document !== "undefined" ? createActivityPortal((
                       <div
                         className="barEndingPopover miniChordFloatingPopover miniChordFloatingMarkPopover"
                         onClick={(event) => event.stopPropagation()}
@@ -31705,7 +31751,7 @@ function App({ onReady }) {
                                     : getMiniChordSlotDisplayLabel(slot.displayChord)}
                                 </strong>
                               </MiniChordPlaybackSlot>
-                              {miniChordChordPickerSlot === slot.index && typeof document !== "undefined" ? createPortal((
+                              {miniChordChordPickerSlot === slot.index && typeof document !== "undefined" ? createActivityPortal((
                                 <MiniChordFloatingChordEditor
                                   barNumber={bar.index + 1}
                                   beatLabel={half.isSplit
@@ -32384,7 +32430,9 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.AUDIO_STUDIO) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.AUDIO_STUDIO)}>
           {renderAppMode(APP_MODES.AUDIO_STUDIO, () => (
-            <AudioStudio active={appMode === APP_MODES.AUDIO_STUDIO} mobile={isMobileLayout} />
+            <Suspense fallback={<div className="modeLoading" role="status"><Translation id="app.preparing" /></div>}>
+              <AudioStudio active={appMode === APP_MODES.AUDIO_STUDIO} mobile={isMobileLayout} />
+            </Suspense>
           ))}
         </Activity>
       ) : null}
@@ -32630,16 +32678,6 @@ function App({ onReady }) {
 
           </div>
 
-          {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-            <details className="viewerSampleCredits">
-              <summary><Translation id="app.guitarAudioBiblicalbricksproductionsCcBy30" /></summary>
-              <p><Translation id="app.basicMajorChordsCBUseOriginalRecordingsTheirVoicingsMayDiffer" /></p>
-              <p><a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer"><Translation id="originalUi.creativeCommonsAttribution30" /></a><Translation id="app.originalFileKeptLeadInSkippedDuringPlayback" /></p>
-              <p>{Object.entries(VIEWER_CHORD_SAMPLES).map(([root, sample]) => (
-                <a key={root} href={sample.source} target="_blank" rel="noreferrer">{sample.title} </a>
-              ))}</p>
-            </details>
-          ) : null}
           {fretboardCatalogReady ? (
             <Activity mode={getModeActivityState(viewerMode, FRETBOARD_VIEWER_MODES.CHORD)}>
               <section
@@ -33961,7 +33999,19 @@ function App({ onReady }) {
               stage="overlay"
             />
             {!mapEditor.enabled ? <>
-            {selectedPet.sheetSrc && !horizontalShooterActive ? (
+            {selectedPet.renderer === "atlas" ? (
+              <ShooterSpritePet
+                skin={selectedPet}
+                mobile={isMobileLayout}
+                horizontal={horizontalShooterActive}
+                active={shooterPetDocumentVisible && !utilityMenuOpen
+                  && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER}
+                playing={gameState === GAME_STATES.PLAYING}
+                score={score}
+                combo={combo}
+                hits={hits}
+              />
+            ) : selectedPet.sheetSrc && !horizontalShooterActive ? (
               <button
                 aria-label={localizeUi(translateUi("app.moveValue1PressAndDrag", { value1: selectedPet.label }))}
                 className="shooterPetCompanion"
@@ -34233,6 +34283,7 @@ function App({ onReady }) {
                 aria-label={translateUi("app.changeNoteShooterSkin")}
                 aria-modal="true"
                 className={`shooterGuitarPickerModal shooterGuitarPickerModal--${shooterSkinTab}`}
+                data-pet-controls={import.meta.env.DEV && shooterSkinTab === "pet" && selectedPet.renderer === "atlas" ? "true" : undefined}
                 onClick={(event) => event.stopPropagation()}
                 role="dialog"
               >
@@ -34265,6 +34316,9 @@ function App({ onReady }) {
                     </button>
                   ))}
                 </div>
+                {import.meta.env.DEV && shooterSkinTab === "pet" && selectedPet.renderer === "atlas" ? (
+                  <ShooterPetControls skin={selectedPet} mobile={isMobileLayout} horizontal={horizontalShooterActive} />
+                ) : null}
                 <div className={`shooterSkinPickerBodyFrame shooterSkinPickerBodyFrame--${shooterSkinTab} ${
                   isMobileLayout
                   && (shooterSkinTab === "guitar" || shooterSkinTab === "pick" || shooterSkinTab === "map")
@@ -34332,13 +34386,13 @@ function App({ onReady }) {
                           >
                             <span
                               aria-hidden="true"
-                              className={`shooterPetSkinPreview ${skin.sheetSrc ? "shooterPetSkinPreview--sprite" : "shooterPetSkinPreview--none"}`}
-                              style={skin.sheetSrc ? {
+                              className={`shooterPetSkinPreview ${skin.thumbnailSrc ? "shooterPetSkinPreview--thumbnail" : skin.sheetSrc ? "shooterPetSkinPreview--sprite" : "shooterPetSkinPreview--none"}`}
+                              style={skin.sheetSrc && !skin.thumbnailSrc ? {
                                 "--shooter-pet-preview-image": `url(${skin.sheetSrc})`,
                                 "--shooter-pet-preview-sheet-size": `${skin.columns * 100}%`,
                               } : undefined}
                             >
-                              {skin.sheetSrc ? null : "—"}
+                              {skin.thumbnailSrc ? <img src={skin.thumbnailSrc} alt="" width="64" height="64" loading="lazy" decoding="async" /> : skin.sheetSrc ? null : "—"}
                             </span>
                             <strong>{localizeUi(skin.label)}</strong>
                             <small>{localizeUi(skin.description)}</small>
@@ -35231,12 +35285,10 @@ function App({ onReady }) {
                         showLabel={!isMobileLayout}
                         value={selectedScaleDetailValue}
                       />
-                      {isMobileLayout ? (
-                        <TrainingNoteGuideToggle
+                      {isMobileLayout && <TrainingNoteGuideToggle
                           enabled={trainingNoteGuideEnabled}
                           onChange={setTrainingNoteGuideEnabled}
-                        />
-                      ) : null}
+                        />}
                     </div>
                   </div>
                 ) : (
@@ -35246,12 +35298,10 @@ function App({ onReady }) {
                         <span className="trainingDetailTitle">
                           {localizeUi(referencePromptDisplayLabel)}
                         </span>
-                        {isMobileLayout ? (
-                          <TrainingNoteGuideToggle
+                        <TrainingNoteGuideToggle
                             enabled={trainingNoteGuideEnabled}
                             onChange={setTrainingNoteGuideEnabled}
                           />
-                        ) : null}
                       </>
                     )}
                     title={localizeUi(referencePromptDisplayLabel)}
@@ -35366,11 +35416,19 @@ function App({ onReady }) {
                   />
                   {selectedCategory.id === "scale-block" ? (
                     !isMobileLayout ? (
+                      <>
                       <BackingLoop
                         desktopPresentation="standalone"
                         mobile={false}
                         ownerMode={APP_MODES.PRACTICE}
                       />
+                      <div className="desktopScaleProgressControl">
+                        <TrainingNoteGuideToggle
+                          enabled={trainingNoteGuideEnabled}
+                          onChange={setTrainingNoteGuideEnabled}
+                        />
+                      </div>
+                      </>
                     ) : (
                       <div className="scaleTrainingBackingLoop">
                         <BackingLoop mobile ownerMode={APP_MODES.PRACTICE} />

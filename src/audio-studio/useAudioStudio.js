@@ -468,6 +468,10 @@ export default function useAudioStudio() {
 
   useEffect(() => {
     recordingLiveRef.current = true;
+    // Activity resumes the same editor after navigation with no active sources.
+    setPlaybackStatus("stopped");
+    setLibraryMixId("");
+    setLibraryPlaybackStatus("stopped");
     setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
     return () => {
       recordingLiveRef.current = false;
@@ -1420,8 +1424,9 @@ export default function useAudioStudio() {
           setNotice(formatMessage(ko["audioStudio.generatingWaveformValue1Value2"], { value1: completed, value2: total }));
         },
       });
+      const limited = rejected.some(({ reason }) => reason === "file-too-large" || reason === "decoded-limit");
       if (!decoded.length) {
-        setNotice(ko["backingLoop.noSupportedAudioToImportCheckYourMp3WavM4aOrAac"]);
+        setNotice(limited ? ko["audioStudio.importSizeLimit"] : ko["backingLoop.noSupportedAudioToImportCheckYourMp3WavM4aOrAac"]);
         return;
       }
       decoded.forEach(({ audioBuffer, source }) => audioBuffersRef.current.set(source.id, audioBuffer));
@@ -1441,7 +1446,7 @@ export default function useAudioStudio() {
       setImportCompletionId((value) => value + 1);
       importTargetTrackIdRef.current = "";
       setFitProjectRequestId((value) => value + 1);
-      setNotice(rejected.length
+      setNotice(limited ? ko["audioStudio.importSizeLimit"] : rejected.length
         ? formatMessage(ko["audioStudio.importedValue1FilesTheBrowserCouldnTDecodeValue2Files"], { value1: decoded.length, value2: rejected.length })
         : formatMessage(ko["audioStudio.addedValue1FilesAsSeparateTracksPositionThemOnTheTimeline"], { value1: decoded.length }));
     } catch {

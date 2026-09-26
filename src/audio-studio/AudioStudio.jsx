@@ -1,4 +1,5 @@
 import { localizeUi } from "./../i18n/core.js";
+import "./audio-studio.css";
 import ko from "./../i18n/locales/ko.js";
 import { formatMessage } from "./../i18n/core.js";
 import { t as translateUi } from "./../i18n/core.js";
@@ -1023,7 +1024,7 @@ function SimpleTrimDialog({ clip, controller, onClose, source, track }) {
           <section><time>{formatStudioTime(Math.min(controller.currentTimeMs, previewDurationMs), true)} <span>/</span> {formatStudioTime(previewDurationMs, true)}</time><input aria-label={translateUi("audioStudio.selectionPlayhead")} disabled={processing} max={Math.max(1, previewDurationMs)} min="0" onChange={(event) => controller.setPlaybackPosition(event.target.valueAsNumber)} step="10" type="range" value={Math.min(previewDurationMs, controller.currentTimeMs)} /></section>
         </div>
         <section className={`audioStudioTrimStretch ${stretchEnabled ? "is-enabled" : ""}`}>
-          <header><div><strong><Translation id="originalUi.timeStretch" /></strong><span><Translation id="audioStudio.speedTempoPreservePitch" /></span></div><button aria-checked={stretchEnabled} className="audioStudioTrimStretchToggle" disabled={processing} onClick={() => setStretchEnabled((value) => !value)} role="switch" type="button"><i /></button></header>
+          <header><div><strong><Translation id="originalUi.timeStretch" /></strong><span><Translation id="audioStudio.speedTempoPreservePitch" /></span></div><button aria-label={translateUi("originalUi.timeStretch")} aria-checked={stretchEnabled} className="audioStudioTrimStretchToggle" disabled={processing} onClick={() => setStretchEnabled((value) => !value)} role="switch" type="button"><i /></button></header>
           <div className="audioStudioTrimStretchFields">
             <label><span><Translation id="audioStudio.originalBpm" /><small><Translation id="audioStudio.detected" /></small></span><div><input disabled={!stretchEnabled || processing} inputMode="decimal" max="320" min="1" onChange={(event) => setSourceBpm(event.target.value)} placeholder={translateUi("audioStudio.manual")} step="0.1" type="number" value={sourceBpm} /><button disabled={!stretchEnabled || processing} onClick={useDetectedBpm} type="button"><Translation id="audioStudio.analyzeBpm" /></button></div></label>
             <b aria-hidden="true">→</b>
@@ -1172,13 +1173,11 @@ function AudioStudioScreenRouter({ controller, mobile }) {
   return <SimpleWaveformEditor controller={controller} mobile={mobile} />;
 }
 
-function MobileAudioStudioLayout({ active, controller }) {
-  const focused = active && controller.screen !== AUDIO_STUDIO_SCREENS.LIBRARY;
-  return <section className="audioStudio audioStudio--mobile" data-audio-studio-current-screen={controller.screen} data-audio-studio-focus={focused || undefined} data-audio-studio-layout="mobile"><AudioStudioScreenRouter controller={controller} mobile /></section>;
-}
-
-function DesktopAudioStudioLayout({ controller }) {
-  return <section className="audioStudio audioStudio--desktop" data-audio-studio-layout="desktop"><AudioStudioScreenRouter controller={controller} mobile={false} /></section>;
+function AudioStudioLayout({ active, controller, mobile }) {
+  const focused = active && mobile && controller.screen !== AUDIO_STUDIO_SCREENS.LIBRARY;
+  // Keep the editor/dialog tree mounted when the window crosses the breakpoint.
+  // Platform layout is still selected by its own class and the mobile prop.
+  return <section className={`audioStudio audioStudio--${mobile?'mobile':'desktop'}`} data-audio-studio-current-screen={controller.screen} data-audio-studio-focus={focused || undefined} data-audio-studio-layout={mobile?'mobile':'desktop'}><AudioStudioScreenRouter controller={controller} mobile={mobile} /></section>;
 }
 
 export default function AudioStudio({ active = true, mobile = false }) {
@@ -1192,7 +1191,7 @@ export default function AudioStudio({ active = true, mobile = false }) {
   return (
     <>
       <AudioStudioHiddenImport controller={controller} />
-      {mobile ? <MobileAudioStudioLayout active={active} controller={controller} /> : <DesktopAudioStudioLayout controller={controller} />}
+      <AudioStudioLayout active={active} controller={controller} mobile={mobile} />
     </>
   );
 }

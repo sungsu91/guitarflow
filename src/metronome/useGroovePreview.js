@@ -4,6 +4,7 @@ import {scheduleGrooveStep, createGrooveVoiceState} from './groove.js';
 import {TIME_SIGNATURE_OPTIONS} from './options.js';
 import {getMetronomeSubdivisionOption} from './subdivision.js';
 import {createAudioTransportCursor,collectAudioTransportSteps,METRONOME_LOOKAHEAD_SECONDS,AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS} from '../audio/transportClock.js';
+import {claimBackingPlayback} from '../backing-loop/playbackOwnership.js';
 
 // One owner, shared audio clock and transport scheduler, bounded scheduled voices.
 export function useGroovePreview(prepare, bpm, onError) {
@@ -11,6 +12,7 @@ export function useGroovePreview(prepare, bpm, onError) {
   const [active,setActive]=useState(null),[loading,setLoading]=useState(false);
   function cancel() {
     const s=session.current;
+    s.lease?.release();
     s.token++;clearInterval(s.timer);s.timer=null;s.running=false;
     for(const voice of s.voices) {
       try{voice.source.stop();}catch{/* Already ended. */}
@@ -29,6 +31,7 @@ export function useGroovePreview(prepare, bpm, onError) {
     if(s.id===pack.id && loading) {stop();return;}
     const offset=s.id===pack.id?s.offset:0;
     cancel();Object.assign(s,{id:pack.id,offset});setActive(pack.id);setLoading(true);
+    s.lease=claimBackingPlayback(stop);
     const token=s.token;
     try {
       const {audio,buffers,output,volume}=await prepare();

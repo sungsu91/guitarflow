@@ -18,8 +18,9 @@ test("Audio Studio keeps one shared timeline inside separate mobile and desktop 
     readFile(new URL("../src/audio-studio/AudioStudio.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/audio-studio/audio-studio.css", import.meta.url), "utf8"),
   ]);
-  assert.match(componentSource, /MobileAudioStudioLayout/);
-  assert.match(componentSource, /DesktopAudioStudioLayout/);
+  assert.match(componentSource, /function AudioStudioLayout\(\{ active, controller, mobile \}\)/);
+  assert.match(componentSource, /data-audio-studio-layout=\{mobile\?'mobile':'desktop'\}/);
+  assert.doesNotMatch(componentSource, /mobile \? <MobileAudioStudioLayout/);
   assert.match(componentSource, /function SimpleAudioTimeline/);
   assert.match(componentSource, /aria-label="모든 음원이 공유하는 시간축"/);
   assert.match(componentSource, /timelineDurationMs=\{timelineDurationMs\}/);
@@ -90,7 +91,8 @@ test("mobile Audio Studio fixes track controls left of aligned waveform lanes", 
   assert.match(cssSource, /\.audioStudioOverlay\.audioStudioDialogBackdrop\s*\{[^}]*z-index:\s*2147483000/s);
   assert.match(cssSource, /\.audioStudioOverlay \.audioStudioDialog\.audioStudioSimpleTrimDialog\s*\{[^}]*max-height:\s*calc\(100dvh - 8px\)[^}]*overflow:\s*hidden/s);
   assert.match(cssSource, /\.audioStudioTrimStretchFields\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/s);
-  assert.ok(runtimeSource.lastIndexOf("./audio-studio/audio-studio.css") > runtimeSource.lastIndexOf("./polish.css"));
+  assert.match(componentSource, /import ["']\.\/audio-studio\.css["']/);
+  assert.doesNotMatch(runtimeSource, /import ["']\.\/audio-studio\/audio-studio\.css["']/);
 });
 
 test("Audio Studio presents each imported file as a movable waveform with the essential controls", async () => {

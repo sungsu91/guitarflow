@@ -1,4 +1,17 @@
 import ko from "../i18n/locales/ko.js";
+import manifest from "./pets.manifest.json" with { type: "json" };
+
+const PACK_ROOT = "/assets/pets/fretiva_pet_sprite_pack_v1/";
+export const SHOOTER_SPRITE_PETS = Object.freeze(manifest.pets.map((pet) => Object.freeze({
+  id: pet.id,
+  label: pet.nameKo,
+  description: "명중과 콤보에 반응하는 3가지 동작",
+  renderer: "atlas",
+  sheetSrc: `${PACK_ROOT}${pet.atlas}`,
+  thumbnailSrc: `${PACK_ROOT}${pet.thumbnail}`,
+  geometry: Object.freeze({ ...manifest.spriteSheet, anchor: Object.freeze({ ...manifest.spriteSheet.anchor }) }),
+  actions: Object.freeze(Object.fromEntries(Object.entries(pet.actions).map(([name, action]) => [name, Object.freeze({ ...action })]))),
+})));
 export const SHOOTER_PET_SKIN_IDS = Object.freeze({
   NONE: "none",
   CREAM_POMERANIAN: "cream-pomeranian",
@@ -35,6 +48,7 @@ export const SHOOTER_PET_SKINS = Object.freeze([
     frameCount: 120,
     framesPerSecond: 6,
   }),
+  ...SHOOTER_SPRITE_PETS,
 ]);
 
 export const DEFAULT_SHOOTER_PET_SKIN_ID = SHOOTER_PET_SKIN_IDS.CREAM_POMERANIAN;

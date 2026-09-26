@@ -1,0 +1,30 @@
+.sharedBackingDock{--dock-border:var(--theme-border-control,#d5c7b5);--dock-surface:var(--theme-surface,#faf7f0);--dock-text:var(--theme-text,#493e32);display:contents;pointer-events:none}
+.sharedBackingDock>.backingDockEdge,.sharedBackingDock>.backingDockPanel{pointer-events:auto}
+html body .app .sharedBackingDock .backingDockEdge{position:fixed;right:0;z-index:22001;width:32px;display:flex;flex-direction:column;border:1px solid var(--dock-border);border-right:0;border-radius:8px 0 0 8px;background:var(--dock-surface);color:var(--dock-text);box-shadow:-2px 2px 8px #0001;overflow:hidden}
+html body .app .sharedBackingDock .backingDockEdge button{display:flex;align-items:center;justify-content:center;flex-direction:column;width:100%;min-width:0;margin:0;padding:4px 2px;border:0;border-radius:0;background:transparent;color:inherit;box-shadow:none;transform:none;cursor:pointer}
+html body .app .sharedBackingDock .backingDockHandle{min-height:54px;gap:3px;touch-action:none}
+.backingDockChevron{transform:rotate(90deg)}
+.backingDockFoldChevron{transform:rotate(-90deg)}
+.backingDockEdge i{width:5px;height:5px;border-radius:50%;background:#9a9a94}
+.backingDockEdge.is-playing i{background:#208dba;box-shadow:0 0 0 2px #208dba18}
+html body .app .sharedBackingDock .backingDockStop{min-height:27px;border-top:1px solid var(--dock-border)}
+html body .app .sharedBackingDock button:focus-visible{outline:2px solid #208dba;outline-offset:-3px}
+.sharedBackingDock .backingDockPanel{position:fixed;right:8px;z-index:1139;width:min(420px,calc(100% - 16px));max-height:calc(100dvh - var(--dock-clearance) - 24px);overflow:auto;box-sizing:border-box;border:1px solid var(--dock-border);border-radius:12px;background:var(--dock-surface);color:var(--dock-text);padding:8px;box-shadow:0 8px 26px #0002}
+.sharedBackingDock .backingDockPanel>header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;font-size:12px}
+html body .app .sharedBackingDock .backingDockPanel>header button{display:flex;align-items:center;justify-content:center;min-width:30px;min-height:30px;padding:4px;border:0;background:transparent;color:inherit;box-shadow:none}
+html body .app .sharedBackingDock .backingDockPanel>header .backingDockDrag{justify-content:flex-start;gap:7px;flex:1;touch-action:none;cursor:grab}
+html body .app .sharedBackingDock .backingDockPanel>header .backingDockDrag:active{cursor:grabbing}
+html body .app .sharedBackingDock .backingDockPanelStop{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 0 0;width:100%;min-height:32px;border:1px solid var(--dock-border);border-radius:6px;background:var(--dock-surface);color:inherit;font-size:12px;box-shadow:none}
+.sharedBackingDock .backingLoopMiniPlayer{width:100%;min-width:0;box-sizing:border-box}
+.sharedBackingDock .backingLoopPlayerBar{flex-wrap:wrap}
+.sharedBackingDock--mobile .backingDockPanel{width:calc(100% - 16px)}
+.sharedBackingDock--desktop .backingDockPanel{width:min(420px,calc(100% - 24px));right:12px}
+.sharedBackingDock .backingLoopMainControls{margin-top:6px}
+.practiceBackingLauncher{display:flex;justify-content:flex-end;padding:6px 12px}
+.sharedBackingDock .backingDockPanel{animation:backingDockEnter 140ms ease-out}
+@keyframes backingDockEnter{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.sharedBackingDock .backingDockPanel{animation:none}}
+/* Keep the original player controls readable inside the floating panel. */
+html body .app .sharedBackingDock .backingLoopMainControls > button {
+  min-height: 36px;
+}

@@ -30,7 +30,7 @@ function SongPicker({ model, mobile }) {
  const types=[...new Set(list.map(e=>e.type))],course=list.filter(e=>e.type===selected?.type),index=course.findIndex(e=>e.id===selected?.id);
  return <div className="etudeSongPicker etudeQuickBrowse">
   <EtudePicker model={model} mobile={mobile}/>
-  {!savedId&&<nav className="etudeQuickPages" aria-label={translateUi("etudes.browseETudes")}><button type="button" aria-label={translateUi("etudes.previousETude")} disabled={index<0||course.length<2} onClick={()=>select(course[(index-1+course.length)%course.length].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label={translateUi("etudes.nextETude")} disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>}
+  {!savedId&&<nav className="etudeQuickPages" aria-label={translateUi("etudes.browseETudes")}><button type="button" aria-label={translateUi("etudes.previousETude")} disabled={index<0||course.length<2} onClick={()=>select(course[(index-1+course.length)%course.length].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label={translateUi("etudes.nextETude")} disabled={index<0||course.length<2} onClick={()=>select(course[(index+1)%course.length].id)}><ChevronRight aria-hidden="true"/></button></nav>}
  </div>;
 }
 

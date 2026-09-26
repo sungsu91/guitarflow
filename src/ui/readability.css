@@ -1,0 +1,67 @@
+/* Supporting copy needs a readable baseline on both presentation surfaces. */
+html body .desktopSidebarLabel { font-size: 14px; line-height: 1.4; }
+html body .desktopSidebarStatusLogo { font-size: 10px; }
+html body .audioStudioSimpleNotice,
+html body .audioStudioLibraryNotice,
+html body .audioStudioSimpleImporting,
+html body .audioStudioSimpleGuide ol,
+html body .audioStudioSimpleGuide strong,
+html body .audioStudioSimpleSaveGroup small,
+html body .audioStudioTrimStretchMessage {
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+html body .audioStudioSimpleGuide ol { gap: 8px 28px; }
+html body .audioStudioSimplePlayerControls > button { font-size: 13px !important; }
+html body .audioStudioSimpleTrimDialog { --simple-muted: #c2b7a9; }
+html body .rt-dialog-body > p,
+html body .rt-dialog-body > small,
+html body .rt-print-edit > small { font-size: 13px; line-height: 1.55; }
+html body .rt-print-controls,
+html body .rt-print-edit { gap: 10px; }
+html body .rt-guide header small,
+html body .rt-guide-meter span,
+html body .rt-guide-score article p { font-size: 13px; line-height: 1.5; }
+html body .rt-guide-meter { flex-wrap: wrap; }
+@media (max-width: 767px) {
+  html body .audioStudioSimpleGuide ol { display: grid; gap: 6px; }
+}
+html body .rt-workspace.rt-mobile[data-screen="library"] nav.rt-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+html body .rt-workspace.rt-mobile[data-screen="library"] nav.rt-tools button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
+  min-height: 42px;
+  padding: 7px;
+  line-height: 1.4;
+  font-size: 12px;
+}
+html body #root main.app.app.app .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools {
+  flex-wrap: wrap !important;
+}
+html body #root main.app.app.app .etudeStudio.etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeViewTools>:is([data-ui="metronome"],.etudeBackingToggleMount,.etudePrintScore,.etudeFavoriteToggle) {
+  flex-basis: 32px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+}
+html body #root main.app.app.app .etudeStudio.etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeBackingToggleMount {
+  padding: 0 !important;
+}
+html body #root main.app.app.app .etudeStudio.etudeStudio--mobile .etudePracticeLayout .etudeBackingToggleMount button {
+  width: 100% !important;
+  padding: 0 !important;
+}
+html body #root main.app.app.app .etudeStudio.etudeStudio--mobile .etudeBackingToggle { width: 100%; }
+html body main.app.app.app .etudeRemote--mobileBottom .etudeRemoteControls--scoreSound {
+  grid-template-columns: minmax(70px, 1.2fr) repeat(5, minmax(36px, 1fr));
+}
+html body main.app.app.app .etudeRemote--mobileBottom .etudeRemoteBpm {
+  gap: 3px;
+  padding-inline: 0;
+}

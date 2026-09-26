@@ -1,4 +1,5 @@
-import {validateBeat,units} from './rhythmMath.js';
+import {validateBeat,units,tuplet,tupletGroups} from './rhythmMath.js';
+import {TIME_SIGNATURES,meterInfo,beatTicks} from './meter.js';
 export const STORAGE_KEY = 'rifflab-rhythm-trainer-v1';
 export const note = (ticks, rest = false) => ({ ticks, rest });
 export const clone = value => JSON.parse(JSON.stringify(value));
@@ -36,14 +37,16 @@ const definitions = [
 export const BEAT_PRESETS = definitions.map(([id,group,ko,en,values])=>({id,group,ko,en,beat:makeBeat(values)}));
 export const BEATS = BEAT_PRESETS.map(p=>p.beat);
 export const PRESET_GROUPS = [['basic','기본','Basic'],['sixteenth','16분 조합','Sixteenths'],['rests','쉼표','Rests'],['dotted','점음표','Dotted'],['triplet','셋잇단음표','Triplets']];
-export const emptyMeasure = meter => Array.from({length:meter}, () => [note(12,true)]);
-export function createPattern(meter=4) { return {id:crypto.randomUUID(),title:'',meter,measures:Array.from({length:5},()=>emptyMeasure(meter)),bpm:80,tone:'wood',click:true,countIn:true,loop:true}; }
+export const emptyMeasure = meter => Array.from({length:meterInfo(meter).beats}, () => [note(beatTicks(meter),true)]);
+export function createPattern(meter=4) { const info=meterInfo(meter);return {id:crypto.randomUUID(),title:'',meter:info.beats,meterDenominator:info.denominator,measures:Array.from({length:5},()=>emptyMeasure(meter)),bpm:80,tone:'wood',click:true,countIn:true,loop:true}; }
 export function examplePattern() { const p=createPattern(); p.id='example'; p.measures=[[3,1,2,4],[2,3,0,1],[4,2,5,0],[3,2,4,1],[6,3,2,0]].map(row=>row.map(i=>clone(BEATS[i]))); return p; }
-export const validBeat = validateBeat;
+export const validBeat = beat => validateBeat(beat);
 export function validPattern(p) {
+  if(!p||!TIME_SIGNATURES.includes(meterInfo(p).signature))return false;
+  const validCell=b=>validateBeat(b,beatTicks(p));
   if(p?.measureRepeats!==undefined&&(!Array.isArray(p.measureRepeats)||p.measureRepeats.length!==p.measures?.length||!p.measureRepeats.every(v=>typeof v==='boolean')))return false;
-  if(!(p && typeof p.id==='string' && typeof p.title==='string' && [2,3,4].includes(p.meter) && Number.isFinite(p.bpm) && p.bpm>=30 && p.bpm<=240 && ['wood','rim','clap'].includes(p.tone) && ['click','countIn','loop'].every(k=>typeof p[k]==='boolean') && Array.isArray(p.measures) && p.measures.length>0 && p.measures.length<=128 && p.measures.every(m=>Array.isArray(m)&&m.length===p.meter&&m.every(validBeat))))return false;
-  if(p.core!==undefined&&(!Array.isArray(p.core)||![1,2,p.meter].includes(p.core.length)||!p.core.every(validBeat)||!p.core.every((b,i)=>b.every((n,j)=>!n.tie||(!n.rest&&j===b.length-1&&p.core[i+1]&&!p.core[i+1][0].rest)))))return false;
+  if(!(typeof p.id==='string' && typeof p.title==='string' && [2,3,4].includes(p.meter) && Number.isFinite(p.bpm) && p.bpm>=30 && p.bpm<=240 && ['wood','rim','clap'].includes(p.tone) && ['click','countIn','loop'].every(k=>typeof p[k]==='boolean') && Array.isArray(p.measures) && p.measures.length>0 && p.measures.length<=128 && p.measures.every(m=>Array.isArray(m)&&m.length===p.meter&&m.every(validCell))))return false;
+  if(p.core!==undefined&&(!Array.isArray(p.core)||![1,2,p.meter].includes(p.core.length)||!p.core.every(validCell)||!p.core.every((b,i)=>b.every((n,j)=>!n.tie||(!n.rest&&j===b.length-1&&p.core[i+1]&&!p.core[i+1][0].rest)))))return false;
   const beats=p.measures.flat();
   return beats.every((b,i)=>b.every((n,j)=>!n.tie||(!n.rest&&j===b.length-1&&beats[i+1]&&!beats[i+1][0].rest)));
 }
@@ -55,18 +58,75 @@ export function repairTies(pattern) {
 export function replacePatternBeat(pattern,measure,beat,value) {
   const p=clone(pattern);p.measures[measure][beat]=clone(value);return repairTies(p);
 }
+// Meter edits affect the edit draft only. Preserve fitting notes, pad with rests,
+// and never leave a partial tuplet at a shortened beat boundary.
+export function changePatternMeter(pattern,signature) {
+  if(!TIME_SIGNATURES.includes(signature))throw Error('Unsupported time signature');
+  const info=meterInfo(signature);
+  const fit=beat=>{
+    if(!beat)return [note(info.beatTicks,true)];
+    if(validateBeat(beat,info.beatTicks))return clone(beat);
+    if(beat.every(n=>n.rest))return [note(info.beatTicks,true)];
+    const source=clone(beat),result=[];let remaining=info.beatTicks*35;
+    // Upgrade legacy triplets before adding another eighth to a compound beat.
+    if(source.every(n=>n.ticks===4&&!n.tuplet))source.forEach(n=>{n.written=6;n.tuplet={count:3,normal:2,group:0};});
+    const groups=tupletGroups(source);
+    for(let i=0;i<source.length&&remaining>0;i++){
+      const group=groups.find(g=>g.start===i);
+      if(group){const notes=source.slice(group.start,group.end+1),length=notes.reduce((sum,n)=>sum+units(n),0);if(length>remaining)break;result.push(...notes);remaining-=length;i=group.end;continue;}
+      const n=source[i],length=Math.min(units(n),remaining);
+      if(![3,6,9,12,18].includes(length/35))break;
+      result.push({...n,ticks:length/35});remaining-=length;
+    }
+    for(const duration of [18,12,9,6,3])while(remaining>=duration*35){result.push(note(duration,true));remaining-=duration*35;}
+    return result;
+  };
+  const next={...clone(pattern),meter:info.beats,meterDenominator:info.denominator,measures:pattern.measures.map(row=>Array.from({length:info.beats},(_,i)=>fit(row[i])))};
+  if(pattern.core){const length=pattern.core.length===pattern.meter?info.beats:Math.min(pattern.core.length,info.beats);const core=Array.from({length},(_,i)=>fit(pattern.core[i]));next.core=repairTies({measures:[core]}).measures[0];}
+  return repairTies(next);
+}
+
+export function beatTuplet(count,meter=4,rests=[]) {
+  if(!meterInfo(meter).compound)return tuplet(count,rests);
+  if(count===3)return [...tuplet(3,rests),note(6)];
+  return Array.from({length:count},(_,i)=>({ticks:18/count,written:6,rest:rests.includes(i),tuplet:{count,normal:3,group:0}}));
+}
+const compoundDefinitions=[
+ ['compound-quarter','basic','점4분음표','Dotted quarter',[18]],
+ ['compound-quarter-rest','basic','점4분쉼표','Dotted quarter rest',[-18]],
+ ['compound-eighths','basic','8분 × 3','Three eighths',[6,6,6]],
+ ['compound-long-short','basic','4분 + 8분','Quarter + eighth',[12,6]],
+ ['compound-short-long','basic','8분 + 4분','Eighth + quarter',[6,12]],
+ ['compound-six','sixteenth','16분 × 6','Six sixteenths',[3,3,3,3,3,3]],
+ ['compound-mix','sixteenth','8분 + 16분 + 16분 + 8분','Eighth + two sixteenths + eighth',[6,3,3,6]],
+ ['compound-sixteenth-first','sixteenth','16분 + 16분 + 8분 + 8분','Two sixteenths + two eighths',[3,3,6,6]],
+ ['compound-sixteenth-last','sixteenth','8분 + 8분 + 16분 + 16분','Two eighths + two sixteenths',[6,6,3,3]],
+ ['compound-rest','rests','쉼 + 8분 + 8분','Rest + two eighths',[-6,6,6]],
+ ['compound-mid-rest','rests','8분 + 쉼 + 8분','Eighth + rest + eighth',[6,-6,6]],
+ ['compound-end-rest','rests','8분 + 8분 + 쉼','Two eighths + rest',[6,6,-6]],
+ ['compound-dotted','dotted','점8분 + 16분 + 8분','Dotted eighth + sixteenth + eighth',[9,3,6]],
+ ['compound-dotted-last','dotted','8분 + 점8분 + 16분','Eighth + dotted eighth + sixteenth',[6,9,3]],
+ ['compound-dotted-pair','dotted','점8분 × 2','Two dotted eighths',[9,9]],
+];
+export const COMPOUND_PRESETS=[...compoundDefinitions.map(([id,group,ko,en,values])=>({id,group,ko,en,beat:makeBeat(values)})),
+  {id:'compound-triplet',group:'triplet',ko:'4분 안 셋잇단 + 8분',en:'Quarter-note triplet + eighth',beat:beatTuplet(3,'6/8')},
+  {id:'compound-triplet-last',group:'triplet',ko:'8분 + 4분 안 셋잇단',en:'Eighth + quarter-note triplet',beat:[note(6),...tuplet(3)]}];
+export function beatPresets(meter=4){return meterInfo(meter).compound?COMPOUND_PRESETS:BEAT_PRESETS;}
 const pools={easy:[0,2,5,9],medium:[0,1,2,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20],hard:BEATS.map((_,i)=>i)};
 function pickIndex(length,random){return Math.max(0,Math.min(length-1,Math.floor(random()*length)));}
 function shuffled(values,random){const result=[...values];for(let i=result.length-1;i>0;i--){const j=pickIndex(i+1,random);[result[i],result[j]]=[result[j],result[i]];}return result;}
 export function generateMeasures(meter,difficulty,count,random=Math.random) {
-  const level=pools[difficulty]?difficulty:'medium';let bag=[];let previous=-1;
-  const take=()=>{if(!bag.length)bag=shuffled(pools[level],random);if(bag.at(-1)===previous&&bag.length>1)[bag[0],bag[bag.length-1]]=[bag.at(-1),bag[0]];previous=bag.pop();return previous;};
+  const compound=meterInfo(meter).compound,beats=meterInfo(meter).beats,bank=beatPresets(meter).map(p=>p.beat);
+  const available=compound?{easy:[0,2,3,4],medium:[0,2,3,4,6,7,8,9,10,11],hard:bank.map((_,i)=>i)}:pools;
+  const level=available[difficulty]?difficulty:'medium';let bag=[];let previous=-1;let previousMeasure='';
+  const take=()=>{if(!bag.length)bag=shuffled(available[level],random);if(bag.at(-1)===previous&&bag.length>1)[bag[0],bag[bag.length-1]]=[bag.at(-1),bag[0]];previous=bag.pop();return previous;};
   return Array.from({length:count},(_,mi)=>{
-    if(level==='easy'){const a=take();return Array.from({length:meter},()=>clone(BEATS[a]));}
-    const measure=Array.from({length:meter},()=>clone(BEATS[take()]));
+    const measure=Array.from({length:beats},()=>clone(bank[take()]));
+    if(level==='easy'&&JSON.stringify(measure)===previousMeasure)measure.push(measure.shift());
+    previousMeasure=JSON.stringify(measure);
     if(level==='hard'){
       // An offbeat attack crosses the next beat; continuation does not retrigger.
-      const boundary=mi%(meter-1);measure[boundary]=clone(BEATS[mi%2?18:9]);
+      const boundary=mi%(beats-1);measure[boundary]=clone(compound?bank[mi%2?12:9]:BEATS[mi%2?18:9]);
       if(measure[boundary+1][0].rest)measure[boundary+1][0].rest=false;
       measure[boundary].at(-1).tie=true;
     }
@@ -75,7 +135,11 @@ export function generateMeasures(meter,difficulty,count,random=Math.random) {
 }
 export function randomMeasure(meter,difficulty,random=Math.random){return generateMeasures(meter,difficulty,1,random)[0];}
 export function randomizeRange(pattern,start,end,difficulty,random=Math.random){
-  const p=clone(pattern);let generated=generateMeasures(p.meter,difficulty,end-start+1,random);
+  const p=clone(pattern);let generated=generateMeasures(p,difficulty,end-start+1,random);
+  if(meterInfo(p).compound){
+    if(JSON.stringify(generated)===JSON.stringify(p.measures.slice(start,end+1))){const options=COMPOUND_PRESETS.filter(x=>['basic',...(difficulty==='easy'?[]:['sixteenth','rests'])].includes(x.group)&&(difficulty!=='easy'||x.beat.every(n=>!n.rest)));generated[0][0]=clone(options.find(x=>JSON.stringify(x.beat)!==JSON.stringify(generated[0][0])).beat);}
+    p.measures.splice(start,generated.length,...generated);return repairTies(p);
+  }
   if(JSON.stringify(generated)===JSON.stringify(p.measures.slice(start,end+1))){
     generated=generated.map(m=>m.map(b=>{const i=pools[difficulty].findIndex(index=>JSON.stringify(BEATS[index])===JSON.stringify(b));return clone(BEATS[pools[difficulty][(i+1)%pools[difficulty].length]]);}));
     if(difficulty==='hard')generated.forEach(m=>{m[0]=clone(BEATS[9]);m[1][0].rest=false;m[0].at(-1).tie=true;});
@@ -102,16 +166,21 @@ export function practicePatterns(language='ko') {
   });
 }
 export function measureOrder(p) {return p.measures.flatMap((_,measure)=>p.measureRepeats?.[measure]?[measure,measure]:[measure]);}
-export function playbackTicks(p) {return measureOrder(p).length*p.meter*12;}
-export function measureStartTick(p,measure) {return measureOrder(p).indexOf(measure)*p.meter*12;}
+export function playbackTicks(p) {return measureOrder(p).length*p.meter*beatTicks(p);}
+export function measureStartTick(p,measure) {return measureOrder(p).indexOf(measure)*p.meter*beatTicks(p);}
 export function timeline(p) {
- const events=measureOrder(p).flatMap((mi,pass)=>p.measures[mi].flatMap((b,bi)=>{let at=(pass*p.meter+bi)*420;return b.map((n,ni)=>{const e={...n,at:at/35,measure:mi,beat:bi,index:ni,pass};at+=units(n);return e;});}));
+ const events=measureOrder(p).flatMap((mi,pass)=>p.measures[mi].flatMap((b,bi)=>{let at=(pass*p.meter+bi)*beatTicks(p)*35;return b.map((n,ni)=>{const e={...n,at:at/35,measure:mi,beat:bi,index:ni,pass};at+=units(n);return e;});}));
  events.forEach((e,i)=>{const prev=events[i-1];e.continuation=Boolean(prev?.tie&&!e.rest&&(e.pass===prev.pass||e.measure===prev.measure+1));});return events;
 }
 export function positionAt(p,tick) {
- const total=playbackTicks(p),local=tick>=0&&tick<total?tick:((tick%total)+total)%total,barTicks=p.meter*12,pass=Math.floor(local/barTicks),order=measureOrder(p),measure=order[pass];
+ const total=playbackTicks(p),local=tick>=0&&tick<total?tick:((tick%total)+total)%total,barTicks=p.meter*beatTicks(p),pass=Math.floor(local/barTicks),order=measureOrder(p),measure=order[pass];
  const shift=(pass-measure)*barTicks;
  const event=timeline(p).find(e=>local+1e-9>=e.at&&local<e.at+e.ticks-1e-9);
- return {tick:local-shift,event:event?{...event,at:event.at-shift}:undefined,measure,beat:local/12%p.meter,repeatPass:p.measureRepeats?.[measure]?(order[pass-1]===measure?2:1):null};
+ return {tick:local-shift,event:event?{...event,at:event.at-shift}:undefined,measure,beat:local/beatTicks(p)%p.meter,repeatPass:p.measureRepeats?.[measure]?(order[pass-1]===measure?2:1):null};
 }
 export function readStore(storage) {try { const s=JSON.parse(storage.getItem(STORAGE_KEY)||'{}');return {patterns:Array.isArray(s.patterns)?s.patterns.filter(validPattern):[],draft:validPattern(s.draft)?s.draft:null}; } catch {return {patterns:[],draft:null};} }
+
+// Basic subdivision shortcuts also remain available in their detailed categories.
+export function editorPresets(group,meter=4) {
+ return beatPresets(meter).filter(p=>p.group===group||(group==='basic'&&['sixteenths','triplets','compound-six'].includes(p.id)));
+}

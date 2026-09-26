@@ -6,6 +6,8 @@ import {
 import { createAudioStudioSource } from "./audioStudioModel.js";
 
 export const AUDIO_STUDIO_FILE_ACCEPT = BACKING_AUDIO_FILE_ACCEPT;
+export const AUDIO_STUDIO_MAX_IMPORT_BYTES = 100 * 1024 * 1024;
+export const AUDIO_STUDIO_MAX_DECODED_IMPORT_BYTES = 256 * 1024 * 1024;
 
 export function decodeAudioStudioData(context, arrayBuffer) {
   return new Promise((resolve, reject) => {
@@ -121,12 +123,14 @@ export async function decodeAudioStudioFiles(files, {
   const ownsContext = !providedContext;
   const decoded = [];
   const rejected = [];
+  let decodedBytes = 0;
   try {
     for (let index = 0; index < candidates.length; index += 1) {
       const file = candidates[index];
       let status = "decoded";
-      if (!isPotentialBackingAudioFile(file)) {
-        rejected.push({ fileName: file?.name || "Unknown file", reason: "unsupported-type" });
+      const oversized = Number(file?.size) > AUDIO_STUDIO_MAX_IMPORT_BYTES;
+      if (oversized || !isPotentialBackingAudioFile(file)) {
+        rejected.push({ fileName: file?.name || "Unknown file", reason: oversized ? "file-too-large" : "unsupported-type" });
         status = "rejected";
         onProgress?.({ completed: index + 1, fileName: file?.name || "Unknown file", status, total: candidates.length });
         continue;
@@ -134,6 +138,13 @@ export async function decodeAudioStudioFiles(files, {
       try {
         const imported = createImportedBackingAudioSource(file, 0);
         const audioBuffer = await decodeAudioStudioData(context, await imported.blob.arrayBuffer());
+        const bufferBytes = audioBuffer.length * audioBuffer.numberOfChannels * Float32Array.BYTES_PER_ELEMENT;
+        if (!Number.isFinite(bufferBytes) || bufferBytes < 1 || decodedBytes + bufferBytes > AUDIO_STUDIO_MAX_DECODED_IMPORT_BYTES) {
+          rejected.push({ fileName: file?.name || "Unknown file", reason: "decoded-limit" });
+          onProgress?.({ completed: index + 1, fileName: file?.name || "Unknown file", status: "rejected", total: candidates.length });
+          continue;
+        }
+        decodedBytes += bufferBytes;
         const durationMs = Math.max(1, Number(audioBuffer.duration) * 1000 || 0);
         const waveform = buildAudioStudioWaveformPeaks(audioBuffer, bucketCount);
         const detectedBpm = detectAudioStudioBpm(audioBuffer);

@@ -81,10 +81,10 @@ export async function readBackup(blob) {
   if(blob.size<4)throw Error(ko["pdf.invalidBackupFormat"]);
   const length=new DataView(await blob.slice(0,4).arrayBuffer()).getUint32(0);
   if(length>20*1024*1024||length<10||length+4>blob.size)throw Error(ko["pdf.invalidBackupFormat"]);
-  const data=JSON.parse(await blob.slice(4,4+length).text());
-  if(data.format!=='fretiva-pdf-backup'||data.version!==1||!Array.isArray(data.records)||data.records.length>1000)throw Error(ko["pdf.unsupportedBackup"]);
+  let data;try{data=JSON.parse(await blob.slice(4,4+length).text());}catch{throw Error(ko["pdf.invalidBackupFormat"]);}
+  if(!data||typeof data!=='object'||data.format!=='fretiva-pdf-backup'||data.version!==1||!Array.isArray(data.records)||data.records.length>1000)throw Error(ko["pdf.unsupportedBackup"]);
   let offset=4+length;const result=[];
-  for(const record of data.records){if(!Number.isInteger(record.byteLength)||record.byteLength<=0||record.byteLength>PDF_MAX_BYTES||offset+record.byteLength>blob.size)throw Error(ko["pdf.checkTheOriginalFileSizeInTheBackup"]);const pdfBlob=blob.slice(offset,offset+record.byteLength,'application/pdf');offset+=record.byteLength;result.push({record,pdfBlob});}
+  for(const record of data.records){if(!record||typeof record!=='object'||Array.isArray(record)||!Number.isInteger(record.byteLength)||record.byteLength<=0||record.byteLength>PDF_MAX_BYTES||offset+record.byteLength>blob.size)throw Error(ko["pdf.checkTheOriginalFileSizeInTheBackup"]);const pdfBlob=blob.slice(offset,offset+record.byteLength,'application/pdf');offset+=record.byteLength;result.push({record,pdfBlob});}
   if(offset!==blob.size)throw Error(ko["pdf.invalidBackupFileLength"]);return result;
 }
 

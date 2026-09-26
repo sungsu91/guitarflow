@@ -22,7 +22,7 @@ test("silver cat is a selectable 120-frame pet without changing the Pomeranian d
   const pet = getShooterPetSkinById("silver-barley-cat");
 
   assert.equal(DEFAULT_SHOOTER_PET_SKIN_ID, "cream-pomeranian");
-  assert.equal(SHOOTER_PET_SKINS.length, 3);
+  assert.equal(SHOOTER_PET_SKINS.length, 13);
   assert.equal(pet.label, "실버 고양이");
   assert.equal(pet.columns, 120);
   assert.equal(pet.frameCount, 120);

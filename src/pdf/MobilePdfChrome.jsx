@@ -13,7 +13,6 @@ export function MobilePdfHeader({title,editing,onBack,onLocate,canLocate,onDone,
  return <header className="mobilePdfHud" ref={root}>
   <button type="button" aria-label={translateUi("score.backToRoom")} onClick={onBack}><ArrowLeft size={21}/></button>
   <h1>{title}</h1>
-  <button type="button" aria-label={translateUi("pdf.goToCurrentPosition")} title={translateUi("pdf.goToCurrentPosition")} disabled={!canLocate} onClick={onLocate}><LocateFixed size={20}/></button>
   <button type="button" aria-label={translateUi("pdf.pdfDocumentMenu")} aria-expanded={menu} onClick={()=>{setMenu(v=>!v);}}><MoreVertical size={19}/></button>
   <button type="button" aria-label={translateUi("pdf.quickPdfEdit")} aria-pressed={editing} onClick={onDone}>{editing?translateUi("common.done"):translateUi("common.edit")}</button>
   {menu&&<div className="mobilePdfMenu" role="group" aria-label={translateUi("pdf.pdfDocumentActions")}>
@@ -27,13 +26,14 @@ export function MobilePdfHeader({title,editing,onBack,onLocate,canLocate,onDone,
 
  </header>;
 }
-export function MobilePdfTransport({page,pageCount,onPage,bpm,onBpm,playing,paused,onPlay,countIn,settings}){
+export function MobilePdfTransport({page,pageCount,onPage,bpm,onBpm,playing,paused,onPlay,onReset,countIn,settings}){
   useLanguage();
  const [open,setOpen]=useState(false),bpmButton=useRef(null),popover=useRef(null);
  useEffect(()=>{const close=e=>{if(!popover.current?.contains(e.target)&&!bpmButton.current?.contains(e.target))setOpen(false);};document.addEventListener('pointerdown',close,true);return()=>document.removeEventListener('pointerdown',close,true);},[]);
  return <div className="mobilePdfTransport">
   <button aria-label={translateUi("pdf.previousPdfPage")} disabled={page<=1} onClick={()=>onPage(page-1)}><Translation id="etudes.previousEtudeStudio" /></button>
   <button className="pdfPrimary" aria-label={translateUi("pdf.startStopPdfPractice")} aria-pressed={playing} onClick={onPlay}>{playing?translateUi("pdf.iiPause"):paused?translateUi("pdf.resumePractice"):translateUi("pdf.startPractice")}</button>
+  <button type="button" onClick={onReset}>{translateUi("pdf.resetPractice")}</button>
   <button ref={bpmButton} aria-label={translateUi("etudes.adjustBpm")} aria-expanded={open} onClick={()=>setOpen(v=>!v)}>{countIn?translateUi("pdf.countIn"):`${bpm} BPM`}</button>
   <button aria-label={translateUi("pdf.nextPdfPage")} disabled={page>=pageCount} onClick={()=>onPage(page+1)}><Translation id="etudes.nextEtudeStudio" /></button>
   {open&&<div ref={popover} className="mobilePdfBpm" role="group" aria-label={translateUi("pdf.bpmAndPracticeSettings")}>

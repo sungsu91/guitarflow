@@ -2,10 +2,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   AUDIO_STUDIO_FILE_ACCEPT,
+  AUDIO_STUDIO_MAX_IMPORT_BYTES,
+  AUDIO_STUDIO_MAX_DECODED_IMPORT_BYTES,
   buildAudioStudioWaveformPeaks,
   decodeAudioStudioFiles,
   detectAudioStudioBpm,
 } from "../src/audio-studio/audioStudioAudio.js";
+
+test('oversized imports are rejected before reading and decoded batches are bounded', async () => {
+  let reads = 0;
+  const huge = { name: 'huge.wav', type: 'audio/wav', size: AUDIO_STUDIO_MAX_IMPORT_BYTES + 1, arrayBuffer() { reads++; throw Error('must not read'); } };
+  const small = new File([new Uint8Array([1])], 'small.wav', { type: 'audio/wav' });
+  const context = { decodeAudioData: async () => ({ length: AUDIO_STUDIO_MAX_DECODED_IMPORT_BYTES / 4 + 1, numberOfChannels: 1, duration: 3600 }) };
+  const result = await decodeAudioStudioFiles([huge, small], { context });
+  assert.equal(reads, 0);
+  assert.equal(result.decoded.length, 0);
+  assert.deepEqual(result.rejected.map(r => r.reason), ['file-too-large', 'decoded-limit']);
+});
 
 test("Audio Studio multi-import advertises the common mobile audio formats", () => {
   assert.match(AUDIO_STUDIO_FILE_ACCEPT, /audio\/\*/);

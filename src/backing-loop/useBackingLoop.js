@@ -15,9 +15,12 @@ import {
   AUDIO_BUS_IDS,
   connectMediaElementToBus,
   disconnectMediaElementFromBus,
+  getAudioBusInput,
   resumeSharedAudioContext,
 } from "../audio/audioBus";
 import { registerBackingLoopActivity } from "./activityRegistry.js";
+import { createGrooveBufferPlayback } from "./grooveBufferPlayback.js";
+import { claimBackingPlayback, stopOwnedBackingPlayback } from "./playbackOwnership.js";
 import {
   isAudioStudioLibraryId,
   listAudioStudioBackingSources,
@@ -137,6 +140,13 @@ export default function useBackingLoop(ownerMode = "") {
   const [trimStartMs, setTrimStartMs] = useState(0);
   const audioRef = useRef(null);
   const audioGraphRef = useRef(null);
+  const groovePlaybackRef = useRef(null);
+  const recordingRef = useRef(recording);
+  const playbackGenerationRef = useRef(0);
+  const playbackEndedRef = useRef(null);
+  const playbackLeaseRef = useRef(null);
+  const interruptPlaybackRef = useRef(null);
+  const navigationCleanupRef = useRef(null);
   const backingVolumeRef = useRef(backingVolume.volume);
   const armTimerRef = useRef(null);
   const chunksRef = useRef([]);
@@ -171,7 +181,9 @@ export default function useBackingLoop(ownerMode = "") {
   const transportFadeTimerRef = useRef(null);
 
   backingVolumeRef.current = backingVolume.volume;
+  recordingRef.current = recording;
   const audioUrl = audioSource.url;
+  const getPlaybackAudio = useCallback(() => groovePlaybackRef.current || audioRef.current, []);
 
   const setPhaseImmediate = useCallback((nextPhase) => {
     phaseRef.current = nextPhase;
@@ -238,6 +250,32 @@ export default function useBackingLoop(ownerMode = "") {
   const ensurePlaybackAudioGraph = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio) return null;
+    const currentRecording = recordingRef.current;
+    if (currentRecording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE) {
+      const generation = playbackGenerationRef.current;
+      const context = await resumeSharedAudioContext();
+      if (!context) throw new Error('Web Audio is unavailable');
+      if (!groovePlaybackRef.current) {
+        const buffer = await context.decodeAudioData(await currentRecording.blob.arrayBuffer());
+        if (!mountedRef.current || generation !== playbackGenerationRef.current
+          || recordingRef.current?.blob !== currentRecording.blob) return null;
+        audio.pause();
+        disconnectMediaElementFromBus(audio);
+        const player = createGrooveBufferPlayback({
+          context, buffer, output: getAudioBusInput(AUDIO_BUS_IDS.GROOVE, context),
+          level: backingVolumeRef.current, onEnded: () => playbackEndedRef.current?.(),
+        });
+        player.blob = currentRecording.blob;
+        // Preserve seeking before the first play as well as a paused position.
+        player.currentTime = audio.currentTime;
+        groovePlaybackRef.current = player;
+      }
+      const graph = groovePlaybackRef.current.graph;
+      audioGraphRef.current = graph;
+      graph.connect();
+      graph.setLevel(backingVolumeRef.current, { immediate: true });
+      return graph;
+    }
     try {
       await resumeSharedAudioContext();
       const graph = audioGraphRef.current || connectMediaElementToBus(audio, {
@@ -261,7 +299,7 @@ export default function useBackingLoop(ownerMode = "") {
 
   const fadeThen = useCallback((callback, fadeSeconds = 0.012) => {
     clearTransportFadeTimer();
-    const audio = audioRef.current;
+    const audio = getPlaybackAudio();
     const graph = audioGraphRef.current;
     if (!audio || audio.paused || !graph) {
       callback();
@@ -275,7 +313,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [clearTransportFadeTimer]);
 
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = getPlaybackAudio();
     const graph = audioGraphRef.current;
     if (graph) graph.setLevel(backingVolume.volume, { timeConstant: 0.012 });
     else if (audio) audio.volume = backingVolume.volume;
@@ -328,9 +366,11 @@ export default function useBackingLoop(ownerMode = "") {
   }, []);
 
   const resetAudioPosition = useCallback(() => {
-    const audio = audioRef.current;
-    fadeThen(() => {
-      if (!audio) return;
+    playbackGenerationRef.current += 1;
+    playbackLeaseRef.current?.release();
+    clearTransportFadeTimer();
+    const audio = getPlaybackAudio();
+    if (audio) {
       audio.pause();
       try {
         audio.currentTime = 0;
@@ -338,14 +378,15 @@ export default function useBackingLoop(ownerMode = "") {
         // The next loadedmetadata event will establish the initial position.
       }
       audioGraphRef.current?.setTransportLevel(1, { immediate: true });
-    });
+    }
     clearPlaybackTimer();
     setCurrentTimeMs(0);
-  }, [clearPlaybackTimer, fadeThen]);
+  }, [clearPlaybackTimer, clearTransportFadeTimer, getPlaybackAudio]);
 
   const pausePlayback = useCallback(() => {
     if (phaseRef.current !== "playing") return;
-    const audio = audioRef.current;
+    playbackGenerationRef.current += 1;
+    const audio = getPlaybackAudio();
     if (audio) {
       setCurrentTimeMs(Math.max(0, audio.currentTime * 1000));
       fadeThen(() => {
@@ -358,6 +399,38 @@ export default function useBackingLoop(ownerMode = "") {
     setNotice(ko["backingLoop.pausedPressPlayToResume"]);
     setPhaseImmediate("paused");
   }, [clearPlaybackTimer, fadeThen, setPhaseImmediate]);
+
+  // Used by Stop and by another audition taking over. Stop synchronously so a
+  // delayed play/decode or fade cannot leave a second source audible.
+  const stopPlayback = useCallback(() => {
+    stopOwnedBackingPlayback();
+    playbackGenerationRef.current += 1;
+    playlistAutoplayRef.current = false;
+    clearTransportFadeTimer();
+    clearPlaybackTimer();
+    const audio = getPlaybackAudio();
+    audio?.pause();
+    if (audio) audio.currentTime = 0;
+    audioRef.current?.pause();
+    audioGraphRef.current?.setTransportLevel(1, { immediate: true });
+    playbackLeaseRef.current?.release();
+    setCurrentTimeMs(0);
+    if (["playing", "paused", "idle"].includes(phaseRef.current)) setPhaseImmediate("idle");
+  }, [clearPlaybackTimer, clearTransportFadeTimer, getPlaybackAudio, setPhaseImmediate]);
+
+  interruptPlaybackRef.current = () => {
+    playbackGenerationRef.current += 1;
+    playlistAutoplayRef.current = false;
+    clearTransportFadeTimer();
+    clearPlaybackTimer();
+    const audio = getPlaybackAudio();
+    audio?.pause();
+    audioRef.current?.pause();
+    if (phaseRef.current === "playing" || playbackRequestRef.current) {
+      setCurrentTimeMs(Math.max(0, (audio?.currentTime || 0) * 1000));
+      setPhaseImmediate("paused");
+    }
+  };
 
   useEffect(() => {
     mountedRef.current = true;
@@ -445,6 +518,12 @@ export default function useBackingLoop(ownerMode = "") {
   }, [library, libraryHydrated, playlistState]);
 
   useEffect(() => {
+    const player = groovePlaybackRef.current;
+    if (player && player.blob !== recording?.blob) {
+      player.dispose();
+      groovePlaybackRef.current = null;
+      audioGraphRef.current = null;
+    }
     if (!recording?.blob) {
       setAudioSource({ blob: null, url: "" });
       return undefined;
@@ -456,10 +535,10 @@ export default function useBackingLoop(ownerMode = "") {
   }, [recording?.blob]);
 
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = getPlaybackAudio();
     if (!audio) return;
-    audio.loop = shouldLoopBackingTrack(playlistState.playbackMode, playlistPlaybackActive);
-  }, [playlistPlaybackActive, playlistState.playbackMode]);
+    audio.loop = shouldLoopBackingTrack(playlistState.playbackMode, playlistPlaybackActive, playlistPlaybackRef.current.itemIds?.length);
+  }, [playlistPlaybackActive, playlistState]);
 
   useEffect(() => {
     if (!trimDraft?.recording?.blob) {
@@ -479,7 +558,7 @@ export default function useBackingLoop(ownerMode = "") {
     }
 
     playbackTimerRef.current = window.setInterval(() => {
-      const audio = audioRef.current;
+      const audio = getPlaybackAudio();
       if (audio) setCurrentTimeMs(Math.max(0, audio.currentTime * 1000));
     }, 160);
     return clearPlaybackTimer;
@@ -494,8 +573,8 @@ export default function useBackingLoop(ownerMode = "") {
     setPlaylistItemsDeleteTargetIds([]);
     setPlaylistLibraryPickerOpen(false);
     const phaseBeforeDeactivate = phaseRef.current;
-    const playbackPositionMs = audioRef.current
-      ? Math.max(0, audioRef.current.currentTime * 1000)
+    const playbackPositionMs = getPlaybackAudio()
+      ? Math.max(0, getPlaybackAudio().currentTime * 1000)
       : null;
     clearArmTimer();
     clearPlaybackTimer();
@@ -510,6 +589,8 @@ export default function useBackingLoop(ownerMode = "") {
     trimPreviewRequestRef.current = false;
     recordingRequestVersionRef.current += 1;
     operationVersionRef.current += 1;
+    playbackGenerationRef.current += 1;
+    playbackLeaseRef.current?.release();
     const mediaRecorder = mediaRecorderRef.current;
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.ondataavailable = null;
@@ -521,11 +602,14 @@ export default function useBackingLoop(ownerMode = "") {
     recordingPausedTotalRef.current = 0;
     recordingStoppedElapsedRef.current = 0;
     chunksRef.current = [];
-    audioRef.current?.pause();
+    getPlaybackAudio()?.pause();
     trimPreviewAudioRef.current?.pause();
     audioGraphRef.current?.setTransportLevel(1, { immediate: true });
     trimPreviewAudioGraphRef.current?.setTransportLevel(1, { immediate: true });
     disconnectMediaElementFromBus(audioRef.current);
+    groovePlaybackRef.current?.dispose();
+    groovePlaybackRef.current = null;
+    audioGraphRef.current = null;
     disconnectMediaElementFromBus(trimPreviewAudioRef.current);
     setTrimPreviewPlaying(false);
     setRecordingPaused(false);
@@ -550,8 +634,17 @@ export default function useBackingLoop(ownerMode = "") {
         mountedRef.current = true;
         modeActiveRef.current = true;
       },
+      ownerMode === 'shared' ? () => {
+        // Navigation dismisses editing/recording UI, but leaves the shared
+        // playback transport and its playhead running across practice rooms.
+        if (["armed", "recording", "requesting"].includes(phaseRef.current)) {
+          deactivateBackingLoop();
+          modeActiveRef.current = true;
+        }
+        navigationCleanupRef.current?.();
+      } : null,
     ),
-    [deactivateBackingLoop, ownerMode],
+    [deactivateBackingLoop, ownerMode, stopTrimPreview],
   );
 
   const stopRecording = useCallback(() => {
@@ -841,17 +934,22 @@ export default function useBackingLoop(ownerMode = "") {
       || !audioRef.current
       || !isBackingPlaybackSourceReady(audioSource, recording)) return;
     if (playbackRequestRef.current) return;
+    if (phaseRef.current === "playing" && !getPlaybackAudio()?.paused) return;
     if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
 
+    const lease = claimBackingPlayback(() => interruptPlaybackRef.current?.());
+    playbackLeaseRef.current = lease;
     playbackRequestRef.current = true;
+    const generation = playbackGenerationRef.current;
     try {
-      const audio = audioRef.current;
       clearTransportFadeTimer();
       const graph = await ensurePlaybackAudioGraph();
+      if (generation !== playbackGenerationRef.current || !lease.isCurrent()) return;
+      const audio = getPlaybackAudio();
       graph?.setGrooveEnabled(recording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE);
       if (!mountedRef.current || !modeActiveRef.current) return;
       const playlistMode = playlistStateRef.current.playbackMode;
-      audio.loop = shouldLoopBackingTrack(playlistMode, Boolean(playlistPlaybackRef.current.playlistId));
+      audio.loop = shouldLoopBackingTrack(playlistMode, Boolean(playlistPlaybackRef.current.playlistId), playlistPlaybackRef.current.itemIds?.length);
       audio.defaultPlaybackRate = 1;
       audio.playbackRate = 1;
       if (!Number.isFinite(audio.currentTime) || audio.currentTime >= (audio.duration || Infinity)) {
@@ -859,7 +957,7 @@ export default function useBackingLoop(ownerMode = "") {
       }
       graph?.setTransportLevel(0, { immediate: true });
       await audio.play();
-      if (!mountedRef.current || !modeActiveRef.current) {
+      if (!mountedRef.current || !modeActiveRef.current || generation !== playbackGenerationRef.current || !lease.isCurrent()) {
         audio.pause();
         graph?.setTransportLevel(1, { immediate: true });
         graph?.disconnect?.();
@@ -869,7 +967,7 @@ export default function useBackingLoop(ownerMode = "") {
       setNotice(playlistPlaybackRef.current.playlistId ? ko["backingLoop.playlistPlaying"] : audio.loop ? ko["backingLoop.looping"] : ko["backingLoop.backingPlaying"]);
       setPhaseImmediate("playing");
     } catch {
-      if (!mountedRef.current || !modeActiveRef.current) return;
+      if (!mountedRef.current || !modeActiveRef.current || generation !== playbackGenerationRef.current) return;
       setNotice(ko["backingLoop.couldnTPlayThisBackingRecordAgainOrLoadAnotherTrack"]);
       setPhaseImmediate("error");
     } finally {
@@ -1531,9 +1629,9 @@ export default function useBackingLoop(ownerMode = "") {
   const cyclePlaylistRepeatMode = useCallback(() => {
     commitPlaylistState((state) => {
       const nextMode = getNextBackingPlaylistRepeatMode(state.playbackMode);
-      const audio = audioRef.current;
+      const audio = getPlaybackAudio();
       if (audio) {
-        audio.loop = shouldLoopBackingTrack(nextMode, Boolean(playlistPlaybackRef.current.playlistId));
+        audio.loop = shouldLoopBackingTrack(nextMode, Boolean(playlistPlaybackRef.current.playlistId), playlistPlaybackRef.current.itemIds?.length);
       }
       return setBackingPlaylistPlaybackMode(state, nextMode);
     });
@@ -1794,7 +1892,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [playPlaylistItem, selectedPlaylistItemId]);
 
   const playPreviousPlaylistItem = useCallback(() => {
-    const audio = audioRef.current;
+    const audio = getPlaybackAudio();
     const positionMs = audio && Number.isFinite(audio.currentTime)
       ? audio.currentTime * 1000
       : currentTimeMs;
@@ -1875,7 +1973,7 @@ export default function useBackingLoop(ownerMode = "") {
     const durationMs = Math.max(0, Number(recording.durationMs) || 0);
     if (!durationMs) return;
     const safeTimeMs = Math.min(durationMs, Math.max(0, Number(nextTimeMs) || 0));
-    const audio = audioRef.current;
+    const audio = getPlaybackAudio();
     if (audio) {
       fadeThen(() => {
         try {
@@ -1890,7 +1988,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [fadeThen, recording]);
 
   const handlePlaybackEnded = useCallback(async () => {
-    const audio = audioRef.current;
+    const audio = getPlaybackAudio();
     if (!audio || phaseRef.current !== "playing") return;
     const playback = playlistPlaybackRef.current;
     if (!playback.playlistId) {
@@ -1973,13 +2071,15 @@ export default function useBackingLoop(ownerMode = "") {
     });
     if (loaded) setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
   }, [dialog, loadRecording, setPhaseImmediate]);
+  playbackEndedRef.current = handlePlaybackEnded;
 
   const handleLoadedMetadata = useCallback(() => {
-    const audio = audioRef.current;
+    const audio = getPlaybackAudio();
     if (audio) {
       audio.loop = shouldLoopBackingTrack(
         playlistStateRef.current.playbackMode,
         Boolean(playlistPlaybackRef.current.playlistId),
+        playlistPlaybackRef.current.itemIds?.length,
       );
       const actualDurationMs = Number.isFinite(audio.duration) && audio.duration > 0
         ? audio.duration * 1000
@@ -2004,6 +2104,11 @@ export default function useBackingLoop(ownerMode = "") {
   }, [currentTimeMs, phase]);
 
   const hasRecording = Boolean(recording?.blob);
+  navigationCleanupRef.current = () => {
+    closeDialog();
+    setDialog("");
+    stopTrimPreview();
+  };
   const durationMs = hasRecording ? Math.max(0, Number(recording.durationMs) || 0) : 0;
   const trimDurationMs = Math.max(0, Number(trimDraft?.recording?.durationMs) || 0);
   const trimSelection = trimDraft ? {
@@ -2145,6 +2250,7 @@ export default function useBackingLoop(ownerMode = "") {
     setPlaylistPlaybackMode,
     setPlaylistRenameDraft,
     seekPlayback,
+    stopPlayback,
     setBackingVolume,
     setTitleDraft,
     status,

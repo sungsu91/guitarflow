@@ -46,3 +46,4 @@ html body main.app.app.app.app.app .pdfStudio .mobilePdfBpmSteps button{border:1
 .mobilePdfPracticeOptions>label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
 .mobilePdfPracticeOptions h2{font-size:15px}
 .pdfPractice--mobile:not(.pdfPractice--editing) .pdfScoreStage>.pdfViewport>:is(.pdfZoomBounds,.pdfContinuousBounds){margin-bottom:65dvh}
+html body main.app.app.app .pdfPractice--mobile .mobilePdfTransport {grid-template-columns:40px minmax(0,1fr) auto 64px 40px;gap:2px}

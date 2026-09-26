@@ -7,6 +7,18 @@ import {
   resetBackingLoopActivityForTests,
 } from "../src/backing-loop/activityRegistry.js";
 
+test("shared backing playback survives room changes while navigation cleanup still runs", () => {
+  resetBackingLoopActivityForTests();
+  const calls = [];
+  const unregister = registerBackingLoopActivity('shared', () => calls.push('stop'), null, mode => calls.push(mode));
+  for (const mode of ['metronome', 'etudes', 'rhythm-trainer', 'practice']) deactivateBackingLoopsExcept(mode);
+  assert.deepEqual(calls, ['metronome', 'etudes', 'rhythm-trainer', 'practice']);
+  unregister();
+  deactivateBackingLoopsExcept('tuner');
+  assert.equal(calls.length, 4);
+  resetBackingLoopActivityForTests();
+});
+
 test("mode changes deactivate every backing loop outside the destination mode", () => {
   const calls = [];
   const unregisterMetronome = registerBackingLoopActivity(

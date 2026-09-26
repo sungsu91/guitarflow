@@ -33,7 +33,7 @@ test('seeded generation preserves meter and difficulty, avoids identical adjacen
  for(const meter of [2,3,4])for(const level of ['easy','medium','hard'])for(let run=0;run<40;run++){
   const p={...examplePattern(),meter,measures:generateMeasures(meter,level,8,rng)};assert.ok(validPattern(p));
   for(let i=1;i<p.measures.length;i++)assert.notDeepEqual(p.measures[i],p.measures[i-1]);
-  if(level==='easy')for(const m of p.measures)assert.ok(m.every(b=>JSON.stringify(b)===JSON.stringify(m[0])));
+  if(level==='easy')for(const m of p.measures)assert.ok(new Set(m.map(b=>JSON.stringify(b))).size>1);
   if(level==='medium')assert.ok(p.measures.flat(2).every(n=>n.ticks!==4&&!n.tie));
   if(level==='hard')assert.ok(p.measures.every(m=>m.some(b=>b.at(-1).tie)));
  }

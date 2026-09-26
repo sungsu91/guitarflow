@@ -83,7 +83,7 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(appSource, /isMobileLayout && landscapePlayFocus \? \([\s\S]*stage3StartControlCluster--focus/);
   assert.match(appSource, /\) : !isMobileLayout \? stage3DesktopMetronomeSoundToggle : null\}/);
   assert.match(appSource, /cardClassName=\{isMobileLayout \? "referenceMetronomeHeroCard" : ""\}/);
-  assert.match(appSource, /selectedCategory\.id === "scale-block" \? \(\s*!isMobileLayout \? \(\s*<BackingLoop\s+desktopPresentation="standalone"\s+mobile=\{false\}\s+ownerMode=\{APP_MODES\.PRACTICE\}/);
+  assert.match(appSource, /selectedCategory\.id === "scale-block" \? \(\s*!isMobileLayout \? \(\s*(?:<>\s*)?<BackingLoop\s+desktopPresentation="standalone"\s+mobile=\{false\}\s+ownerMode=\{APP_MODES\.PRACTICE\}/);
   assert.doesNotMatch(appSource, /className="stage3CollapsedBpmControl"/);
   assert.doesNotMatch(appSource, /stage3ProgressionHeader--empty/);
   assert.match(appSource, /className="stage3DesktopProgressionHeading">코드 진행/);
@@ -94,9 +94,9 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /\.rhythmChordMeasure > button \+ button \{\s*border-left: 0 !important/);
   assert.match(styles, /\.rhythmChordMeasure\.active \{[\s\S]*border-color: var\(--riff-border-selected\) !important/);
   assert.match(styles, /\.miniChordMakerPanel\.miniChordMakerPanelCompact[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(360px, 420px\)/);
-  assert.match(styles, /--desktop-fretboard-catalog-width: clamp\(720px, 53%, 920px\)/);
+  assert.match(styles, /--desktop-fretboard-catalog-width: minmax\(0, 1\.25fr\)/);
   assert.match(styles, /html:has\(body \.desktopLayout\) \{[\s\S]*scrollbar-gutter: stable/);
-  assert.match(styles, /\.fretboardViewerPanel\.fretboardViewerPanel--desktopUnified[\s\S]*grid-template-columns: minmax\(0, 1fr\) var\(--desktop-fretboard-catalog-width\)/);
+  assert.match(styles, /\.fretboardViewerPanel\.fretboardViewerPanel--desktopUnified[\s\S]*grid-template-columns: minmax\(320px, 1fr\) var\(--desktop-fretboard-catalog-width\)/);
   assert.match(styles, /> \.fretboardViewerPanel--desktopUnified[\s\S]*> \.viewerControlPanel \{[\s\S]*grid-column: 1[\s\S]*width: 100% !important/);
   assert.match(styles, /\.fretboardViewerPanel--desktopUnified\.fretboardViewerPanel:not\(\.fretboardViewerPanel--chord\)[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(styles, /> :is\(\.viewerMapCard, \.viewerModeControlSlot\) \{[\s\S]*width: min\(980px, 100%\) !important/);

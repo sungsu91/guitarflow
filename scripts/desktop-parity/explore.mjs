@@ -1,0 +1,12 @@
+import {makePage,goto,button,controls,snap,finish,step} from './helpers.mjs';
+import {writeFile} from 'node:fs/promises';
+const p=await makePage();
+const save=async name=>{await writeFile(`work/desktop-parity/explore-${name}.json`,JSON.stringify(await controls(p),null,2));await snap(p,`explore-${name}`);};
+await step(p,'metro-explore',async()=>{await goto(p,'metronome');await button(p,'트래커 펼치기').click();await save('tracker');await button(p,'3 그루브').click();await save('groove');});
+await step(p,'stage3-explore',async()=>{await goto(p,'stage3');await button(p,'LOAD').click();await save('stage3-load');});
+await step(p,'tuner-explore',async()=>{await goto(p,'tuner');await p.getByRole('button',{name:/악기 선택, 현재/}).click();await save('tuner-instruments');});
+await step(p,'mini-explore',async()=>{await goto(p,'mini-chord');await button(p,'1마디 1박 코드 설정').click();await save('mini-edit');});
+await step(p,'rhythm-explore',async()=>{await goto(p,'rhythm-trainer');await p.locator('.rt-card').first().click();await save('rhythm-setup');});
+await step(p,'score-explore',async()=>{await goto(p,'etudes');await button(p,'악보 작업').click();await save('score-actions');});
+await step(p,'audio-explore',async()=>{await goto(p,'audio-studio');await button(p,'편집실').click();await save('audio-edit');});
+await finish('explore');

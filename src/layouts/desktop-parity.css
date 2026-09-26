@@ -1,0 +1,165 @@
+/* Desktop presentation corrections. Shared controllers and mobile rules stay
+   in their existing modules; none of these rules match a mobile surface. */
+html[data-rifflab-layout="desktop"] .desktopLayout {
+  --desktop-workspace-left: calc(var(--desktop-sidebar-width) + 28px);
+}
+html[data-rifflab-layout="desktop"] .desktopWorkspaceContent {
+  padding-right: clamp(16px, 2vw, 36px);
+}
+
+.desktopSidebar .desktopSidebarLabel {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+.desktopSidebar .desktopSidebarStatusLogo { flex-shrink: 0; }
+.desktopSidebar .utilityShareMenu { position: relative; margin: 0; }
+.desktopSidebar .utilityShareMenu > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--desktop-sidebar-card-text);
+  border: 1px solid var(--desktop-sidebar-card-border);
+  border-radius: 12px;
+  background: var(--desktop-sidebar-card-bg);
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none;
+}
+.desktopSidebar .utilitySharePopover {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  max-height: none;
+  box-sizing: border-box;
+}
+.desktopSidebar .utilitySharePopover .utilityMenuItem { width: 100%; min-width: 0; }
+.desktopSidebar .utilitySharePopover .utilityMenuText { white-space: normal; }
+.desktopSidebar .utilitySharePopover .utilityMenuText strong { font-size: 12px; }
+.desktopSidebar .shooterShareFeedback input { width: 100%; min-width: 0; }
+
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-rows: auto auto !important;
+  gap: 8px !important;
+  height: auto !important;
+  min-height: 110px !important;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3DesktopBeatHeading {
+  grid-column: 1; grid-row: 1;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip {
+  grid-column: 1 / -1 !important; grid-row: 2 !important;
+  padding: 0 !important;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .beatIndicatorRow {
+  display: flex !important; gap: 4px !important; justify-content: space-around;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .referenceBeatMetronomeDot.beatDot {
+  --beat-dot-size: 32px;
+  flex: 1 1 0;
+  width: auto !important; min-width: 0 !important;
+  height: 40px !important; min-height: 40px !important;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3MetronomeSoundToggle--desktop {
+  grid-column: 2 !important; grid-row: 1 !important;
+  height: 34px !important; min-height: 34px !important;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3MetronomeSoundToggle--desktop::before { content: none; }
+
+html body .desktopLayout main.app.app.app .trainingNoteGuideToggle {
+  display: inline-flex !important;
+  flex-shrink: 0;
+  min-width: 36px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* A single content column uses the available workspace instead of duplicating
+   the app sidebar with a large decorative title column. */
+html body .desktopLayout main.app .desktopScaleProgressControl {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+html body .desktopLayout main.app .desktopScaleProgressControl .trainingNoteGuideToggle {
+  width: 132px;
+  gap: 8px;
+}
+html body .desktopLayout main.app .backingLoopTrackBadge {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+html body .desktopLayout main.app .backingLoopTrackBadge > svg {
+  display: block;
+  flex: none;
+  margin: 0 !important;
+}
+html body .desktopLayout .rt-desktop {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0;
+  max-width: 1280px;
+}
+html body .desktopLayout .rt-desktop > aside { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
+html body .desktopLayout .rt-desktop > aside h1 { margin: 0; font-size: 20px; }
+html body .desktopLayout .rt-desktop > aside p { margin: 0 0 0 auto; }
+html body .desktopLayout .rt-desktop .rt-workspace { height: calc(100dvh - 104px); min-height: 480px; width: 100%; }
+html[data-rifflab-layout="desktop"] body .rt-overlay.rt-sheet-overlay { justify-content: flex-end; align-items: flex-start; padding: 16px; }
+html[data-rifflab-layout="desktop"] body .rt-overlay .rt-dialog.rt-sheet {
+  width: min(440px, 42vw);
+  max-height: calc(100dvh - 32px);
+  height: calc(100dvh - 32px);
+  border-radius: 16px;
+}
+html[data-rifflab-layout="desktop"] body:has(.rt-sheet) .rt-desktop .rt-score-scroll { margin-right: min(456px, 44vw); }
+
+html[data-rifflab-layout="desktop"] .shooterPitchMonitorDesktop {
+  /* DesktopPitchMonitor anchors this body portal to the playfield's left edge. */
+  padding: 12px;
+  border-radius: 12px;
+  background: #171711e8;
+  max-width: 190px;
+  grid-template-columns: auto;
+  grid-template-rows: auto;
+  gap: 4px;
+}
+html[data-rifflab-layout="desktop"] .shooterPitchMonitorDesktop b { grid-column: 1; grid-row: auto; justify-self: start; font-size: 24px; }
+html[data-rifflab-layout="desktop"] .shooterPitchMonitorDesktop small { white-space: normal; }
+html body .desktopLayout main.app .desktopShooterPauseControl {
+  position: fixed;
+  left: calc(clamp(242px, 17vw, 274px) + 32px);
+  top: 238px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--riff-border-control, #92733b);
+  border-radius: 10px;
+  color: var(--riff-text-primary, #f5ebd8);
+  background: var(--riff-surface-panel, #29261f);
+  font-size: 14px;
+}
+
+@media (min-width: 1024px) and (max-width: 1366px) {
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app { padding-inline: 12px; }
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app:has(> .fretboardViewerPanel) { padding-inline: 12px; }
+  html body .desktopLayout .desktopSidebarNavItem { min-height: 38px; }
+  html body .desktopLayout .desktopSidebarSectionHeading { margin-block: 10px 6px; }
+}

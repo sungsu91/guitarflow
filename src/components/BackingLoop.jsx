@@ -4,12 +4,130 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import BackingGroovePicker from './BackingGroovePicker.jsx';
 import {BackingLoopDragContext,BackingLoopFoldContext} from './BackingLoopDragContext.js';
-import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AudioLines, ChevronDown, ChevronUp, ListMusic, Mic, Music2, Pause, Play, Plus, Repeat2, RotateCcw, Save, Scissors, Shuffle, SkipBack, SkipForward, Square, Trash2, Volume2, VolumeX, X } from "lucide-react";
 import { BACKING_AUDIO_SOURCE_TYPES } from "../backing-loop/backingAudioSource";
 import { formatBackingLoopTime } from "../backing-loop/backingLoopUtils";
 import useBackingLoop from "../backing-loop/useBackingLoop";
+import './backing-loop-dock.css';
+
+const BackingLoopContext = createContext(null);
+// Vite does not emit a Refresh signature for the transport's plain .js hook.
+// A fresh key on development updates releases the old audio session before a
+// changed hook list mounts; production keeps the same key for its full lifetime.
+const backingSessionRevision = import.meta.hot
+  ? (import.meta.hot.data.backingSessionRevision = (import.meta.hot.data.backingSessionRevision || 0) + 1)
+  : 0;
+
+// Playback and media elements outlive every individual screen and layout.
+export function BackingLoopProvider({ children }) {
+  return <BackingLoopSession key={backingSessionRevision}>{children}</BackingLoopSession>;
+}
+
+function BackingLoopSession({ children }) {
+  const controller = useBackingLoop('shared');
+  const playlistAnchorRef = useRef(null);
+  const [dock, setDock] = useState(() => ({view: 'hidden', top: Math.round(window.innerHeight * .58), clearance: 0}));
+  const setDockView = useCallback(view => setDock(previous => previous.view === view ? previous : {...previous, view}), []);
+  const setDockTop = useCallback(top => setDock(previous => previous.top === top ? previous : {...previous, top}), []);
+  const setDockClearance = useCallback(clearance => setDock(previous => previous.clearance === clearance ? previous : {...previous, clearance}), []);
+  return <BackingLoopContext.Provider value={{...controller, sharedPlayback: true, dock, setDockView, setDockTop, setDockClearance}}>
+    {children}
+    <BackingLoopResources controller={controller} playlistAnchorRef={playlistAnchorRef} />
+  </BackingLoopContext.Provider>;
+}
+
+// Mounted once inside the app theme, independently of individual room panels.
+export function BackingLoopDock({ mobile, mode }) {
+  const controller = useContext(BackingLoopContext);
+  return controller ? <SharedBackingDock controller={controller} mobile={mobile} mode={mode} /> : null;
+}
+
+const BackingDockEdge = memo(function BackingDockEdge({ playing, paused, title, top, onToggle, onStop, onPointerDown, onPointerMove, onPointerUp, onKeyDown }) {
+  const language = useLanguage();
+  const ko = language === 'ko';
+  return <div className={`backingDockEdge ${playing ? 'is-playing' : paused ? 'is-paused' : 'is-idle'}`} style={{top}}>
+    <button type="button" className="backingDockHandle" aria-label={ko ? `백킹 ${playing?'재생 중':paused?'일시정지':'정지'} · 패널 열기` : `Backing ${playing?'playing':paused?'paused':'stopped'} · Open panel`}
+      aria-expanded={false} aria-controls="shared-backing-dock-panel" title={title} onClick={onToggle}
+      onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onKeyDown={onKeyDown}>
+      <AudioLines size={15} aria-hidden="true"/><ChevronDown className="backingDockChevron" size={13} aria-hidden="true"/>
+      <i aria-hidden="true"/>
+    </button>
+    <button type="button" className="backingDockStop" aria-label={ko?'백킹 즉시 정지':'Stop backing now'} title={ko?'백킹 정지':'Stop backing'} onClick={onStop}><Square size={11} fill="currentColor" aria-hidden="true"/></button>
+  </div>;
+});
+
+function SharedBackingDock({ controller, mobile, mode }) {
+  const language = useLanguage();
+  const korean = language === 'ko';
+  const {dock, setDockView, setDockTop} = controller;
+  const open = dock.view === 'open';
+  const top = dock.top;
+  const drag = useRef(null);
+  const dragged = useRef(false);
+  const panel = useRef(null);
+  const panelHeight = useRef(250);
+  const previousMode = useRef(mode);
+  const clearance = Math.max(mobile ? 88 : 12, dock.clearance);
+  const clampTop = useCallback(value => Math.max(12, Math.min(window.innerHeight - clearance - panelHeight.current - 12, value)), [clearance]);
+  useEffect(() => {
+    if (previousMode.current !== mode && open) setDockView('collapsed');
+    previousMode.current = mode;
+  }, [mode, open, setDockView]);
+  useLayoutEffect(() => {
+    if (dock.view === 'hidden') return;
+    const resize = () => {
+      if (panel.current) panelHeight.current = panel.current.getBoundingClientRect().height;
+      setDockTop(clampTop(top));
+    };
+    resize();
+    const observer = new ResizeObserver(resize);
+    if (panel.current) observer.observe(panel.current);
+    window.addEventListener('resize', resize);
+    return () => { observer.disconnect(); window.removeEventListener('resize', resize); };
+  }, [dock.view, top, clampTop, setDockTop]);
+  useEffect(() => { if (open) panel.current?.querySelector('button')?.focus({preventScroll:true}); }, [open]);
+  const toggle = useCallback(() => {
+    if (dragged.current) { dragged.current = false; return; }
+    setDockView('open');
+  }, [setDockView]);
+  const close = useCallback(() => { setDockView('collapsed'); controller.closeDialog(); }, [setDockView, controller.closeDialog]);
+  const stop = useCallback(() => { controller.stopPlayback(); if (!open) setDockView('hidden'); }, [controller.stopPlayback, open, setDockView]);
+  const pointerDown = useCallback(event => {
+    if (event.button !== 0) return;
+    dragged.current = false;
+    drag.current = { y: event.clientY, top };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }, [top]);
+  const pointerMove = useCallback(event => {
+    if (!drag.current) return;
+    const dy = event.clientY - drag.current.y;
+    if (Math.abs(dy) > 5) dragged.current = true;
+    if (dragged.current) setDockTop(clampTop(drag.current.top + dy));
+  }, [clampTop, setDockTop]);
+  const pointerUp = useCallback(event => {
+    drag.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }, []);
+  const keyDown = useCallback(event => {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    setDockTop(clampTop(top + (event.key === 'ArrowUp' ? -24 : 24)));
+  }, [clampTop, top, setDockTop]);
+  if (dock.view === 'hidden') return null;
+  const moveHandle = {onPointerDown:pointerDown, onPointerMove:pointerMove, onPointerUp:pointerUp, onPointerCancel:pointerUp, onKeyDown:keyDown};
+  return <div className={`sharedBackingDock ${mobile?'sharedBackingDock--mobile':'sharedBackingDock--desktop'}`} data-ui="backing-loop" style={{'--dock-clearance':`${clearance}px`}}>
+    {!open && <BackingDockEdge playing={controller.isPlaying} paused={controller.isPaused} title={controller.title} top={top} onToggle={toggle} onStop={stop} {...moveHandle}/>}
+    {open && <aside ref={panel} id="shared-backing-dock-panel" className="backingDockPanel" style={{top}} aria-label={korean?'백킹루프':'Backing loop'} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
+      <BackingLoopDragContext.Provider value={moveHandle}>
+        <BackingLoopFoldContext.Provider value={close}>
+          {mobile ? <MobileBackingLoop controller={controller}/> : <DesktopBackingLoop controller={controller} presentation="standalone"/>}
+        </BackingLoopFoldContext.Provider>
+      </BackingLoopDragContext.Provider>
+    </aside>}
+  </div>;
+}
 
 function MobileBackingLoopHardware() {
   return (
@@ -908,12 +1026,14 @@ function BackingLoopDialogLayer({ controller, playlistAnchorRef }) {
     }
 
     let frameId = 0;
+    const anchorPanel = playlistAnchorRef.current || document.activeElement?.closest?.(".backingLoopPanel");
     const applyPlaylistAnchor = () => {
       if (!window.matchMedia("(max-width: 680px)").matches) {
         setPlaylistAnchorStyle(null);
         return;
       }
-      const player = playlistAnchorRef.current?.querySelector(".backingLoopMiniPlayer");
+      const panel = anchorPanel;
+      const player = panel?.querySelector(".backingLoopMiniPlayer");
       if (!player) {
         setPlaylistAnchorStyle(null);
         return;
@@ -1019,17 +1139,48 @@ function DesktopBackingLoop({ controller, presentation = "default" }) {
   );
 }
 
-export default function BackingLoop({ desktopPresentation = "default", mobile = false, ownerMode = "", renderSurface }) {
+export default function BackingLoop(props) {
+  const controller = useContext(BackingLoopContext);
+  const latest = useRef(controller);
+  latest.current = controller;
+  const inline = Boolean(controller?.sharedPlayback && !props.renderSurface);
+  useEffect(() => {
+    if (!inline) return;
+    latest.current.setDockView('hidden');
+    return () => {
+      const current = latest.current;
+      // Leaving an inline player folds it into the same shared drawer.
+      if (current.isPlaying || current.isPaused) current.setDockView('collapsed');
+    };
+  }, [inline]);
+  return controller ? <BackingLoopSurface {...props} controller={controller} /> : <LocalBackingLoop key={backingSessionRevision} {...props} />;
+}
+
+function LocalBackingLoop(props) {
+  const controller = useBackingLoop(props.ownerMode);
+  const playlistAnchorRef = useRef(null);
+  return <>
+    <BackingLoopSurface {...props} controller={controller} panelRef={playlistAnchorRef} />
+    <BackingLoopResources controller={controller} playlistAnchorRef={playlistAnchorRef} />
+  </>;
+}
+
+function BackingLoopSurface({ controller, desktopPresentation = "default", mobile = false, renderSurface, panelRef }) {
   useLanguage();
-  const controller = useBackingLoop(ownerMode);
-  const mobilePanelRef = useRef(null);
   return (
     <>
       {renderSurface ? renderSurface(controller, mobile
         ? <MobileBackingLoop controller={controller} />
         : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />) : mobile
-        ? <MobileBackingLoop controller={controller} panelRef={mobilePanelRef} />
+        ? <MobileBackingLoop controller={controller} panelRef={panelRef} />
         : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />}
+    </>
+  );
+}
+
+function BackingLoopResources({ controller, playlistAnchorRef }) {
+  useLanguage();
+  return <>
       <audio
         className="backingLoopAudio"
         onEnded={controller.handlePlaybackEnded}
@@ -1055,7 +1206,6 @@ export default function BackingLoop({ desktopPresentation = "default", mobile = 
         tabIndex="-1"
         type="file"
       />
-      <BackingLoopDialogLayer controller={controller} playlistAnchorRef={mobilePanelRef} />
-    </>
-  );
+      <BackingLoopDialogLayer controller={controller} playlistAnchorRef={playlistAnchorRef} />
+    </>;
 }
