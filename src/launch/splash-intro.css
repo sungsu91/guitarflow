@@ -4,6 +4,9 @@
 }
 
 .appRuntime--launching {
+  /* Keep layout/state warm without letting any part of the next screen show
+   * through iOS's independently composited home-indicator area. */
+  opacity: 0;
   pointer-events: none;
   user-select: none;
 }
@@ -61,6 +64,15 @@ html.app-is-launching body,
 html.app-is-theme-loading,
 html.app-is-theme-loading body {
   overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@supports (overflow: clip) {
+  html:is(.app-is-launching, .app-is-theme-loading):has(#root),
+  html:is(.app-is-launching, .app-is-theme-loading) body:has(> #root) {
+    /* Unlike hidden, clip does not create a root scroll container on iOS. */
+    overflow: clip !important;
+  }
 }
 
 html.app-is-launching::-webkit-scrollbar {
@@ -591,6 +603,15 @@ html.app-is-launching::-webkit-scrollbar-track {
     z-index: 10;
     margin-top: 0;
     transform: translateX(-50%);
+  }
+}
+
+@media (pointer: coarse), (display-mode: standalone) {
+  .launchSplash {
+    /* Cover the home-indicator inset even while the standalone viewport settles.
+     * Padding keeps the storyboard's original size and centre unchanged. */
+    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 

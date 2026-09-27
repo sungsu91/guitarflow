@@ -3,6 +3,8 @@ import { localizeUi } from "../i18n/core.js";
 import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 import {exportScorePdf} from './exportScorePdf.js';
+import {getIsMobileLayout} from '../layouts/mobileLayout.js';
+import {mobilePrintHint,openPrintPdf} from '../printing/openPrintPdf.js';
 import {staffStepForPitch} from './scoreInstruments.js';
 import {drawScore,scoreSpacing} from './Score.jsx';
 import {compileScoreDocument} from './scoreDocument.js';
@@ -20,6 +22,7 @@ export function printEditorScore(container,title,view='both',metadata) {
  const measures=[...container.querySelectorAll('[data-draw-count]')].map(host=>({svg:host.shadowRoot?.querySelector('svg'),measure:host.closest('[data-layout-row]')})).filter(item=>item.svg);
  if(!measures.length&&!metadata)throw Error(translateUi("etudes.prepareADisplayableScoreFirst"));
  const win=window.open('','_blank','width=1000,height=800');if(!win)throw Error(translateUi("etudes.allowThePrintPreviewPopupAndTryAgain"));
+ const mobile=getIsMobileLayout(window);
  const doc=win.document;doc.title=title?.trim()||ko["components.scores"];doc.documentElement.lang=getLanguage();
  let printTitle=title||'',printDescription=metadata?scoreCredit(metadata):'';
  const viewport=doc.createElement('meta');viewport.name='viewport';viewport.content='width=device-width, initial-scale=1';doc.head.append(viewport);
@@ -47,7 +50,14 @@ export function printEditorScore(container,title,view='both',metadata) {
  doc.head.append(style);
  const toolbar=doc.createElement('header');toolbar.className='previewToolbar';
  const label=doc.createElement('strong');label.textContent=translateUi("etudes.a4PrintPreview");
- const print=doc.createElement('button');print.textContent=translateUi("etudes.printSaveAsPdf");print.disabled=true;print.onclick=()=>win.print();
+ const print=doc.createElement('button');print.textContent=mobile?(getLanguage()==='ko'?'인쇄용 PDF 열기':'Open print PDF'):translateUi("etudes.printSaveAsPdf");print.disabled=true;
+ print.onclick=async()=>{
+  if(!mobile){win.print();return;}
+  print.disabled=true;
+  try{await openPrintPdf(async()=>{const {blob}=await exportScorePdf(sheets,printTitle);return blob;},printTitle,win);}
+  catch(error){win.alert(error.message);}
+  finally{print.disabled=false;}
+ };
   const download=doc.createElement('button');download.textContent=translateUi("etudes.savePdf");download.disabled=true;
  download.onclick=async()=>{
   download.disabled=true;download.textContent=translateUi("etudes.creatingPdf");
@@ -56,7 +66,7 @@ export function printEditorScore(container,title,view='both',metadata) {
   finally{download.disabled=false;download.textContent=translateUi("etudes.savePdf");}
  };
  const close=doc.createElement('button');close.textContent=translateUi("common.close");close.onclick=()=>win.close();
- const hint=doc.createElement('p');hint.textContent=translateUi("etudes.a4Portrait10MmMarginsPreservesYourBarsPerLineAndLine");
+ const hint=doc.createElement('p');hint.textContent=mobile?mobilePrintHint():translateUi("etudes.a4Portrait10MmMarginsPreservesYourBarsPerLineAndLine");
  toolbar.append(label,download,print,close,hint);doc.body.append(toolbar);
  const edit=doc.createElement('div');edit.className='previewMeta';
  const titleLabel=doc.createElement('label');titleLabel.textContent=translateUi('etudes.printTitle');

@@ -16,6 +16,7 @@ export default function MobilePullToRefresh({ enabled }) {
     const main = document.querySelector('main.app.shooterMode,main.app.tunerMode');
     if (!main) return;
     const originalTranslate = main.style.translate;
+    const launchLocked = () => document.documentElement.matches('.app-is-launching, .app-is-theme-loading');
     let gesture = null, frame = 0;
     const reset = () => {
       gesture = null;
@@ -27,7 +28,7 @@ export default function MobilePullToRefresh({ enabled }) {
     const start = event => {
       reset();
       const target = event.target;
-      if (event.touches.length !== 1 || !(target instanceof Element) || !main.contains(target) || main.inert || target.closest(EXCLUDED)) return;
+      if (launchLocked() || event.touches.length !== 1 || !(target instanceof Element) || !main.contains(target) || target.closest('[inert]') || target.closest(EXCLUDED)) return;
       // A scrollable panel must first reach its top; ordinary scrolling wins.
       for (let node = target; node && node !== main.parentElement; node = node.parentElement) {
         if (node.scrollTop > 0) return;
@@ -37,6 +38,7 @@ export default function MobilePullToRefresh({ enabled }) {
       gesture = { x: touch.clientX, y: touch.clientY, started: performance.now(), distance: 0 };
     };
     const move = event => {
+      if (launchLocked()) { reset(); return; }
       if (!gesture) return;
       if (event.touches.length !== 1) { reset(); return; }
       const touch = event.touches[0], dx = touch.clientX - gesture.x, dy = touch.clientY - gesture.y;

@@ -62,6 +62,8 @@ try {
           window.__launch.samples.push({
             t, phase: splash.className, rect: rect.toJSON(), width: innerWidth, height: innerHeight,
             lock, inert: runtime?.inert, opacity: getComputedStyle(splash).opacity,
+            runtimeOpacity: runtime && getComputedStyle(runtime).opacity,
+            rootOverflow: getComputedStyle(document.documentElement).overflow,
             htmlBg: bg(document.documentElement), bodyBg: bg(document.body), rootBg: bg(document.getElementById('root')),
           });
         }
@@ -96,6 +98,8 @@ try {
       assert.ok(s.rect.top <= 1 && s.rect.bottom >= s.height - 1 && s.rect.width >= s.width - 1, `${profile.name}: complete viewport coverage`);
       assert.equal(s.lock, true);
       assert.equal(s.inert, true);
+      assert.equal(Number(s.runtimeOpacity), 0, `${profile.name}: next app screen stays hidden until launch completes`);
+      assert.equal(s.rootOverflow, 'clip', `${profile.name}: launch does not create a document scroll container`);
       for (const key of ['htmlBg', 'bodyBg', 'rootBg']) assert.ok(s[key].startsWith('rgb(2, 2, 2) none'), `${profile.name}: ${key} changed before handoff: ${s[key]}`);
     }
     assert.equal(result.locked, false);
