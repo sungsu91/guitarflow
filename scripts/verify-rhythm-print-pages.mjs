@@ -1,3 +1,4 @@
+import {moveRhythmPackToPageTwo} from './print-preview-helpers.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs';
@@ -39,10 +40,8 @@ try{
   await p.goto(`${base}/#rhythm-trainer`);await p.locator('.launchSplash').waitFor({state:'detached'});
   await p.locator('.rt-library-print').click();for(let i=0;i<3;i++)await p.locator('.rt-card').nth(i).click();await p.getByRole('button',{name:/선택한 팩 (인쇄|미리보기)/}).click();
   assert.equal(await p.locator('.rt-print-page').count(),1);
-  await p.locator('.rt-print-edit > label select').selectOption('2');
-  await p.getByText('표시 · 여백 설정',{exact:true}).click();
-  const range=p.getByRole('slider',{name:'세로 위치'});
-  await range.press('End');
+  await p.getByRole('combobox',{name:'편집할 팩',exact:true}).selectOption('2');
+  await moveRhythmPackToPageTwo(p,mobile);
   await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).selectOption('0');
   assert.equal(await p.locator('.rt-print-page').count(),2,'spacing carries only the overflowing rows onto page 2');
   const pageSelect=p.getByRole('combobox',{name:'미리보기 페이지',exact:true});
@@ -61,13 +60,14 @@ try{
    // A real touch swipe over notation must scroll, without changing spacing.
    if(engine==='chromium'){
     await p.getByRole('button',{name:'이전 페이지',exact:true}).click();await p.locator('.rt-print-preview').scrollIntoViewIfNeeded();
+    const packPositions=await p.locator('[data-print-section]').evaluateAll(elements=>elements.map(el=>el.style.top));
     const cdp=await context.newCDPSession(p),box=await p.locator('.rt-print-scroll').boundingBox();
     const x=box.x+box.width*.25,y=box.y+Math.min(box.height-15,180);
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
     for(let i=1;i<=6;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-i*18}]});await p.waitForTimeout(20);}
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await p.waitForFunction(()=>document.querySelector('.rt-print-scroll').scrollTop>20);
-    assert.ok(Math.abs(Number(await range.inputValue())-Number(await range.getAttribute('max')))<1,'ordinary scrolling preserves the slider endpoint within its one-pixel step');
+    assert.deepEqual(await p.locator('[data-print-section]').evaluateAll(elements=>elements.map(el=>el.style.top)),packPositions,'ordinary scrolling preserves pack positions');
    }
    assert.equal(await p.getByRole('button',{name:'인쇄용 PDF 열기',exact:true}).count(),0);
   }

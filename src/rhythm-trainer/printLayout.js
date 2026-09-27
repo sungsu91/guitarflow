@@ -1,6 +1,7 @@
 import {PRINT_WIDTH,PRINT_BOTTOM,PRINT_MARGIN,PRINT_CONTENT_WIDTH,PRINT_TOP,PRINT_SPAN,PRINT_PACK_GAP} from '../printing/printGeometry.js';
 export {PRINT_WIDTH,PRINT_BOTTOM,PRINT_MARGIN,PRINT_CONTENT_WIDTH,PRINT_TOP,PRINT_SPAN,PRINT_PACK_GAP} from '../printing/printGeometry.js';
-export const printHeaderHeight=pattern=>pattern.showMeta===false?36:64;
+export const printDescriptionVisible=(pattern,index)=>(pattern[index===1?'showMeta1':'showMeta2']??pattern.showMeta)!==false;
+export const printHeaderHeight=pattern=>printDescriptionVisible(pattern,1)||printDescriptionVisible(pattern,2)?64:36;
 export const printColumns=pattern=>Math.max(1,Math.min(4,Math.round(pattern.printColumns||2)));
 export const printRowHeight=pattern=>{const columns=printColumns(pattern);return PRINT_CONTENT_WIDTH/columns*78/(columns>1?328:360)+12;};
 export const printCoordinate=(page,top)=>Math.max(0,page*PRINT_SPAN+Math.max(0,Math.min(PRINT_SPAN,top-PRINT_TOP)));

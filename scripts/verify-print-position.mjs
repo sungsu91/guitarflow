@@ -1,3 +1,4 @@
+import {moveRhythmPackToPageTwo} from './print-preview-helpers.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs';
@@ -6,7 +7,6 @@ const {createCanvas}=await import(process.env.CANVAS_MODULE||'@napi-rs/canvas');
 const engine=process.env.PRINT_BROWSER||'chromium',base=process.env.PRINT_TEST_URL||'http://127.0.0.1:4193';
 const out=process.env.PRINT_OUTPUT||`artifacts/print-position-20260927/${engine}`;await mkdir(out,{recursive:true});
 const browser=await(engine==='webkit'?webkit:chromium).launch({headless:true,...(engine==='chromium'?{channel:'msedge'}:{})});
-async function setRange(locator,value){await locator.evaluate((el,value)=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,value);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));},value);}
 let p;
 try{
  for(const width of (process.env.PRINT_WIDTHS||'390,1440').split(',').map(Number))for(const route of ['etudes','rhythm-trainer']){
@@ -21,29 +21,15 @@ try{
   await p.getByRole('textbox',{name:'출력 제목',exact:true}).fill('CENTER TITLE');
   await p.getByRole('textbox',{name:'출력 설명 1 · 왼쪽',exact:true}).fill('LEFT DESCRIPTION');
   await p.getByRole('textbox',{name:'출력 설명 2 · 오른쪽',exact:true}).fill('AUTHOR RIGHT');
-  await p.getByText('표시 · 여백 설정',{exact:true}).click();
-  if(route==='rhythm-trainer'){
-   const before=await p.locator('[data-print-section]').evaluateAll(elements=>elements.slice(0,2).map(el=>el.style.top));
-   const vertical=p.getByRole('slider',{name:'세로 위치',exact:true});await vertical.press('Home');
-   assert.ok(Number(await vertical.inputValue())>500,'pack cannot pass or overlap earlier packs');
-   assert.deepEqual(await p.locator('[data-print-section]').evaluateAll(elements=>elements.slice(0,2).map(el=>el.style.top)),before);
-   await vertical.press('End');assert.ok(Number(await vertical.inputValue())>500,'movement is not capped at 240 pixels');
-   await p.getByRole('combobox',{name:'배치할 페이지',exact:true}).selectOption('1');
-   await setRange(vertical,'120');
-   assert.equal(await p.getByRole('slider',{name:'가로 위치',exact:true}).count(),0,'horizontal placement stays fixed');
-   assert.equal(await p.locator('[data-print-page]').count(),2);assert.equal(await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).inputValue(),'1');
-  }else{
-   // Desktop's default four bars per row fits on one page. The page-2 regression
-   // is exercised using the phone's authored one-bar-per-row layout.
-   if(await p.locator('[data-print-page]').count()>1)await p.getByRole('button',{name:'다음 페이지',exact:true}).click();
-  }
+  if(route==='rhythm-trainer')await moveRhythmPackToPageTwo(p,mobile);
+  else if(await p.locator('[data-print-page]').count()>1)await p.getByRole('button',{name:'다음 페이지',exact:true}).click();
   const countBefore=await p.locator('[data-print-page]').count(),pageIndex=countBefore>1?1:0;
   await p.locator('.rt-print-preview').scrollIntoViewIfNeeded();
   await p.evaluate(index=>{window.testFrame=document.querySelectorAll('[data-print-frame]')[index];window.testFirstPadding=document.querySelector('[data-print-page]').style.paddingTop;window.testScroll=document.querySelector('.rt-print-scroll').scrollTop;},pageIndex);
-  if(mobile)await p.getByRole('button',{name:'위치 조절',exact:true}).click();
+  if(mobile&&route==='rhythm-trainer')await p.getByRole('button',{name:'위치 조절',exact:true}).click();
   const frame=p.locator('[data-print-frame]').nth(pageIndex),scroller=p.locator('.rt-print-scroll');
   const touch=mobile&&engine==='chromium'?await context.newCDPSession(p):null;
-  for(let n=0;n<3;n++){
+  for(let n=0;n<(route==='rhythm-trainer'?3:0);n++){
    const box=await scroller.boundingBox(),paper=await frame.boundingBox();
    const target=route==='rhythm-trainer'?await p.locator('[data-print-section="2:0"]').boundingBox():await frame.locator('article > section').first().boundingBox();
    const x=paper.x+paper.width*.4,y=Math.max(box.y+40,target.y+15);
@@ -52,10 +38,6 @@ try{
    assert.equal(await p.evaluate(index=>window.testFrame===document.querySelectorAll('[data-print-frame]')[index],pageIndex),true,'the active page frame survives layout changes');
    const scroll=await scroller.evaluate(el=>el.scrollTop);assert.ok(Math.abs(scroll-await p.evaluate(()=>window.testScroll))<2,'drag keeps the page in view');
    assert.equal(await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).inputValue(),String(pageIndex));
-  }
-  if(route==='etudes'&&pageIndex===1){
-   assert.equal(await p.locator('[data-print-page]').first().evaluate(el=>el.style.paddingTop),await p.evaluate(()=>window.testFirstPadding),'page 2 drag does not edit page 1');
-   assert.ok(await p.locator('[data-print-page]').nth(1).evaluate(el=>parseFloat(el.style.paddingTop)>45));
   }
   await p.getByRole('textbox',{name:'출력 설명 2 · 오른쪽',exact:true}).fill('AUTHOR RIGHT UPDATED');
   assert.ok(Math.abs(await scroller.evaluate(el=>el.scrollTop)-await p.evaluate(()=>window.testScroll))<2,'metadata edits retain the current page');

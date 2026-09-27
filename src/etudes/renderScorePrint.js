@@ -7,9 +7,9 @@ import qr from './score-source-qr.png';
 import {SCORE_SOURCE_HANDLE,SCORE_SOURCE_URL} from './scoreSource.js';
 import {measureLayout} from './measureLayout.js';
 import {slurSpans} from './slurs.js';
-import {PRINT_TOP,PRINT_BOTTOM} from '../printing/printGeometry.js';
+import {PRINT_TOP,PRINT_BOTTOM,PRINT_MARGIN} from '../printing/printGeometry.js';
 
-// Engrave once at physical paper width; metadata and spacing only repaginate.
+// Engrave once at physical paper width; metadata edits repaginate the fixed score.
 export function renderScorePrint(main,container,view,metadata,initial,onPages) {
  const doc=main.ownerDocument,win=doc.defaultView,sheets=[];let settings=initial;
  const measures=[...container.querySelectorAll('[data-draw-count]')].map(host=>({svg:host.shadowRoot?.querySelector('svg'),measure:host.closest('[data-layout-row]')})).filter(item=>item.svg);
@@ -20,6 +20,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   frame.setAttribute('data-print-frame','');paper.setAttribute('data-print-page','');
   paper.dataset.notationView=view;paper.dataset.pageIndex=String(sheets.length);frame.dataset.pageIndex=String(sheets.length);
   frame.append(paper);main.append(frame);
+  if(!sheets.length){
   const branding=doc.createElement('div');branding.className='print-page-branding';
   const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);
   const source=doc.createElement('div');source.className='scoreSource';
@@ -27,7 +28,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';
   const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;
   qrFrame.append(image,handle);source.append(qrFrame);branding.append(logo,source);paper.append(branding);
-  if(!sheets.length){const header=doc.createElement('header');header.className='scoreHeading';paper.append(header);}
+  const header=doc.createElement('header');header.className='scoreHeading';paper.append(header);}
   sheets.push(paper);return paper;
  };
  let sheet=newSheet();
@@ -98,19 +99,17 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
    }
   }
  };
- const maxSpacing=page=>Math.max(0,Math.floor(PRINT_BOTTOM-PRINT_TOP-(page===0?sheets[0].querySelector('.scoreHeading').offsetHeight+10:0)-Math.max(0,...sections.map(section=>section.offsetHeight))));
  const paginate=()=>{
   const scroller=main.closest('.rt-print-scroll'),scrollTop=scroller.scrollTop,scrollLeft=scroller.scrollLeft;
-  heading.textContent=settings.title;credit.textContent=settings.description;credit2.textContent=settings.description2||'';credits.hidden=!settings.showDescription;
+  heading.textContent=settings.title;credit.textContent=settings.description;credit2.textContent=settings.description2||'';credits.replaceChildren(...[settings.showDescription?credit:null,settings.showDescription2?credit2:null].filter(Boolean));credits.hidden=!settings.showDescription&&!settings.showDescription2;
   const gap=12;let pageIndex=0;
   const pageAt=index=>{
    const paper=sheets[index]||newSheet();
-   paper.style.paddingTop=(PRINT_TOP+Math.min(limits[index===0?0:1],Math.max(0,settings.spacings?.[index]||0)))+'px';
+   paper.style.paddingTop=(index===0?PRINT_TOP:PRINT_MARGIN)+'px';
    return paper;
   };
   // Retain frames and page identities while moving rows. Removing page 2 here
-  // collapses the scroll range and sends iOS back to the first page mid-drag.
-  const limits=[maxSpacing(0),maxSpacing(1)];
+  // collapses the scroll range and sends iOS back to the first page while editing.
   sections.forEach(section=>section.remove());
   sheets.forEach(paper=>paper.querySelector('.pageNumber')?.remove());
   sheet=pageAt(0);
@@ -123,7 +122,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   sheets.splice(pageIndex+1).forEach(paper=>paper.parentElement.remove());
   sheets.forEach((paper,i)=>{const number=doc.createElement('footer');number.className='pageNumber';const address=doc.createElement('span');address.className='printSiteAddress';address.textContent=SCORE_SOURCE_URL;const counter=doc.createElement('span');counter.className='scorePageNumber';counter.textContent=`${i+1} / ${sheets.length}`;counter.hidden=!settings.pageNumbers;number.append(address,counter);paper.append(number);});
   scroller.scrollTop=scrollTop;scroller.scrollLeft=scrollLeft;
-  onPages(sheets.length,limits);
+  onPages(sheets.length);
  };
  renderForPrint(view==='tab'?paperWidth*1.65:paperWidth);paginate();
  return {update(next){settings=next;paginate();},dispose(){main.replaceChildren();}};
