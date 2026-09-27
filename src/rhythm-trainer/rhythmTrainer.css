@@ -12,15 +12,21 @@ body:has(:is(.theme-dark,.theme-brand) .rt-workspace) .rt-dialog{background:#1b2
 
 /* Reference design: flat controls and a continuous white score surface.
    Keep these overrides scoped so the other app workstations retain their themes. */
-html body main.app:has(> .rt-mobile) {
+/* The active mobile workspace owns the viewport insets. Activity also keeps
+   inactive workspaces in the DOM, so they must not size another screen. */
+html body #root main.app.app.app:has(> .rt-mobile:not([style*="display: none"])) {
+  /* Floating-tool anchors have no height; they must not create extra grid rows
+     that let focus/scroll move the header behind the status bar. */
+  display: block;
   height: 100dvh;
   min-height: 0;
   box-sizing: border-box;
-  padding: 6px 10px 10px;
+  padding: max(6px, var(--app-safe-top)) max(10px, var(--app-safe-right)) max(10px, var(--app-safe-bottom)) max(10px, var(--app-safe-left));
   overflow: hidden;
 }
 .rt-workspace.rt-mobile {
-  height: calc(100dvh - 16px);
+  height: calc(100dvh - max(6px, var(--app-safe-top)) - max(10px, var(--app-safe-bottom)));
+  box-sizing: border-box;
   min-height: 0;
   border-radius: 16px;
 }
@@ -223,7 +229,7 @@ html body .rt-overlay .rt-dialog.rt-sheet { width:min(100%,760px); height:clamp(
    measure can be raised above it without a close-time scroll clamp. */
 .rt-workspace[data-screen="edit"] .rt-score-scroll > .rt-score { padding-bottom:58dvh; }
 @media (orientation:landscape) and (max-height:600px) {
- .rt-mobile .rt-header { min-height:34px; height:34px; }
+ .rt-mobile .rt-header { min-height:36px; height:36px; flex-shrink:0; }
  .rt-mobile .rt-meta { min-height:25px; padding:4px 14px; }
  .rt-mobile .rt-quick { min-height:28px; padding-bottom:2px; }
  .rt-mobile footer { padding:4px 12px; }

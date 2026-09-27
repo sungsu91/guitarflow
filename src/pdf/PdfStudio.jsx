@@ -16,6 +16,7 @@ import './pdfStudio.css';
 import './scoreFileBrowser.css';
 import './scoreLibraryTheme.css';
 import './scoreLibraryMobile.css';
+import './librarySafeArea.css';
 const preloadPdfPractice=()=>import('./PdfPractice.jsx');
 const PdfPractice=lazy(preloadPdfPractice);
 const Lessons=lazy(()=>import('../etudes/EtudeStudio.jsx'));

@@ -42,7 +42,7 @@
 .rt-header .rt-header-actions button { padding:5px 7px; font-size:11px; }
 @media (max-height:600px) and (orientation:landscape) {
  .rt-guide-mobile .rt-guide-body { padding-right:225px; }
- .rt-guide-mobile > footer.rt-guide-controls { position:absolute; right:0; top:65px; bottom:0; width:210px; }
+ .rt-guide-mobile > footer.rt-guide-controls { position:absolute; right:var(--app-safe-right); top:calc(65px + var(--app-safe-top)); bottom:var(--app-safe-bottom); width:210px; }
  .rt-guide-mobile .rt-guide-controls > div { flex-wrap:wrap; }
  .rt-guide-mobile .rt-guide-sound { flex-direction:column; align-items:stretch; }
  .rt-guide-mobile .rt-guide-sound select { max-width:100%; }
@@ -73,7 +73,7 @@ html body .rt-guide.rt-workspace {
  --rt-ink:#e4e7eb; --rt-paper:#30353b;
  background:var(--rt-bg); color:var(--rt-text); color-scheme:dark;
 }
-html body .rt-guide.rt-guide-mobile { inset:0; width:100%; height:100dvh; }
+html body .rt-guide.rt-guide-mobile { inset:0; width:100%; height:100dvh; box-sizing:border-box; padding:var(--app-safe-top) var(--app-safe-right) var(--app-safe-bottom) var(--app-safe-left); }
 html body .rt-guide.rt-workspace :is(button,input,select) { background:#373f48; color:var(--rt-text); }
 html body .rt-guide.rt-workspace :is(strong,b) { color:inherit; }
 html body .rt-guide.rt-workspace .rt-score { color:var(--rt-ink); }
