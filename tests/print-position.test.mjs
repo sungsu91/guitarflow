@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {paginatePrintPacks,placePrintSections,positionPrintSection,PRINT_BOTTOM} from '../src/rhythm-trainer/printLayout.js';
+import {paginatePrintPacks,placePrintSections,positionPrintSection,PRINT_BOTTOM,PRINT_MARGIN} from '../src/rhythm-trainer/printLayout.js';
 const pack=(key,count=4,columns=2)=>({printKey:key,printColumns:columns,measures:Array.from({length:count},(_,i)=>i),showMeta:true});
 test('automatic print layout retains every measure and stays above the footer',()=>{
  for(const columns of [1,2,3,4]){
@@ -19,6 +19,13 @@ test('a moved pack can pass earlier packs without moving them or inheriting thei
 test('independent page placement uses paper bounds and never clips a score into the footer',()=>{
  const section=paginatePrintPacks([pack(0)])[0][0];
  const moved=positionPrintSection(section,{page:2,top:99999,left:-100});
- assert.equal(moved.page,2);assert.equal(moved.left,10);assert.equal(moved.top+section.height,PRINT_BOTTOM);
+ assert.equal(moved.page,2);assert.equal(moved.left,PRINT_MARGIN);assert.equal(moved.top+section.height,PRINT_BOTTOM);
  assert.equal(placePrintSections([[section]],{'0:0':{page:1,top:100}})[0].page,1);
+});
+test('packs 3 and 2 can both move onto page 2 while pack size and horizontal alignment stay fixed',()=>{
+ const pages=paginatePrintPacks([pack(0),pack(1),pack(2)]),initial=placePrintSections(pages,{});
+ const moved=placePrintSections(pages,{'2:0':{page:1,top:500,left:200},'1:0':{page:1,top:45,left:-200}});
+ assert.deepEqual(moved[0],initial[0]);
+ for(const i of [1,2]){assert.equal(moved[i].page,1);assert.equal(moved[i].left,PRINT_MARGIN);assert.equal(moved[i].height,initial[i].height);assert.deepEqual(moved[i].measures,initial[i].measures);}
+ assert.ok(moved[1].top+moved[1].height<moved[2].top);
 });

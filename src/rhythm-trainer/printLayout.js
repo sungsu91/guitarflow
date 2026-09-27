@@ -19,9 +19,9 @@ export function paginatePrintPacks(patterns,defaultColumns=2) {
  }
  return pages.filter(page=>page.length);
 }
-export function printPositionBounds(section){return {minTop:10,maxTop:Math.max(10,PRINT_BOTTOM-section.height),minLeft:10,maxLeft:PRINT_WIDTH-PRINT_CONTENT_WIDTH-10};}
+export function printPositionBounds(section){return {minTop:10,maxTop:Math.max(10,PRINT_BOTTOM-section.height)};}
 export function positionPrintSection(section,position={}) {
  const bounds=printPositionBounds(section),finite=(value,fallback)=>Number.isFinite(value)?value:fallback;
- return {...section,page:Math.max(0,Math.round(finite(position.page,section.page))),top:Math.max(bounds.minTop,Math.min(bounds.maxTop,finite(position.top,section.top))),left:Math.max(bounds.minLeft,Math.min(bounds.maxLeft,finite(position.left,section.left)))};
+ return {...section,page:Math.max(0,Math.round(finite(position.page,section.page))),top:Math.max(bounds.minTop,Math.min(bounds.maxTop,finite(position.top,section.top))),left:PRINT_MARGIN};
 }
 export function placePrintSections(pages,positions){return pages.flat().map(section=>positionPrintSection(section,positions[section.id]));}

@@ -28,9 +28,9 @@ try{
    assert.equal(Number(await vertical.inputValue()),10,'pack can move above its original slot and earlier packs');
    assert.deepEqual(await p.locator('[data-print-section]').evaluateAll(elements=>elements.slice(0,2).map(el=>el.style.top)),before);
    await vertical.press('End');assert.ok(Number(await vertical.inputValue())>500,'movement is not capped at 240 pixels');
-   await p.getByRole('slider',{name:'가로 위치',exact:true}).press('End');
    await p.getByRole('combobox',{name:'배치할 페이지',exact:true}).selectOption('1');
-   await setRange(vertical,'120');await setRange(p.getByRole('slider',{name:'가로 위치',exact:true}),'45');
+   await setRange(vertical,'120');
+   assert.equal(await p.getByRole('slider',{name:'가로 위치',exact:true}).count(),0,'horizontal placement stays fixed');
    assert.equal(await p.locator('[data-print-page]').count(),2);assert.equal(await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).inputValue(),'1');
   }else{
    // Desktop's default four bars per row fits on one page. The page-2 regression
