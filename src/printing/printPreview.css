@@ -6,11 +6,18 @@ html body .rt-print-page .rt-score {display:grid!important;grid-template-columns
 .rt-print-page .rt-measure {width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:360 / 78}
 .rt-print-music:not([data-columns="1"]) .rt-measure {aspect-ratio:328 / 78}
 .rt-print-section {margin:0 0 12px;padding:0}
+.rt-print-section--free {position:absolute;margin:0;padding:0}
+html body .rt-print-page .rt-print-section.rt-print-section--free > header {height:var(--print-heading-height,94px)}
+html body .rt-print-page .print-description-row {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;text-align:left}
+html body .rt-print-page .print-description-row[hidden] {display:none!important}
+html body .rt-print-page .print-description-row > p {grid-column:auto;grid-row:auto;min-width:0;margin:0!important;font:14px/18px system-ui;color:#111;text-align:left;overflow-wrap:anywhere}
+html body .rt-print-page .print-description-row > .print-description-right {text-align:right}
+.rt-print-section--free .print-description-row {position:absolute;top:64px;left:0;right:0}
 html body .rt-print-page .rt-print-section > header {display:block!important;position:relative;height:64px;box-sizing:border-box;padding:0!important;border:0!important;text-align:center;background:transparent!important}
 html body .rt-print-page .rt-print-title {display:block;font:700 18px/24px system-ui;margin:0 0 6px;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;letter-spacing:normal}
 html body .rt-print-page .rt-print-description {display:block;font:14px/18px system-ui;margin:0;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;letter-spacing:normal}
 html body .rt-overlay .rt-dialog .rt-print-page :is(.rt-print-title,.rt-print-description,footer) {background:transparent!important;box-shadow:none!important;border:0!important;text-shadow:none!important}
-html body .rt-print-page .rt-print-page-heading :is(.rt-print-title,.rt-print-description) {margin-left:100px;margin-right:72px}
+html body .rt-print-page .rt-print-page-heading :is(.rt-print-title,.rt-print-description) {margin-left:100px;margin-right:100px}
 .rt-print-brand {position:absolute;left:0;top:0;width:84px;height:52px;object-fit:contain;object-position:left center}
 .rt-print-qr {position:absolute;right:0;top:0;width:56px;height:56px;object-fit:contain;background:#fff}
 html body .rt-print-page > footer {position:absolute;bottom:25px;left:45px;right:45px;padding:0;margin:0;border:0;background:transparent!important;text-align:center;font:12px/16px system-ui}
@@ -41,7 +48,7 @@ html body .rt-dialog .rt-print-edit > label {display:flex;flex-direction:column;
  .rt-print-edit {flex:none;max-height:none;overflow:visible}
  .rt-print-preview {display:flex;flex-direction:column;min-width:0;min-height:0}
  .rt-print-preview--mobile {flex:none;height:65dvh;min-height:220px;max-height:640px}
- .rt-print-scroll {position:relative;flex:1;min-width:0;min-height:0;padding:12px;overflow:auto;overscroll-behavior:contain;background:#dfe5eb;border-radius:0 0 8px 8px}
+ .rt-print-scroll {position:relative;flex:1;min-width:0;min-height:0;padding:12px;overflow:auto;overflow-anchor:none;overscroll-behavior:contain;background:#dfe5eb;border-radius:0 0 8px 8px}
  .rt-print-navigation {flex:none;padding:8px;border:1px solid var(--rt-border,#dfe5eb);border-radius:8px 8px 0 0;background:var(--rt-bg,#fff)}
  .rt-print-page-controls {display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
  html body .rt-dialog .rt-print-page-controls > label {display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;margin:0;font-size:12px}
@@ -55,6 +62,7 @@ html body .rt-dialog .rt-print-edit > label {display:flex;flex-direction:column;
  .rt-print-preview--mobile .rt-print-page-controls select {font-size:16px}
  .rt-print-page {transform:scale(var(--print-zoom,1));filter:grayscale(1)}
  .rt-print-section {cursor:ns-resize;touch-action:none;user-select:none}
+ .rt-print-section--free {cursor:move}
  .rt-print-section[data-selected="true"] {outline:2px solid #17765a;outline-offset:3px}
  .rt-print-page [contenteditable] {cursor:text;user-select:text;touch-action:auto}
  .rt-print-page [contenteditable]:focus {outline:2px solid #17765a}

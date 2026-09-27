@@ -47,7 +47,7 @@ try{
   await p.addInitScript(()=>{Object.defineProperty(navigator,'share',{value:undefined,configurable:true});Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{window.testCopiedLink=text;}},configurable:true});});
   await p.goto(`${base}/#rhythm-trainer`);await p.locator('.rt-library-print').waitFor();await p.locator('.launchSplash').waitFor({state:'detached'});
   await p.locator('.rt-library-print').click();await p.locator('.rt-card').nth(0).click();await p.locator('.rt-card').nth(1).click();await p.getByRole('button',{name:/선택한 팩 (인쇄|미리보기)/}).click();
-  const title=p.getByRole('textbox',{name:'출력 제목',exact:true}),description=p.getByRole('textbox',{name:'출력 설명',exact:true});
+  const title=p.getByRole('textbox',{name:'출력 제목',exact:true}),description=p.getByRole('textbox',{name:'출력 설명 1 · 왼쪽',exact:true});
   await title.fill('모바일 출력 제목 확인');await description.fill('제목과 설명을 편집한 두 개의 연습팩');
   assert.equal(await p.locator('.rt-print-title').first().textContent(),'모바일 출력 제목 확인');
   assert.equal(await p.locator('.rt-print-description').first().textContent(),'제목과 설명을 편집한 두 개의 연습팩');
@@ -79,7 +79,7 @@ try{
   await p.goto(`${base}/#etudes`);await p.getByRole('button',{name:/악보 PDF (저장 · 인쇄|미리보기)/}).waitFor();await p.locator('.launchSplash').waitFor({state:'detached'});
   await p.getByRole('button',{name:/악보 PDF (저장 · 인쇄|미리보기)/}).click();const popup=p;await p.locator('.score-print-page svg').first().waitFor();
   const initialCount=await popup.locator('.score-print-page').count();
-  await popup.getByRole('textbox',{name:'출력 제목',exact:true}).fill('악보연습실 출력 제목');await popup.getByRole('textbox',{name:'출력 설명',exact:true}).fill('수정한 인쇄 설명');
+  await popup.getByRole('textbox',{name:'출력 제목',exact:true}).fill('악보연습실 출력 제목');await popup.getByRole('textbox',{name:'출력 설명 1 · 왼쪽',exact:true}).fill('수정한 인쇄 설명');
   assert.equal(await popup.locator('.scoreHeading h1').textContent(),'악보연습실 출력 제목');assert.equal(await popup.locator('.scoreCredit').textContent(),'수정한 인쇄 설명');
   await popup.getByText('표시 · 여백 설정',{exact:true}).click();await popup.getByRole('checkbox',{name:'설명 표시',exact:true}).uncheck();assert.equal(await popup.locator('.scoreCredit').isVisible(),false);await popup.getByRole('checkbox',{name:'설명 표시',exact:true}).check();
   assert.equal(await popup.locator('.score-print-page').count(),initialCount,'metadata edits do not accumulate old pages');

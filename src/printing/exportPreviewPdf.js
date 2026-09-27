@@ -18,6 +18,7 @@ export async function exportPreviewPdf(root,{signal,onProgress=()=>{}}={}) {
    onclone:doc=>{
     doc.querySelectorAll('[data-print-page]').forEach(el=>{el.style.transform='none';el.style.boxShadow='none';});
     doc.querySelectorAll('[data-print-frame]').forEach(el=>{el.style.width='794px';el.style.height='1123px';});
+    doc.querySelectorAll('.scoreSourceFrame').forEach(el=>{el.style.display='block';el.style.width='fit-content';el.style.marginLeft='auto';});
     doc.querySelectorAll('[data-selected]').forEach(el=>el.removeAttribute('data-selected'));
     doc.querySelectorAll('[contenteditable]').forEach(el=>el.removeAttribute('contenteditable'));
    }

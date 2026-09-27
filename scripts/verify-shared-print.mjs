@@ -25,9 +25,10 @@ try{
   const originalSvgCount=await p.locator('[data-print-page] svg').count();
   if(route==='rhythm-trainer')await p.getByRole('combobox',{name:'편집할 팩',exact:true}).selectOption('2');
   await p.getByRole('textbox',{name:'출력 제목',exact:true}).fill('공통 미리보기');
-  await p.getByRole('textbox',{name:'출력 설명',exact:true}).fill('위치 조절과 저장 확인');
+  await p.getByRole('textbox',{name:'출력 설명 1 · 왼쪽',exact:true}).fill('위치 조절과 저장 확인');
   await p.getByText('표시 · 여백 설정',{exact:true}).click();
-  const spacing=p.getByRole('slider',{name:'위쪽 여백'});await spacing.press('End');
+  const spacing=p.getByRole('slider',{name:route==='rhythm-trainer'?'세로 위치':'위쪽 여백'});await spacing.press('End');
+  if(route==='rhythm-trainer'){await p.getByRole('combobox',{name:'배치할 페이지',exact:true}).selectOption('1');await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).selectOption('0');}
   const count=await p.locator('[data-print-page]').count();assert.ok(count>=2);
   assert.equal(await p.locator('[data-print-page] svg').count(),originalSvgCount,'pagination preserves every score measure');
   await p.getByRole('button',{name:'다음 페이지',exact:true}).click();
@@ -38,6 +39,7 @@ try{
   const share=p.getByRole('button',{name:'저장·공유',exact:true});await share.waitFor({timeout:90000});await share.click();
   await p.waitForFunction(()=>window.testShareCount===1);await share.waitFor();assert.equal(await p.getByRole('alert').count(),0,'share cancellation is not an error');
   await share.click();await p.locator('.rt-pdf-filename').waitFor({state:'detached'});assert.equal(await p.evaluate(()=>window.testShareCount),2);
+  const noteAreas=await p.locator('[data-print-page]').evaluateAll(pages=>pages.map(page=>{const p=page.getBoundingClientRect(),notes=[...page.querySelectorAll('svg')].map(svg=>svg.getBoundingClientRect());const x=Math.min(...notes.map(r=>r.left)),y=Math.min(...notes.map(r=>r.top));return {x:(x-p.x)/p.width,y:(y-p.y)/p.height,width:(Math.max(...notes.map(r=>r.right))-x)/p.width,height:(Math.max(...notes.map(r=>r.bottom))-y)/p.height};}));
   const bytes=await p.evaluate(()=>window.testSharedPdf);await writeFile(`${out}/${route}.pdf`,Buffer.from(bytes));
   const pdf=await getDocument({data:new Uint8Array(bytes),useSystemFonts:true}).promise;
   try{assert.equal(pdf.numPages,count);for(let n=1;n<=count;n++){
@@ -45,14 +47,14 @@ try{
    await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
    const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let ink=0,footer=0;
    for(let i=0;i<data.length;i+=4){assert.equal(data[i],data[i+1]);assert.equal(data[i],data[i+2]);if(data[i]<180){ink++;if(i/4>canvas.width*(canvas.height-32))footer++;}}
-   assert.ok(ink>1000,'every page contains score content');assert.ok(footer>20,'footer remains on the same page');
+   const area=noteAreas[n-1],notes=canvas.getContext('2d').getImageData(Math.round(area.x*canvas.width),Math.round(area.y*canvas.height),Math.floor(area.width*canvas.width),Math.floor(area.height*canvas.height)).data;let noteInk=0;for(let i=0;i<notes.length;i+=4)if(notes[i]<180)noteInk++;assert.ok(noteInk>100,'every page contains notation, including a final single-bar page');assert.ok(footer>20,'footer remains on the same page');
   }}finally{await pdf.destroy();}
   assert.equal(context.pages().length,1,'no mobile PDF popup');assert.equal(await p.evaluate(()=>window.testPrintCount),0);
   await p.evaluate(()=>history.back());await p.locator('.print-preview-overlay').waitFor({state:'detached'});
   assert.equal(new URL(p.url()).hash,`#${route}`);
   assert.equal(await p.locator('.appRuntime').evaluate(el=>getComputedStyle(el).filter),'none');
   await open();await p.getByRole('button',{name:'PDF 저장',exact:true}).click();await p.getByRole('button',{name:'PDF 만들기',exact:true}).click();await p.getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.print-preview-overlay').waitFor({state:'detached'});
-  await open();await p.getByRole('textbox',{name:'출력 설명',exact:true}).fill('닫은 뒤 다시 편집 가능');await p.getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.print-preview-overlay').waitFor({state:'detached'});
+  await open();await p.getByRole('textbox',{name:'출력 설명 1 · 왼쪽',exact:true}).fill('닫은 뒤 다시 편집 가능');await p.getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.print-preview-overlay').waitFor({state:'detached'});
   if(route==='etudes'){
    await p.locator('.scoreWorkspaceActionTrigger').click();await p.getByRole('menuitem',{name:'제작',exact:true}).click();
    await p.locator('.etudeEditor[open]').waitFor();await p.locator('.etudePrintPreview').click();await p.locator('.score-print-page svg').first().waitFor();

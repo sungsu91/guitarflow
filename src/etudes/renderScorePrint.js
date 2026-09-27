@@ -13,10 +13,12 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
  const doc=main.ownerDocument,win=doc.defaultView,sheets=[];let settings=initial;
  const measures=[...container.querySelectorAll('[data-draw-count]')].map(host=>({svg:host.shadowRoot?.querySelector('svg'),measure:host.closest('[data-layout-row]')})).filter(item=>item.svg);
  main.replaceChildren();
- const newSheet=()=>{const frame=doc.createElement('div'),paper=doc.createElement('article');frame.className='rt-print-frame';paper.className='rt-print-page score-print-page';frame.setAttribute('data-print-frame','');paper.setAttribute('data-print-page','');paper.dataset.notationView=view;frame.append(paper);main.append(frame);const source=doc.createElement('div');source.className='scoreSource';const image=doc.createElement('img');image.src=new URL(qr,window.location.href).href;image.alt=translateUi("etudes.fretivaLabAppQrCode");image.className='scoreSourceQr';image.style.cssText='width:20mm;height:20mm';const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;qrFrame.append(image,handle);source.append(qrFrame);const header=doc.createElement('header');header.className='scoreHeading';const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);header.append(logo,source);paper.append(header);if(sheets.length)header.remove();sheets.push(paper);return paper;};
+ const newSheet=()=>{const frame=doc.createElement('div'),paper=doc.createElement('article');frame.className='rt-print-frame';paper.className='rt-print-page score-print-page';frame.setAttribute('data-print-frame','');paper.setAttribute('data-print-page','');paper.dataset.notationView=view;paper.dataset.pageIndex=String(sheets.length);frame.dataset.pageIndex=String(sheets.length);frame.append(paper);main.append(frame);const source=doc.createElement('div');source.className='scoreSource';const image=doc.createElement('img');image.src=new URL(qr,window.location.href).href;image.alt=translateUi("etudes.fretivaLabAppQrCode");image.className='scoreSourceQr';image.style.cssText='width:20mm;height:20mm';const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;qrFrame.append(image,handle);source.append(qrFrame);const header=doc.createElement('header');header.className='scoreHeading';const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);header.append(logo,source);paper.append(header);if(sheets.length)header.remove();sheets.push(paper);return paper;};
  let sheet=newSheet();
  const heading=doc.createElement('h1');heading.textContent=settings.title;sheet.querySelector('.scoreHeading').append(heading);
- const credit=doc.createElement('p');credit.className='scoreCredit';credit.textContent=settings.description;sheet.querySelector('.scoreHeading').append(credit);
+ const credits=doc.createElement('div');credits.className='print-description-row';
+ const credit=doc.createElement('p');credit.className='scoreCredit print-description-left';
+ const credit2=doc.createElement('p');credit2.className='print-description-right';credits.append(credit,credit2);sheet.querySelector('.scoreHeading').append(credits);
  let row=null,section;const sections=[];
  for(const {svg,measure} of measures){
   const nextRow=measure?.dataset.layoutRow;
@@ -80,23 +82,32 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
    }
   }
  };
+ const maxSpacing=page=>Math.max(0,Math.floor(1000-(page===0?sheets[0].querySelector('.scoreHeading').offsetHeight+10:0)-Math.max(0,...sections.map(section=>section.offsetHeight))));
  const paginate=()=>{
-
-  // Add pages instead of shrinking notation to force a fixed system count.
-  const gap=12;
-  sheets[0].style.paddingTop=(45+settings.spacing)+'px';
-  heading.textContent=settings.title;credit.textContent=settings.description;credit.hidden=!settings.showDescription;
+  const scroller=main.closest('.rt-print-scroll'),scrollTop=scroller.scrollTop,scrollLeft=scroller.scrollLeft;
+  heading.textContent=settings.title;credit.textContent=settings.description;credit2.textContent=settings.description2||'';credits.hidden=!settings.showDescription;
+  const gap=12;let pageIndex=0;
+  const pageAt=index=>{
+   const paper=sheets[index]||newSheet();
+   paper.style.paddingTop=(45+Math.min(limits[index===0?0:1],Math.max(0,settings.spacings?.[index]||0)))+'px';
+   return paper;
+  };
+  // Retain frames and page identities while moving rows. Removing page 2 here
+  // collapses the scroll range and sends iOS back to the first page mid-drag.
+  const limits=[maxSpacing(0),maxSpacing(1)];
   sections.forEach(section=>section.remove());
-  sheets.slice(1).forEach(paper=>paper.parentElement.remove());sheets.splice(1);sheet=sheets[0];
-  sheet.querySelectorAll('.pageNumber').forEach(number=>number.remove());
+  sheets.forEach(paper=>paper.querySelector('.pageNumber')?.remove());
+  sheet=pageAt(0);
   for(const section of sections){
    section.style.width='100%';section.style.marginBottom=gap+'px';sheet.append(section);
    const bottom=section.offsetTop+section.offsetHeight;
    const limit=sheet.clientHeight-parseFloat(win.getComputedStyle(sheet).paddingBottom)-12;
-   if(bottom>limit&&sheet.querySelectorAll('section').length>1){section.remove();sheet=newSheet();sheet.append(section);}
+   if(bottom>limit&&sheet.querySelectorAll('section').length>1){section.remove();sheet=pageAt(++pageIndex);sheet.append(section);}
   }
+  sheets.splice(pageIndex+1).forEach(paper=>paper.parentElement.remove());
   sheets.forEach((paper,i)=>{const number=doc.createElement('footer');number.className='pageNumber';const address=doc.createElement('span');address.className='printSiteAddress';address.textContent=SCORE_SOURCE_URL;const counter=doc.createElement('span');counter.className='scorePageNumber';counter.textContent=`${i+1} / ${sheets.length}`;counter.hidden=!settings.pageNumbers;number.append(address,counter);paper.append(number);});
-  onPages(sheets.length);
+  scroller.scrollTop=scrollTop;scroller.scrollLeft=scrollLeft;
+  onPages(sheets.length,limits);
  };
  renderForPrint(view==='tab'?paperWidth*1.65:paperWidth);paginate();
  return {update(next){settings=next;paginate();},dispose(){main.replaceChildren();}};
