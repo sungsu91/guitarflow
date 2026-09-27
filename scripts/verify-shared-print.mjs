@@ -28,7 +28,7 @@ try{
   await p.getByRole('textbox',{name:'출력 설명 1 · 왼쪽',exact:true}).fill('위치 조절과 저장 확인');
   await p.getByText('표시 · 여백 설정',{exact:true}).click();
   const spacing=p.getByRole('slider',{name:route==='rhythm-trainer'?'세로 위치':'위쪽 여백'});await spacing.press('End');
-  if(route==='rhythm-trainer'){await p.getByRole('combobox',{name:'배치할 페이지',exact:true}).selectOption('1');await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).selectOption('0');}
+  if(route==='rhythm-trainer')await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).selectOption('0');
   const count=await p.locator('[data-print-page]').count();assert.ok(count>=2);
   assert.equal(await p.locator('[data-print-page] svg').count(),originalSvgCount,'pagination preserves every score measure');
   await p.getByRole('button',{name:'다음 페이지',exact:true}).click();
@@ -59,7 +59,7 @@ try{
    await p.locator('.scoreWorkspaceActionTrigger').click();await p.getByRole('menuitem',{name:'제작',exact:true}).click();
    await p.locator('.etudeEditor[open]').waitFor();await p.locator('.etudePrintPreview').click();await p.locator('.score-print-page svg').first().waitFor();
    await p.getByRole('button',{name:'위치 조절',exact:true}).click();await p.locator('.rt-print-preview').scrollIntoViewIfNeeded();
-   const box=await p.locator('.rt-print-scroll').boundingBox();await p.mouse.move(box.x+box.width*.25,box.y+80);await p.mouse.down();await p.mouse.move(box.x+box.width*.25,box.y+110,{steps:4});await p.mouse.up();
+   const score=p.locator('.score-print-page > section').first();await score.scrollIntoViewIfNeeded();const box=await score.boundingBox();await p.mouse.move(box.x+box.width*.25,box.y+10);await p.mouse.down();await p.mouse.move(box.x+box.width*.25,box.y+40,{steps:4});await p.mouse.up();
    await p.getByText('표시 · 여백 설정',{exact:true}).click();assert.ok(Number(await p.getByRole('slider',{name:'위쪽 여백'}).inputValue())>0,'score can be repositioned by dragging');
    await p.keyboard.press('Escape');await p.locator('.print-preview-overlay').waitFor({state:'detached'});assert.ok(await p.locator('.etudeEditor').evaluate(el=>el.open),'preview close returns to the editor');
    await p.locator('.etudePrintPreview').click();await p.locator('.score-print-page svg').first().waitFor();await p.getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.print-preview-overlay').waitFor({state:'detached'});

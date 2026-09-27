@@ -43,9 +43,8 @@ try{
   await p.getByText('표시 · 여백 설정',{exact:true}).click();
   const range=p.getByRole('slider',{name:'세로 위치'});
   await range.press('End');
-  await p.getByRole('combobox',{name:'배치할 페이지',exact:true}).selectOption('1');
   await p.getByRole('combobox',{name:'미리보기 페이지',exact:true}).selectOption('0');
-  assert.equal(await p.locator('.rt-print-page').count(),2,'spacing moves the selected pack onto page 2');
+  assert.equal(await p.locator('.rt-print-page').count(),2,'spacing carries only the overflowing rows onto page 2');
   const pageSelect=p.getByRole('combobox',{name:'미리보기 페이지',exact:true});
   await p.getByRole('button',{name:'다음 페이지',exact:true}).click();assert.equal(await pageSelect.inputValue(),'1');
   const visible=await p.locator('.rt-print-scroll').evaluate(el=>{const box=el.getBoundingClientRect(),page=el.querySelectorAll('.rt-print-frame')[1].getBoundingClientRect();return{scroll:el.scrollTop,top:page.top,viewport:box.top,bottom:box.bottom};});
@@ -68,7 +67,7 @@ try{
     for(let i=1;i<=6;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-i*18}]});await p.waitForTimeout(20);}
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await p.waitForFunction(()=>document.querySelector('.rt-print-scroll').scrollTop>20);
-    assert.equal(Number(await range.inputValue()),Number(await range.getAttribute('max')));
+    assert.ok(Math.abs(Number(await range.inputValue())-Number(await range.getAttribute('max')))<1,'ordinary scrolling preserves the slider endpoint within its one-pixel step');
    }
    assert.equal(await p.getByRole('button',{name:'인쇄용 PDF 열기',exact:true}).count(),0);
   }

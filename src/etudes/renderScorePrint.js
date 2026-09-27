@@ -7,13 +7,29 @@ import qr from './score-source-qr.png';
 import {SCORE_SOURCE_HANDLE,SCORE_SOURCE_URL} from './scoreSource.js';
 import {measureLayout} from './measureLayout.js';
 import {slurSpans} from './slurs.js';
+import {PRINT_TOP,PRINT_BOTTOM} from '../printing/printGeometry.js';
 
 // Engrave once at physical paper width; metadata and spacing only repaginate.
 export function renderScorePrint(main,container,view,metadata,initial,onPages) {
  const doc=main.ownerDocument,win=doc.defaultView,sheets=[];let settings=initial;
  const measures=[...container.querySelectorAll('[data-draw-count]')].map(host=>({svg:host.shadowRoot?.querySelector('svg'),measure:host.closest('[data-layout-row]')})).filter(item=>item.svg);
  main.replaceChildren();
- const newSheet=()=>{const frame=doc.createElement('div'),paper=doc.createElement('article');frame.className='rt-print-frame';paper.className='rt-print-page score-print-page';frame.setAttribute('data-print-frame','');paper.setAttribute('data-print-page','');paper.dataset.notationView=view;paper.dataset.pageIndex=String(sheets.length);frame.dataset.pageIndex=String(sheets.length);frame.append(paper);main.append(frame);const source=doc.createElement('div');source.className='scoreSource';const image=doc.createElement('img');image.src=new URL(qr,window.location.href).href;image.alt=translateUi("etudes.fretivaLabAppQrCode");image.className='scoreSourceQr';image.style.cssText='width:20mm;height:20mm';const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;qrFrame.append(image,handle);source.append(qrFrame);const header=doc.createElement('header');header.className='scoreHeading';const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);header.append(logo,source);paper.append(header);if(sheets.length)header.remove();sheets.push(paper);return paper;};
+ const newSheet=()=>{
+  const frame=doc.createElement('div'),paper=doc.createElement('article');
+  frame.className='rt-print-frame';paper.className='rt-print-page score-print-page';
+  frame.setAttribute('data-print-frame','');paper.setAttribute('data-print-page','');
+  paper.dataset.notationView=view;paper.dataset.pageIndex=String(sheets.length);frame.dataset.pageIndex=String(sheets.length);
+  frame.append(paper);main.append(frame);
+  const branding=doc.createElement('div');branding.className='print-page-branding';
+  const logo=doc.createElement('div');logo.className='scoreBrand';const logoImage=doc.createElement('img');logoImage.src=new URL(brand,window.location.href).href;logoImage.alt='FRETIVA LAB';logo.append(logoImage);
+  const source=doc.createElement('div');source.className='scoreSource';
+  const image=doc.createElement('img');image.src=new URL(qr,window.location.href).href;image.alt=translateUi('etudes.fretivaLabAppQrCode');image.className='scoreSourceQr';
+  const qrFrame=doc.createElement('div');qrFrame.className='scoreSourceFrame';
+  const handle=doc.createElement('div');handle.className='scoreSourceHandle';handle.textContent=SCORE_SOURCE_HANDLE;
+  qrFrame.append(image,handle);source.append(qrFrame);branding.append(logo,source);paper.append(branding);
+  if(!sheets.length){const header=doc.createElement('header');header.className='scoreHeading';paper.append(header);}
+  sheets.push(paper);return paper;
+ };
  let sheet=newSheet();
  const heading=doc.createElement('h1');heading.textContent=settings.title;sheet.querySelector('.scoreHeading').append(heading);
  const credits=doc.createElement('div');credits.className='print-description-row';
@@ -82,14 +98,14 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
    }
   }
  };
- const maxSpacing=page=>Math.max(0,Math.floor(1000-(page===0?sheets[0].querySelector('.scoreHeading').offsetHeight+10:0)-Math.max(0,...sections.map(section=>section.offsetHeight))));
+ const maxSpacing=page=>Math.max(0,Math.floor(PRINT_BOTTOM-PRINT_TOP-(page===0?sheets[0].querySelector('.scoreHeading').offsetHeight+10:0)-Math.max(0,...sections.map(section=>section.offsetHeight))));
  const paginate=()=>{
   const scroller=main.closest('.rt-print-scroll'),scrollTop=scroller.scrollTop,scrollLeft=scroller.scrollLeft;
   heading.textContent=settings.title;credit.textContent=settings.description;credit2.textContent=settings.description2||'';credits.hidden=!settings.showDescription;
   const gap=12;let pageIndex=0;
   const pageAt=index=>{
    const paper=sheets[index]||newSheet();
-   paper.style.paddingTop=(45+Math.min(limits[index===0?0:1],Math.max(0,settings.spacings?.[index]||0)))+'px';
+   paper.style.paddingTop=(PRINT_TOP+Math.min(limits[index===0?0:1],Math.max(0,settings.spacings?.[index]||0)))+'px';
    return paper;
   };
   // Retain frames and page identities while moving rows. Removing page 2 here
@@ -101,7 +117,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   for(const section of sections){
    section.style.width='100%';section.style.marginBottom=gap+'px';sheet.append(section);
    const bottom=section.offsetTop+section.offsetHeight;
-   const limit=sheet.clientHeight-parseFloat(win.getComputedStyle(sheet).paddingBottom)-12;
+   const limit=PRINT_BOTTOM;
    if(bottom>limit&&sheet.querySelectorAll('section').length>1){section.remove();sheet=pageAt(++pageIndex);sheet.append(section);}
   }
   sheets.splice(pageIndex+1).forEach(paper=>paper.parentElement.remove());

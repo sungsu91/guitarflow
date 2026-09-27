@@ -25,7 +25,7 @@ try{
   if(route==='rhythm-trainer'){
    const before=await p.locator('[data-print-section]').evaluateAll(elements=>elements.slice(0,2).map(el=>el.style.top));
    const vertical=p.getByRole('slider',{name:'세로 위치',exact:true});await vertical.press('Home');
-   assert.equal(Number(await vertical.inputValue()),10,'pack can move above its original slot and earlier packs');
+   assert.ok(Number(await vertical.inputValue())>500,'pack cannot pass or overlap earlier packs');
    assert.deepEqual(await p.locator('[data-print-section]').evaluateAll(elements=>elements.slice(0,2).map(el=>el.style.top)),before);
    await vertical.press('End');assert.ok(Number(await vertical.inputValue())>500,'movement is not capped at 240 pixels');
    await p.getByRole('combobox',{name:'배치할 페이지',exact:true}).selectOption('1');
@@ -45,8 +45,8 @@ try{
   const touch=mobile&&engine==='chromium'?await context.newCDPSession(p):null;
   for(let n=0;n<3;n++){
    const box=await scroller.boundingBox(),paper=await frame.boundingBox();
-   const target=route==='rhythm-trainer'?await p.locator('[data-print-section="2:0"]').boundingBox():null;
-   const x=paper.x+paper.width*.4,y=target?target.y+30:Math.max(box.y+40,paper.y+70);
+   const target=route==='rhythm-trainer'?await p.locator('[data-print-section="2:0"]').boundingBox():await frame.locator('article > section').first().boundingBox();
+   const x=paper.x+paper.width*.4,y=Math.max(box.y+40,target.y+15);
    if(touch){await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});for(let step=1;step<=5;step++)await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+4*step/5,y:y+12*step/5}]});await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
    else{await p.mouse.move(x,y);await p.mouse.down();await p.mouse.move(x+4,y+12,{steps:5});await p.mouse.up();}
    assert.equal(await p.evaluate(index=>window.testFrame===document.querySelectorAll('[data-print-frame]')[index],pageIndex),true,'the active page frame survives layout changes');
