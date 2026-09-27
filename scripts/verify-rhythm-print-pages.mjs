@@ -33,11 +33,11 @@ let p;
 try{
  for(const width of (process.env.PRINT_WIDTHS||'390,1440').split(',').map(Number)){
   const mobile=width<1024,context=await browser.newContext({viewport:{width,height:mobile?844:900},isMobile:mobile,hasTouch:mobile});
-  await context.addInitScript(()=>{const create=URL.createObjectURL.bind(URL);URL.createObjectURL=blob=>{if(blob.type==='application/pdf')window.testPdf=blob.arrayBuffer().then(b=>[...new Uint8Array(b)]);return create(blob);};});
+  await context.addInitScript(()=>{Object.defineProperty(navigator,'share',{value:undefined,configurable:true});const create=URL.createObjectURL.bind(URL);URL.createObjectURL=blob=>{if(blob.type==='application/pdf')window.testPdf=blob.arrayBuffer().then(b=>[...new Uint8Array(b)]);return create(blob);};});
   p=await context.newPage();p.setDefaultTimeout(20000);
   const errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.goto(`${base}/#rhythm-trainer`);await p.locator('.launchSplash').waitFor({state:'detached'});
-  await p.locator('.rt-library-print').click();for(let i=0;i<3;i++)await p.locator('.rt-card').nth(i).click();await p.getByRole('button',{name:/선택한 팩 인쇄/}).click();
+  await p.locator('.rt-library-print').click();for(let i=0;i<3;i++)await p.locator('.rt-card').nth(i).click();await p.getByRole('button',{name:/선택한 팩 (인쇄|미리보기)/}).click();
   assert.equal(await p.locator('.rt-print-page').count(),1);
   await p.locator('.rt-print-edit > label select').selectOption('2');
   await p.getByText('표시 · 여백 설정',{exact:true}).click();
@@ -68,12 +68,10 @@ try{
     await p.waitForFunction(()=>document.querySelector('.rt-print-scroll').scrollTop>20);
     assert.equal(await range.inputValue(),'240');
    }
-   const opening=p.waitForEvent('popup');await p.getByRole('button',{name:'인쇄용 PDF 열기',exact:true}).click();const viewer=await opening;
-   await p.waitForFunction(()=>Boolean(window.testPdf),{},{timeout:90000});
-   await checkPdf(await p.evaluate(()=>window.testPdf),`${width}-print`,2);if(!viewer.isClosed())await viewer.close();
+   assert.equal(await p.getByRole('button',{name:'인쇄용 PDF 열기',exact:true}).count(),0);
   }
   // Saved PDF uses the same grayscale converter on desktop and mobile.
-  await p.getByRole('button',{name:'PDF 저장',exact:true}).click();const downloading=p.waitForEvent('download',{timeout:90000});await p.getByRole('button',{name:'이 이름으로 저장',exact:true}).click();await downloading;
+  await p.getByRole('button',{name:'PDF 저장',exact:true}).click();const downloading=p.waitForEvent('download',{timeout:90000});await p.getByRole('button',{name:mobile?'PDF 만들기':'이 이름으로 저장',exact:true}).click();if(mobile)await p.getByRole('button',{name:'저장·공유',exact:true}).click({timeout:90000});await downloading;
   await checkPdf(await p.evaluate(()=>window.testPdf),`${width}-saved`,2);
   if(engine==='chromium'){
    await p.emulateMedia({media:'print'});

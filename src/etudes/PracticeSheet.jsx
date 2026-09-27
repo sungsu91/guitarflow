@@ -9,13 +9,14 @@ import {printEditorScore} from './printScore.js';
 import {toScoreDocument} from './scoreDocument.js';
 import useScorePinch from './useScorePinch.js';
 import {lazy,Suspense,useEffect,useState,useRef} from 'react';
-import {ChevronDown,ChevronLeft,PanelsTopLeft,Timer,Settings2,Star,Printer} from 'lucide-react';
+import {ChevronDown,ChevronLeft,PanelsTopLeft,Timer,Settings2,Star,Printer,FileText} from 'lucide-react';
 import {scoreInstrument} from './scoreInstruments.js';
 import './etudes.css';
 import './practiceLayout.css';
 const Score=lazy(()=>import('./Score.jsx'));
 export default function PracticeSheet({model,mobile,heading,title,lessonTips,footer}) {
-  useLanguage();
+  const language=useLanguage();
+ const printLabel=mobile?(language==='ko'?'악보 PDF 미리보기':'Score PDF preview'):translateUi('etudes.saveScorePdfPrint');
  const [viewOpen,setViewOpen]=useState(false);
  const [followTarget,setFollowTarget]=useState(null);
  const [notationOpen,setNotationOpen]=useState(false);
@@ -78,9 +79,9 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  {!mobile&&!focus&&<div className="etudeInlineBarCount etudeDesktopBarCount" role="group" aria-label={translateUi("etudes.barsPerLine")}><span><Translation id="etudes.view" /></span>{[0,1,2,3,4].map(n=><button key={n} type="button" aria-label={n?translateUi("etudes.value1BarsPerLine", { value1: n }):translateUi("etudes.autoBarsPerLine")} aria-pressed={measuresPerRow===n} onClick={()=>changeMeasuresPerRow(n)}>{n||translateUi("etudes.auto")}</button>)}</div>}
  <button type="button" data-ui="metronome" aria-label={translateUi("menu.metronome")} title={translateUi("menu.metronome")} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={()=>{setTips(false);model.toggleMetro();}}><Timer aria-hidden="true"/>{!mobile&&"BPM"}{model.playPosition?.playing&&<span aria-label={translateUi("etudes.practicePlaying")}> ·</span>}</button>
  <span className="etudeBackingToggleMount" ref={model.setBackingTarget}/>
- {mobile&&<button type="button" className="etudePrintScore" aria-label={translateUi("etudes.saveScorePdfPrint")} title={translateUi("etudes.saveScorePdfPrint")} onClick={printScore}><Printer size={18} aria-hidden="true"/></button>}
+ {mobile&&<button type="button" className="etudePrintScore" aria-label={printLabel} title={printLabel} onClick={printScore}><FileText size={18} aria-hidden="true"/></button>}
  {model.toggleFavorite&&<button type="button" className="etudeFavoriteToggle" aria-label={model.isFavorite?translateUi("etudes.removeFromFavorites"):translateUi("etudes.addToFavorites")} title={model.isFavorite?translateUi("etudes.removeFromFavorites"):translateUi("etudes.addToFavorites")} aria-pressed={model.isFavorite} onClick={model.toggleFavorite}><Star size={19} fill={model.isFavorite?'currentColor':'none'}/>{!mobile&&<span><Translation id="etudes.favorites" /></span>}</button>}
- {!mobile&&<button type="button" className="etudePrintScore" aria-label={translateUi("etudes.saveScorePdfPrint")} title={translateUi("etudes.saveScorePdfPrint")} onClick={printScore}><Printer aria-hidden="true"/><span><Translation id="etudes.savePdf" /></span></button>}
+ {!mobile&&<button type="button" className="etudePrintScore" aria-label={printLabel} title={printLabel} onClick={printScore}><Printer aria-hidden="true"/><span><Translation id="etudes.savePdf" /></span></button>}
  {lessonTips&&<button type="button" className="etudeTipToggle" aria-expanded={tips} onClick={()=>{setTips(v=>!v);}}><Translation id="originalUi.tip" /></button>}
  {!focus&&<ScoreWorkspaceActions mobile={mobile} onCreate={model.createScore} onEdit={()=>model.editScore(etude)} onImport={model.importPdf} canEdit={model.canEdit!==false} importBusy={model.importBusy}/>} </div>{mobile&&!focus&&<div className="etudeMobileTitleRow"><div className="etudeMobileScoreTitle" title={compactTitle}><Translation id="etudes.title" />{compactTitle}</div><div className="etudeInlineBarCount" role="group" aria-label={translateUi("etudes.barsPerLine")}><span><Translation id="etudes.view" /></span>{[1,2,3,4].map(n=><button key={n} type="button" aria-label={translateUi("etudes.value1BarsPerLine", { value1: n })} aria-pressed={measuresPerRow===n} onClick={()=>changeMeasuresPerRow(n)}>{n}</button>)}</div></div>}{mobile&&!focus&&difficulty!==null&&<div className="etudeCurrentDifficulty"><Translation id="etudes.difficulty"/><DifficultyStars score={etude}/></div>}<div className="etudeHudMetroMount etudeFloatingTheme" ref={model.setHudTarget}/></div>
  {lessonTips&&tips&&<div className={focus?'etudeFocusTips':'etudeTopTips'}>{lessonTips}</div>}

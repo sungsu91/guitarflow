@@ -26,17 +26,14 @@ async function printGeometry(page,selector){
  return data;
 }
 async function mobilePrintPdf(page,file,count){
- await page.evaluate(()=>{window.testPrintPdf=null;});
- const opening=page.waitForEvent('popup');
- await page.getByRole('button',{name:'인쇄용 PDF 열기',exact:true}).click();
- const viewer=await opening;
- await page.waitForFunction(()=>Boolean(window.testPrintPdf),{},{timeout:60000});
- const bytes=await page.evaluate(()=>window.testPrintPdf);
- await writeFile(file,Buffer.from(bytes));await verifyPdf(file,count);
- assert.equal(await page.evaluate(()=>window.testNativePrintCalls),0,'mobile print uses fixed PDF pages');
- if(!viewer.isClosed())await viewer.close();
- await page.getByRole('button',{name:'인쇄용 PDF 열기',exact:true}).waitFor();
+ await page.getByRole('button',{name:'PDF 저장',exact:true}).click();
+ await page.getByRole('button',{name:'PDF 만들기',exact:true}).click();
+ await page.getByRole('button',{name:'저장·공유',exact:true}).waitFor({timeout:90000});
+ const downloading=page.waitForEvent('download');await page.getByRole('button',{name:'저장·공유',exact:true}).click();
+ await (await downloading).saveAs(file);await verifyPdf(file,count);
+ assert.equal(await page.evaluate(()=>window.testNativePrintCalls),0,'mobile preview never opens native print');
 }
+
 try{
  for(const [width,height]of [[360,640],[390,844],[844,390],[1440,900]]){
   if(process.env.PRINT_WIDTHS&&!process.env.PRINT_WIDTHS.split(',').map(Number).includes(width))continue;
@@ -49,7 +46,7 @@ try{
   const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.addInitScript(()=>{Object.defineProperty(navigator,'share',{value:undefined,configurable:true});Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{window.testCopiedLink=text;}},configurable:true});});
   await p.goto(`${base}/#rhythm-trainer`);await p.locator('.rt-library-print').waitFor();await p.locator('.launchSplash').waitFor({state:'detached'});
-  await p.locator('.rt-library-print').click();await p.locator('.rt-card').nth(0).click();await p.locator('.rt-card').nth(1).click();await p.getByRole('button',{name:/선택한 팩 인쇄/}).click();
+  await p.locator('.rt-library-print').click();await p.locator('.rt-card').nth(0).click();await p.locator('.rt-card').nth(1).click();await p.getByRole('button',{name:/선택한 팩 (인쇄|미리보기)/}).click();
   const title=p.getByRole('textbox',{name:'출력 제목',exact:true}),description=p.getByRole('textbox',{name:'출력 설명',exact:true});
   await title.fill('모바일 출력 제목 확인');await description.fill('제목과 설명을 편집한 두 개의 연습팩');
   assert.equal(await p.locator('.rt-print-title').first().textContent(),'모바일 출력 제목 확인');
@@ -70,30 +67,30 @@ try{
   else{await p.getByRole('button',{name:'인쇄',exact:true}).click();assert.equal(await p.evaluate(()=>window.testNativePrintCalls),1);}
   if(width===390){
    await p.getByRole('button',{name:'PDF 저장',exact:true}).click();await p.locator('.rt-pdf-filename input').fill('mobile-rhythm-export');
-   const downloading=p.waitForEvent('download',{timeout:60000});await p.getByRole('button',{name:'이 이름으로 저장',exact:true}).click();const download=await downloading;const file=`${out}/rhythm-export.pdf`;await download.saveAs(file);await verifyPdf(file,1);
+   const downloading=p.waitForEvent('download',{timeout:60000});await p.getByRole('button',{name:'PDF 만들기',exact:true}).click();await p.getByRole('button',{name:'저장·공유',exact:true}).click({timeout:90000});const download=await downloading;const file=`${out}/rhythm-export.pdf`;await download.saveAs(file);await verifyPdf(file,1);
   }
-  await p.getByRole('button',{name:'닫기',exact:true}).click();
+  await p.getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.print-preview-overlay').waitFor({state:'detached'});
   if(width===390){
-   for(let i=2;i<12;i++)await p.locator('.rt-card').nth(i).click();await p.getByRole('button',{name:/선택한 팩 인쇄/}).click();
+   for(let i=2;i<12;i++)await p.locator('.rt-card').nth(i).click();await p.getByRole('button',{name:/선택한 팩 (인쇄|미리보기)/}).click();
    const count=await p.locator('.rt-print-page').count();assert.ok(count>1);await printGeometry(p,'.rt-print-page');
    if(engine==='chromium'){const file=`${out}/rhythm-multiple-native.pdf`;await p.pdf({path:file,preferCSSPageSize:true,printBackground:true});await verifyPdf(file,count,{text:true});}
    await p.emulateMedia({media:'screen'});await mobilePrintPdf(p,`${out}/rhythm-multiple-print.pdf`,count);await p.getByRole('button',{name:'닫기',exact:true}).click();
   }
-  await p.goto(`${base}/#etudes`);await p.getByRole('button',{name:'악보 PDF 저장 · 인쇄',exact:true}).waitFor();await p.locator('.launchSplash').waitFor({state:'detached'});
-  const opening=p.waitForEvent('popup');await p.getByRole('button',{name:'악보 PDF 저장 · 인쇄',exact:true}).click();const popup=await opening;popup.on('pageerror',e=>errors.push(e.message));await popup.waitForFunction(()=>document.body.dataset.previewReady==='true');await popup.setViewportSize({width,height});
-  const initialCount=await popup.locator('.a4Sheet').count();
+  await p.goto(`${base}/#etudes`);await p.getByRole('button',{name:/악보 PDF (저장 · 인쇄|미리보기)/}).waitFor();await p.locator('.launchSplash').waitFor({state:'detached'});
+  await p.getByRole('button',{name:/악보 PDF (저장 · 인쇄|미리보기)/}).click();const popup=p;await p.locator('.score-print-page svg').first().waitFor();
+  const initialCount=await popup.locator('.score-print-page').count();
   await popup.getByRole('textbox',{name:'출력 제목',exact:true}).fill('악보연습실 출력 제목');await popup.getByRole('textbox',{name:'출력 설명',exact:true}).fill('수정한 인쇄 설명');
   assert.equal(await popup.locator('.scoreHeading h1').textContent(),'악보연습실 출력 제목');assert.equal(await popup.locator('.scoreCredit').textContent(),'수정한 인쇄 설명');
-  await popup.getByRole('checkbox',{name:'설명 표시',exact:true}).uncheck();assert.equal(await popup.locator('.scoreCredit').isVisible(),false);await popup.getByRole('checkbox',{name:'설명 표시',exact:true}).check();
-  assert.equal(await popup.locator('.a4Sheet').count(),initialCount,'metadata edits do not accumulate old pages');
-  await popup.screenshot({path:`${out}/${width}-etudes.png`});const etudes=await printGeometry(popup,'.a4Sheet');
+  await popup.getByText('표시 · 여백 설정',{exact:true}).click();await popup.getByRole('checkbox',{name:'설명 표시',exact:true}).uncheck();assert.equal(await popup.locator('.scoreCredit').isVisible(),false);await popup.getByRole('checkbox',{name:'설명 표시',exact:true}).check();
+  assert.equal(await popup.locator('.score-print-page').count(),initialCount,'metadata edits do not accumulate old pages');
+  await popup.screenshot({path:`${out}/${width}-etudes.png`});const etudes=await printGeometry(popup,'.score-print-page');
   // The score's grayscale filter is rasterized by Chromium's print renderer.
   if(engine==='chromium'){const file=`${out}/${width}-etudes-native.pdf`;await popup.pdf({path:file,preferCSSPageSize:true,printBackground:true});await verifyPdf(file,initialCount);}
   await popup.emulateMedia({media:'screen'});
   if(mobile)await mobilePrintPdf(popup,`${out}/${width}-etudes-print.pdf`,initialCount);
-  else{await popup.getByRole('button',{name:'인쇄 · PDF로 저장',exact:true}).click();assert.equal(await popup.evaluate(()=>window.testNativePrintCalls),1);}
-  if(width===390){const downloading=popup.waitForEvent('download',{timeout:60000});await popup.getByRole('button',{name:'PDF 저장',exact:true}).click();const download=await downloading;const file=`${out}/etudes-export.pdf`;await download.saveAs(file);await verifyPdf(file,initialCount);}
-  await popup.close();
+  else{await popup.getByRole('button',{name:'인쇄',exact:true}).click();assert.equal(await popup.evaluate(()=>window.testNativePrintCalls),2);}
+  if(width===390){const downloading=popup.waitForEvent('download',{timeout:60000});await popup.getByRole('button',{name:'PDF 저장',exact:true}).click();await popup.getByRole('button',{name:'PDF 만들기',exact:true}).click();await popup.getByRole('button',{name:'저장·공유',exact:true}).click({timeout:90000});const download=await downloading;const file=`${out}/etudes-export.pdf`;await download.saveAs(file);await verifyPdf(file,initialCount);}
+  await popup.getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.print-preview-overlay').waitFor({state:'detached'});
   if(width<600){
    await p.goto(`${base}/#fretboard`);await p.locator('.integratedBottomNav button[aria-controls="utility-menu-panel"]').waitFor();await p.locator('.launchSplash').waitFor({state:'detached'});await p.locator('.integratedBottomNav button[aria-controls="utility-menu-panel"]').click();
    const footer=p.locator('.utilityMenuFooter');
