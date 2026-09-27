@@ -47,6 +47,15 @@ html.app-is-launching {
   scrollbar-color: transparent #020202;
 }
 
+/* iOS can paint the home-indicator area from the document background while
+ * compositing fixed layers. Keep it dark until the splash handoff is finished.
+ * The root selector also outranks the app's important theme backgrounds. */
+html:is(.app-is-launching, .app-is-theme-loading),
+html:is(.app-is-launching, .app-is-theme-loading) body:has(> #root),
+html:is(.app-is-launching, .app-is-theme-loading) body > #root {
+  background: #020202 !important;
+}
+
 html.app-is-launching,
 html.app-is-launching body,
 html.app-is-theme-loading,
@@ -84,6 +93,7 @@ html.app-is-launching::-webkit-scrollbar-track {
   touch-action: none;
   background: #020202;
   color: #dededb;
+  will-change: opacity;
 }
 
 .launchSplash::after {
@@ -148,19 +158,19 @@ html.app-is-launching::-webkit-scrollbar-track {
   will-change: opacity;
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--shadow {
+.launchSplash--autonomous .launchSplash__frame--shadow {
   animation: launchIntroShadowIn 240ms ease-out both;
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--light {
+.launchSplash--autonomous .launchSplash__frame--light {
   animation: launchIntroFrameIn 520ms cubic-bezier(0.18, 0.76, 0.24, 1) 190ms both;
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--flash {
+.launchSplash--autonomous .launchSplash__frame--flash {
   animation: launchIntroFlashFrameIn 380ms ease-out 600ms both;
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--logo {
+.launchSplash--autonomous .launchSplash__frame--logo {
   animation: launchIntroLogoIn 520ms cubic-bezier(0.16, 0.76, 0.2, 1) 930ms both;
 }
 
@@ -203,7 +213,7 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform: translate3d(-150%, 0, 0) skewX(-7deg);
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__lightSweep,
+.launchSplash--autonomous .launchSplash__lightSweep,
 .launchSplash--controlled.launchSplash--step-light .launchSplash__lightSweep {
   animation: launchIntroLightSweep 760ms cubic-bezier(0.22, 0.72, 0.28, 1) 170ms both;
 }
@@ -218,7 +228,7 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform: scale(0.72);
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__centerFlash,
+.launchSplash--autonomous .launchSplash__centerFlash,
 .launchSplash--controlled.launchSplash--step-flash .launchSplash__centerFlash {
   animation: launchIntroCenterFlash 440ms ease-out 590ms both;
 }
@@ -233,7 +243,7 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform: translate3d(-36%, 0, 0);
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__completionLight,
+.launchSplash--autonomous .launchSplash__completionLight,
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__completionLight {
   animation: launchIntroCompletionLight 2600ms ease-in-out 1280ms infinite;
 }
@@ -320,7 +330,7 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform: rotate(45deg);
 }
 
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__brand {
+.launchSplash--autonomous .launchSplash__brand {
   animation: launchIntroBrandIn 560ms cubic-bezier(0.16, 0.76, 0.2, 1) 930ms both;
 }
 
@@ -406,10 +416,6 @@ html.app-is-launching::-webkit-scrollbar-track {
 
 .launchSplash--exiting {
   animation: launchBackdropOut var(--launch-exit-ms) ease-in forwards;
-}
-
-.launchSplash--exiting .launchSplash__content {
-  animation: launchSceneOut var(--launch-exit-ms) ease-in forwards;
 }
 
 @keyframes launchIntroShadowIn {
@@ -546,18 +552,6 @@ html.app-is-launching::-webkit-scrollbar-track {
   }
 }
 
-@keyframes launchSceneOut {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: scale(1);
-  }
-}
-
 @keyframes launchBackdropOut {
   0%,
   28% {
@@ -629,7 +623,7 @@ html.app-is-launching::-webkit-scrollbar-track {
     letter-spacing: 0.13em;
   }
 
-  .launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__brand {
+  .launchSplash--autonomous .launchSplash__brand {
     animation-name: launchIntroDesktopBrandIn;
   }
 
@@ -678,8 +672,7 @@ html.app-is-launching::-webkit-scrollbar-track {
     opacity: 0;
   }
 
-  .launchSplash--exiting,
-  .launchSplash--exiting .launchSplash__content {
+  .launchSplash--exiting {
     animation-duration: 160ms;
   }
 }

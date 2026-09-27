@@ -106,6 +106,6 @@ test("desktop launch branding stays centered inside the narrow fretboard frame",
   assert.match(splashStyles, /@keyframes launchIntroDesktopBrandIn[\s\S]*?opacity: 1/);
   assert.match(
     splashStyles,
-    /launchSplash--autonomous:not\(\.launchSplash--exiting\) \.launchSplash__brand \{[\s\S]*?animation-name: launchIntroDesktopBrandIn/,
+    /launchSplash--autonomous \.launchSplash__brand \{[\s\S]*?animation-name: launchIntroDesktopBrandIn/,
   );
 });

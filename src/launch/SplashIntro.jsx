@@ -3,7 +3,7 @@ import ko from "../i18n/locales/ko.js";
 import { localizeUi } from "./../i18n/core.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { useLanguage } from "./../i18n/react.jsx";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { APP_LAUNCH_TIMINGS } from "./appLaunch";
 
 export const APP_INTRO_FRAME_SOURCES = Object.freeze({
@@ -56,6 +56,12 @@ export default function SplashIntro({
   useLanguage();
   const [phase, setPhase] = useState("entering");
   const launchStartedAtRef = useRef(Date.now());
+  const completedRef = useRef(false);
+  const completeExit = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    onComplete?.();
+  }, [onComplete]);
   const normalizedProgress = normalizeProgress(progress);
   const controlledProgress = normalizedProgress !== null;
   const progressStep = controlledProgress ? getProgressStep(normalizedProgress) : null;
@@ -63,7 +69,6 @@ export default function SplashIntro({
 
   useEffect(() => {
     let cancelled = false;
-    let exitTimerId = null;
     let fallbackTimerId = null;
     let minimumTimerId = null;
     let readyTimerId = null;
@@ -100,7 +105,6 @@ export default function SplashIntro({
       readyTimerId = window.setTimeout(() => {
         if (cancelled) return;
         setPhase("exiting");
-        exitTimerId = window.setTimeout(() => onComplete?.(), exitMs);
       }, settleBeforeExitMs);
     });
 
@@ -108,10 +112,17 @@ export default function SplashIntro({
       cancelled = true;
       if (minimumTimerId !== null) window.clearTimeout(minimumTimerId);
       if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
-      if (exitTimerId !== null) window.clearTimeout(exitTimerId);
       if (readyTimerId !== null) window.clearTimeout(readyTimerId);
     };
-  }, [controlledProgress, exitMs, fallbackMs, minimumIntroMs, onComplete, readyPromise, readySettleMs]);
+  }, [controlledProgress, fallbackMs, minimumIntroMs, readyPromise, readySettleMs]);
+
+  useEffect(() => {
+    if (phase !== "exiting") return undefined;
+    // Start the escape timer after the exit has committed. Normally animationend
+    // completes the handoff; this only covers disabled or cancelled animations.
+    const fallbackTimerId = window.setTimeout(completeExit, exitMs + 1000);
+    return () => window.clearTimeout(fallbackTimerId);
+  }, [completeExit, exitMs, phase]);
 
   return (
     <section
@@ -123,6 +134,10 @@ export default function SplashIntro({
           : "launchSplash--autonomous"
       }`}
       role="status"
+      onAnimationEnd={(event) => {
+        if (phase === "exiting" && event.target === event.currentTarget
+          && event.animationName === "launchBackdropOut") completeExit();
+      }}
       style={{
         "--launch-exit-ms": `${exitMs}ms`,
       }}
