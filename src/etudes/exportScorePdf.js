@@ -1,4 +1,5 @@
 import ko from "../i18n/locales/ko.js";
+import {grayscaleCanvas} from '../printing/grayscale.js';
 // Capture the same paginated A4 sheets used by print preview at 2x resolution.
 export async function exportScorePdf(sheets,title){
  const [{default:html2canvas},{jsPDF}]=await Promise.all([import('html2canvas'),import('jspdf')]);
@@ -11,9 +12,7 @@ export async function exportScorePdf(sheets,title){
    onclone:cloned=>{cloned.querySelectorAll('.a4Sheet').forEach(p=>{p.style.transform='none';p.style.boxShadow='none';});cloned.querySelectorAll('.scoreSourceFrame').forEach(p=>{p.style.display='block';p.style.width='fit-content';p.style.marginLeft='auto';});cloned.querySelector('.previewToolbar')?.remove();}
   });
   // html2canvas does not implement CSS filters: neutralize every exported pixel.
-  const context=canvas.getContext('2d'),pixels=context.getImageData(0,0,canvas.width,canvas.height);
-  for(let p=0;p<pixels.data.length;p+=4){const gray=Math.round(.2126*pixels.data[p]+.7152*pixels.data[p+1]+.0722*pixels.data[p+2]);pixels.data[p]=pixels.data[p+1]=pixels.data[p+2]=gray;}
-  context.putImageData(pixels,0,0);
+  grayscaleCanvas(canvas);
   if(i)pdf.addPage();pdf.addImage(canvas,'PNG',0,0,210,297,undefined,'FAST');canvas.width=canvas.height=0;
  }
  const blob=pdf.output('blob'),name=(title||ko["components.scores"]).replace(/[\\/:*?"<>|]/g,'_')+'.pdf';

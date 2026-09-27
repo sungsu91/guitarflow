@@ -1,3 +1,5 @@
+import { grayscaleCanvas } from '../printing/grayscale.js';
+
 // Download and mobile printing share the exact same pages, including footers.
 export async function createRhythmPrintPdf(root) {
   const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import('jspdf'), import('html2canvas')]);
@@ -14,6 +16,8 @@ export async function createRhythmPrintPdf(root) {
         doc.querySelectorAll('.rt-print-page [contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
       },
     });
+    // html2canvas does not apply CSS grayscale filters to the exported pixels.
+    grayscaleCanvas(canvas);
     if (i) pdf.addPage();
     pdf.addImage(canvas, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
     canvas.width = canvas.height = 0;
