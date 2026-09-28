@@ -240,12 +240,7 @@ html body .rt-overlay .rt-dialog.rt-sheet { width:min(100%,760px); height:clamp(
  .rt-mobile .rt-quick { min-height:28px; padding-bottom:2px; }
  .rt-mobile footer { padding:4px 12px; }
  .rt-mobile footer > .rt-primary { min-height:34px; }
- .rt-mobile .rt-score-scroll.rt-four-bars { display:flex; flex-direction:column; overflow:hidden; }
- .rt-mobile .rt-score-scroll.rt-four-bars > .rt-score { flex:1; min-height:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(2,minmax(0,1fr)); gap:2px 14px; padding:4px 12px; }
- .rt-mobile .rt-four-bars .rt-measure { width:100%; height:100%; min-height:0; }
  .rt-mobile[data-screen="edit"] > .rt-tools { margin-bottom:0; padding:3px 12px; }
- .rt-page-controls { display:flex; align-items:center; justify-content:center; gap:14px; height:25px; flex:none; font-size:11px; color:var(--rt-muted); }
- html body .rt-workspace .rt-page-controls button { min-height:22px; height:22px; padding:0 12px; border:0; font-size:18px; }
 }
 
 /* Keep the score and count-in anchored while preparing or pausing playback. */
@@ -301,31 +296,27 @@ html body:has(.app:is(.theme-brand,.theme-dark) .rt-workspace) .rt-guide { --rt-
 .rt-workspace .rt-score-scroll:not([data-bars-per-row="1"]) > .rt-score > .rt-measure {
  height:auto;max-height:none;aspect-ratio:328 / 78;
 }
-@media (orientation:landscape) and (max-height:600px) {
- .rt-mobile .rt-score-scroll.rt-four-bars[data-bars-per-row] > .rt-score {
-  grid-template-columns:repeat(var(--rt-bars-per-row),minmax(0,1fr));
-  grid-template-rows:none;gap:8px 0;align-content:center;overflow:auto;
- }
-}
-
-.rt-mobile .rt-quick .rt-landscape-view {
- display:flex;align-items:center;gap:3px;margin-left:auto;white-space:nowrap;
- padding-left:10px;border-left:1px solid var(--rt-border);
+.rt-mobile .rt-landscape-view {
+ display:flex;align-items:center;gap:3px;white-space:nowrap;flex:none;
+ padding-left:8px;border-left:1px solid var(--rt-border);
 }
 .rt-mobile .rt-landscape-view > span {margin-right:4px;font-size:11px}
 .rt-mobile .rt-landscape-view button {min-width:28px;min-height:28px;padding:3px 6px;font-size:11px}
 .rt-mobile .rt-landscape-view button[aria-pressed="true"] {
  border-color:var(--rt-text);box-shadow:inset 0 0 0 1px var(--rt-text);font-weight:700;
 }
-.rt-mobile .rt-quick:has(.rt-landscape-view) > button:last-child {margin-left:8px}
-.rt-mobile .rt-bar-count-label {margin-right:3px;color:var(--rt-muted)}
-
-@media (orientation:landscape) and (max-height:600px) {
- .rt-mobile .rt-quick:has(.rt-landscape-view) {
-  display:flex;flex-wrap:nowrap;align-items:center;gap:6px;
- }
- .rt-mobile .rt-quick:has(.rt-landscape-view) > * {flex-shrink:0}
-}
+/* Landscape has its own two-row toolbar and one continuous vertical score. */
+.rt-mobile .rt-meta.rt-landscape-heading {display:flex;flex-wrap:nowrap;gap:6px;padding:4px 12px;min-height:38px;flex:none}
+.rt-mobile .rt-landscape-heading > button {flex:none;min-width:30px;min-height:30px;padding:3px 6px}
+.rt-mobile .rt-landscape-heading > strong,.rt-mobile .rt-landscape-heading > input {flex:1;min-width:0;width:auto}
+.rt-mobile .rt-quick.rt-landscape-actions {display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:5px;padding:2px 12px 6px;min-height:38px;flex:none;overflow-x:auto}
+.rt-mobile .rt-quick.rt-landscape-actions > * {flex:0 0 auto}
+.rt-mobile .rt-landscape-actions .rt-header-actions {display:flex;align-items:center;gap:3px}
+.rt-mobile .rt-landscape-actions button {white-space:nowrap;font-size:11px;padding:4px 6px;min-height:30px}
+.rt-mobile .rt-landscape-actions .rt-backing-target {margin-left:auto}
+.rt-mobile .rt-score-scroll.rt-landscape-score {overflow-x:hidden;overflow-y:auto;overflow-anchor:none;scroll-behavior:auto}
+.rt-mobile .rt-landscape-score[data-bars-per-row] > .rt-score {padding:12px 12px 20px;row-gap:clamp(14px,4dvh,24px);align-content:start}
+.rt-mobile .rt-landscape-score .rt-measure {height:auto;min-height:0;aspect-ratio:360 / 78}
 
 .rt-start-settings {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
 .rt-start-tempo {display:flex;align-items:center;gap:4px}
@@ -414,16 +405,16 @@ html body .app .rt-workspace .rt-pack-favorite[aria-pressed="true"] {color:#b779
 .rt-workspace .rt-favorites-toggle svg {display:block;flex-shrink:0}
 
 /* The mobile creator has four controls, including the backing-loop trigger. */
-.rt-mobile[data-screen="edit"] .rt-quick:not(:has(.rt-landscape-view)) {
+.rt-mobile[data-screen="edit"] .rt-quick:not(.rt-landscape-actions) {
  display:flex;flex-wrap:nowrap;align-items:center;gap:5px;
 }
-.rt-mobile[data-screen="edit"] .rt-quick:not(:has(.rt-landscape-view)) > * {
+.rt-mobile[data-screen="edit"] .rt-quick:not(.rt-landscape-actions) > * {
  flex:0 0 auto;white-space:nowrap;
 }
-.rt-mobile[data-screen="edit"] .rt-quick:not(:has(.rt-landscape-view)) button {padding-inline:6px;white-space:nowrap}
+.rt-mobile[data-screen="edit"] .rt-quick:not(.rt-landscape-actions) button {padding-inline:6px;white-space:nowrap}
 @media (max-width:360px) {
- .rt-mobile[data-screen="edit"] .rt-quick:not(:has(.rt-landscape-view)) {padding-inline:8px;gap:4px;font-size:10px}
- .rt-mobile[data-screen="edit"] .rt-quick:not(:has(.rt-landscape-view)) button {padding-inline:4px;font-size:10px}
+ .rt-mobile[data-screen="edit"] .rt-quick:not(.rt-landscape-actions) {padding-inline:8px;gap:4px;font-size:10px}
+ .rt-mobile[data-screen="edit"] .rt-quick:not(.rt-landscape-actions) button {padding-inline:4px;font-size:10px}
 }
 
 .rt-meter-context{display:block;flex:none;padding:2px 10px 5px;color:var(--rt-muted);font-size:11px;line-height:1.4;}

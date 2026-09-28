@@ -227,6 +227,13 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
 }
 
 export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabShortStems=Boolean(etude.document?.viewSettings?.tabShortStems),tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
+  if(mobile&&responsive&&!editor&&!measuresPerRow){
+    const pairs=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),2,etude.document?.viewSettings?.systemBreaks??[]);
+    const minimum=scoreSpacing(etude,{placements:pairs,view,width:0,barOffset,rhythmicSpacing}).width;
+    // Fit the actual symbols at their normal size, with breathing room. Dense
+    // scores stay at one bar instead of squeezing two bars or adding a scroll.
+    measuresPerRow=minimum+12<=(editorWidth??0)?2:1;
+  }
   if(!isFretted(etude.instrument))return drawKeyboardScore(element,etude,{mobile,editor,editorWidth,barOffset,systemStart,systemEnd,measuresPerRow});
   const stringCount=scoreInstrument(etude.instrument).tuning.length;
   const numberOnly=etude.document?.viewSettings?.tabRhythm===false||(editor&&!tabRhythm);
