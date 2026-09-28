@@ -24,3 +24,7 @@ html body #root main.app .pickerManageDialog :is(input,select){width:100%;min-wi
 html body #root main.app .scoreWorkspaceHeading{display:flex;align-items:center;justify-content:space-between;gap:8px}
 html body #root main.app .scoreWorkspaceHeading .libraryStorageCompact{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:4px 7px;font-size:11px;white-space:nowrap;background:var(--theme-surface);color:var(--theme-text);border:1px solid var(--theme-border-control);border-radius:6px}
 .etudeTopTips{margin:0 0 8px}.etudeTopTips .etudeLesson{margin-top:0}
+
+html body #root main.app.app.app .etudePickerDialog .etudePickerDifficultyGroup{margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html body #root main.app.app.app .etudePickerDialog .etudePickerDifficultyGroup+.etudePickerDifficultyGroup{margin-top:16px!important}
+html body #root main.app.app.app .etudePickerDialog .etudePickerDifficultyHeading{margin:0 0 7px!important;padding:7px 2px!important;border-bottom:1px solid #e3d9ca!important;font-size:12px!important;line-height:1.4!important;font-weight:700!important;color:#65513b!important}

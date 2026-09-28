@@ -1,4 +1,4 @@
-import {validateBeat,units,tuplet,tupletGroups,writtenTicks} from './rhythmMath.js';
+import {validateBeat,units,tuplet,tupletGroups,writtenTicks,canSustain} from './rhythmMath.js';
 import {TIME_SIGNATURES,meterInfo,beatTicks} from './meter.js';
 export const STORAGE_KEY = 'rifflab-rhythm-trainer-v1';
 export const note = (ticks, rest = false) => ({ ticks, rest });
@@ -46,14 +46,14 @@ export function validPattern(p) {
   const validCell=b=>validateBeat(b,beatTicks(p));
   if(p?.measureRepeats!==undefined&&(!Array.isArray(p.measureRepeats)||p.measureRepeats.length!==p.measures?.length||!p.measureRepeats.every(v=>typeof v==='boolean')))return false;
   if(!(typeof p.id==='string' && typeof p.title==='string' && [2,3,4].includes(p.meter) && Number.isFinite(p.bpm) && p.bpm>=30 && p.bpm<=240 && ['wood','rim','clap'].includes(p.tone) && ['click','countIn','loop'].every(k=>typeof p[k]==='boolean') && Array.isArray(p.measures) && p.measures.length>0 && p.measures.length<=128 && p.measures.every(m=>Array.isArray(m)&&m.length===p.meter&&m.every(validCell))))return false;
-  if(p.core!==undefined&&(!Array.isArray(p.core)||![1,2,p.meter].includes(p.core.length)||!p.core.every(validCell)||!p.core.every((b,i)=>b.every((n,j)=>!n.tie||(!n.rest&&j===b.length-1&&p.core[i+1]&&!p.core[i+1][0].rest)))))return false;
+  if(p.core!==undefined&&(!Array.isArray(p.core)||![1,2,p.meter].includes(p.core.length)||!p.core.every(validCell)||!p.core.every((b,i)=>b.every((n,j)=>!n.tie||(canSustain(n)&&j===b.length-1&&canSustain(p.core[i+1]?.[0]))))))return false;
   const beats=p.measures.flat();
-  return beats.every((b,i)=>b.every((n,j)=>!n.tie||(!n.rest&&j===b.length-1&&beats[i+1]&&!beats[i+1][0].rest)));
+  return beats.every((b,i)=>b.every((n,j)=>!n.tie||(canSustain(n)&&j===b.length-1&&canSustain(beats[i+1]?.[0]))));
 }
 // Editing either side of a tie must never leave a tie to a rest or outside the piece.
 export function repairTies(pattern) {
   const p=clone(pattern);const beats=p.measures.flat();
-  beats.forEach((b,i)=>b.forEach((n,j)=>{if(n.tie&&(n.rest||j!==b.length-1||!beats[i+1]||beats[i+1][0].rest))delete n.tie;}));return p;
+  beats.forEach((b,i)=>b.forEach((n,j)=>{if(n.tie&&(!canSustain(n)||j!==b.length-1||!canSustain(beats[i+1]?.[0])))delete n.tie;}));return p;
 }
 export function replacePatternBeat(pattern,measure,beat,value) {
   const p=clone(pattern);p.measures[measure][beat]=clone(value);return repairTies(p);
@@ -191,7 +191,7 @@ export function editorPresets(group,meter=4) {
  return presets.filter(p=>p.group===group);
 }
 export function matchesBeatPreset(beat,preset) {
- return beat.length===preset.length&&beat.every((n,i)=>Math.abs(n.ticks-preset[i].ticks)<1e-8&&n.rest===preset[i].rest&&writtenTicks(n)===writtenTicks(preset[i])&&(n.tuplet?.count??(n.ticks===4?3:0))===(preset[i].tuplet?.count??(preset[i].ticks===4?3:0)));
+ return beat.length===preset.length&&beat.every((n,i)=>Math.abs(n.ticks-preset[i].ticks)<1e-8&&n.rest===preset[i].rest&&!!n.muted===!!preset[i].muted&&writtenTicks(n)===writtenTicks(preset[i])&&(n.tuplet?.count??(n.ticks===4?3:0))===(preset[i].tuplet?.count??(preset[i].ticks===4?3:0)));
 }
 export function editorPresetForBeat(beat,meter=4) {
  return EDITOR_PRESET_GROUPS.flatMap(([group])=>editorPresets(group,meter)).find(p=>matchesBeatPreset(beat,p.beat));

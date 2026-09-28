@@ -24,7 +24,13 @@ export function alignNavigationEndings(entries){
 export function drawScoreNavigation(context,svg,{mark,previous,next,x,width,top,first,last,index,row=1,obstacles=[]}){
  if(!mark.ending&&!mark.marker&&!mark.command&&!mark.sectionLabel)return;
  const ns='http://www.w3.org/2000/svg',group=context.openGroup('score-navigation');group.dataset.navigationBar=String(index);group.dataset.staveTop=String(top);
- const append=(tag,attributes,text)=>{const node=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attributes))node.setAttribute(key,String(value));if(text)node.textContent=text;group.append(node);return node;};
+ const append=(tag,attributes,text)=>{
+  const node=document.createElementNS(ns,tag);
+  // VexFlow's SVG stroke is for notation lines, not an outline around labels.
+  if(tag==='text'){node.setAttribute('fill','#111');node.setAttribute('stroke','none');}
+  for(const [key,value] of Object.entries(attributes))node.setAttribute(key,String(value));
+  if(text)node.textContent=text;group.append(node);return node;
+ };
  const occupied=[...obstacles];
  if(mark.sectionLabel){
   const label=String(mark.sectionLabel),left=x,metrics=document.createElement('canvas').getContext('2d');metrics.font='bold 13px Arial';

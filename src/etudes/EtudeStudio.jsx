@@ -1,4 +1,5 @@
 import DifficultyStars from './DifficultyStars.jsx';
+import {sortEtudesByDifficulty} from './difficultyRatings.js';
 import { formatMessage } from "../i18n/format.js";
 import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
@@ -71,7 +72,7 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, p
   const compiled=useMemo(()=>savedRecord?compileScoreDocument(savedRecord.document):null,[savedRecord]);
   const [selectedId, setSelectedId] = useState(initialId);
   const [bpm, updateBpm] = useState(()=>edits.records[initialSavedId]?.document?.bpm??edits.scores[initialId]?.bpm??ETUDES.find(e=>e.id===initialId)?.bpm??DEFAULT_ETUDE_BPM);
-  const list = useMemo(() => ETUDES.map(e=>edits.scores[e.id]??e), [edits]);
+  const list = useMemo(() => sortEtudesByDifficulty(ETUDES.map(e=>edits.scores[e.id]??e)), [edits]);
   const selected = compiled?.score ?? list.find(e => e.id === selectedId) ?? list[0];
   const session=usePracticeSession(selected,bpm,updateBpm);
   const {controller,layout}=session;

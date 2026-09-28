@@ -79,3 +79,34 @@ html body .rt-guide.rt-workspace :is(strong,b) { color:inherit; }
 html body .rt-guide.rt-workspace .rt-score { color:var(--rt-ink); }
 html body .rt-guide.rt-workspace .rt-guide-grid > div { color:var(--rt-text); }
 html body .rt-guide.rt-workspace button[aria-pressed="true"] { background:#39654f; border-color:#9ed6bd; }
+
+/* One complete bar: compact beat cards on phones, a single row on desktop. */
+.rt-guide-explanation { margin:8px 0 0; font-size:11px; line-height:1.5; color:var(--rt-muted); }
+.rt-guide-mobile > header { padding:8px 14px; }
+.rt-guide-mobile .rt-guide-select { margin:8px 0; }
+.rt-guide-mobile .rt-guide-select nav { padding:6px 0 2px; }
+.rt-guide-mobile .rt-guide-grid small { white-space:nowrap; font-size:9px; }
+.rt-guide-desktop .rt-guide-score { grid-template-columns:repeat(var(--guide-beats),minmax(0,1fr)); }
+.rt-guide-desktop .rt-guide-score article { width:100%; max-width:280px; justify-self:center; }
+@media (min-width:700px) and (max-height:600px) and (orientation:landscape) {
+ .rt-guide-mobile .rt-guide-score { grid-template-columns:repeat(var(--guide-beats),minmax(0,1fr)); }
+}
+
+/* Each row is one continuous staff. Counts share the note coordinates and stay static. */
+.rt-guide .rt-guide-score.rt-guide-connected { display:flex; flex-direction:column; gap:12px; }
+.rt-guide .rt-guide-connected article { width:100%; max-width:none; padding:10px 0 8px; }
+.rt-guide .rt-guide-connected article:only-child { max-width:none; }
+.rt-guide .rt-guide-beat-labels,.rt-guide .rt-guide-count-row { display:grid; grid-template-columns:repeat(var(--row-beats),minmax(0,1fr)); }
+.rt-guide-beat-labels small { padding-left:12px; color:var(--rt-muted); font-size:11px; }
+.rt-guide .rt-guide-connected .rt-score { padding:0; }
+.rt-guide-counts { position:relative; height:69px; color:var(--rt-ink); font-size:12px; }
+.rt-guide-counts [role=columnheader],.rt-guide-counts [role=cell] { position:absolute; transform:translateX(-50%); text-align:center; white-space:nowrap; }
+.rt-guide-counts [role=columnheader] { top:1px; }
+.rt-guide-counts [role=cell] { top:23px; }
+.rt-guide-counts b,.rt-guide-counts small { display:block; line-height:1.3; }
+.rt-guide-counts b { font-size:18px; font-weight:500; }
+.rt-guide-counts small { font-size:10px; color:var(--rt-muted); }
+.rt-guide-mobile .rt-guide-counts { font-size:11px; height:64px; }
+.rt-guide-mobile .rt-guide-counts small { font-size:9px; }
+.rt-guide-mobile .rt-guide-counts[data-dense] { font-size:10px; height:51px; }
+.rt-guide .rt-guide-counts[data-dense] b { font-size:14px; }

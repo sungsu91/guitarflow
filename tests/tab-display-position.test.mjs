@@ -47,3 +47,23 @@ test('saved TAB presentation settings preserve note data and playback',()=>{
  }
  assert.deepEqual(createBlankDocument().viewSettings,{tabRhythm:true,notationView:'tab'});
 });
+
+test('TAB distinguishes half notes with short stems and whole notes without floating heads',()=>{
+ const original=globalThis.document;
+ const node=tag=>({tag,dataset:{},attributes:{},children:[],setAttribute(k,v){this.attributes[k]=v;},append(child){this.children.push(child);}});
+ globalThis.document={createElementNS:(_ns,tag)=>node(tag)};
+ try{
+  const tab={getYForLine:i=>100+i*16,getNumLines:()=>6};
+  for(const position of ['above','below','detached'])for(const shortStems of [false,true]){
+   const events=['4','2','1'].map(duration=>({duration,string:position==='above'?1:6}));
+   const before=structuredClone(events),svg=node('svg');
+   drawTabRhythm(svg,events,events.map((_,i)=>({getStemX:()=>50+i*60})),tab,[],position,{shortStems});
+   const marks=svg.children[0].children,stems=marks.filter(n=>n.attributes.class==='tabRhythmStem');
+   assert.equal(stems.length,2,'whole notes have no stem');
+   assert.equal(marks.some(n=>n.tag==='ellipse'),false,'fret digits already provide the notehead');
+   const length=n=>Math.abs(n.attributes.y2-n.attributes.y1);
+   assert(length(stems[1])<length(stems[0])*.65,'half-note stems are visibly shorter than quarter-note stems');
+   assert.deepEqual(events,before,'engraving cannot alter timing or playback data');
+  }
+ }finally{globalThis.document=original;}
+});

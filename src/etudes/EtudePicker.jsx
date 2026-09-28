@@ -1,5 +1,6 @@
 import PickerManageDialog from './PickerManageDialog.jsx';
 import DifficultyStars from './DifficultyStars.jsx';
+import {etudeDifficulty} from './difficultyRatings.js';
 import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
@@ -21,6 +22,11 @@ export default function EtudePicker({model,mobile}) {
  const close=()=>{setAction(null);setTab(null);opener.current?.focus({preventScroll:true});};
  useEffect(()=>{if(tab&&!dialog.current.open)dialog.current.showModal();},[tab]);
  const visible=entries.filter(e=>(tab==='saved'?e.saved:!e.saved)&&(category===ko["app.all"]||(folder?model.folderData?.locations[e.key]===folder.id:category===ko["etudes.favorites"]?model.favorites[e.key]:e.type===category))&&`${e.title} ${e.type}`.toLowerCase().includes(query.trim().toLowerCase()));
+ const difficultyGroups=tab==='types'?[...visible.reduce((groups,entry)=>{
+  const rating=etudeDifficulty(entry.score);
+  if(!groups.has(rating))groups.set(rating,[]);
+  groups.get(rating).push(entry);return groups;
+ },new Map())]:[[null,visible]];
  const selected=entries.filter(e=>selection.includes(e.key)),keys=selected.map(e=>e.key);
  const toggle=key=>setSelection(old=>old.includes(key)?old.filter(k=>k!==key):[...old,key]);
  const organize=operation=>{try{model.organize(operation);setManageError('');}catch(e){setManageError(e.message);}};
@@ -52,7 +58,10 @@ export default function EtudePicker({model,mobile}) {
  {folder&&<><button type="button" onClick={()=>setAction({type:'rename',id:folder.id,name:folder.name})}><Translation id="pdf.renameFolder"/></button><button type="button" onClick={()=>setAction({type:'remove',id:folder.id,name:folder.name})}><Translation id="pdf.deleteFolder"/></button></>}
  </div>}
  {manageError&&<p role="alert">{manageError}</p>}
- <div className="etudePickerResults"><div className="etudePickerGrid">{visible.map(e=><button key={e.key} type="button" className="etudePickerCard" aria-pressed={managing?selection.includes(e.key):picked===e.key} onClick={()=>managing?toggle(e.key):setPicked(e.key)}><span><small>{localizeUi(e.type)}</small><strong>{e.title}</strong>{!e.saved&&<DifficultyStars score={e.score}/>}</span>{(managing?selection.includes(e.key):picked===e.key)?<Check size={16}/>:model.favorites[e.key]?<Star size={15} fill="currentColor"/>:<ChevronDown size={15}/>}</button>)}</div>{!visible.length&&<p className="etudePickerEmpty">{localizeUi(query?translateUi("etudes.noResultsFound"):category===ko["etudes.favorites"]?translateUi("etudes.tapTheStarBesideAScoreToAddItToFavorites"):translateUi("etudes.noSavedScores"))}</p>}</div>
+ <div className="etudePickerResults">{difficultyGroups.map(([rating,items])=><section className="etudePickerDifficultyGroup" key={rating??'unrated'} aria-label={rating===null?undefined:translateUi('etudes.difficultyStarsLabel',{value1:rating.toFixed(1)})}>
+ {rating!==null&&<h3 className="etudePickerDifficultyHeading">{translateUi('etudes.difficultyStarsLabel',{value1:rating.toFixed(1)})}</h3>}
+ <div className="etudePickerGrid">{items.map(e=><button key={e.key} type="button" className="etudePickerCard" aria-pressed={managing?selection.includes(e.key):picked===e.key} onClick={()=>managing?toggle(e.key):setPicked(e.key)}><span><small>{localizeUi(e.type)}</small><strong>{e.title}</strong>{!e.saved&&<DifficultyStars score={e.score}/>}</span>{(managing?selection.includes(e.key):picked===e.key)?<Check size={16}/>:model.favorites[e.key]?<Star size={15} fill="currentColor"/>:<ChevronDown size={15}/>}</button>)}</div>
+ </section>)}{!visible.length&&<p className="etudePickerEmpty">{localizeUi(query?translateUi("etudes.noResultsFound"):category===ko["etudes.favorites"]?translateUi("etudes.tapTheStarBesideAScoreToAddItToFavorites"):translateUi("etudes.noSavedScores"))}</p>}</div>
  <footer><span>{chosen?.title??translateUi("etudes.chooseAScore")}</span><button type="button" disabled={managing||!chosen} onClick={()=>{chosen.pdf?model.selectPdf(chosen.pdf):chosen.saved?model.selectSaved(chosen.id):model.select(chosen.id);close();}}><Translation id="app.load" /></button></footer>
  </dialog>}{action&&<PickerManageDialog key={action.type+(action.id??action.entry?.id??'')} action={action} folders={folders} onApply={applyAction} onClose={()=>setAction(null)}/>}</>;
 }

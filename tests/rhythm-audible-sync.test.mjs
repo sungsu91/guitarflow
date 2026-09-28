@@ -4,27 +4,47 @@ import {audibleContextTime,RhythmTransport} from '../src/rhythm-trainer/transpor
 import {GUIDE_METERS,guidePatterns,compileGuide,GuideTransport} from '../src/rhythm-trainer/guideModel.js';
 import {builtinPacks} from '../src/rhythm-trainer/packs.js';
 import {timeline,positionAt,createPattern} from '../src/rhythm-trainer/model.js';
-import {beatPositions,scoreCursorX,guideCursorX} from '../src/rhythm-trainer/notationLayout.js';
+import {beatPositions,scoreCursorX,guideCursorX,subdivisionRegion} from '../src/rhythm-trainer/notationLayout.js';
 import {secondsPerTick,timeSignature} from '../src/rhythm-trainer/meter.js';
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-7,`${actual} != ${expected}`);
 globalThis.cancelAnimationFrame=()=>{};
 
-test('every guide attack and held count arrives at the same printed cell center',()=>{
+test('guide notation keeps the same span when equal-duration notes are reordered',()=>{
+ const notes=ticks=>ticks.map(ticks=>({ticks,rest:false}));
+ const variants=[[6,3,3],[3,6,3],[3,3,6]].map(notes);
+ const expected=beatPositions(variants[0],0,1,true,3);
+ for(const beat of variants)assert.deepEqual(beatPositions(beat,0,1,true,3),expected);
+ // A connected beat keeps those positions, translated by exactly one beat width.
+ assert.deepEqual(beatPositions(variants[0],1,2,true,3),expected.map(x=>x+180));
+ // The long first note must still take twice the time of a sixteenth note.
+ close(guideCursorX(variants[0],3),(expected[0]+expected[1])/2);
+ close(guideCursorX(variants[0],6),expected[1]);
+ close(guideCursorX(variants[1],3),expected[1]);
+ close(guideCursorX(variants[1],6),(expected[1]+expected[2])/2);
+ close(guideCursorX(variants[2],6),expected[2]);
+ close(guideCursorX(variants[2],9),(expected[2]+173)/2);
+});
+
+test('every guide onset reaches its engraved note; holds and subdivision highlights follow its duration',()=>{
  const patterns=GUIDE_METERS.flatMap(meter=>guidePatterns(meter).map(pattern=>({meter,pattern})))
   .concat(builtinPacks().map(p=>({meter:timeSignature(p),pattern:{groups:p.core}})));
  for(const {meter,pattern} of patterns){
   const compiled=compileGuide(pattern,meter);
   for(const group of compiled.groups){
    const xs=beatPositions(group.notes,0,1,true,group.step);
+   let previousX=-Infinity;
    for(const [index,cell] of group.cells.entries()){
-    const tick=cell.at-group.at,expected=15+(index+.5)*158/group.cells.length;
-    close(guideCursorX(group.notes,tick,group.step),expected);
+    const tick=cell.at-group.at,x=guideCursorX(group.notes,tick,group.step);
     const event=group.events.find(e=>cell.at+1e-9>=e.at&&cell.at<e.at+e.ticks-1e-9);
     const pos={tick,event:{...event,at:event.at-group.at}};
-    close(scoreCursorX([group.notes],1,pos,true,group.step),expected);
-    if(Math.abs(event.at-cell.at)<1e-7)close(xs[event.index],expected);
+    close(scoreCursorX([group.notes],1,pos,true,group.step),x);
+    if(Math.abs(event.at-cell.at)<1e-7)close(xs[event.index],x);
+    else {assert.ok(x>xs[event.index]);assert.ok(x<(xs[event.index+1]??173));}
+    const region=subdivisionRegion(group.notes,0,1,pos,true,group.step);
+    assert.equal(region.index,index);assert.ok(region.x<=x&&region.x+region.width>=x);
+    assert.ok(x>previousX);previousX=x;
    }
-   // The final half-cell remains visible to the end, without running off the staff.
+   // Held final notes reach the staff end only after their complete duration.
    close(guideCursorX(group.notes,group.ticks,group.step),173);
    assert.ok(guideCursorX(group.notes,group.ticks-group.step/2,group.step)<173);
   }

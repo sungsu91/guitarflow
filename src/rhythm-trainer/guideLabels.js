@@ -1,7 +1,8 @@
 import { BEAT_PRESETS } from './model.js';
 
-export const GUIDE_FAMILY_EN = {basic:'Basic',sixteenth:'Sixteenths',rests:'Rests & offbeats',dotted:'Dotted notes',ties:'Ties',triplet:'Triplets',tuplets:'5-, 6- & 7-note tuplets'};
+export const GUIDE_FAMILY_EN = {basic:'Basic',sixteenth:'Sixteenths',rests:'Rests & offbeats',mutes:'Muted hits',dotted:'Dotted notes',ties:'Ties',triplet:'Triplets',tuplets:'5-, 6- & 7-note tuplets'};
 const titles = {
+  'mute-eighths':'Eighths · play and mute', 'mute-sixteenths':'Sixteenths · play and mute', 'mute-rest':'Play · mute · rest',
   tie:'Tie across beats', 'compound-quarter':'Main beat · dotted quarter',
   'compound-long-short':'Quarter + eighth', 'compound-short-long':'Eighth + quarter',
   'compound-six':'Six sixteenths', 'compound-mix':'Eighth + two sixteenths + eighth',

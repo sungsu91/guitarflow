@@ -36,7 +36,7 @@ export class RhythmTransport {
     for(let cycle=Math.max(0,Math.floor(from/this.total));cycle<=Math.floor(until/this.total);cycle++){
       if(cycle>0&&!this.pattern.loop)break;
       for(const event of this.events){const at=cycle*this.total+event.at;
-        if(at>=from&&at<until&&!event.rest&&!event.continuation)this.sound(this.anchorTime+(at-this.anchorTick)*secondsPerTick(this.pattern),this.pattern.tone);
+        if(at>=from&&at<until&&!event.rest&&!event.continuation)this.sound(this.anchorTime+(at-this.anchorTick)*secondsPerTick(this.pattern),event.muted?'mute':this.pattern.tone);
       }
     }
     this.next=until;
@@ -52,8 +52,8 @@ export class RhythmTransport {
     source.onended=()=>{this.sources.delete(source);source.disconnect();gain.disconnect();};
     source.start(when);source.stop(when+buffer.duration/rate);
   }
-  sound(when,tone,accent=false) {const c=this.ctx;const gain=c.createGain();gain.connect(this.output);const duration=tone==='clap'?.1:.055;gain.gain.setValueAtTime(tone==='click'?.10:.28,when);gain.gain.exponentialRampToValueAtTime(.0001,when+duration);let source;
-    if(tone==='clap'||tone==='rim'){source=c.createBufferSource();const b=c.createBuffer(1,Math.ceil(c.sampleRate*duration),c.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(tone==='rim'?Math.sin(i*1.7):1);source.buffer=b;}
+  sound(when,tone,accent=false) {const c=this.ctx;const gain=c.createGain();gain.connect(this.output);const duration=tone==='mute'?.035:tone==='clap'?.1:.055;gain.gain.setValueAtTime(tone==='click'?.10:tone==='mute'?.18:.28,when);gain.gain.exponentialRampToValueAtTime(.0001,when+duration);let source;
+    if(tone==='clap'||tone==='rim'||tone==='mute'){source=c.createBufferSource();const b=c.createBuffer(1,Math.ceil(c.sampleRate*duration),c.sampleRate);const d=b.getChannelData(0);let smooth=0;for(let i=0;i<d.length;i++){const noise=Math.random()*2-1;smooth=.65*smooth+.35*noise;d[i]=tone==='mute'?smooth:noise*(tone==='rim'?Math.sin(i*1.7):1);}source.buffer=b;}
     else {source=c.createOscillator();source.type=tone==='click'?'sine':'triangle';source.frequency.setValueAtTime(tone==='click'?(accent?1800:1300):760,when);}
     source.connect(gain);this.sources.add(source);source.onended=()=>{this.sources.delete(source);source.disconnect();gain.disconnect();};source.start(when);source.stop(when+duration);
   }

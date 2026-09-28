@@ -4,11 +4,12 @@ import {scoreBarOrder} from './scoreRepeats.js';
 import {ticksOf} from './scoreModel.js';
 // All times use sounding MIDI (the guitar staff is engraved one octave higher).
 export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {playEmptyScore=false} = {}) {
-  const events = [], pending = new Map();
+  const events = [], pending = new Map(), passes = new Map();
   let offset = 0, writtenEnd = 0;
   const order=scoreBarOrder(score);
   for (const {visit,bar,meter} of performedMeasures(score,order)) {
     const measure=score.measures[bar];
+    const pass=passes.get(bar)??0;passes.set(bar,pass+1);
     if(visit&&bar!==order[visit-1]+1)pending.clear();
     let sequential = 0;
     for (const e of measure) {
@@ -21,12 +22,16 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
       const tones=[...(e.tones??[e])];if(e.arpeggio)tones.sort((a,b)=>e.arpeggio==='up'?b.string-a.string:a.string-b.string);
       if (!e.rest) for (const [toneIndex,tone] of tones.entries()) {
         const delay=e.arpeggio?Math.min(.025,duration/(tones.length*3))*toneIndex:0;
-        const toneStart=start+delay,toneDuration=duration-delay;
+        const toneStart=start+delay,toneDuration=(e.sustainTicks!=null?e.sustainTicks/480*60/bpm:duration)-delay;
         const key = `${e.id}:${tone.string}:${tone.midi}`, candidate = pending.get(key);
         pending.delete(key);
         // A tie may not bridge a gap, change string/pitch, or sustain a dead note.
         const prior = candidate && !(tone.dead??e.dead) && !candidate.dead && Math.abs(candidate.start + candidate.duration - start) < 1e-6 ? candidate : null;
         const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, ...(score.instrument==='drums'?{drumTechnique:tone.drumTechnique,drumArticulation:tone.drumArticulation,beatSeconds:60/bpm*(e.tuplet?2/3:1),writtenDuration:e.duration}:{}), fret:tone.fret, string:tone.string, voice:e.voice, start:toneStart, duration:0, technique:null,letRing:Boolean(e.letRing),expressions:[]};
+        const velocity=e.velocityByPass?.[Math.min(pass,e.velocityByPass.length-1)]??e.velocity;
+        if(!prior&&velocity!==undefined)note.velocity=velocity;
+        if(e.dampAtEnd)note.dampAtEnd=true;
+        if(e.releaseTail)note.releaseTail=e.releaseTail;
         note.expressions.push({start:toneStart,duration:toneDuration,bendEffect:tone.bendEffect??null,vibrato:Boolean(e.vibrato),slideOut:e.slideOut??null,slideIn:e.slideIn??null});
         note.letRing||=Boolean(e.letRing);
         if(e.palmMute&&note.palmMuteStart==null)note.palmMuteStart=start;
@@ -90,7 +95,7 @@ export function guitarVoiceTimeline(score, bpm = score.bpm) {
     }
   }
   // Entered rests damp ringing strings; empty drafting slots do not invent a pick.
-  for(const voice of voices){if(voice.letRing){const next=voices.find(v=>v.string===voice.string&&v.start>voice.start);voice.duration=Math.max(voice.duration,(next?.start??timeline.duration)-voice.start);continue;}const rest=rests.find(r=>(!voice.voice||r.voice===voice.voice)&&r.start>voice.start+1e-6);if(rest!==undefined)voice.silenceAt=rest.start;}
+  for(const voice of voices){if(voice.dampAtEnd)voice.silenceAt=voice.start+voice.duration;if(voice.letRing){const next=voices.find(v=>v.string===voice.string&&v.start>voice.start);voice.duration=Math.max(voice.duration,(next?.start??timeline.duration)-voice.start);continue;}const rest=rests.find(r=>(!voice.voice||r.voice===voice.voice)&&r.start>voice.start+1e-6);if(rest!==undefined)voice.silenceAt=Math.min(voice.silenceAt??Infinity,rest.start);}
   return {voices, duration:timeline.duration,order:timeline.order};
 }
 

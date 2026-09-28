@@ -21,7 +21,16 @@ export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',
  const line=(x1,y1,x2,y2,width,kind,event)=>{const l=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1,y1,x2,y2,stroke:'#171717','stroke-width':width,class:kind}))l.setAttribute(k,v);if(event!==undefined)l.dataset.rhythmEvent=event;g.append(l);};
  const x=i=>tabs[i].getStemX();
  // Simultaneous fret numbers share a rhythm stem outside TAB, never between digits.
- events.forEach((e,i)=>{if(e.rest)return;if(['1','2'].includes(e.duration)){const head=document.createElementNS(ns,'ellipse');for(const [k,v] of Object.entries({cx:x(i),cy:base,rx:e.duration==='1'?6:4.5,ry:3,fill:'white',stroke:'#171717','stroke-width':1.5,class:'tabRhythmLongNote','data-rhythm-event':i}))head.setAttribute(k,v);g.append(head);}if(e.duration==='1')return;const toneYs=[...new Set((e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))].sort((a,b)=>a-b);const anchor=(direction<0?Math.min:Math.max)(...toneYs);line(x(i),shortStems?base-direction*20:anchor+direction*9,x(i),e.duration==='2'?base-direction*4:base,1.4,'tabRhythmStem',i);});
+ // Fret numbers are the TAB noteheads. Use a short stem for a half note and
+ // no stem for a whole note, rather than adding a second, floating notehead.
+ events.forEach((e,i)=>{
+  if(e.rest||e.duration==='1')return;
+  const toneYs=[...new Set((e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))].sort((a,b)=>a-b);
+  const anchor=(direction<0?Math.min:Math.max)(...toneYs);
+  const stemStart=shortStems?base-direction*20:anchor+direction*9;
+  const stemEnd=e.duration==='2'?(shortStems?stemStart+direction*10:edge+(base-edge)*.6):base;
+  line(x(i),stemStart,x(i),stemEnd,1.4,'tabRhythmStem',i);
+ });
  // Reuse the staff engraver's grouping and partial-beam directions. Keep
  // segments per onset so playback can highlight each chord independently.
  const grouped=new Set();

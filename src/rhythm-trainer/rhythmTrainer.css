@@ -418,3 +418,7 @@ html body .app .rt-workspace .rt-pack-favorite[aria-pressed="true"] {color:#b779
 }
 
 .rt-meter-context{display:block;flex:none;padding:2px 10px 5px;color:var(--rt-muted);font-size:11px;line-height:1.4;}
+.rt-note-actions { border-top:1px solid var(--rt-border); margin-top:12px; padding-top:4px; }
+.rt-note-actions > div { display:flex; flex-wrap:wrap; gap:6px; }
+.rt-dialog .rt-note-actions label { margin:0; display:flex; gap:4px; font-size:11px; }
+.rt-dialog .rt-note-actions select { padding:6px 3px; }

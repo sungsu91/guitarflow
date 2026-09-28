@@ -1,4 +1,5 @@
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
+import { buildRootScalePositions, rootScaleOctaves } from './fretboard/rootScale.js';
 import { useChordCatalogWindow } from './fretboard/useChordCatalogWindow.js';
 import {CHORD_ACCIDENTAL_OPTIONS,CHORD_QUALITY_OPTIONS,CHORD_EXTENSION_OPTIONS,isChordExtensionAvailableForQuality,normalizeChordExtensionForQuality,getChordDisplayRoot,getChordNameFromParts} from './chords/chordSelection.js';
 import { localizeUi } from "./i18n/core.js";
@@ -624,6 +625,22 @@ const DIATONIC_SCALE_TYPES = {
 };
 
 const SCALE_BOX_OPTIONS = [1, 2, 3, 4, 5];
+function getScalePositionOptions() {
+  return [
+    ...SCALE_BOX_OPTIONS.map((box) => ({ id: box, label: `BOX${box}` })),
+    { id: "root-1", label: translateUi("app.rootScaleOneOctave") },
+    { id: "root-2", label: translateUi("app.rootScaleTwoOctaves") },
+  ];
+}
+
+function normalizeScalePosition(value) {
+  return rootScaleOctaves(value) ? value : Math.max(1, Math.min(5, Number(value) || 1));
+}
+
+function getScalePositionTriggerLabel(value) {
+  const octaves = rootScaleOctaves(value);
+  return octaves ? translateUi("app.rootScaleCompact", { value1: octaves }) : null;
+}
 const SCALE_BOX_SET_ID = "box-set";
 const SCALE_BOX_SET_LABEL = "SET";
 const SCALE_BOX_SET_MAX_FRET = 15;
@@ -1379,6 +1396,20 @@ export function buildScaleBlockPractice(root = "C", typeId = "minor", familyId =
   const family = SCALE_FAMILIES[familyId] ?? SCALE_FAMILIES.pentatonic;
   const typeSource = family.id === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
   const type = typeSource[typeId] ?? typeSource.minor;
+  const octaves = rootScaleOctaves(boxNumber);
+  if (octaves) {
+    const notes = buildRootScalePositions(root, type.intervals, octaves)
+      .map((position) => makeGuitarNote({ ...position, group: family.id }));
+    const minFret = Math.min(...notes.map((note) => note.fretNumber));
+    const maxFret = Math.max(...notes.map((note) => note.fretNumber));
+    const positionLabel = translateUi(octaves === 1 ? "app.rootScaleOneOctave" : "app.rootScaleTwoOctaves");
+    return {
+      root, type, family, notes, octaves,
+      label: `${root} ${type.label} ${family.label} ${positionLabel}`,
+      sequence: notes.map((note) => note.pitch),
+      visibleFrets: Array.from({ length: maxFret - minFret + 1 }, (_, index) => minFret + index),
+    };
+  }
   const displayEntry = getScaleBlockDisplayEntry(root, family.id, type.id, boxNumber);
   const { displayBox, pattern, placement, sourceBox } = displayEntry;
   const startFret = placement.startFret;
@@ -18452,7 +18483,7 @@ function App({ onReady }) {
   );
   const selectedScaleDetailOptions = isSelectedScaleLick
     ? selectedScaleLickOptions.map((lick) => ({ id: lick.id, label: lick.label }))
-    : SCALE_BOX_OPTIONS.map((boxNumber) => ({ id: boxNumber, label: `BOX${boxNumber}` }));
+    : getScalePositionOptions();
   const selectedScaleDetailValue = isSelectedScaleLick
     ? safeSelectedScaleLick
     : selectedScaleBox;
@@ -25664,7 +25695,7 @@ function App({ onReady }) {
   }, [resetScalePracticePreview, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot]);
 
   const changeScaleBox = useCallback((boxValue) => {
-    const nextBox = Math.max(1, Math.min(5, Number(boxValue) || 1));
+    const nextBox = normalizeScalePosition(boxValue);
     setSelectedScaleBox(nextBox);
     resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, nextBox);
   }, [resetScalePracticePreview, selectedScaleFamily, selectedScaleRoot, selectedScaleType]);
@@ -27428,7 +27459,7 @@ function App({ onReady }) {
     const type = selectedScaleTypeOptions[selectedScaleType] ?? selectedScaleTypeOptions.minor;
     const family = SCALE_FAMILIES[selectedScaleFamily] ?? SCALE_FAMILIES.pentatonic;
     const rootLabel = `${root?.label ?? selectedScaleRoot}/${root?.solfege ?? SOLFEGE[selectedScaleRoot] ?? ""}`;
-    if (isSelectedScaleLick) return selectedPentatonic.label;
+    if (isSelectedScaleLick || rootScaleOctaves(selectedScaleBox)) return selectedPentatonic.label;
     return `${rootLabel} ${type.label} ${family.label} BOX${selectedScaleBox}`;
   }, [isSelectedScaleLick, selectedPentatonic.label, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
   const referenceCurrentLabel = selectedCategory.tutorial
@@ -32608,8 +32639,9 @@ function App({ onReady }) {
                   />
                   <MetronomeSelectControl
                     label="Box"
-                    onChange={(nextBox) => setViewerScaleBox(Number(nextBox))}
-                    options={SCALE_BOX_OPTIONS.map((boxNumber) => ({ id: boxNumber, label: `Box ${boxNumber}` }))}
+                    onChange={(nextBox) => setViewerScaleBox(normalizeScalePosition(nextBox))}
+                    options={getScalePositionOptions()}
+                    triggerLabel={getScalePositionTriggerLabel(viewerScaleBox)}
                     value={viewerScaleBox}
                   />
                 </div>
@@ -35290,6 +35322,7 @@ function App({ onReady }) {
                         label={localizeUi(selectedScaleDetailLabel)}
                         onChange={changeScaleDetail}
                         options={selectedScaleDetailOptions}
+                        triggerLabel={getScalePositionTriggerLabel(selectedScaleDetailValue)}
                         showLabel={!isMobileLayout}
                         value={selectedScaleDetailValue}
                       />
@@ -35580,6 +35613,7 @@ function App({ onReady }) {
                       label={localizeUi(selectedScaleDetailLabel)}
                       onChange={changeScaleDetail}
                       options={selectedScaleDetailOptions}
+                      triggerLabel={getScalePositionTriggerLabel(selectedScaleDetailValue)}
                       value={selectedScaleDetailValue}
                     />
                     <strong>{localizeUi(selectedPentatonic.label)}</strong>

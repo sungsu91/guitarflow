@@ -3,6 +3,7 @@ import ko from "../i18n/locales/ko.js";
 import {mixedTechniqueStudies,applyStudyExpressions} from './mixedTechniqueStudies.js';
 import {compositionSketch} from './compositionSketch.js';
 import {daylightFingerstyle} from './daylightFingerstyle.js';
+import {originalGuitarPieces} from './originalGuitarPieces.js';
 // Authored patterns materialize once into editable string/fret documents.
 // Display and playback derive sounding MIDI from that document; notation is one octave up.
 import { curriculumTemplates } from './curriculum.js';
@@ -195,3 +196,4 @@ for (const etude of ETUDES) {
 // Long-form editable composition sample, outside the fixed eight-bar syllabus.
 ETUDES.push(compositionSketch);
 ETUDES.push(daylightFingerstyle);
+ETUDES.push(...originalGuitarPieces);

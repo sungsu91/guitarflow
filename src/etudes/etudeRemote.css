@@ -233,3 +233,30 @@ html body main.app.app.app .etudeFloatingTheme .etudeRemote .etudeRemoteScoreSou
   line-height: 1;
   font-weight: 700;
 }
+/* Desktop exposes a named score-sound control beside the metronome volume. */
+html body main.app.app.app .etudeFloatingTheme .etudeRemote--desktop:not(.etudeHudRemote) {
+  width: 520px;
+  padding: 12px 14px;
+}
+.etudeRemote--desktop:not(.etudeHudRemote) .etudeRemoteControls {
+  grid-template-columns: 88px 52px 44px 44px minmax(120px, 1fr) 44px;
+  gap: 8px;
+}
+html body main.app.app.app .etudeFloatingTheme .etudeRemote--desktop .etudeRemoteScoreSound {
+  flex-direction: row;
+  gap: 7px;
+  padding-inline: 10px;
+  width: auto;
+  min-width: 120px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.etudeRemote--desktop .etudeRemoteScoreSoundState {
+  font-size: 10px;
+  font-weight: 750;
+  opacity: .7;
+}
+.etudeRemote--desktop .etudeRemoteScoreSound[aria-pressed=true] .etudeRemoteScoreSoundState {
+  opacity: 1;
+}

@@ -48,13 +48,15 @@ export function createScoreVoiceOutput(audio){
    return phrases.map(phrase=>{
     const voiceKey=instrument==='drums'&&[42,44,46].includes(phrase.midi)?'hi-hat':phrase.string;
     strings.get(voiceKey)?.release(at);
+    const voiceLevel=level*(Number.isFinite(phrase.velocity)?Math.max(0,Math.min(1,phrase.velocity)):1);
+    if(voiceLevel===0)return null;
     const palmGate=phrase.dead?null:createPalmMuteGate(audio,phrase,at,output),destination=palmGate??output;
-    const source=instrument==='drums'?scheduleDrum(audio,phrase,at,destination,level):instrument==='piano'&&!phrase.dead?pianoVoice(audio,phrase,at,destination,pianoBuffer,level):scheduleGuitarPhrase(audio,phrase,at,destination,level);
+    const source=instrument==='drums'?scheduleDrum(audio,phrase,at,destination,voiceLevel):instrument==='piano'&&!phrase.dead?pianoVoice(audio,phrase,at,destination,pianoBuffer,voiceLevel):scheduleGuitarPhrase(audio,phrase,at,destination,voiceLevel);
     if(phrase.silenceAt!==undefined)source.release(at+phrase.silenceAt-phrase.start-.014);
     strings.set(voiceKey,source);sources.add(source);
     source.addEventListener('ended',()=>{palmGate?.disconnect();sources.delete(source);if(strings.get(voiceKey)===source)strings.delete(voiceKey);if(disposed&&!sources.size)output.disconnect();},{once:true});
     return source;
-   });
+   }).filter(Boolean);
   },
   releaseAll,
   finish(){disposed=true;if(!sources.size)output.disconnect();},

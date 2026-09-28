@@ -104,10 +104,21 @@ export const ETUDE_DIFFICULTY_RATINGS = Object.freeze({
   "legato-phrasing": 3.5,
   "legato-slide-mixed": 4,
   "together-composition-sketch": 3.5,
-  "daylight-fingerstyle-sketch": 4.5
+  "daylight-fingerstyle-sketch": 4.5,
+  "moonlight-letter": 2,
+  "words-unsent": 2,
+  "open-the-window": 2.5,
+  "light-stays": 3.5,
+  "night-blooms-again": 4
 });
 
 export function etudeDifficulty(score) {
   if (!score || score.kind === 'user' || score.document?.kind === 'user' || score.edited) return null;
   return ETUDE_DIFFICULTY_RATINGS[score.templateId] ?? null;
+}
+
+// Stable within each rating: retain the authored lesson order for equal scores.
+// Use a copy so browsing order never rewrites the curriculum or score data.
+export function sortEtudesByDifficulty(scores) {
+  return [...scores].sort((a,b)=>(etudeDifficulty(a)??Infinity)-(etudeDifficulty(b)??Infinity));
 }

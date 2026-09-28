@@ -5,10 +5,11 @@ import { ETUDES, ROOTS, LEVELS, TEMPLATES, TUNING, validateEtude } from '../src/
 import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles } from '../src/etudes/filters.js';
 import { TRACKS, TRACK_ORDER, TYPES } from '../src/etudes/tracks.js';
 import { isMobileLandscapeAllowed, shouldGuardPortraitOrientation } from '../src/layouts/viewportProfile.js';
+import {originalGuitarPieces} from '../src/etudes/originalGuitarPieces.js';
 
 const syllabusIds=new Set(TEMPLATES.map(t=>t.id));
 const syllabus=ETUDES.filter(e=>syllabusIds.has(e.templateId));
-const sketches=ETUDES.filter(e=>!syllabusIds.has(e.templateId));
+const sketches=ETUDES.filter(e=>!syllabusIds.has(e.templateId)&&!originalGuitarPieces.includes(e));
 const etudeScoreSource = fs.readFileSync(new URL('../src/etudes/Score.jsx', import.meta.url), 'utf8');
 const etudeCssSource = fs.readFileSync(new URL('../src/etudes/etudes.css', import.meta.url), 'utf8');
 const etudeStudioSource = fs.readFileSync(new URL('../src/etudes/EtudeStudio.jsx', import.meta.url), 'utf8');
@@ -34,7 +35,7 @@ test('etude rotation is allowed without changing portrait-only shooter policy', 
 test('all authored curriculum stages and composition sketches have unique validated scores', () => {
   assert.equal(TRACKS.length,10);
   assert.equal(TEMPLATES.length,101);
-  assert.equal(ETUDES.length,TEMPLATES.length+2);
+  assert.equal(ETUDES.length,TEMPLATES.length+2+originalGuitarPieces.length);
   assert.equal(new Set(ETUDES.map(e=>e.templateId)).size,ETUDES.length);
   assert.deepEqual(new Set(TRACK_ORDER),new Set(TEMPLATES.map(t=>t.id)));
   for(const track of TRACKS) for(const [index,level] of LEVELS.entries()) {
@@ -177,7 +178,7 @@ test('technique courses teach their named technique and introduce legato progres
   const advanced=ETUDES.find(e=>e.templateId==='legato-chain');
   assert.ok(advanced.measures.flat().every(n=>n.duration==='16'));
   assert.ok(new Set(advanced.measures.flat().map(n=>n.string)).size>=3);
-  for(const e of ETUDES.filter(e=>e.type==='아르페지오'&&e.level==='초급')) {
+  for(const e of syllabus.filter(e=>e.type==='아르페지오'&&e.level==='초급')) {
     assert.ok(e.chordShapes.every(shape=>!shape.barre||e.templateId==='chord-small-barre'&&shape.barre.from===2&&shape.barre.to===1));
     assert.ok(e.chordShapes.every(shape=>shape.frets.every(f=>f===null||(f>=0&&f<=3))));
   }
@@ -227,7 +228,7 @@ test('the late-beginner blues lesson removes surprise vertical and skipped-strin
 });
 
 test('beginner introductions have bounded movement and technique-specific preparation', () => {
-  for (const etude of ETUDES.filter(e=>e.level==='초급'&&!e.accompaniment)) {
+  for (const etude of syllabus.filter(e=>e.level==='초급'&&!e.accompaniment)) {
     const notes = etude.measures.flat();
     for (let index=1; index<notes.length; index++) {
       const previous = notes[index-1];
@@ -263,7 +264,7 @@ test('independent pitch spelling, fixed fingering, duration and movement checks'
         assert.ok(Math.abs(n.string-notes[i-1].string) <= limit, `${e.id}: unplanned string jump`);
       }
     }
-    for (const m of e.measures) assert.equal(m.reduce((sum,n)=>sum+16/Number(n.duration)*(n.dotted?1.5:1)*(n.tuplet?n.tuplet.normalNotes/n.tuplet.actualNotes:1),0),16);
+    for (const m of e.measures) for(const voice of new Set(m.map(n=>n.voice))) assert.equal(m.filter(n=>n.voice===voice).reduce((sum,n)=>sum+16/Number(n.duration)*(n.dotted?1.5:1)*(n.tuplet?n.tuplet.normalNotes/n.tuplet.actualNotes:1),0),16);
   }
 });
 

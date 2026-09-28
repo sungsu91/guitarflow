@@ -14,8 +14,9 @@ export default function usePracticeSession(selected,bpm,updateBpm,scope='etude')
  const toggleMetro=()=>{if(toolsVisible||metroMinimized){controller.current?.stop();setToolsVisible(false);setMetroMinimized(false);}else setToolsVisible(true);};
  const [backingTarget,setBackingTarget]=useState(null),[backingOpen,setBackingOpen]=useState(false),[tipsOpen,setTipsOpen]=useState(false);
  const [notationView,setNotationView]=useState(selected?.document?.viewSettings?.notationView??'tab');
- const [repeatCount,setRepeatCount]=useState(0),[loopRange,setLoopRange]=useState(null),[startBar,setStartBar]=useState(0);
- useEffect(()=>{setLoopRange(null);setStartBar(0);},[selected?.id]);
+ const defaultRepeatCount=selected?.document?.playback?.repeatCount??0;
+ const [repeatCount,setRepeatCount]=useState(defaultRepeatCount),[loopRange,setLoopRange]=useState(null),[startBar,setStartBar]=useState(0);
+ useEffect(()=>{setLoopRange(null);setStartBar(0);setRepeatCount(defaultRepeatCount);},[selected?.id,defaultRepeatCount]);
  const selectBar=bar=>{setStartBar(bar);if(loopRange&&(bar<loopRange.start||bar>loopRange.end))setLoopRange(null);else controller.current?.seek({bar,event:0});};
  const [subdivision,setSubdivision]=useState('quarter'),[tone,setTone]=useState('tick');
  return {loopRange,setLoopRange,startBar,selectBar,compactTools:true,repeatCount,setRepeatCount,measuresPerRow,setMeasuresPerRow,hudTarget,setHudTarget,metroMinimized,setMetroMinimized,minimizeMetro,toggleMetro,scope,selected,bpm,setBpm:v=>updateBpm(Math.min(240,Math.max(30,Math.round(Number(v)||30)))),playPosition,setPlayPosition,controller,layout,followMode,setFollowMode,zoom,setZoom,toolsVisible,setToolsVisible,backingTarget,setBackingTarget,backingOpen,setBackingOpen,tipsOpen,setTipsOpen,notationView,setNotationView,subdivision,setSubdivision,tone,setTone};

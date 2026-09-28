@@ -7,6 +7,7 @@ import qr from './score-source-qr.png';
 import {SCORE_SOURCE_HANDLE,SCORE_SOURCE_URL} from './scoreSource.js';
 import {measureLayout} from './measureLayout.js';
 import {slurSpans} from './slurs.js';
+import {measureChordCharts} from './measureChordCharts.js';
 import {PRINT_TOP,PRINT_BOTTOM,PRINT_MARGIN} from '../printing/printGeometry.js';
 
 // Engrave once at physical paper width; metadata edits repaginate the fixed score.
@@ -68,7 +69,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
    const first=placements[i].column===1,last=!placements[i+1]||placements[i+1].row!==placements[i].row;
    const host=document.createElement('div');host.style.cssText='position:fixed;left:-100000px;top:0;visibility:hidden';document.body.append(host);
    try{
-   drawScore(host,{...compiled,document:undefined,slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],annotationOffsets:[m.annotationOffsets],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
+   drawScore(host,{...compiled,document:undefined,measureCharts:[measureChordCharts(compiled)[i]],slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],annotationOffsets:[m.annotationOffsets],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
     {editor:true,barOffset:i,view,systemFootroom,editorWidth:geometry.cellWidth,engraving:geometry,systemStart:first,systemEnd:last,scoreEnd:i===compiled.measures.length-1,tabRhythm:metadata.viewSettings?.tabRhythm!==false,tabBeamPosition:metadata.viewSettings?.tabBeamPosition,tabPickingPosition:metadata.viewSettings?.tabPickingPosition});
    const svg=host.querySelector('svg');svg.querySelectorAll('.etudeEditorHit,.etudeInputCursor').forEach(el=>el.remove());
    // Keep small annotations readable at physical paper size without changing

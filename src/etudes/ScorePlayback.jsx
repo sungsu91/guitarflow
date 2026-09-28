@@ -52,11 +52,14 @@ export default function ScorePlayback({drumAudio,volume=1,score:sourceScore,prac
    const repeats=practice?(repeatCount===0?Infinity:Math.max(1,repeatCount)):1,totalDuration=timeline.duration*repeats,cycleTicks=timeline.duration*480*bpm/60;
    if(from.bar!=null&&!timeline.order.includes(from.bar))throw Error(ko["etudes.theSelectedBarIsNotPlayedOnTheCurrentRepeatPathChoose"]);
    if(!timeline.duration||offset>=totalDuration-1e-7){pending.current=null;return;}
-   const voices=optionalSound?[]:voicesFrom(timeline,offset);
-   if((!practice||sound)&&instrument==='clean-guitar')voices.slice(0,6).forEach((voice,index)=>warmGuitarPhrase(ctx,voice,index));
+   // Prepare optional guitar audio before the clock starts, just like preview
+   // playback. Cold PCM generation must not make the first note lag the cursor.
+   const preparedVoiceTimeline=optionalSound&&voiceSettings.current.sound&&instrument==='clean-guitar'?guitarVoiceTimeline(score,bpm):null;
+   const voices=preparedVoiceTimeline?voicesFrom(preparedVoiceTimeline,offset):optionalSound?[]:voicesFrom(timeline,offset);
+   if(instrument==='clean-guitar')voices.slice(0,6).forEach((voice,index)=>warmGuitarPhrase(ctx,voice,index));
    const clicks=practiceClicks(performedMeasures(score,timeline.order)).flatMap(c=>Array.from({length:metroOptions.clicksPerBeat??1},(_,i)=>({...c,tick:c.tick+i*1920/c.meter[1]/(metroOptions.clicksPerBeat??1),subdivisionIndex:i,downbeat:c.downbeat&&i===0}))).map(c=>({...c,time:c.tick*60/bpm/480}));
    const clock=await metro.start({clicks,beatOffset:(offset*480*bpm/60%capacity)/(1920/score.meter[1]),durationSeconds:totalDuration-offset,cycleSeconds:timeline.duration,cycleOffset:offset,repeatCount:repeats});if(request!==token.current||!clock)return;
-   const s={ctx,instrument,piano,soundReady:!optionalSound,voices,timeline,repeats,cycleTicks,voiceCycle:Math.floor(offset/timeline.duration),nextVoices:[],output:createScoreVoiceOutput(ctx),index:0,start:clock.origin-offset,timer:0,slot:null,getTimelineTick:()=>Math.max(offset*480*bpm/60,(ctx.currentTime-(clock.origin-offset))*480*bpm/60)};s.getCycleTick=()=>Math.min(s.getTimelineTick(),Number.isFinite(repeats)?cycleTicks*repeats-1e-6:Infinity)%cycleTicks;s.output.setVolume(voiceSettings.current.volume);session.current=s;if(optionalSound)updateSound(s);pending.current=null;setPlaying(true);setError('');
+   const s={ctx,instrument,piano,soundReady:!optionalSound||Boolean(preparedVoiceTimeline),voices,voiceTimeline:preparedVoiceTimeline,timeline,repeats,cycleTicks,voiceCycle:Math.floor(offset/timeline.duration),nextVoices:preparedVoiceTimeline?.voices??[],output:createScoreVoiceOutput(ctx),index:0,start:clock.origin-offset,timer:0,slot:null,getTimelineTick:()=>Math.max(offset*480*bpm/60,(ctx.currentTime-(clock.origin-offset))*480*bpm/60)};s.getCycleTick=()=>Math.min(s.getTimelineTick(),Number.isFinite(repeats)?cycleTicks*repeats-1e-6:Infinity)%cycleTicks;s.output.setVolume(voiceSettings.current.volume);session.current=s;if(optionalSound&&!preparedVoiceTimeline)updateSound(s);pending.current=null;setPlaying(true);setError('');
    const tick=()=>{
     if(session.current!==s)return;
     while(s.soundReady){

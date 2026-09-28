@@ -333,11 +333,11 @@ export function scheduleGuitarPhrase(audio, phrase, when, output, level = 0.4) {
   }
   const down=phrase.pickStroke==='down',up=phrase.pickStroke==='up';
   const natural=1.5+phrase.string*.18;
-  return schedulePluck(audio,position,when,level*(down?1.07:up?.93:1),Math.max(natural,phrase.duration),output,null,down?.004:up?.006:.005,down?.87:up?1.13:1,phrase);
+  return schedulePluck(audio,position,when,level*(down?1.07:up?.93:1),Math.max(natural,phrase.duration+(phrase.releaseTail??0)),output,null,down?.004:up?.006:.005,down?.87:up?1.13:1,phrase);
 }
 export function warmGuitarPhrase(audio,phrase,offset=0){
  const position={stringNumber:phrase.string,fretNumber:phrase.fret??0,midi:phrase.midi,frequency:440*2**((phrase.midi-69)/12)};
- const duration=Math.max(1.5+phrase.string*.18,phrase.duration),rate=Math.max(1,...(phrase.segments??[]).map(s=>2**((s.midi-phrase.midi+maximumBend(phrase))/12)));
+ const duration=Math.max(1.5+phrase.string*.18,phrase.duration+(phrase.releaseTail??0)),rate=Math.max(1,...(phrase.segments??[]).map(s=>2**((s.midi-phrase.midi+maximumBend(phrase))/12)));
  // One upcoming attack only; variants fill the bounded cache as they are used.
  return getStringBuffer(audio,position,Math.min(8,duration*rate+.3),{variant:((voiceSequences.get(audio)??0)+offset)%PLUCK_VARIANTS,muted:phrase.dead,sustain:reinforcedSustain(phrase)});
 }

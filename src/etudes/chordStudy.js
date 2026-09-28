@@ -19,7 +19,7 @@ export function drawChordDiagram(svg, shape, name, x, y, options={}) {
   const columns=shape.fretWindow?shape.fretWindow.end-base+1:Math.max(4,Math.max(0,...positive)-base+1);
   const gridWidth=options.width??72,large=Boolean(options.large),ink=large?'#70513b':'#111';
   const gx=x+34, gy=y+(large?40:10), gap=large?18:12, step=gridWidth/columns;
-  const text=(tx,ty,label,size=12,fill='#111',attrs={})=>add('text',{x:tx,y:ty,'text-anchor':'middle',fill,style:`font:600 ${size}px Arial,sans-serif;fill:${fill}`,...attrs},label);
+  const text=(tx,ty,label,size=12,fill='#111',attrs={})=>add('text',{x:tx,y:ty,'text-anchor':'middle',fill,stroke:'none',style:`font:600 ${size}px Arial,sans-serif;fill:${fill};stroke:none`,...attrs},label);
   text(gx+gridWidth/2,large?y+17:gy+(shape.frets.length-1)*gap+34,name,large?24:17,ink);
   // Left-rotated chord box: high E (string 1) at the top; frets increase rightward.
   for(let row=0;row<shape.frets.length;row++) {

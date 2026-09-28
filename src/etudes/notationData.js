@@ -11,14 +11,14 @@ export const BLUES = [0, 3, 5, 6, 7, 10];
 export const TECHNIQUES = Object.freeze({ H: ko["etudes.hammerOn"], P: ko["etudes.pullOff"], S: ko["etudes.slide"] });
 
 export function parseChord(symbol) {
-  const match=symbol.match(/^([A-G])([#♯b♭]?)(maj7|m7b5|m7|m|7|m\(add9\)|madd9|add9|sus2|sus4|6)?(?:\/([A-G])([#♯b♭]?))?$/);
+  const match=symbol.match(/^([A-G])([#♯b♭]?)(maj7|m7b5|m7|m|7sus4|7|m\(add9\)|madd9|add9|sus2|sus4|6)?(?:\/([A-G])([#♯b♭]?))?$/);
   if(!match)throw new Error(ko["etudes.unsupportedChord"]+symbol);
   const [,letter,acc,quality='',bass,bassAcc]=match;
   const root=letter+(acc==='♯'?'#':acc==='♭'?'b':acc);
   const pitchClass=(letter,acc)=>(NATURAL[letter]+(acc==='#'||acc==='♯'?1:acc==='b'||acc==='♭'?-1:0)+12)%12;
   const pc=pitchClass(letter,acc),family=quality.startsWith('m')&&!quality.startsWith('maj')?'minor':'major';
   const type=quality==='m'?'none':quality==='m(add9)'||quality==='madd9'?'add9':quality||'none';
-  const intervals=CHORD_TONE_INTERVALS[family][type].map(n=>n%12).sort((a,b)=>a-b);
+  const intervals=(quality==='7sus4'?[0,5,7,10]:CHORD_TONE_INTERVALS[family][type]).map(n=>n%12).sort((a,b)=>a-b);
   return {root,pc,intervals,family,...(bass?{bassPc:pitchClass(bass,bassAcc)}:{})};
 }
 
@@ -37,7 +37,7 @@ export function spellMidi(midi, root, family, blue = false) {
 export function validateEtude(etude) {
   const errors = [];
   etude.measures.forEach((measure, bar) => {
-    if (Math.abs(measure.reduce((sum, n) => sum + 4 / Number(n.duration) * (n.dotted ? 1.5 : 1) * (n.tuplet ? n.tuplet.normalNotes / n.tuplet.actualNotes : 1), 0) - 4) > 1e-8) errors.push(formatMessage(ko["etudes.barValueBeatTotal"], { value1: bar + 1 }));
+    for(const voice of new Set(measure.map(n=>n.voice)))if (Math.abs(measure.filter(n=>n.voice===voice).reduce((sum, n) => sum + 4 / Number(n.duration) * (n.dotted ? 1.5 : 1) * (n.tuplet ? n.tuplet.normalNotes / n.tuplet.actualNotes : 1), 0) - 4) > 1e-8) errors.push(formatMessage(ko["etudes.barValueBeatTotal"], { value1: bar + 1 }));
     let nextTick=0;
     measure.forEach((n, i) => {
       const tick=n.onset??nextTick;
@@ -66,4 +66,3 @@ export function validateEtude(etude) {
   });
   return errors;
 }
-

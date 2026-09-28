@@ -58,10 +58,11 @@ const cache=new WeakMap();
 export const compileStats={bars:0};
 function compileBar(bar,d) {
  const context=JSON.stringify([d.tuning,d.keySignature,d.meter,d.instrument,d.capo]);const found=cache.get(bar);if(found?.context===context)return found.result;
- if(d.instrument==='piano'&&bar.events.some(e=>e.voice)){
+ if((d.instrument==='piano'||isFretted(d.instrument))&&bar.events.some(e=>e.voice)){
   const errors=[],issues=[],byId=new Map();
-  if(bar.events.some(e=>!['left','right'].includes(e.voice)||e.notes.some(n=>n.hand!==e.voice)))errors.push(ko["etudes.checkThePianoVoicesAndHandAssignments"]);
-  for(const hand of ['right','left']){
+  const names=d.instrument==='piano'?['right','left']:['melody','accompaniment'];
+  if(bar.events.some(e=>!names.includes(e.voice)||(d.instrument==='piano'&&e.notes.some(n=>n.hand!==e.voice))))errors.push('Check the voice assignments.');
+  for(const hand of names){
    const result=compileBar({...bar,events:bar.events.filter(e=>e.voice===hand).map(({voice,...e})=>e)},d);
    errors.push(...result.errors);issues.push(...result.issues);
    result.events.forEach(e=>byId.set(e.id,{...e,voice:hand}));
@@ -77,6 +78,11 @@ function compileBar(bar,d) {
   if(e.dotted!=null&&(typeof e.dotted!=='boolean'||(e.dotted&&Boolean(e.tuplet))))errors.push(ko["etudes.dottedNotesAndTripletsCannotBeAppliedTogether"]);
   if(e.tuplet&&(e.tuplet.actualNotes!==3||e.tuplet.normalNotes!==2||!['8','16'].includes(e.duration)))errors.push(formatMessage(ko["etudes.valueSupportedTupletsAre32EighthOrSixteenthNoteTriplets"], { value1: e.id }));
   if(e.onset!==end)issues.push(formatMessage(ko["etudes.valueValueStartsOnBeatValue"], { value1: e.id, value2: e.onset<end?ko["etudes.overlapsThePreviousNote"]:ko["etudes.unfilledBeat"], value3: e.onset/TICKS }));
+  if(e.sustainTicks!=null&&(!isFretted(d.instrument)||!Number.isInteger(e.sustainTicks)||e.sustainTicks<=0||e.onset+e.sustainTicks>capacity))errors.push('Sustain must end within the written bar.');
+  if(e.dampAtEnd!=null&&typeof e.dampAtEnd!=='boolean')errors.push('Check the note release setting.');
+  if(e.releaseTail!=null&&(!Number.isFinite(e.releaseTail)||e.releaseTail<0||e.releaseTail>8))errors.push('Check the final release tail.');
+  if(e.velocityByPass!=null&&(!Array.isArray(e.velocityByPass)||!e.velocityByPass.length||e.velocityByPass.some(v=>!Number.isFinite(v)||v<0||v>1)))errors.push('Check the repeat dynamics.');
+  if(e.dynamicText!=null&&(typeof e.dynamicText!=='string'||e.dynamicText.length>40||e.onset!==0))errors.push('Place a short dynamic marking at the start of the bar.');
   end=Math.max(end,e.onset+ticksOf(e));
   if(!e.rest&&(!e.notes.length||new Set(e.notes.filter(n=>!n.unplaced).map(n=>isFretted(d.instrument)?n.string:n.midi)).size!==e.notes.filter(n=>!n.unplaced).length))errors.push(formatMessage(ko["etudes.valueDuplicateStringOrEmptyNote"], { value1: e.id }));
   if(!isFretted(d.instrument)){if(e.letRing||e.slideOut||e.slideIn||e.notes.some(n=>n.bendEffect||n.parenthesized)||e.technique||e.pickStroke||e.palmMute||e.vibrato||e.dead||e.arpeggio||e.notes.some(n=>n.harmonic||n.dead||n.string!=null||n.fret!=null))errors.push(ko["etudes.stringsFretsAndGuitarTechniquesCannotBeAppliedToKeyboardOrDrums"]);if(e.notes.some(n=>n.hand!=null&&!['left','right'].includes(n.hand)))errors.push(ko["etudes.chooseLeftOrRightHand"]);if(d.instrument==='drums'&&e.tieTo)errors.push(ko["etudes.tiesAreNotAppliedToDrums"]);}

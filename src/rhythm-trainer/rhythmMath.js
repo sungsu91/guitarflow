@@ -4,6 +4,13 @@ export const UNITS_PER_TICK = 35;
 export const QUARTER_UNITS = 420;
 export const units = n => Math.round(n.ticks * UNITS_PER_TICK);
 export const writtenTicks = n => n.written ?? (n.ticks === 4 ? 6 : n.ticks);
+export const canSustain = n => !!n&&!n.rest&&!n.muted;
+export function setNoteAction(note,action) {
+  const next={...note,rest:action==='rest'};
+  if(action==='mute')next.muted=true;else delete next.muted;
+  if(!canSustain(next))delete next.tie;
+  return next;
+}
 export function tuplet(count, rests = [], half = false) {
   const written = count === 3 && !half ? 6 : 3;
   const normal = count === 3 ? 2 : 4;
@@ -23,6 +30,7 @@ export function tupletGroups(beat) {
 export function validateBeat(beat, duration = 12) {
   if(![12,18].includes(duration)||!Array.isArray(beat)||!beat.length||beat.length>(duration===18?12:8))return false;
   if(!beat.every(n=>n&&Number.isFinite(n.ticks)&&n.ticks>0&&Math.abs(n.ticks*35-units(n))<1e-7&&typeof n.rest==='boolean'&&(n.tie===undefined||typeof n.tie==='boolean')))return false;
+  if(beat.some(n=>(n.muted!==undefined&&typeof n.muted!=='boolean')||(n.muted&&(n.rest||n.tie))))return false;
   if(beat.reduce((sum,n)=>sum+units(n),0)!==duration*35)return false;
   if(beat.some(n=>n.ticks===4&&!n.tuplet))return beat.length===3&&beat.every(n=>n.ticks===4&&!n.tuplet&&!n.written);
   if(!beat.every(n=>n.tuplet ? [3,5,6,7].includes(n.tuplet.count)&&(n.tuplet.normal===(n.tuplet.count===3?2:4)||(duration===18&&n.tuplet.count!==3&&n.tuplet.normal===3&&n.written===6))&&Number.isInteger(n.tuplet.group)&&[3,6].includes(n.written)&&Math.abs(n.ticks-n.written*n.tuplet.normal/n.tuplet.count)<1e-8 : [3,6,9,12,...(duration===18?[18]:[])].includes(n.ticks)&&n.written===undefined))return false;

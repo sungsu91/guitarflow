@@ -8,7 +8,7 @@ const [appSource, polishCss] = await Promise.all([
   readFile(new URL("../src/polish.css", import.meta.url), "utf8"),
 ]);
 
-test("scale training exposes only scale and pentatonic families with five box positions", () => {
+test("scale training keeps five boxes and adds shared root positions to the existing picker", () => {
   const trainingFamilySource = appSource.slice(
     appSource.indexOf("const SCALE_TRAINING_FAMILIES ="),
     appSource.indexOf("const PENTATONIC_BOX_PATTERNS ="),
@@ -20,10 +20,13 @@ test("scale training exposes only scale and pentatonic families with five box po
   assert.doesNotMatch(appSource, /SCALE_LICK_UI_ENABLED/);
   assert.match(
     appSource,
-    /const selectedScaleDetailOptions = isSelectedScaleLick[\s\S]*?: SCALE_BOX_OPTIONS\.map\(\(boxNumber\) => \(\{ id: boxNumber, label: `BOX\$\{boxNumber\}` \}\)\);/,
+    /const selectedScaleDetailOptions = isSelectedScaleLick[\s\S]*?: getScalePositionOptions\(\);/,
   );
   assert.doesNotMatch(appSource, /SCALE_BOX_SET_UP_RIGHT_ID|SCALE_BOX_SET_DOWN_RIGHT_ID/);
-  assert.match(appSource, /const nextBox = Math\.max\(1, Math\.min\(5, Number\(boxValue\) \|\| 1\)\);/);
+  assert.match(appSource, /const nextBox = normalizeScalePosition\(boxValue\);/);
+  assert.match(appSource, /const SCALE_BOX_OPTIONS = \[1, 2, 3, 4, 5\]/);
+  assert.match(appSource, /id: "root-1"/);
+  assert.match(appSource, /id: "root-2"/);
 });
 
 test("mobile scale picker removes visible field labels and enlarges dropdown text", () => {
