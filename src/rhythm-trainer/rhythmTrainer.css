@@ -382,7 +382,10 @@ html body .rt-sheet-overlay > .rt-dialog.rt-sheet {pointer-events:auto}
 .rt-workspace .rt-tabs > button {white-space:nowrap}
 .rt-workspace .rt-tabs > .rt-create-inline {margin-left:auto;border:1px solid var(--rt-border);border-radius:7px;padding:5px 8px;min-height:30px;font-size:11px;flex-shrink:0}
 
-.rt-library-summary {display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 14px;flex-shrink:0}
+.rt-library-summary {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:6px 14px;flex-shrink:0}
+.rt-library-actions {display:flex;align-items:center;gap:4px;margin-left:auto}
+.rt-workspace .rt-library-actions button {font-size:11px;padding:5px 6px;min-height:32px;white-space:nowrap}
+.rt-header .rt-menu-button {display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .rt-library-summary .rt-result-count {margin:0;padding:0}
 .rt-workspace .rt-library-summary .rt-create-inline {margin-left:auto;border:1px solid var(--rt-border);border-radius:7px;padding:5px 8px;min-height:30px;font-size:11px;white-space:nowrap}
 
