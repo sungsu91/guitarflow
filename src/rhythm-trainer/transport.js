@@ -1,16 +1,25 @@
 import {beatTicks,secondsPerTick} from './meter.js';
 import { timeline,playbackTicks } from './model.js';
+// Use device output time for every visual; scheduling still uses currentTime.
+// A missing/uninitialized timestamp must not advance the UI ahead of the speaker.
+export function audibleContextTime(context,now=performance.now()) {
+  const stamp=context.getOutputTimestamp?.();
+  if(stamp?.contextTime>0&&Number.isFinite(stamp.performanceTime))
+    return Math.min(context.currentTime,stamp.contextTime+Math.max(0,now-stamp.performanceTime)/1000);
+  const latency=[context.baseLatency,context.outputLatency].reduce((sum,n)=>sum+(Number.isFinite(n)&&n>0?n:0),0);
+  return Math.max(0,context.currentTime-latency);
+}
 // Schedule compiled event onsets directly; tuplets need no integer-tick approximation.
 export class RhythmTransport {
   constructor(context, output, onFrame) {this.ctx=context;this.output=output;this.onFrame=onFrame;this.sources=new Set();this.tick=0;this.running=false;}
   configure(pattern) {const running=this.running;const tick=this.position();this.stop();this.pattern=pattern;this.beatTicks=beatTicks(pattern);this.events=timeline(pattern);this.total=playbackTicks(pattern);this.tick=tick>=this.total?tick%this.total:tick;if(running)this.start(false);}
-  position() {return this.running?this.anchorTick+Math.max(0,this.ctx.currentTime-this.anchorTime)/secondsPerTick(this.pattern):this.tick;}
-  audiblePosition() {const stamp=this.ctx.getOutputTimestamp?.(); const time=stamp?.contextTime>0?stamp.contextTime+(performance.now()-stamp.performanceTime)/1000:this.ctx.currentTime;return this.anchorTick+Math.max(0,time-this.anchorTime)/secondsPerTick(this.pattern);}
-  start(count=true) {if(this.running)return; if(count&&this.tick<=0&&this.pattern.countIn)this.tick=-(this.pattern.meter+1)*this.beatTicks;this.anchorTick=this.tick;this.anchorTime=this.ctx.currentTime+.045;this.next=this.tick;this.lastAudibleTick=this.tick;this.running=true;this.onFrame(this.tick,true);if(this.tick<0){
+  position() {return this.running?Math.max(this.lastAudibleTick??this.anchorTick,this.audiblePosition()):this.tick;}
+  audiblePosition() {return this.anchorTick+Math.max(0,audibleContextTime(this.ctx)-this.anchorTime)/secondsPerTick(this.pattern);}
+  start(count=true) {if(this.running)return; if(count&&this.tick<=0&&this.pattern.countIn)this.tick=-(this.pattern.meter+1)*this.beatTicks;this.anchorTick=this.tick;this.anchorTime=this.ctx.currentTime+.045;this.next=this.tick;this.lastAudibleTick=this.tick;this.running=true;this.onFrame(this.tick,true,false);if(this.tick<0){
       // Queue the entire count-in before UI rendering can stall a timer.
       for(let beat=Math.max(Math.ceil(this.tick/this.beatTicks)*this.beatTicks,-this.pattern.meter*this.beatTicks);beat<0;beat+=this.beatTicks)this.beatSound(this.anchorTime+(beat-this.anchorTick)*secondsPerTick(this.pattern),((beat/this.beatTicks%this.pattern.meter)+this.pattern.meter)%this.pattern.meter,beat%(this.pattern.meter*this.beatTicks)===0);
       this.next=0;
-    }this.timer=setInterval(()=>this.schedule(),20);this.schedule();const draw=()=>{if(!this.running)return;const t=Math.max(this.lastAudibleTick,this.audiblePosition());this.lastAudibleTick=t;if(!this.pattern.loop&&t>=this.total){this.stop();this.tick=0;this.onFrame(0,false);return;}this.onFrame(t,true);this.raf=requestAnimationFrame(draw);};this.raf=requestAnimationFrame(draw);}
+    }this.timer=setInterval(()=>this.schedule(),20);this.schedule();const draw=()=>{if(!this.running)return;const time=audibleContextTime(this.ctx);const t=Math.max(this.lastAudibleTick,this.anchorTick+Math.max(0,time-this.anchorTime)/secondsPerTick(this.pattern));this.lastAudibleTick=t;if(!this.pattern.loop&&t>=this.total){this.stop();this.tick=0;this.onFrame(0,false);return;}this.onFrame(t,true,time>=this.anchorTime);this.raf=requestAnimationFrame(draw);};this.raf=requestAnimationFrame(draw);}
   stop() {this.tick=this.position();this.running=false;clearInterval(this.timer);cancelAnimationFrame(this.raf);for(const source of this.sources){try{source.stop();}catch{} source.disconnect();}this.sources.clear();}
   pause() {this.stop();this.onFrame(this.tick,false);}
   seek(tick) {const running=this.running;this.stop();this.tick=tick;this.onFrame(tick,running);if(running)this.start(false);}

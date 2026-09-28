@@ -1,11 +1,22 @@
 // Optical spacing follows the reference sheet. Transport time stays musical:
 // interpolate between the rendered event centers using each event's duration.
 const POSITIONS = {1:[.42],2:[.16,.64],3:[.10,.39,.66],4:[.08,.30,.52,.74]};
-export function beatPositions(beat, beatIndex, meter) {
+// Guide notes sit at subdivision centers. Use those same anchors for the cursor,
+// including held subdivisions and the shorter tail after the last cell center.
+export function guideCursorX(beat,tick,cellTicks) {
+  const total=beat.reduce((sum,n)=>sum+n.ticks,0),count=Math.round(total/cellTicks);
+  const cell=Math.max(0,Math.min(count-1,Math.floor((tick+1e-9)/cellTicks)));
+  const from=15+(cell+.5)*158/count,to=cell+1<count?from+158/count:173;
+  const progress=Math.max(0,Math.min(1,(tick-cell*cellTicks)/cellTicks));
+  return from+(to-from)*progress;
+}
+export function beatPositions(beat, beatIndex, meter, timeAligned=false, cellTicks=3) {
+  if(timeAligned){let at=0;return beat.map(n=>{const x=guideCursorX(beat,at,cellTicks);at+=n.ticks;return x;});}
   const width=316/meter;
   return (POSITIONS[beat.length] || Array.from({length:beat.length},(_,i)=>.05+i*.84/(beat.length-1))).map(fraction=>30+(beatIndex+fraction)*width);
 }
-export function scoreCursorX(measure,meter,position) {
+export function scoreCursorX(measure,meter,position,timeAligned=false,cellTicks=3) {
+  if(timeAligned)return guideCursorX(measure[0],position.tick,cellTicks);
   const event=position?.event;
   if(!event)return 30;
   const xs=beatPositions(measure[event.beat],event.beat,meter);

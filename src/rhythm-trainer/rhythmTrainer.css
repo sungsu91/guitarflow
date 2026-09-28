@@ -5,7 +5,13 @@
 .rt-backing-target button{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
 .rt-backing-target svg{width:14px;height:14px;flex:none}
 .rt-backing-target i{font-style:normal;color:#198366}
-.rt-mobile .rt-quick:has(.rt-backing-target){gap:4px;flex-wrap:wrap}
+.rt-mobile .rt-quick:has(.rt-backing-target){display:flex;justify-content:flex-start;gap:4px;flex-wrap:nowrap}
+.rt-mobile .rt-quick > span:first-child{flex:0 0 auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rt-mobile .rt-quick > button{flex:0 0 auto;white-space:nowrap}
+@media(max-width:360px){
+ .rt-mobile .rt-quick:has(.rt-backing-target){padding-inline:10px;font-size:10px}
+ .rt-mobile .rt-quick:has(.rt-backing-target) button{font-size:10px;padding-inline:4px}
+}
 .rt-desktop .rt-backing-target{margin-right:8px}
 body:has(:is(.theme-dark,.theme-brand) .rt-workspace) .rt-dialog{background:#1b2633;color:#e6edf5;--rt-bg:#233142;--rt-border:#344253}body:has(:is(.theme-dark,.theme-brand) .rt-workspace) .rt-dialog input,body:has(:is(.theme-dark,.theme-brand) .rt-workspace) .rt-dialog select{background:#233142;color:#e6edf5}body:has(:is(.theme-dark,.theme-brand) .rt-workspace) .rt-dialog small{color:#a6b6c8}
 .rt-dialog input,.rt-dialog select{background:#fff;color:#273443}.rt-overlay{overflow:hidden}.rt-workspace button.rt-message{padding:7px;min-height:30px}

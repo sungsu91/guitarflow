@@ -2,7 +2,7 @@ import React from 'react';
 import {writtenTicks,tupletGroups} from './rhythmMath.js';
 import {beatPositions,scoreCursorX,subdivisionRegion,subdivisionTicks} from './notationLayout.js';
 export default function RhythmScore({measures,meter,position,selected,onSelect,onMeasureSelect,measureActionLabel,preview=false,label,stemDirection='auto',measureOffset=0,previousMeasure,timeAligned=false,cellTicks=3,measureRepeats=[],progressStyle=1,connected=false}) {
- const positions=(beat,bi,m)=>timeAligned?beat.map((_,i)=>15+(beat.slice(0,i).reduce((v,n)=>v+n.ticks,0)+cellTicks/2)/beat.reduce((v,n)=>v+n.ticks,0)*158):beatPositions(beat,bi,m);
+ const positions=(beat,bi,m)=>beatPositions(beat,bi,m,timeAligned,cellTicks);
  const down=stemDirection==='down';const y=down?32:46;const flip=down?'translate(0 78) scale(1 -1)':undefined;
  const compact=preview&&meter===1;const layoutMeter=compact?2:meter;const staffEnd=timeAligned?175.5:compact?171:351;
  return <div className={`rt-score ${preview?'rt-preview':''}`} aria-label={label}>{measures.map((measure,localMi)=>{const mi=localMi+measureOffset;return <svg key={mi} className="rt-measure" data-stem-direction={down?'down':'up'} preserveAspectRatio="xMidYMid meet" viewBox={connected?"23 0 328 78":`0 0 ${timeAligned||compact?180:360} 78`} role="group" aria-label={`${mi+1}`} data-measure={mi}>
@@ -28,7 +28,7 @@ export default function RhythmScore({measures,meter,position,selected,onSelect,o
  {onSelect&&<rect role="button" aria-label={`${mi+1} / ${bi+1}`} tabIndex="0" x={left-6} y="5" width={width} height="67" fill="transparent" onClick={()=>onSelect(mi,bi)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(mi,bi);}}}/>}
  </g>;})}
  {(localMi>0?measures[localMi-1]:previousMeasure)?.at(-1).at(-1).tie&&<path className="rt-tie rt-tie-continuation" transform={flip} d={`M23 54 Q${(23+positions(measure[0],0,layoutMeter)[0])/2} 66 ${positions(measure[0],0,layoutMeter)[0]-3} 54`} fill="none" stroke="var(--rt-ink, #252d36)" strokeWidth="1.4"/>}
- {progressStyle===1&&position&&position.measure===mi&&<line className="rt-cursor" x1={(timeAligned?15+position.tick/measure[0].reduce((v,n)=>v+n.ticks,0)*158:scoreCursorX(measure,meter,position))} x2={(timeAligned?15+position.tick/measure[0].reduce((v,n)=>v+n.ticks,0)*158:scoreCursorX(measure,meter,position))} y1="6" y2="76" stroke="var(--rt-note-active, #d77865)" strokeWidth="1.2" opacity=".42"/>}
+ {progressStyle===1&&position&&position.measure===mi&&<line className="rt-cursor" x1={scoreCursorX(measure,layoutMeter,position,timeAligned,cellTicks)} x2={scoreCursorX(measure,layoutMeter,position,timeAligned,cellTicks)} y1="6" y2="76" stroke="var(--rt-note-active, #d77865)" strokeWidth="1.2" opacity=".42"/>}
  {onMeasureSelect&&<rect role="button" aria-label={measureActionLabel?.(mi)||`Play from bar ${mi+1}`} tabIndex="0" x="0" y="0" width={timeAligned||compact?180:360} height="78" fill="transparent" style={{cursor:'pointer'}} onClick={()=>onMeasureSelect(mi)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onMeasureSelect(mi);}}}/>}
  </svg>;})}</div>;
 }
