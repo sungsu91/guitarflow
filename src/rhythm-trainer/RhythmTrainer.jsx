@@ -45,6 +45,11 @@ export default function RhythmTrainer({mobile,onExit,onOpenMenu,beatTone='tick',
   pause();setScorePage(0);setTick(0);engine.current?.seek(0);setModal(null);setGuide(null);setPrintPack(null);
   if(previous==='edit'&&editOrigin.current){setP(editOrigin.current.pattern);editOrigin.current=null;}
  });const [libraryTab,setLibraryTab]=useState('recommended');const [selected,setSelected]=useState([0,0]);const [modal,setModal]=useState(null);const [settings,setSettings]=useState(null);const [draftBeat,setDraftBeat]=useState([]);const [presetGroup,setPresetGroup]=useState('basic');const [tieNext,setTieNext]=useState(false);const [difficulty,setDifficulty]=useState('medium');const [range,setRange]=useState([1,5]);const [audible,setAudible]=useState(false);const [running,setRunning]=useState(false);const [tick,setTick]=useState(0);const [message,setMessage]=useState('');const engine=useRef(null);const score=useRef(null);const editOrigin=useRef(null);
+ // Activity reconnects layout effects when returning from another app menu.
+ useLayoutEffect(()=>{
+  setPrintSelecting(false);
+  setPrintIds([]);
+ },[]);
  const [backingClearance,setBackingClearance]=useState(90);
  useLayoutEffect(()=>{
   const footer=document.querySelector('.rt-workspace footer');if(!footer)return;
