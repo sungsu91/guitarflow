@@ -1,4 +1,4 @@
-import {validateBeat,units,tuplet,tupletGroups} from './rhythmMath.js';
+import {validateBeat,units,tuplet,tupletGroups,writtenTicks} from './rhythmMath.js';
 import {TIME_SIGNATURES,meterInfo,beatTicks} from './meter.js';
 export const STORAGE_KEY = 'rifflab-rhythm-trainer-v1';
 export const note = (ticks, rest = false) => ({ ticks, rest });
@@ -180,7 +180,19 @@ export function positionAt(p,tick) {
 }
 export function readStore(storage) {try { const s=JSON.parse(storage.getItem(STORAGE_KEY)||'{}');return {patterns:Array.isArray(s.patterns)?s.patterns.filter(validPattern):[],draft:validPattern(s.draft)?s.draft:null}; } catch {return {patterns:[],draft:null};} }
 
-// Basic subdivision shortcuts also remain available in their detailed categories.
+// The editor has one catalog. Keep the source banks and their stored indices
+// unchanged for existing packs, the guide and random pattern generation.
+export const EDITOR_PRESET_GROUPS = PRESET_GROUPS.map(group=>group[0]==='triplet'?['triplet','연음','Tuplets']:group);
 export function editorPresets(group,meter=4) {
- return beatPresets(meter).filter(p=>p.group===group||(group==='basic'&&['sixteenths','triplets','compound-six'].includes(p.id)));
+ const compound=meterInfo(meter).compound;
+ const presets=beatPresets(meter).map(p=>p.beat.every(n=>n.rest)?{...p,group:'rests'}:p);
+ if(!compound)presets.push({id:'eighth-short-triplet',group:'triplet',ko:'8분 + 짧은 셋잇단',en:'Eighth + short triplet',beat:[note(6),...tuplet(3,[],true)]});
+ for(const count of [5,6,7])presets.push({id:'tuplet-'+count,group:'triplet',ko:count+'연음',en:count+'-tuplet',beat:beatTuplet(count,meter)});
+ return presets.filter(p=>p.group===group);
+}
+export function matchesBeatPreset(beat,preset) {
+ return beat.length===preset.length&&beat.every((n,i)=>Math.abs(n.ticks-preset[i].ticks)<1e-8&&n.rest===preset[i].rest&&writtenTicks(n)===writtenTicks(preset[i])&&(n.tuplet?.count??(n.ticks===4?3:0))===(preset[i].tuplet?.count??(preset[i].ticks===4?3:0)));
+}
+export function editorPresetForBeat(beat,meter=4) {
+ return EDITOR_PRESET_GROUPS.flatMap(([group])=>editorPresets(group,meter)).find(p=>matchesBeatPreset(beat,p.beat));
 }
