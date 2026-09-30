@@ -1,5 +1,11 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "editor.tabRepeat": "반복 운지 생략",
+  "editor.tabRepeatRangeHint": "선택 구간에 적용 · 같은 운지는 /와 리듬으로 표시합니다. 마디 첫 코드·운지 변경·쉼표 뒤에는 숫자를 표시합니다. 다시 누르면 복원합니다.",
+  "editor.tabRepeatBarHint": "현재 마디에 적용 · 같은 운지는 /와 리듬으로 표시합니다. 여러 마디는 드래그로 선택하세요. 다시 누르면 복원합니다.",
+  "editor.tabRepeatApplied": "반복 운지 생략 적용 · 첫 코드와 바뀐 운지는 숫자로, 반복은 /로 표시합니다. 실제 음과 재생은 유지됩니다.",
+  "editor.tabRepeatRestored": "선택한 범위의 운지 숫자를 다시 표시합니다.",
+  "editor.tabRepeatInvalid": "반복 운지 생략 설정을 확인하세요.",
   "pdf.resetPractice": "처음으로",
   "app.shareSite": "공유하기",
   "app.siteLinkCopied": "사이트 링크를 복사했어요.",

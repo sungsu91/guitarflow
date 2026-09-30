@@ -14,6 +14,7 @@ import {drawKeyboardScore,keyboardSpacing} from './KeyboardScore.js';
 import {isFretted} from './scoreInstruments.js';
 import {slidePairs} from './slidePairs.js';
 import {tabPositions} from './tabPositions.js';
+import {tabRepeatMask,tabRepeatHead} from './tabRepeat.js';
 import {tuningCaption} from './scoreTuning.js';
 import usePracticeFollow from './usePracticeFollow.js';
 import {measureMeters,meterTicks} from './scoreMeters.js';
@@ -75,6 +76,15 @@ class TabFretDots extends Dot {
 class AlignedTabNote extends TabNote {
   constructor(options, staffNote) {super(options);this.staffNote=staffNote;}
   drawPositions() {
+    if(this.tabRepeat){
+      const ctx=this.checkContext(),{y,halfHeight:h,halfWidth:w}=tabRepeatHead(this.checkStave()),x=this.getStemX();
+      const hollow=this.getDuration()==='1'||this.getDuration()==='2',thickness=hollow?2.8:1;
+      const group=ctx.openGroup('tab-repeat-slash');group.setAttribute('data-tab-repeat','true');
+      ctx.save();ctx.setLineWidth(1.3);
+      ctx.beginPath();ctx.moveTo(x-w-thickness,y+h);ctx.lineTo(x+w-thickness,y-h);ctx.lineTo(x+w+thickness,y-h);ctx.lineTo(x-w+thickness,y+h);ctx.closePath();
+      if(hollow){ctx.setFillStyle('white');ctx.fill();ctx.stroke();}else ctx.fill();
+      ctx.restore();ctx.closeGroup();return;
+    }
     // VexFlow clears a white rectangle behind each fret. Keep only the glyph.
     const ctx=this.checkContext(),clear=ctx.clearRect;
     ctx.clearRect=()=>ctx;
@@ -102,6 +112,7 @@ class EditableTuplet extends Tuplet {
 
 
 function prepareMeasure(measure, etude) {
+    const repeatMask=etude.tabRhythmVisible===false?[]:tabRepeatMask(measure);
     const polyphonic=measure.some(n=>n.voice==='melody');
     const notes = measure.map(n => isBlankEvent(n)?new GhostNote({duration:n.duration+(n.dotted?'d':'')}):new StaveNote({ clef:scoreInstrument(etude.instrument).clef, keys: n.rest ? [scoreInstrument(etude.instrument).clef==='bass'?'d/3':polyphonic&&n.voice==='melody'?'d/5':'b/4'] : (n.tones ?? [n]).map(t=>t.pitch.key+((t.dead??n.dead)?'/x':'')), duration: n.duration+(n.dotted?'d':'')+(n.rest?'r':''), auto_stem: !polyphonic,...(polyphonic?{stem_direction:n.voice==='melody'?1:-1}:{}) }));
     // Whole-note heads are wider than eighth-note heads. Independent voices
@@ -112,6 +123,7 @@ function prepareMeasure(measure, etude) {
       if(n.rest) return new GhostNote({duration:n.duration+(n.dotted?'d':'')});
       const note = new AlignedTabNote({ positions: tabPositions(n,scoreInstrument(etude.instrument).tuning.length), duration: n.duration+(n.dotted?'d':'') },tabAnchors.get(n.onset)??notes[i]);
       note.render_options.font = '18px Arial';
+      note.tabRepeat=Boolean(repeatMask[i]);
       note.render_options.draw_dots = true;
       if(n.dotted&&etude.tabRhythmVisible!==false&&!etude.tabRhythmDots)note.addModifier(new TabFretDots(),0);
       return note;

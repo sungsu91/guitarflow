@@ -1,5 +1,11 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "editor.tabRepeat": "Hide repeated frets",
+  "editor.tabRepeatRangeHint": "Apply to selected range: show repeated grips as rhythm slashes. Show frets at each bar start, grip change and after rests. Click again to restore.",
+  "editor.tabRepeatBarHint": "Apply to current bar: show repeated grips as rhythm slashes. Drag to select multiple bars. Click again to restore.",
+  "editor.tabRepeatApplied": "Repeated frets hidden: the first and changed grips retain numbers; repeats use /. Notes and playback are preserved.",
+  "editor.tabRepeatRestored": "Fret numbers restored in the selected scope.",
+  "editor.tabRepeatInvalid": "Check the repeated-fret display setting.",
   "pdf.resetPractice": "Reset to start",
   "app.shareSite": "Share",
   "app.siteLinkCopied": "Site link copied.",

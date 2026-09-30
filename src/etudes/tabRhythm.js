@@ -1,6 +1,7 @@
 import {overrideBeamGroups} from './beamOverrides.js';
 import {isBlankEvent,tupletGroups} from './scoreModel.js';
 import {Glyph} from 'vexflow';
+import {tabRepeatHead} from './tabRepeat.js';
 const flagPaths=new Map();
 // Use the same music-font flags as the staff. A free flag curls back towards
 // the note; a partial beam inside a group remains a straight beam segment.
@@ -31,19 +32,21 @@ export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',
  const gap=tab.getYForLine(1)-tab.getYForLine(0),bottom=tab.getYForLine(tab.getNumLines()-1),direction=position==='above'?-1:1,edge=direction<0?tab.getYForLine(0):bottom,base=shortStems?edge+direction*28:edge+direction*(gap*2+10-(compact&&direction>0?10:0));
  g.dataset.position=position;g.dataset.sixthY=bottom;g.dataset.beamY=base;g.dataset.lineGap=gap;
  const line=(x1,y1,x2,y2,width,kind,event)=>{const l=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1,y1,x2,y2,stroke:'#171717','stroke-width':width,class:kind}))l.setAttribute(k,v);if(event!==undefined)l.dataset.rhythmEvent=event;g.append(l);};
- const x=i=>tabs[i].getStemX();
+ const slash=tabRepeatHead(tab);
+ const x=i=>tabs[i].getStemX()-(tabs[i].tabRepeat?direction*slash.halfWidth:0);
  // Connect chord tones across skipped strings, leaving clearance around each fret.
  // Fret numbers are the TAB noteheads. Use a short stem for a half note and
  // no stem for a whole note, rather than adding a second, floating notehead.
  events.forEach((e,i)=>{
   if(e.rest||e.duration==='1')return;
-  const toneYs=[...new Set((e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))].sort((a,b)=>a-b);
+  const repeated=tabs[i].tabRepeat;
+  const toneYs=repeated?[slash.y]:[...new Set((e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))].sort((a,b)=>a-b);
   const tied=tiedEventIds.has(e.id);
   if(!shortStems&&!tied)for(let j=1;j<toneYs.length;j++){
    if(toneYs[j]-toneYs[j-1]>gap+.01)line(x(i),toneYs[j-1]+9,x(i),toneYs[j]-9,1.4,'tabRhythmChordStem',i);
   }
   const anchor=tied?edge:(direction<0?Math.min:Math.max)(...toneYs);
-  const stemStart=shortStems?base-direction*20:anchor+direction*9;
+  const stemStart=shortStems?base-direction*20:anchor+direction*(repeated?slash.halfHeight:9);
   const stemEnd=e.duration==='2'?(shortStems?stemStart+direction*10:edge+(base-edge)*.6):base;
   line(x(i),stemStart,x(i),stemEnd,1.4,'tabRhythmStem',i);
  });
@@ -71,7 +74,7 @@ export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',
  events.forEach((e,i)=>{
   if(!e.dotted||e.rest)return;
   const levels=Math.max(0,Math.log2(Number(e.duration)/4));
-  const end=e.duration==='1'?(tiedEventIds.has(e.id)?edge:(direction<0?Math.min:Math.max)(...(e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))):e.duration==='2'?(shortStems?base-direction*10:edge+(base-edge)*.6):base;
+  const end=e.duration==='1'?(tabs[i].tabRepeat?slash.y:tiedEventIds.has(e.id)?edge:(direction<0?Math.min:Math.max)(...(e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))):e.duration==='2'?(shortStems?base-direction*10:edge+(base-edge)*.6):base;
   const dot=document.createElementNS(ns,'circle');
   const y=e.duration==='1'?end:end-direction*(7+Math.max(0,levels-1)*6);
   for(const [key,value] of Object.entries({cx:x(i)+(levels>0&&!grouped.has(i)?17:7),cy:y,r:2,fill:'#171717',stroke:'none',class:'tabRhythmDot'}))dot.setAttribute(key,value);
