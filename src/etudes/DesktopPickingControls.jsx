@@ -2,7 +2,7 @@ import {t} from '../i18n/core.js';
 import {Translation,useLanguage} from '../i18n/react.jsx';
 import './desktopEditorTools.css';
 
-export default function DesktopPickingControls({scope,onScope,pattern,onPattern,skipLegato,onSkipLegato,measures,currentBar,endBar,onEndBar,onApply}){
+export default function DesktopPickingControls({scope,onScope,pattern,onPattern,restart,onRestart,skipLegato,onSkipLegato,measures,currentBar,endBar,onEndBar,onApply}){
  useLanguage();
  return <section className="desktopPickingBatch" aria-label={t('etudes.batchPicking')}>
   <strong><Translation id="editor.pickingBatchTitle" /></strong>
@@ -12,9 +12,14 @@ export default function DesktopPickingControls({scope,onScope,pattern,onPattern,
    </select></label>
    {scope==='range'&&<label><Translation id="app.endBar" /><select aria-label={t('etudes.pickingEndBar')} value={endBar} onChange={e=>onEndBar(Number(e.target.value))}>{measures.map((m,i)=>i>=currentBar&&<option key={m.id} value={i}>{i+1}<Translation id="app.bar" /></option>)}</select></label>}
    <label className="desktopPickingPattern"><Translation id="etudes.pickingPattern" /><select aria-label={t('etudes.batchPickingPattern')} value={pattern} onChange={e=>onPattern(e.target.value)}>
-    <option value="alternate-down"><Translation id="etudes.alternateDownUpScoreEditor" /></option><option value="alternate-up"><Translation id="etudes.alternateUpDown" /></option><option value="down"><Translation id="etudes.allDown" /></option><option value="up"><Translation id="etudes.allUp" /></option><option value="clear"><Translation id="etudes.clearPickingMarks" /></option>
+    <option value="rhythm-auto"><Translation id="editor.pickingRhythmAuto" /></option><option value="rhythm-8"><Translation id="editor.pickingRhythm8" /></option><option value="rhythm-16"><Translation id="editor.pickingRhythm16" /></option>
+    <option value="alternate-down"><Translation id="editor.pickingSequentialDown" /></option><option value="alternate-up"><Translation id="editor.pickingSequentialUp" /></option><option value="down"><Translation id="etudes.allDown" /></option><option value="up"><Translation id="etudes.allUp" /></option><option value="clear"><Translation id="etudes.clearPickingMarks" /></option>
    </select></label>
+   {pattern.startsWith('alternate-')&&<label className="desktopPickingRestart"><Translation id="editor.pickingRestart" /><select aria-label={t('editor.pickingRestart')} value={restart} onChange={e=>onRestart(e.target.value)}>
+    <option value="bar"><Translation id="editor.pickingRestartBar" /></option><option value="beat"><Translation id="editor.pickingRestartBeat" /></option><option value="rest"><Translation id="editor.pickingRestartRest" /></option><option value="continuous"><Translation id="editor.pickingRestartContinuous" /></option>
+   </select></label>}
   </div>
+  {pattern.startsWith('rhythm-')&&<p className="desktopPickingRhythmHint"><Translation id={pattern==='rhythm-8'?'editor.pickingRhythm8Hint':pattern==='rhythm-16'?'editor.pickingRhythm16Hint':'editor.pickingRhythmAutoHint'} /></p>}
   <label className="etudeEditorCheck"><input type="checkbox" checked={skipLegato} onChange={e=>onSkipLegato(e.target.checked)}/><Translation id="etudes.skipPickingOnHPSlDestinationNotes" /></label>
   <p><Translation id="editor.pickingScopeHint" /></p>
   <button type="button" onClick={onApply}><Translation id="etudes.applyPickingPattern" /></button>

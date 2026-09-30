@@ -2,6 +2,8 @@ import {scoreMeasureLimit,scoreMeasureLimitMessage} from './scoreLimits.js';
 import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 import {isFretted} from './scoreInstruments.js';
+import {measureMeters} from './scoreMeters.js';
+import {pickingGrid,rhythmicPick,pickingBeat} from './pickingRhythm.js';
 import {slidePairs} from './slidePairs.js';
 import {soundingMidi,effectiveTuning,maxFret} from './scoreTuning.js';
 import {NATURAL_HARMONICS,patchEvent,newId,ticksOf,blankEvent,cloneMeasures,moveSamePitch,blankMeasure,isBlankEvent} from './scoreModel.js';
@@ -201,12 +203,26 @@ export function moveTone(d,from,to){
  next=patchEvent(next,to.bar,to.event,{notes:[moved],rest:false,blank:false,pickStroke:source.pickStroke??null});return next;
 }
 export function splitEvent(d,c){const m=d.measures[c.bar],e=m.events[c.event];if(e.dotted)throw Error(ko["etudes.removeTheDottedEighthBeforeSplittingTheBeat"]);if(e.tuplet)throw Error(ko["etudes.removeTheTripletGroupBeforeSplittingTheBeat"]);if(Number(e.duration)>=16||m.events.length>=64)throw Error(ko["etudes.thisBeatCannotBeDividedFurther"]);if(e.tieTo||e.technique)throw Error(ko["etudes.removeTechniquesAndTiesBeforeSplittingConnectedBeats"]);const duration=String(Number(e.duration)*2),events=[...m.events.slice(0,c.event),{...e,duration},blankEvent(e.onset+ticksOf(e)/2,duration),...m.events.slice(c.event+1)];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
-export function applyPicking(d,{start=0,end=d.measures.length-1,pattern='alternate-down',skipLegato=true}={}){
- if(!['alternate-down','alternate-up','down','up','clear'].includes(pattern))throw Error(ko["etudes.chooseAPickingPattern"]);
- const lo=Math.min(start,end),hi=Math.max(start,end);let count=0,previous=null;
- const measures=d.measures.map((m,b)=>{const events=m.events.map(e=>{const connected=previous&&!previous.rest&&(previous.tieTo===e.id||(skipLegato&&previous.technique&&['H','P','S'].includes(previous.technique)));previous=e;if(b<lo||b>hi)return e;let pickStroke=null;
-  if(pattern!=='clear'&&!e.rest&&!connected){pickStroke=pattern==='up'||pattern==='down'?pattern:(count%2===0)===(pattern==='alternate-down')?'down':'up';count++;}
-  return (e.pickStroke??null)===pickStroke?e:{...e,pickStroke};});return events.every((e,i)=>e===m.events[i])?m:{...m,events};});
+export function applyPicking(d,{start=0,end=d.measures.length-1,pattern='alternate-down',skipLegato=true,restart='continuous'}={}){
+ if(!['rhythm-auto','rhythm-8','rhythm-16','alternate-down','alternate-up','down','up','clear'].includes(pattern)||!['continuous','bar','beat','rest'].includes(restart))throw Error(ko["etudes.chooseAPickingPattern"]);
+ const lo=Math.min(start,end),hi=Math.max(start,end),rhythmic=pattern.startsWith('rhythm-'),meters=measureMeters(d);let count=0,previous=null;
+ const measures=d.measures.map((m,b)=>{
+  const step=rhythmic&&b>=lo&&b<=hi?pickingGrid(m.events,pattern,b):null;
+  if(restart!=='continuous')count=0;
+  let bucket=null,lastEnd=null;
+  const events=m.events.map(e=>{
+   const connected=previous&&!previous.rest&&(previous.tieTo===e.id||(skipLegato&&previous.technique&&['H','P','S'].includes(previous.technique)));previous=e;
+   if(b<lo||b>hi)return e;
+   const beat=Math.floor(e.onset/pickingBeat(meters[b]));
+   if(restart==='beat'&&beat!==bucket||restart==='rest'&&(e.rest||e.blank||lastEnd!==null&&e.onset>lastEnd))count=0;
+   bucket=beat;lastEnd=e.onset+ticksOf(e);
+   let pickStroke=null;
+   if(pattern!=='clear'&&!e.rest&&!e.blank&&!connected){
+    pickStroke=rhythmic?rhythmicPick(e.onset,step):pattern==='up'||pattern==='down'?pattern:(count%2===0)===(pattern==='alternate-down')?'down':'up';count++;
+   }
+   return (e.pickStroke??null)===pickStroke?e:{...e,pickStroke};
+  });return events.every((e,i)=>e===m.events[i])?m:{...m,events};
+ });
  return measures.every((m,i)=>m===d.measures[i])?d:{...d,measures};
 }
 export function copyBars(d,start,end){return d.measures.slice(Math.min(start,end),Math.max(start,end)+1).map(m=>structuredClone(m));}
