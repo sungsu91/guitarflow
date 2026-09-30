@@ -1,5 +1,8 @@
-.etudeEditor--desktop .desktopEditorTopBar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 20px;flex-shrink:0;padding:0 0 12px;border-bottom:1px solid var(--ed-line)}
-.etudeEditor--desktop .desktopEditorTopBar .etudeHeaderActions{flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-left:auto;max-width:100%}
-.etudeEditor--desktop .desktopEditorTopBar .etudeHeaderActions p[role=status]{margin:0 4px;max-width:none}
-.etudeEditor--desktop .desktopEditorTopBar button{white-space:nowrap}
+.editorDesign.etudeEditor--desktop .desktopEditorActions{display:grid;gap:6px;flex:none;min-width:0;padding-bottom:8px;border-bottom:1px solid var(--ed-line)}
+.editorDesign.etudeEditor--desktop .desktopEditorFileActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.editorDesign.etudeEditor--desktop .desktopEditorSessionActions{display:flex;gap:6px}
+.editorDesign.etudeEditor--desktop .desktopEditorActions button{height:36px;min-height:36px;min-width:0;padding:6px 8px;white-space:nowrap}
+.editorDesign.etudeEditor--desktop .desktopEditorFileActions button{height:auto;white-space:normal;overflow-wrap:anywhere}
+.editorDesign.etudeEditor--desktop .desktopEditorSessionActions .etudeEditorSave{flex:1;margin:0}
+.editorDesign.etudeEditor--desktop .desktopEditorHelpButton{flex:0 0 36px;padding:6px}
 .etudeEditor--desktop .desktopPdfSave{display:inline-flex;align-items:center;justify-content:center;gap:6px}

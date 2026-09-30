@@ -31,19 +31,19 @@ try{for(const test of cases){
    }
    await p.locator('.pdfTabReviewBar').waitFor();assert.match(await p.locator('.pdfTabReviewBar').innerText(),/전체 63마디/);assert.equal(await p.locator('.desktopPdfTabImport').count(),0);
    if(test.full||test.denied){
-    await p.locator('.pdfTabStorageNotice').waitFor();assert.match(await p.locator('.desktopEditorTopBar [role="status"]').innerText(),/저장하지 않은/);
+    await p.locator('.pdfTabStorageNotice').waitFor();assert.equal(await p.locator('.desktopEditorActions [role="status"]').count(),0);
     assert.equal(await p.evaluate(()=>localStorage.getItem('fretiva.etude.library.v2')),oldLibrary,'failed save preserves existing library exactly');
     await p.locator('[data-bar-index="0"] .etudeNoteHandle[data-event="0"][data-mode="tab"][data-string="2"]').first().click();await p.locator('[data-score-input]').press('5');
     const downloading=p.waitForEvent('download');await p.getByRole('button',{name:'제작 악보 파일로 저장',exact:true}).click();const download=await downloading;const path=`${folder}/${test.name}-backup.json`;await download.saveAs(path);const backup=JSON.parse(await readFile(path));
     assert.equal(backup.measures.length,63);assert.equal(backup.measures[0].events[0].notes.find(n=>n.string===2).fret,5);assert.equal(backup.measures.flatMap(m=>m.events.flatMap(e=>e.notes)).length,analysis.summary.confirmed);
-    await p.locator('.desktopEditorTopBar').getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.etudeEditorClosePrompt').waitFor();await p.locator('.etudeEditorClosePrompt').getByRole('button').nth(2).click();
+    await p.locator('.desktopEditorActions').getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.etudeEditorClosePrompt').waitFor();await p.locator('.etudeEditorClosePrompt').getByRole('button').nth(2).click();
     await p.evaluate(()=>{localStorage.removeItem('test-quota-filler');window.__restoreStorage?.();});
     await p.getByRole('button',{name:'이 브라우저에 저장',exact:true}).click();await p.locator('.scoreSaveDialog').getByRole('button',{name:'저장하기',exact:true}).click();await p.locator('.scoreSaveDialog').waitFor({state:'detached'});
-    assert.equal(await p.locator('.pdfTabStorageNotice').count(),0);assert.match(await p.locator('.desktopEditorTopBar [role="status"]').innerText(),/변경 없음/);
+    assert.equal(await p.locator('.pdfTabStorageNotice').count(),0);assert.equal(await p.locator('.desktopEditorActions [role="status"]').count(),0);
    }
    const records=await p.evaluate(()=>JSON.parse(localStorage.getItem('fretiva.etude.library.v2')).records);assert.equal(Object.keys(records).length,2,'cancel/retry never duplicates the imported score');assert.deepEqual(records[existing.id],JSON.parse(oldLibrary).records[existing.id]);
    const saved=Object.values(records).find(r=>r.document.id!==existing.id);assert.equal(saved.document.measures.length,63);
-   await p.locator('.desktopEditorTopBar').getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.etudeEditor').waitFor({state:'detached'});
+   await p.locator('.desktopEditorActions').getByRole('button',{name:'닫기',exact:true}).click();await p.locator('.etudeEditor').waitFor({state:'detached'});
    await p.getByRole('button',{name:'제작',exact:true}).click();assert.equal(await p.locator('.pdfTabStorageNotice').count(),0,'a new editor never inherits the previous storage warning');
    await p.getByRole('button',{name:'제작 악보 불러오기',exact:true}).click();await p.locator('.scoreOpenItem').filter({hasText:saved.document.title}).click();await p.locator('.pdfTabReviewBar').waitFor();assert.equal(await p.locator('.pdfTabStorageNotice').count(),0);
   }
