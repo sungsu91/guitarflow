@@ -44,7 +44,7 @@ test('a two-pixel antialiasing break before a beam does not turn an eighth into 
  for(let y=251;y<=254;y++)for(let x=100;x<145;x++)ink[y*w+x]=1;
  assert.equal(detectRhythm(ink,w,h,staff,measure)[0].duration,'8');
 });
-const fixture=(scale=1,text='3',confidence=.93)=>resolvePage({page:1,width:600*scale,height:400*scale,staffs:[{...staff,spacing:20*scale,candidates:[80,130,180,230].map((x,i)=>({id:`c${i}`,cx:x*scale,x:(x-5)*scale,y:95*scale,width:10*scale,height:10*scale,string:1,stringDistance:0,parts:1,ocr:{text,confidence,agrees:true,alternatives:[]}})),measures:[{x:30*scale,y:100*scale,width:250*scale,height:100*scale,boundariesKnown:true,rhythm:[80,130,180,230].map(x=>({x:x*scale,y:250*scale,duration:'4',confidence:.98}))}]}]});
+const fixture=(scale=1,text='3',confidence=.93)=>resolvePage({page:1,width:600*scale,height:400*scale,staffs:[{...staff,x:staff.x*scale,y:staff.y*scale,width:staff.width*scale,height:staff.height*scale,lines:staff.lines.map(y=>y*scale),spacing:20*scale,candidates:[80,130,180,230].map((x,i)=>({id:`c${i}`,cx:x*scale,x:(x-5)*scale,y:95*scale,width:10*scale,height:10*scale,string:1,stringDistance:0,parts:1,ocr:{text,confidence,agrees:true,alternatives:[]}})),measures:[{x:30*scale,y:100*scale,width:250*scale,height:100*scale,boundariesKnown:true,rhythm:[80,130,180,230].map(x=>({x:x*scale,y:250*scale,duration:'4',confidence:.98}))}]}]});
 test('matching reads at different source resolutions can confirm a fret without duplicating positions',()=>{
  const a=fixture(),b=fixture(2),before=JSON.stringify(a),r=combineZoomReadings(a,b);assert.equal(summarizeAnalysis([r]).confirmed,4);assert.equal(r.staffs[0].measures[0].slots.length,4);assert.equal(JSON.stringify(a),before);assert.equal(r.staffs[0].measures[0].source.pageWidth,600);assert.equal(r.staffs[0].measures[0].slots[0].x,80);
 });
@@ -65,4 +65,18 @@ test('one-to-one zoom evidence preserves a strong original crop and adds a diffe
 test('more enlarged digits cannot replace an already read rest or complete rhythm',()=>{
  const a=fixture(1,'3',.99),b=fixture(2,'3',.99);a.staffs[0].candidates.shift();a.staffs[0].measures[0].rhythm[0].rest=true;
  const r=combineZoomReadings(resolvePage(a),b);assert.equal(r.staffs[0].measures[0].slots[0].rest,true);assert.equal(summarizeAnalysis([r]).confirmed,3);
+});
+
+test('a split zoom bar does not discard evidence in other uniquely matched bars or shift their music',()=>{
+ const a=fixture(1,'3',.93),b=fixture(2,'3',.99);
+ for(const p of [a,b]){const s=p.staffs[0],scale=p.width/600;s.measures.push({...structuredClone(s.measures[0]),x:300*scale,width:250*scale,rhythm:[]});}
+ const extra=b.staffs[0].measures.pop();b.staffs[0].measures.push({...extra,width:200},{...extra,x:800,width:300});
+ const result=combineZoomReadings(resolvePage(a),resolvePage(b));assert.equal(result.staffs[0].measures.length,2);assert.equal(result.zoom.matchedMeasures,1);assert.equal(summarizeAnalysis([result]).confirmed,4);assert.deepEqual(result.staffs[0].measures[1],resolvePage(a).staffs[0].measures[1]);
+});
+
+test('a missing enlarged staff cannot shift later staff music or discard other matched staffs',()=>{
+ const a=fixture(1,'3',.93),b=fixture(2,'3',.99);
+ for(const p of [a,b]){const extra=structuredClone(p.staffs[0]);extra.id=2;extra.y+=100*(p.width/600);p.staffs.push(extra);}
+ b.staffs.shift();
+ const result=combineZoomReadings(a,b);assert.equal(result.staffs.length,2);assert.deepEqual(result.staffs[0].measures,a.staffs[0].measures);assert.equal(result.staffs[1].measures[0].slots.flatMap(s=>s.notes).filter(n=>n.status==='confirmed').length,4);
 });

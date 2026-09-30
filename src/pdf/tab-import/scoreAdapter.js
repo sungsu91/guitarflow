@@ -27,10 +27,13 @@ export function analysisToDocument(analysis){
     const keepDurations=!overflow&&slots.every(s=>s.duration)&&slots.reduce((sum,s)=>sum+ticksOf(s),0)<=1920;
     const gridDuration=slots.length<=4?'4':slots.length<=8?'8':'16';
     const events=slots.map(slot=>{
-      const duration=keepDurations?slot.duration:gridDuration,notes=slot.notes.filter(n=>n.status==='confirmed').map(n=>({id:newId('tone'),string:n.string,fret:n.fret,locked:true,confidence:n.confidence,source:{...slot.source,...n.source,measure:index+1}}));
+      const duration=keepDurations?slot.duration:gridDuration,notes=slot.notes.filter(n=>n.status==='confirmed').map(n=>({id:newId('tone'),string:n.string,fret:n.fret,...(n.dead?{dead:true}:{}),locked:true,confidence:n.confidence,source:{...slot.source,...n.source,measure:index+1}}));
       const event={...blankEvent(onset,duration),notes,rest:notes.length===0,blank:notes.length===0&&!slot.rest,...(keepDurations&&slot.tuplet?{tuplet:{...slot.tuplet,groupId:`${doc.id}-${index}-${slot.tuplet.groupId}`}}:{}),...(keepDurations&&slot.dotted?{dotted:true}:{})};onset+=ticksOf(event);
       event.pdfImport={status:overflow?'unresolved':slot.status,source:{...slot.source,measure:index+1},confidence:{fret:slot.notes.length?Math.min(...slot.notes.map(n=>n.confidence.fret)):0,string:slot.notes.length?Math.min(...slot.notes.map(n=>n.confidence.string)):0,rhythm:knownGrid?slot.confidence:0},recognizedDuration:slot.duration, rhythmVerified:knownGrid,
         pendingStrings:[...new Set([...slot.notes.filter(n=>n.status!=='confirmed'),...slot.rejections].map(n=>n.string))],candidates:[...slot.notes,...slot.rejections],placeholderOnly:!knownGrid};
+      // Keep every sounding string for playback and staff notation. The view
+      // masks only contiguous identical confirmed grips; changes stay visible.
+      if(slot.status==='confirmed'&&notes.length>=2&&notes.every(n=>!n.dead))event.tabRepeat=true;
       return event;
     });
     return {id:newId('bar'),chord:null,harmony:null,events,pdfImport:{needsReview:measure.needsReview||overflow,source:{...measure.source,measure:index+1},rhythmVerified:knownGrid,reasons:[...measure.reasons,...(overflow?['too-many-source-columns']:[])],orphan:measure.orphan,...(overflow?{unmappedSlots:measure.slots.filter(s=>!slots.includes(s))}: {})}};

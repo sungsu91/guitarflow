@@ -26,30 +26,34 @@ export function hasWholeRest(ink,width,staff,measure){
 }
 
 export function attachNativeTabSymbols(ink,width,staff,{rhythmicPage=false}={}){
-  if(!staff.nativeText)return;
   const g=staff.spacing;
   for(const m of staff.measures){
-    const candidates=staff.candidates.filter(c=>c.cx>m.x&&c.cx<m.x+m.width);
+    const candidates=staff.candidates.filter(c=>!c.nonFretSymbol&&c.cx>m.x&&c.cx<m.x+m.width);
     m.rhythm=m.rhythm.filter(r=>{
+      if(r.direction===1&&isTabRepeatSlash(ink,width,staff,r.x)&&!candidates.some(c=>Math.abs(c.cx-r.x)<g*.25&&c.stringDistance<.18)){
+        r.repeatPrevious=true;r.method='tab-repeat-slash';
+        for(const c of candidates)if(c.cx>=r.x-g*.15&&c.cx<=r.x+g*1.15&&c.cy>=staff.lines[2]-g*.15&&c.cy<=staff.lines[3]+g*.2)c.nonFretSymbol='repeat-slash';
+        return true;
+      }
       if(candidates.some(c=>Math.abs(c.cx-r.x)<g*.4))return true;
       if(r.direction===1&&isTabRepeatSlash(ink,width,staff,r.x)){r.repeatPrevious=true;r.method='tab-repeat-slash';return true;}
-      return false;
+      return !staff.nativeText;
     });
     // A detached compact dot to the right of the stem end is augmentation,
     // not an eighth flag. It must have white space separating it from the stem.
-    for(const r of m.rhythm)if(r.direction===1){
+    for(const r of m.rhythm)if(r.direction===1&&(staff.nativeText||r.repeatPrevious)){
       const points=[],center=r.beamCount?Math.max(...r.beamYs)-g*.5:r.y;
       for(let y=Math.round(center-g*.25);y<=center+g*.25;y++)for(let x=Math.round(r.x+g*.25);x<=r.x+g*.7;x++)if(ink[y*width+x])points.push({x,y});
       if(points.length<3)continue;
       const xs=points.map(p=>p.x),ys=points.map(p=>p.y),w=Math.max(...xs)-Math.min(...xs)+1,h=Math.max(...ys)-Math.min(...ys)+1;
       if(w>=g*.12&&w<=g*.38&&h>=g*.12&&h<=g*.38&&points.length/(w*h)>.45){if(!r.beamCount)r.duration='4';r.dotted=true;r.method='dotted-stem';}
     }
-    for(const rest of findEighthRests(ink,width,staff,m,candidates))m.rhythm.push(rest);
+    if(staff.nativeText)for(const rest of findEighthRests(ink,width,staff,m,candidates))m.rhythm.push(rest);
     m.rhythm.sort((a,b)=>a.x-b.x);
     if(m.rhythm.length)continue;
     if(!candidates.length&&hasWholeRest(ink,width,staff,m)){
       m.rhythm=[{x:m.x+m.width/2,y:staff.lines[1],duration:'1',rest:true,confidence:.98,method:'whole-rest-on-tab'}];
-    }else if(rhythmicPage&&candidates.length>=2&&Math.max(...candidates.map(c=>c.cx))-Math.min(...candidates.map(c=>c.cx))<g*.3){
+    }else if(staff.nativeText&&rhythmicPage&&candidates.length>=2&&Math.max(...candidates.map(c=>c.cx))-Math.min(...candidates.map(c=>c.cx))<g*.3){
       // Stemless single chord in rhythmic TAB. A number-only TAB page has no
       // rhythm evidence, and must never acquire whole notes from this rule.
       m.rhythm=[{x:candidates.reduce((n,c)=>n+c.cx,0)/candidates.length,y:staff.lines[5],duration:'1',confidence:.96,method:'stemless-chord-in-rhythmic-tab'}];

@@ -15,6 +15,11 @@ try{for(const index of process.argv.slice(2).length?process.argv.slice(2).map(Nu
   await p.goto(`${origin}/#etudes`,{waitUntil:'networkidle'});await p.locator('.launchSplash').waitFor({state:'detached',timeout:60000});await p.getByRole('button',{name:'제작',exact:true}).click();
   await p.getByRole('button',{name:'PDF에서 TAB 초안 생성',exact:true}).click();assert.equal(await p.locator('.desktopPdfTabImport').getByRole('checkbox').count(),0);await p.getByLabel('TAB 분석용 PDF 선택',{exact:true}).setInputFiles(inventory[index].path);
   await p.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:300000});const importedFrets=Number(await p.locator('.desktopPdfTabImport dl > div').last().locator('dd').innerText());await p.getByRole('button',{name:'제작실에서 열기',exact:true}).click();await p.locator('.pdfTabReviewBar').waitFor();
+  if(index===4){
+   const strum=p.locator('[data-bar-index="36"]');await strum.scrollIntoViewIfNeeded();
+   await p.waitForFunction(()=>document.querySelector('[data-bar-index="36"] [data-draw-count]')?.shadowRoot?.querySelectorAll('[data-tab-repeat]').length===6);
+   await p.screenshot({path:`${folder}/${index}-automatic-strum.png`});
+  }
   const dock=p.locator('.editorAudioDock');assert.equal(await dock.locator('.editorSoundToggle input').isChecked(),true);assert.equal(await dock.locator('.editorPlay').isEnabled(),true);
   await p.getByRole('button',{name:'오선보+TAB',exact:true}).click();await p.waitForTimeout(500);
   const notes=await p.locator('[data-draw-count]').first().evaluate(el=>el.shadowRoot?.querySelectorAll('.vf-stavenote').length??0);assert.ok(notes>0,'fret positions produce staff notation');

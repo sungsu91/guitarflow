@@ -3,6 +3,7 @@ import {textFretsForStaff,attachPrintedTuplets} from './pdfText.js';
 import {hasSevenCap} from './glyphValidation.js';
 import {attachNativeTabSymbols} from './tabSymbols.js';
 import {attachImageRests} from './imageRests.js';
+import {markNonFretSymbols} from './imageTabTokens.js';
 
 const median = values => [...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
 export function runs(values, gap = 1) {
@@ -223,7 +224,9 @@ export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C}){
       for(let y=0;y<h;y++)for(let x=0;x<c.width;x++){const p=((top+y)*width+c.x+x)*4;cap[y*c.width+x]=Math.round(rgba[p]*.299+rgba[p+1]*.587+rgba[p+2]*.114);}
       c.sevenCap=hasSevenCap(cap,c.width,h);
     }
-    const result={...staff,bars,candidates,nativeText,measures:rhythms};attachHalfNoteStubs(ink,width,height,result,candidates);attachPrintedTuplets(result,glyphs);output.push(result);
+    const result={...staff,bars,candidates,nativeText,measures:rhythms};
+    if(!nativeText)markNonFretSymbols(ink,width,result);
+    attachHalfNoteStubs(ink,width,height,result,candidates.filter(c=>!c.nonFretSymbol));attachPrintedTuplets(result,glyphs);output.push(result);
   }
   const rhythmicPage=output.some(s=>s.measures.some(m=>m.rhythm.some(r=>s.candidates.some(c=>Math.abs(c.cx-r.x)<s.spacing*.4))));
   for(const staff of output){attachNativeTabSymbols(ink,width,staff,{rhythmicPage});attachImageRests(ink,width,height,staff);}

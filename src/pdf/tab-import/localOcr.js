@@ -2,6 +2,7 @@ import {createWorker,PSM,OEM} from 'tesseract.js';
 import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {abortable} from './abortable.js';
 import {glyphFeature,corroboratePageGlyphs} from './glyphConsensus.js';
+import {isFretText,normalizeFretText} from './fretText.js';
 const cropCache=new Map();let cacheBytes=0;
 const MAX_CACHE_BYTES=32*1024*1024;
 export const clearOcrCache=()=>{cropCache.clear();cacheBytes=0;};
@@ -12,11 +13,12 @@ function cacheReading(key,reading){
 }
 
 export function agreeReadings(reads){
+  reads=reads.map(r=>({...r,text:normalizeFretText(r.text)}));
   const groups=new Map();
   for(const r of reads){const items=groups.get(r.text)??[];items.push(r);groups.set(r.text,items);}
-  const ranked=[...groups].filter(([text])=>/^\d{1,2}$/.test(text)&&Number(text)<=24).map(([text,items])=>({text,items:items.sort((a,b)=>b.confidence-a.confidence)})).sort((a,b)=>(b.items[1]?.confidence??0)-(a.items[1]?.confidence??0));
+  const ranked=[...groups].filter(([text])=>isFretText(text)).map(([text,items])=>({text,items:items.sort((a,b)=>b.confidence-a.confidence)})).sort((a,b)=>(b.items[1]?.confidence??0)-(a.items[1]?.confidence??0));
   const best=ranked[0],confidence=best?.items[1]?.confidence??0;
-  const conflict=reads.some(r=>r.text!==best?.text&&/^\d{1,2}$/.test(r.text)&&r.confidence>=C.confirmed);
+  const conflict=reads.some(r=>r.text!==best?.text&&isFretText(r.text)&&r.confidence>=C.confirmed);
   return {text:best?.text??reads[0]?.text??'',confidence,agrees:Boolean(best?.items.length>=2&&!conflict),alternatives:reads.filter(r=>r.text&&r.text!==best?.text).map(r=>({text:r.text,confidence:r.confidence})),wordConfidence:best?.items[0]?.wordConfidence??0};
 }
 
@@ -52,7 +54,7 @@ export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
     signal?.throwIfAborted();
     if(c.ocr?.method==='pdf-text-on-tab-line')continue;
     const overlapsBar=staff.bars.some(x=>x>=c.x-staff.spacing*.20&&x<=c.x+c.width+staff.spacing*.20);
-    if(c.restSymbol||c.stringDistance>C.stringTolerance||overlapsBar){c.ocr={text:'',confidence:0,agrees:false,method:'geometry-rejected'};}
+    if(c.restSymbol||c.nonFretSymbol||c.stringDistance>C.stringTolerance||overlapsBar){c.ocr={text:'',confidence:0,agrees:false,method:'geometry-rejected'};}
     else {
       const cacheKey=`${c.width},${c.height},${c.parts}:`+btoa(String.fromCharCode(...c.grayscale));
       if(cropCache.has(cacheKey)){const hit=cropCache.get(cacheKey);cropCache.delete(cacheKey);cropCache.set(cacheKey,hit);c.ocr={...structuredClone(hit.reading),cacheHit:true};}
@@ -62,8 +64,8 @@ export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
       const reads=[];
       // Separate crop scales/segmentation modes must agree. Never concatenate
       // neighboring rhythmic slots into a two-digit fret.
-      for(const [mode,targetHeight,threshold] of [[PSM.SINGLE_WORD,44,null],[PSM.RAW_LINE,52,null],[c.parts===1?PSM.SINGLE_CHAR:PSM.SINGLE_WORD,72,145],[PSM.SINGLE_WORD,80,185]]){
-        if(threshold&&agreeReadings(reads).agrees&&agreeReadings(reads).confidence>=C.confirmed)break;
+      for(const [mode,targetHeight,threshold] of [[PSM.SINGLE_WORD,44,null],[PSM.RAW_LINE,52,null],[PSM.SINGLE_LINE,24,null],[c.parts===1?PSM.SINGLE_CHAR:PSM.SINGLE_LINE,36,null],[PSM.SINGLE_LINE,48,null],[c.parts===1?PSM.SINGLE_CHAR:PSM.SINGLE_WORD,72,145],[PSM.SINGLE_WORD,80,185]]){
+        if(reads.length>=2&&agreeReadings(reads).agrees&&agreeReadings(reads).confidence>=C.confirmed)break;
         if(threshold){for(let j=0;j<c.grayscale.length;j++){const v=c.grayscale[j]<threshold?0:255;image.data.set([v,v,v,255],j*4);}sctx.putImageData(image,0,0);}
         // Keep the established white margin for the two original scales.
         // A larger box alone changes Tesseract's isolated-character scores.

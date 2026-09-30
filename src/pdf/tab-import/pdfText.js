@@ -1,18 +1,19 @@
 // Digital PDFs already contain exact characters. Keep their real positions;
 // never OCR a title/chord chart or infer a number from an entire page of text.
+import {isFretText,normalizeFretText} from './fretText.js';
 export function projectPdfText(content,viewport){
   const widths=new Map();
   for(const i of content.items)if(/^\d$/.test(i.str)&&i.height>0){const values=widths.get(i.fontName)??[];values.push(i.width/i.height);widths.set(i.fontName,values);}
   const ratios=new Map([...widths].map(([font,values])=>[font,values.sort((a,b)=>a-b)[Math.floor(values.length/2)]]));
   return content.items.flatMap(item=>{
     const text=item.str?.trim();
-    if(!text||!/^[0-9 ]+$/.test(item.str)||!item.transform||Math.abs(item.transform[1])+Math.abs(item.transform[2])>.01)return [];
+    if(!text||!/^[0-9Xx ]+$/.test(item.str)||!item.transform||Math.abs(item.transform[1])+Math.abs(item.transform[2])>.01)return [];
     const [x,baseline]=viewport.convertToViewportPoint(item.transform[4],item.transform[5]);
     const height=Math.abs(item.transform[3])*viewport.scale,width=item.width*viewport.scale;
-    const make=(text,x,width)=>({text,x,y:baseline-height*.74,width,height:height*.74,cx:x+width/2,cy:baseline-height*.37,fontSize:height,font:item.fontName});
+    const make=(text,x,width)=>({text:normalizeFretText(text),x,y:baseline-height*.74,width,height:height*.74,cx:x+width/2,cy:baseline-height*.37,fontSize:height,font:item.fontName});
     if(item.str.includes(' ')){
       const ratio=ratios.get(item.fontName),digits=item.str.replaceAll(' ',''),spaces=item.str.length-digits.length;
-      if(!ratio||!/^\d(?: +\d)*$/.test(text))return [];
+      if(!ratio||!/^[0-9Xx](?: +[0-9Xx])*$/.test(text))return [];
       const digitWidth=height*ratio,gap=(width-digits.length*digitWidth)/spaces;
       if(gap<0||gap>height*.5)return [];
       let at=x;return [...item.str].flatMap(char=>{const pos=at;at+=char===' '?gap:digitWidth;return char===' '?[]:[make(char,pos,digitWidth)];});
@@ -27,7 +28,7 @@ export function projectPdfText(content,viewport){
 export function textFretsForStaff(glyphs,staff){
   const g=staff.spacing;
   const frets=glyphs.flatMap(glyph=>{
-    if(Number(glyph.text)>24||glyph.cx<staff.x+g||glyph.cx>staff.x+staff.width-g*.2||glyph.fontSize<g*.65||glyph.fontSize>g*1.45)return [];
+    if(!isFretText(glyph.text)||glyph.cx<staff.x+g||glyph.cx>staff.x+staff.width-g*.2||glyph.fontSize<g*.65||glyph.fontSize>g*1.45)return [];
     const string=staff.lines.reduce((best,y,i)=>Math.abs(glyph.cy-y)<Math.abs(glyph.cy-staff.lines[best])?i:best,0)+1;
     const stringDistance=Math.abs(glyph.cy-staff.lines[string-1])/g;
     if(stringDistance>.23)return [];

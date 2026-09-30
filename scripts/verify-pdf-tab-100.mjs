@@ -14,6 +14,8 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.CH
 const inventory=JSON.parse(await readFile('artifacts/pdf-tab-folder/inventory.json'));
 const output=process.env.PDF_TAB_MATRIX_OUTPUT||'artifacts/pdf-tab-100/final';await mkdir(output,{recursive:true});
 const cases=['automatic-cold','automatic-repeat','render-2.5','render-4.5','edit-fret','move-fret','copy-whole-beat','paste-range-twice','clone-measure','save-reopen'];
+const rounds=process.env.PDF_TAB_CASES?process.env.PDF_TAB_CASES.split(',').map(Number):cases.map((_,i)=>i);
+assert.ok(rounds.includes(0)&&rounds.every(i=>Number.isInteger(i)&&i>=0&&i<cases.length),'include cold case 0 and valid case numbers');
 const signature=d=>d.measures.map(m=>m.events.map(e=>[e.onset,e.duration,!!e.dotted,!!e.tuplet,e.rest,e.notes.map(n=>[n.string,n.fret])]));
 const noteCount=d=>d.measures.reduce((n,m)=>n+m.events.reduce((n,e)=>n+e.notes.length,0),0);
 const selection=process.argv.slice(2).map(Number),queue=selection.length?inventory.filter(i=>selection.includes(i.index)):inventory;
@@ -23,10 +25,11 @@ try{for(const item of queue){
  const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/__pdf-matrix',r=>r.fulfill({contentType:'text/html',body:'<input type="file">'}));await page.goto(`${process.env.PDF_TAB_APP_ORIGIN||'http://127.0.0.1:5174'}/__pdf-matrix`);
  let expected;
- for(const [round,name] of cases.entries()){
+ for(const round of rounds){
+  const name=cases[round];
   const start=Date.now(),record={index:item.index,file:item.name,round:round+1,name};
   try{
-   await page.locator('input').setInputFiles(item.path);
+   await page.locator('input').setInputFiles(process.env.PDF_TAB_BLIND_NAMES?{name:`unseen-${crypto.randomUUID()}.pdf`,mimeType:'application/pdf',buffer:await readFile(item.path)}:item.path);
    const {analysis,document:d,progressMonotonic}=await page.evaluate(async round=>{
     const {importPdfTab}=await import('/src/pdf/tab-import/importPdfTab.js'),{analysisToDocument}=await import('/src/pdf/tab-import/scoreAdapter.js');
     const progress=[];
@@ -52,4 +55,4 @@ try{for(const item of queue){
  }
  await page.close();
 }}finally{await browser.close();}
-const checked=reports.filter(r=>queue.some(i=>i.index===r.index));assert.equal(checked.length,queue.length*10);assert.equal(checked.filter(r=>r.passed&&!r.browserErrors.length).length,queue.length*10);
+const checked=reports.filter(r=>queue.some(i=>i.index===r.index));assert.equal(checked.length,queue.length*rounds.length);assert.equal(checked.filter(r=>r.passed&&!r.browserErrors.length).length,queue.length*rounds.length);

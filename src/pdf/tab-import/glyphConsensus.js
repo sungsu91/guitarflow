@@ -19,11 +19,11 @@ export function glyphFeature(candidate){
 export const glyphSimilarity=(a,b)=>1-a.reduce((sum,value,i)=>sum+Math.abs(value-b[i]),0)/a.length;
 
 export function corroboratePageGlyphs(geometry,features){
-  const candidates=geometry.staffs.flatMap(staff=>staff.candidates.filter(c=>c.parts===1&&c.stringDistance<=C.stringTolerance&&features.has(c.id)&&staff.measures.some(m=>m.rhythm.some(r=>!r.rest&&Math.abs(r.x-c.cx)<=staff.spacing*C.slotTolerance))));
-  const seeds=candidates.filter(c=>c.ocr?.agrees&&c.ocr.confidence>=C.confirmed&&!c.ocr.shapeRejected&&/^\d$/.test(c.ocr.text)&&!c.ocr.alternatives?.some(a=>a.text!==c.ocr.text&&a.confidence>=.85));
+  const candidates=geometry.staffs.flatMap(staff=>staff.candidates.filter(c=>!c.nonFretSymbol&&!c.restSymbol&&c.parts===1&&c.stringDistance<=C.stringTolerance&&features.has(c.id)&&staff.measures.some(m=>m.rhythm.some(r=>!r.rest&&Math.abs(r.x-c.cx)<=staff.spacing*C.slotTolerance))));
+  const seeds=candidates.filter(c=>c.ocr?.agrees&&c.ocr.confidence>=C.confirmed&&!c.ocr.shapeRejected&&/^[0-9X]$/.test(c.ocr.text)&&!c.ocr.alternatives?.some(a=>a.text!==c.ocr.text&&a.confidence>=.85));
   for(const candidate of candidates){
     const reading=candidate.ocr;
-    if(!reading||reading.shapeRejected||reading.method==='geometry-rejected'||reading.agrees&&reading.confidence>=C.confirmed||!/^\d$/.test(reading.text))continue;
+    if(!reading||reading.shapeRejected||reading.method==='geometry-rejected'||reading.agrees&&reading.confidence>=C.confirmed||!/^[0-9X]$/.test(reading.text))continue;
     // Require an OCR suggestion and reject strong contradictory readings.
     if(reading.alternatives?.some(a=>a.text!==reading.text&&a.confidence>=.85))continue;
     const ranked=seeds.filter(s=>s.id!==candidate.id&&Math.abs(s.width/s.height-candidate.width/candidate.height)<.18)
