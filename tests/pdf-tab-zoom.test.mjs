@@ -58,6 +58,13 @@ test('multiple OCR attempts never outvote a conflicting high-confidence digit',(
  assert.equal(agreeReadings([{text:'3',confidence:.96},{text:'3',confidence:.95}]).agrees,true);
 });
 
+test('a zoom reading with a different meter cannot turn an incomplete compound bar into confirmed 4/4',()=>{
+ const original=fixture(1,'3',.99),enlarged=fixture(2,'3',.99);
+ original.staffs[0].meterReading={status:'confirmed',meter:[12,8],confidence:.99};
+ const result=combineZoomReadings(resolvePage(original),enlarged),bar=result.staffs[0].measures[0];
+ assert.deepEqual(bar.meter,[12,8]);assert.equal(bar.rhythmValid,false);assert.deepEqual(result.endMeter,[12,8]);assert.equal(result.zoom.measures,0);
+});
+
 test('one-to-one zoom evidence preserves a strong original crop and adds a different confirmed crop once',()=>{
  const a=fixture(1,'3',.99),b=fixture(2,'3',.99);a.staffs[0].candidates[3].ocr.confidence=.2;b.staffs[0].candidates[0].ocr.confidence=.2;
  const r=combineZoomReadings(resolvePage(a),resolvePage(b));assert.equal(summarizeAnalysis([r]).confirmed,4);assert.equal(r.staffs[0].measures[0].slots.length,4);

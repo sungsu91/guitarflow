@@ -4,6 +4,7 @@ import {hasSevenCap} from './glyphValidation.js';
 import {attachNativeTabSymbols} from './tabSymbols.js';
 import {attachImageRests} from './imageRests.js';
 import {markNonFretSymbols} from './imageTabTokens.js';
+import {findPrintedMeter} from './printedMeter.js';
 
 const median = values => [...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
 export function runs(values, gap = 1) {
@@ -225,6 +226,7 @@ export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C}){
       c.sevenCap=hasSevenCap(cap,c.width,h);
     }
     const result={...staff,bars,candidates,nativeText,measures:rhythms};
+    result.meterCandidate=findPrintedMeter(ink,width,result);
     if(!nativeText)markNonFretSymbols(ink,width,result);
     attachHalfNoteStubs(ink,width,height,result,candidates.filter(c=>!c.nonFretSymbol));attachPrintedTuplets(result,glyphs);output.push(result);
   }

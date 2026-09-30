@@ -5,7 +5,7 @@ import ko from "../i18n/locales/ko.js";
 import {chordDiagramErrors} from './scoreChordDiagram.js';
 import {slidePairs} from './slidePairs.js';
 import {soundingMidi,maxFret,HARMONICS} from './scoreTuning.js';
-import {measureMeters} from './scoreMeters.js';
+import {measureMeters,validScoreMeter} from './scoreMeters.js';
 import {SCORE_INSTRUMENTS,normalizeInstrumentDocument,scoreInstrument,isFretted,validateInstrumentMidi} from './scoreInstruments.js';
 import {repeatIssues} from './scoreRepeats.js';
 export const NATURAL_HARMONICS=HARMONICS;
@@ -123,7 +123,7 @@ export function compileDocumentV2(d,base={}) {
  if(d?.instrument!=null&&!Object.hasOwn(SCORE_INSTRUMENTS,d.instrument))errors.push(ko["etudes.thisInstrumentIsNotSupported"]);
  if(d?.format!=='fretiva.etude'||d.version!==2||!d.id)return {score:null,errors:[ko["etudes.checkTheScoreFormatAndId"]],issues};
  if(!Array.isArray(d.tuning)||d.tuning.length!==scoreInstrument(d.instrument).tuning.length||d.tuning.some(v=>!Number.isInteger(v)||v<24||v>88))errors.push(ko["etudes.checkTheStringCountAndEachStringSMidiPitchForThis"]);
- if(!Array.isArray(d.meter)||![2,3,4,6].includes(d.meter[0])||![4,8].includes(d.meter[1]))errors.push(ko["etudes.supportedMeters234648"]);
+ if(!validScoreMeter(d.meter))errors.push(ko["etudes.supportedMeters234648"]);
  if(!Number.isInteger(d.bpm)||d.bpm<30||d.bpm>240)errors.push(ko["etudes.bpmMustBe30240"]);
  if(!['C','G','D','A','E','B','F','Bb','Eb','Ab','Db','Gb','Am','Em','Bm','F#m','C#m','G#m','Dm','Gm','Cm','Fm'].includes(d.keySignature))errors.push(ko["etudes.checkTheKeySignature"]);
  if(['title','english','purpose'].some(k=>typeof d[k]!=='string'||d[k].length>2000)||!Array.isArray(d.tips)||d.tips.some(t=>typeof t!=='string'))errors.push(ko["etudes.checkTheTitleAndDescriptionFormat"]);
@@ -134,7 +134,7 @@ export function compileDocumentV2(d,base={}) {
  const slurEvents=d.measures.flatMap(m=>m.events),slurPositions=new Map(slurEvents.map((e,i)=>[e.id,i]));
  slurEvents.forEach((e,i)=>{if(!e.slurTo)return;const end=slurPositions.get(e.slurTo);if(end===undefined||end<=i||slurEvents.slice(i,end+1).some(n=>n.rest))issues.push(ko["etudes.checkTheSlurSStartingAndEndingNotes"]);});
  const meters=measureMeters(d);
- for(const meter of meters)if(!Array.isArray(meter)||![2,3,4,6].includes(meter[0])||![4,8].includes(meter[1]))errors.push(ko["etudes.checkTheBarSTimeSignature"]);
+ for(const meter of meters)if(!validScoreMeter(meter))errors.push(ko["etudes.checkTheBarSTimeSignature"]);
  if(errors.length)return {score:null,errors,issues};
  const ids=new Set(),measures=d.measures.map((m,i)=>{for(const id of [m.id,...m.events.flatMap(e=>[e.id,...e.notes.map(n=>n.id)])]){if(!id||ids.has(id))errors.push(formatMessage(ko["etudes.barValueMissingOrDuplicateIdentifier"], { value1: i+1 }));ids.add(id);}const result=compileBar(m,{...d,meter:meters[i]});errors.push(...result.errors.map(s=>formatMessage(ko["etudes.barValueValue"], { value1: i+1, value2: s })));issues.push(...result.issues.map(s=>formatMessage(ko["etudes.barValueValue"], { value1: i+1, value2: s })));return result.events;});
  measures.forEach((bar,b)=>bar.forEach((e,i)=>{const next=e.voice?bar.slice(i+1).find(n=>n.voice===e.voice)??measures[b+1]?.find(n=>n.voice===e.voice):bar[i+1]??measures[b+1]?.[0];if(e.technique&&i===bar.length-1)issues.push(formatMessage(ko["etudes.barValueNoteValueHPSlConnectionsAcrossBarlinesAreNot"], { value1: b+1, value2: i+1 }));if(e.technique&&(e.technique==='S'?(!slidePairs(e,next).length||next.onset!==e.onset+ticksOf(e)):(e.rest||e.tones||!next||next.rest||next.tones||next.string!==e.string||next.fret===e.fret||(e.technique==='H'&&next.fret<e.fret)||(e.technique==='P'&&next.fret>e.fret))))issues.push(formatMessage(ko["etudes.barValueNoteValueCheckTheValueConnectionTarget"], { value1: b+1, value2: i+1, value3: e.technique }));if(e.tieTo&&(!next||next.id!==e.tieTo||e.rest||next.rest||JSON.stringify((e.tones??[e]).map(n=>`${n.string}:${n.midi}`).sort())!==JSON.stringify((next.tones??[next]).map(n=>`${n.string}:${n.midi}`).sort())))issues.push(formatMessage(ko["etudes.barValueNoteValueTieTargetOrPitchMismatch"], { value1: b+1, value2: i+1 }));}));

@@ -4141,7 +4141,7 @@ export default {
   "etudes.checkTheCapoRange": "카포 범위를 확인하세요.",
   "etudes.checkTheScoreFormatAndId": "악보 형식과 ID를 확인하세요.",
   "etudes.checkTheStringCountAndEachStringSMidiPitchForThis": "악기에 맞는 줄 수와 각 줄의 MIDI 음높이를 확인하세요.",
-  "etudes.supportedMeters234648": "지원 박자: 2·3·4·6 / 4·8",
+  "etudes.supportedMeters234648": "지원 박자: 2·3·4·6 / 4·8, 9/8, 12/8",
   "etudes.bpmMustBe30240": "BPM은 30–240입니다.",
   "etudes.checkTheKeySignature": "조표를 확인하세요.",
   "etudes.checkTheTitleAndDescriptionFormat": "제목·설명 형식을 확인하세요.",

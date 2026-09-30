@@ -4141,7 +4141,7 @@ export default {
   "etudes.checkTheCapoRange": "Check the capo range.",
   "etudes.checkTheScoreFormatAndId": "Check the score format and ID.",
   "etudes.checkTheStringCountAndEachStringSMidiPitchForThis": "Check the string count and each string's MIDI pitch for this instrument.",
-  "etudes.supportedMeters234648": "Supported meters: 2·3·4·6 / 4·8",
+  "etudes.supportedMeters234648": "Supported meters: 2·3·4·6 / 4·8, 9/8, 12/8",
   "etudes.bpmMustBe30240": "BPM must be 30–240.",
   "etudes.checkTheKeySignature": "Check the key signature.",
   "etudes.checkTheTitleAndDescriptionFormat": "Check the title and description format.",

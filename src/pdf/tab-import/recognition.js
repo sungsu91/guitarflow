@@ -1,5 +1,6 @@
 import {TAB_IMPORT_CONFIG as C,recognitionStatus} from './config.js';
 import {isFretText,normalizeFretText} from './fretText.js';
+import {meterTicks} from '../../etudes/scoreMeters.js';
 
 export function classifyFret(candidate,slot,staff,config=C){
   const reading=candidate.ocr,confidence={fret:reading?.confidence??0,string:0,rhythm:slot?.confidence??0},reasons=[];
@@ -19,7 +20,8 @@ export function classifyFret(candidate,slot,staff,config=C){
 
 export function resolvePage(geometry,config=C){
   let measureNumber=0;
-  const staffs=geometry.staffs.map(staff=>{let previousChord=null;return {...staff,measures:staff.measures.map(measure=>{
+  let meter=geometry.meter??[4,4],meterEvidence=geometry.meterEvidence??null;
+  const staffs=geometry.staffs.map(staff=>{let previousChord=null;if(staff.meterReading?.status==='confirmed'){meter=staff.meterReading.meter;meterEvidence={...staff.meterReading,page:geometry.page};}return {...staff,measures:staff.measures.map(measure=>{
     const source={page:geometry.page,staff:staff.id,measure:++measureNumber,x:measure.x,y:measure.y,width:measure.width,height:measure.height,coordinateSpace:'render-pixels',pageWidth:geometry.width,pageHeight:geometry.height};
     const candidates=staff.candidates.filter(c=>!c.restSymbol&&!c.nonFretSymbol&&c.cx>measure.x&&c.cx<measure.x+measure.width);
     const slots=measure.rhythm.map(r=>({...r,notes:[],rejections:[],source:{...source,x:r.x,width:staff.spacing,height:staff.height}}));
@@ -46,14 +48,14 @@ export function resolvePage(geometry,config=C){
     }
     const ticks=slots.reduce((n,s)=>n+(s.duration?1920/Number(s.duration)*(s.dotted?1.5:1)*(s.tuplet?2/3:1):0),0);
     const orphanDigits=orphan.filter(n=>isFretText(n.reading));
-    const rhythmValid=slots.length>0&&slots.every(s=>s.duration&&s.confidence>=config.confirmed)&&ticks===1920&&measure.boundariesKnown&&orphanDigits.length===0;
+    const rhythmValid=slots.length>0&&slots.every(s=>s.duration&&s.confidence>=config.confirmed)&&ticks===meterTicks(meter)&&measure.boundariesKnown&&orphanDigits.length===0;
     for(const slot of slots){
       slot.status=rhythmValid&&(slot.rest||slot.notes.length>0)&&slot.notes.every(n=>n.status==='confirmed')&&!slot.rejections.length?'confirmed':'unresolved';
       for(const note of [...slot.notes,...slot.rejections]){const candidate=candidates.find(c=>c.id===note.candidateId);if(candidate){candidate.status=note.status;candidate.reasons=note.reasons;}}
     }
-    return {...measure,source,slots,orphan,ticks,rhythmValid,needsReview:!rhythmValid||slots.some(s=>s.status!=='confirmed'),reasons:[...(!measure.boundariesKnown?['missing-barline']:[]),...(!rhythmValid?['measure-rhythm-unverified']:[])]};
+    return {...measure,meter,meterEvidence,source,slots,orphan,ticks,rhythmValid,needsReview:!rhythmValid||slots.some(s=>s.status!=='confirmed'),reasons:[...(!measure.boundariesKnown?['missing-barline']:[]),...(!rhythmValid?['measure-rhythm-unverified']:[])]};
   })};});
-  return {...geometry,staffs};
+  return {...geometry,staffs,endMeter:meter,endMeterEvidence:meterEvidence};
 }
 
 export function summarizeAnalysis(pages){

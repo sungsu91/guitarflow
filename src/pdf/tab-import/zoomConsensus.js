@@ -65,6 +65,9 @@ export function combineZoomReadings(original,enlarged){
   for(const [i,s] of resolved.staffs.entries())for(const [j,m] of s.measures.entries()){
     const originalIndex=pairs[i][j];if(originalIndex<0)continue;
     const old=refinedOriginal.staffs[staffPairs[i]].measures[originalIndex],before=frets(old),after=frets(m),tolerance=s.spacing/m.width*.45;
+    // A bar validated against a different time signature cannot replace this
+    // bar merely because its durations fit the other capacity.
+    if(old.meter.join('/')!==m.meter.join('/'))continue;
     const preserved=before.every(n=>after.some(p=>p.string===n.string&&p.fret===n.fret&&p.dead===n.dead&&Math.abs(p.x-n.x)<tolerance));
     const restsPreserved=old.slots.filter(r=>r.rest&&r.confidence>=.95).every(r=>m.slots.some(q=>q.rest&&q.duration===r.duration&&Math.abs((q.x-m.x)/m.width-(r.x-old.x)/old.width)<tolerance));
     if(preserved&&restsPreserved&&(!old.rhythmValid||m.rhythmValid)&&(after.length>before.length||m.rhythmValid&&!old.rhythmValid)){selected++;result.staffs[staffPairs[i]].measures[originalIndex]=m;}

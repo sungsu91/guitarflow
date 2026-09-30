@@ -25,6 +25,40 @@ export function hasWholeRest(ink,width,staff,measure){
   return rows>=Math.max(2,g*.15);
 }
 
+// Rectangular rests are distinguished by which side of the ruled line they
+// occupy. Do not fill a rhythmic deficit with a guessed rest.
+export function findBlockRests(ink,width,staff,measure,candidates){
+ const g=staff.spacing,found=[];
+ for(const [line,side,duration] of [[staff.lines[1],1,'1'],[staff.lines[2],-1,'2']]){
+  const points=[];
+  for(let x=Math.ceil(measure.x+g*.7);x<measure.x+measure.width-g*.7;x++){
+   if(candidates.some(c=>Math.abs(c.cx-x)<g*.8)||measure.rhythm.some(r=>Math.abs(r.x-x)<g*1.3))continue;
+   for(let d=Math.ceil(staff.thickness/2)+1;d<=g*.6;d++){const y=Math.round(line+side*d);if(ink[y*width+x])points.push({x,y});}
+  }
+  const xs=[...new Set(points.map(p=>p.x))],groups=[];
+  for(const x of xs){const last=groups.at(-1);if(last&&x-last.at(-1)<=1)last.push(x);else groups.push([x]);}
+  for(const cols of groups){
+   const x0=cols[0],x1=cols.at(-1),w=x1-x0+1;if(w<g*.6||w>g*1.4)continue;
+   const ps=points.filter(p=>p.x>=x0&&p.x<=x1),ys=ps.map(p=>p.y),y0=Math.min(...ys),y1=Math.max(...ys),h=y1-y0+1;
+   if(h<g*.2||h>g*.55||ps.length/(w*h)<.75||Math.min(Math.abs(y0-line),Math.abs(y1-line))>g*.18)continue;
+   // A fret, slash or other connected shape extending past the rectangle is
+   // not a rest. Inspect both the opposite side and the outside of the block.
+   let outside=0;for(let x=x0;x<=x1;x++)for(const y of [Math.round(line-side*g*.25),Math.round(line+side*g*.75)])outside+=ink[y*width+x]??0;
+   if(outside>w*.15)continue;
+   found.push({x:(x0+x1)/2,y:(y0+y1)/2,duration,rest:true,confidence:.97,method:duration==='2'?'half-rest-on-tab':'whole-rest-on-tab',symbolBounds:{x:x0,y:y0,width:w,height:h}});
+  }
+ }
+ return found;
+}
+
+function hasStemlessDot(ink,width,staff,x){
+ const g=staff.spacing,bottom=staff.lines[5],points=[];
+ for(let y=Math.ceil(bottom+g*1.8);y<=bottom+g*2.8;y++)for(let at=Math.ceil(x+g*.15);at<=x+g*.9;at++)if(ink[y*width+at])points.push({x:at,y});
+ if(points.length<3)return false;
+ const xs=points.map(p=>p.x),ys=points.map(p=>p.y),w=Math.max(...xs)-Math.min(...xs)+1,h=Math.max(...ys)-Math.min(...ys)+1;
+ return w>=g*.12&&w<=g*.38&&h>=g*.12&&h<=g*.38&&points.length/(w*h)>.55;
+}
+
 export function attachNativeTabSymbols(ink,width,staff,{rhythmicPage=false}={}){
   const g=staff.spacing;
   for(const m of staff.measures){
@@ -49,14 +83,16 @@ export function attachNativeTabSymbols(ink,width,staff,{rhythmicPage=false}={}){
       if(w>=g*.12&&w<=g*.38&&h>=g*.12&&h<=g*.38&&points.length/(w*h)>.45){if(!r.beamCount)r.duration='4';r.dotted=true;r.method='dotted-stem';}
     }
     if(staff.nativeText)for(const rest of findEighthRests(ink,width,staff,m,candidates))m.rhythm.push(rest);
+    for(const rest of findBlockRests(ink,width,staff,m,candidates))m.rhythm.push(rest);
     m.rhythm.sort((a,b)=>a.x-b.x);
     if(m.rhythm.length)continue;
     if(!candidates.length&&hasWholeRest(ink,width,staff,m)){
       m.rhythm=[{x:m.x+m.width/2,y:staff.lines[1],duration:'1',rest:true,confidence:.98,method:'whole-rest-on-tab'}];
-    }else if(staff.nativeText&&rhythmicPage&&candidates.length>=2&&Math.max(...candidates.map(c=>c.cx))-Math.min(...candidates.map(c=>c.cx))<g*.3){
+    }else if(staff.nativeText&&rhythmicPage&&candidates.length&&Math.max(...candidates.map(c=>c.cx))-Math.min(...candidates.map(c=>c.cx))<g*.3){
       // Stemless single chord in rhythmic TAB. A number-only TAB page has no
       // rhythm evidence, and must never acquire whole notes from this rule.
-      m.rhythm=[{x:candidates.reduce((n,c)=>n+c.cx,0)/candidates.length,y:staff.lines[5],duration:'1',confidence:.96,method:'stemless-chord-in-rhythmic-tab'}];
+      const x=candidates.reduce((n,c)=>n+c.cx,0)/candidates.length,dotted=hasStemlessDot(ink,width,staff,x);
+      if(candidates.length>=2||dotted)m.rhythm=[{x,y:staff.lines[5],duration:'1',...(dotted?{dotted:true}:{}),confidence:.96,method:dotted?'dotted-stemless-note-in-rhythmic-tab':'stemless-chord-in-rhythmic-tab'}];
     }
   }
 }

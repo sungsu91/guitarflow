@@ -1,31 +1,32 @@
 import {createBlankDocument,blankEvent,newId,ticksOf} from '../../etudes/scoreModel.js';
+import {meterTicks,measureMeters} from '../../etudes/scoreMeters.js';
 import {TAB_IMPORT_CONFIG as C} from './config.js';
 
 export function analysisToDocument(analysis){
   const allMeasures=analysis.pages.flatMap(p=>p.staffs.flatMap(s=>s.measures));
   const sourceMeasures=allMeasures;
   if(!sourceMeasures.length||sourceMeasures.length>C.maxMeasures)throw Error(`제작실은 한 악보에 1~${C.maxMeasures}마디를 지원합니다. 전체 페이지를 가져오지 못해 생성하지 않았습니다.`);
-  const doc=createBlankDocument();
+  const doc=createBlankDocument();doc.meter=sourceMeasures[0].meter??[4,4];
   doc.title=analysis.fileName.replace(/\.pdf$/i,'')+' · TAB 초안';doc.english=doc.title;
   doc.purpose='PDF TAB 자동 초안 · ? 위치와 원본 PDF를 검토해 주세요.';
-  doc.pdfTabImport={version:C.version,fileName:analysis.fileName,summary:analysis.summary,assumedMeter:[4,4],unverifiedSettings:['tempo','key','tuning','capo'],coordinateSpace:'render-pixels'};
+  doc.pdfTabImport={version:C.version,fileName:analysis.fileName,summary:analysis.summary,...(sourceMeasures[0].meterEvidence?{recognizedMeter:doc.meter,meterEvidence:sourceMeasures[0].meterEvidence}:{assumedMeter:doc.meter}),unverifiedSettings:[...(!sourceMeasures[0].meterEvidence?['meter']:[]),'tempo','key','tuning','capo'],coordinateSpace:'render-pixels'};
   doc.pdfTabImport.importRange={start:1,end:sourceMeasures.length,total:allMeasures.length};
   let pageStart=0;
   doc.pdfTabImport.pages=analysis.pages.map(p=>{const count=p.staffs.reduce((n,s)=>n+s.measures.length,0),range={page:p.page,start:pageStart,end:pageStart+count,count};pageStart+=count;return range;});
   doc.measures=sourceMeasures.map((measure,index)=>{
-    let onset=0;
+    let onset=0;const meter=measure.meter??doc.meter,capacity=meterTicks(meter),maxSlots=Math.max(16,Math.min(64,capacity/120));
     // Pitch and rhythm are independent evidence. Keep verified fret/string
     // pairs even when the bar's rhythm requires review. Preview playback uses
     // these entered frets without marking the recognition as reviewed.
-    const overflow=measure.slots.length>16,knownGrid=measure.rhythmValid&&!overflow;
+    const overflow=measure.slots.length>maxSlots,knownGrid=measure.rhythmValid&&!overflow;
     // Dense noise must not erase an entire bar of verified fret numbers. Keep
     // all pitched columns when they fit, then fill the remaining review cells.
     const pitched=measure.slots.filter(s=>s.notes.some(n=>n.status==='confirmed'));
-    const selected=overflow&&pitched.length<=16?new Set([...pitched,...measure.slots.filter(s=>!pitched.includes(s)).slice(0,16-pitched.length)]):null;
+    const selected=overflow&&pitched.length<=maxSlots?new Set([...pitched,...measure.slots.filter(s=>!pitched.includes(s)).slice(0,maxSlots-pitched.length)]):null;
     const mapped=selected?measure.slots.filter(s=>selected.has(s)):measure.slots;
-    const slots=mapped.length&&mapped.length<=16?mapped:[{source:measure.source,notes:[],rejections:[],duration:null,status:'unresolved'}];
-    const keepDurations=!overflow&&slots.every(s=>s.duration)&&slots.reduce((sum,s)=>sum+ticksOf(s),0)<=1920;
-    const gridDuration=slots.length<=4?'4':slots.length<=8?'8':'16';
+    const slots=mapped.length&&mapped.length<=maxSlots?mapped:[{source:measure.source,notes:[],rejections:[],duration:null,status:'unresolved'}];
+    const keepDurations=!overflow&&slots.every(s=>s.duration)&&slots.reduce((sum,s)=>sum+ticksOf(s),0)<=capacity;
+    const gridDuration=slots.length<=capacity/480?'4':slots.length<=capacity/240?'8':'16';
     const events=slots.map(slot=>{
       const duration=keepDurations?slot.duration:gridDuration,notes=slot.notes.filter(n=>n.status==='confirmed').map(n=>({id:newId('tone'),string:n.string,fret:n.fret,...(n.dead?{dead:true}:{}),locked:true,confidence:n.confidence,source:{...slot.source,...n.source,measure:index+1}}));
       const event={...blankEvent(onset,duration),notes,rest:notes.length===0,blank:notes.length===0&&!slot.rest,...(keepDurations&&slot.tuplet?{tuplet:{...slot.tuplet,groupId:`${doc.id}-${index}-${slot.tuplet.groupId}`}}:{}),...(keepDurations&&slot.dotted?{dotted:true}:{})};onset+=ticksOf(event);
@@ -36,7 +37,7 @@ export function analysisToDocument(analysis){
       if(slot.status==='confirmed'&&notes.length>=2&&notes.every(n=>!n.dead))event.tabRepeat=true;
       return event;
     });
-    return {id:newId('bar'),chord:null,harmony:null,events,pdfImport:{needsReview:measure.needsReview||overflow,source:{...measure.source,measure:index+1},rhythmVerified:knownGrid,reasons:[...measure.reasons,...(overflow?['too-many-source-columns']:[])],orphan:measure.orphan,...(overflow?{unmappedSlots:measure.slots.filter(s=>!slots.includes(s))}: {})}};
+    return {id:newId('bar'),...(index&&meter.join('/')!==(sourceMeasures[index-1].meter??doc.meter).join('/')?{meter}:{}),chord:null,harmony:null,events,pdfImport:{needsReview:measure.needsReview||overflow,source:{...measure.source,measure:index+1},rhythmVerified:knownGrid,reasons:[...measure.reasons,...(overflow?['too-many-source-columns']:[])],orphan:measure.orphan,...(overflow?{unmappedSlots:measure.slots.filter(s=>!slots.includes(s))}: {})}};
   });
   return doc;
 }
@@ -76,8 +77,8 @@ export function reconcileImportedEdits(before,after){
 export function confirmImportedMeasure(doc,bar){
   const m=doc.measures[bar];
   if(!m||!m.pdfImport&&!m.events.some(e=>e.pdfImport))return doc;
-  let at=0;
-  for(const e of m.events){if(e.blank||e.onset!==at)throw Error('빈칸을 음표 또는 쉼표로 채우고 4/4 박자를 맞춰 주세요.');at+=ticksOf(e);}
-  if(at!==1920)throw Error('마디의 음가 합계가 정확히 4박이어야 합니다.');
+  const meter=measureMeters(doc)[bar],capacity=meterTicks(meter);let at=0;
+  for(const e of m.events){if(e.blank||e.onset!==at)throw Error(`빈칸을 음표 또는 쉼표로 채우고 ${meter.join('/')} 박자를 맞춰 주세요.`);at+=ticksOf(e);}
+  if(at!==capacity)throw Error(`마디의 음가 합계가 ${meter.join('/')} 한 마디와 맞아야 합니다.`);
   return {...doc,measures:doc.measures.map((item,i)=>i!==bar?item:{...item,pdfImport:{...item.pdfImport,needsReview:false,rhythmVerified:true,reviewedBy:'user'},events:item.events.map(e=>e.pdfImport?{...e,pdfImport:{...e.pdfImport,status:'confirmed',rhythmVerified:true,placeholderOnly:false,pendingStrings:[],reviewedBy:'user'}}:e)})};
 }

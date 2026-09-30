@@ -23,7 +23,7 @@ export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,re
   if(!/\.pdf$/i.test(file.name))throw Error('PDF 파일을 선택해 주세요.');
   signal?.throwIfAborted();
   const task=loadPdfTask(new Uint8Array(await file.arrayBuffer())),pages=[],previews=[];
-  let ocr,render;
+  let ocr,render,meter=[4,4],meterEvidence=null;
   const abort=()=>{render?.cancel();void task.destroy();};signal?.addEventListener('abort',abort,{once:true});
   try{
     onProgress({progress:0,message:'PDF 페이지 확인 중…'});
@@ -41,8 +41,9 @@ export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,re
         if(debug&&!zoom){const preview=document.createElement('canvas');preview.width=900;preview.height=Math.round(900*canvas.height/canvas.width);preview.getContext('2d').drawImage(canvas,0,0,preview.width,preview.height);previews.push(preview.toDataURL('image/jpeg',.8));preview.width=preview.height=0;}
         const glyphs=projectPdfText(await page.getTextContent(),viewport);
         const geometry=await geometryInWorker(ctx.getImageData(0,0,canvas.width,canvas.height),number,signal,glyphs);
+        geometry.meter=meter;geometry.meterEvidence=meterEvidence;
         canvas.width=canvas.height=0;
-        if(!ocr&&geometry.staffs.some(s=>s.candidates.some(c=>!c.ocr)))ocr=await createLocalOcr(signal);
+        if(!ocr&&geometry.staffs.some(s=>s.meterCandidate||s.candidates.some(c=>!c.ocr)))ocr=await createLocalOcr(signal);
         await recognizeCandidates(geometry,ocr,{signal,onProgress:f=>onProgress({progress:(number-1+(zoom ? .55 : .1)+f*.4)/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · ${zoom?'확대하여 프렛 재확인':'프렛 후보 확인'} 중…`})});
         return resolvePage(geometry);
         };
@@ -52,6 +53,7 @@ export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,re
           resolved=combineZoomReadings(resolved,await read(4.5,true));
         }
         pages.push(resolved);
+        meter=resolved.endMeter;meterEvidence=resolved.endMeterEvidence;
         onProgress({progress:number/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · 분석 완료`});
         if(debug)console.info('[PDF TAB]',`Page ${number}`,summarizeAnalysis([resolved]));
         await new Promise(resolve=>setTimeout(resolve,0));

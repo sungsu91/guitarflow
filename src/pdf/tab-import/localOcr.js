@@ -3,6 +3,7 @@ import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {abortable} from './abortable.js';
 import {glyphFeature,corroboratePageGlyphs} from './glyphConsensus.js';
 import {isFretText,normalizeFretText} from './fretText.js';
+import {resolvePrintedMeter} from './printedMeter.js';
 const cropCache=new Map();let cacheBytes=0;
 const MAX_CACHE_BYTES=32*1024*1024;
 export const clearOcrCache=()=>{cropCache.clear();cacheBytes=0;};
@@ -45,7 +46,7 @@ function reading(data){
 }
 
 export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
-  const candidates=geometry.staffs.flatMap(s=>s.candidates.map(c=>({candidate:c,staff:s})));
+  const candidates=geometry.staffs.flatMap(s=>[...s.candidates,...(s.meterCandidate?.digits??[])].map(c=>({candidate:c,staff:s})));
   if(candidates.length>C.maxCandidatesPerPage)throw Error('이 페이지의 기호가 너무 많습니다. TAB 영역만 있는 PDF로 다시 시도해 주세요.');
   const features=new Map(candidates.flatMap(({candidate:c})=>{const feature=glyphFeature(c);return feature?[[c.id,feature]]:[];}));
   const crop=document.createElement('canvas'),small=document.createElement('canvas');crop.width=144;crop.height=112;
@@ -84,5 +85,6 @@ export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
     if(i%10===0||i===candidates.length-1)onProgress?.((i+1)/candidates.length);
   }}finally{crop.width=crop.height=small.width=small.height=0;}
   corroboratePageGlyphs(geometry,features);
+  for(const staff of geometry.staffs){staff.meterReading=resolvePrintedMeter(staff.meterCandidate,C.confirmed);delete staff.meterCandidate;}
   return geometry;
 }
