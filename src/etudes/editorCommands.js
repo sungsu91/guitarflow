@@ -1,3 +1,4 @@
+import {scoreMeasureLimit,scoreMeasureLimitMessage} from './scoreLimits.js';
 import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 import {isFretted} from './scoreInstruments.js';
@@ -73,7 +74,7 @@ export function enterMutedTone(d,c,duration='4'){
 }
 
 // Duration edits consume vacant time only, retaining later onsets and IDs.
-const vacant=e=>isBlankEvent(e)&&!e.tuplet;
+const vacant=e=>isBlankEvent(e)&&!e.tuplet&&e.pdfImport?.status!=='unresolved';
 function retimeEvent(d,c,duration,dotted=false){
  const m=d.measures[c.bar],e=m?.events[c.event];if(!e)return d;
  if(e.duration===duration&&Boolean(e.dotted)===dotted)return d;
@@ -209,13 +210,13 @@ export function applyPicking(d,{start=0,end=d.measures.length-1,pattern='alterna
  return measures.every((m,i)=>m===d.measures[i])?d:{...d,measures};
 }
 export function copyBars(d,start,end){return d.measures.slice(Math.min(start,end),Math.max(start,end)+1).map(m=>structuredClone(m));}
-export function pasteBars(d,after,bars){if(d.measures.length+bars.length>64)throw Error(ko["etudes.theMaximumIs64Bars"]);return {...d,measures:[...d.measures.slice(0,after+1),...cloneMeasures(bars),...d.measures.slice(after+1)]};}
+export function pasteBars(d,after,bars){if(d.measures.length+bars.length>scoreMeasureLimit(d))throw Error(scoreMeasureLimitMessage(d));return {...d,measures:[...d.measures.slice(0,after+1),...cloneMeasures(bars),...d.measures.slice(after+1)]};}
 export function cursorStep(d,c,direction){let bar=c.bar,event=c.event+direction;if(event<0&&bar>0){bar--;event=d.measures[bar].events.length-1;}if(event>=d.measures[bar].events.length&&bar<d.measures.length-1){bar++;event=0;}return {...c,bar,event:Math.max(0,Math.min(d.measures[bar].events.length-1,event))};}
 export function inputDigits(previous,key,location,time,windowMs=700){const combined=previous&&previous.location===location&&time-previous.time<windowMs&&previous.text.length===1?Number(previous.text+key):99;const value=combined<=24?combined:Number(key);return {value,text:combined<=24?String(combined):key,time,location};}
 
 // Only explicit continued entry appends a measure; browsing and picking do not.
 export function nextEntry(d,c){const next=cursorStep(d,c,1);if(next.bar!==c.bar||next.event!==c.event)return {document:d,cursor:next};
  const e=d.measures[c.bar].events[c.event],capacity=d.meter[0]*1920/d.meter[1];
- if(e.onset+ticksOf(e)!==capacity||d.measures.length>=64)return {document:d,cursor:c};
+ if(e.onset+ticksOf(e)!==capacity||d.measures.length>=scoreMeasureLimit(d))return {document:d,cursor:c};
  return {document:{...d,measures:[...d.measures,blankMeasure(d.meter)]},cursor:{...c,bar:c.bar+1,event:0}};
 }

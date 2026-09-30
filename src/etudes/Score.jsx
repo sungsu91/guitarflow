@@ -29,11 +29,13 @@ import {repeatMarks} from './scoreRepeats.js';
 import {playheadX,rhythmAnchors} from './scorePlayhead.js';
 import {measureLayout} from './measureLayout.js';
 import {mobileScoreWidth} from './mobileScoreSizing.js';
+import {createPortal} from 'react-dom';
+import {createDesktopScorePages,DESKTOP_SCORE_CONTENT_WIDTH,withIsolatedScore} from './desktopScorePages.js';
 import { memo, useMemo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {isBlankEvent,tupletGroups,ticksOf} from './scoreModel.js';
 import {drawTabRhythm,drawTabRests,rhythmGroups} from './tabRhythm.js';
 import { drawChordDiagram, chordDiagramVisibility } from './chordStudy.js';
-import {measureChordCharts,chordChartLayout,drawMeasureChordCharts} from './measureChordCharts.js';
+import {measureChordCharts,summarizeMeasureChordCharts,chordChartLayout,drawMeasureChordCharts} from './measureChordCharts.js';
 import { Clef, Dot, Stem, Renderer, Stave, TabStave, StaveNote, TabNote, GhostNote, Tuplet, Voice, Formatter, Beam, Accidental, StaveConnector, Barline, TimeSignature, Curve, StaveLine, StaveTie } from 'vexflow';
 
 // Leave a little breathing room between vertically stacked fret numbers.
@@ -53,11 +55,8 @@ function addTabTimeSignature(tab,spec){
  tab.addModifier(signature);
 }
 
-// GhostNote preserves an unentered slot's ticks but has no stem. VexFlow 4
-// treats it as a rest and asks for its stem when positioning a tuplet label.
-// Keep all three members for timing/spacing, using only entered notes for height.
-// VexFlow's TAB dot is placed at the stem base above TAB. Our rhythm is below
-// TAB, so place one aligned duration dot beside each fret, as in printed TAB.
+// Legacy TAB without separate rhythm stems keeps its fret-level dots.
+// When rhythm is shown, drawTabRhythm places one dot beside the rhythm stem.
 class TabFretDots extends Dot {
   draw() {
     const ctx=this.checkContext(),note=this.checkAttachedNote();this.setRendered();
@@ -114,7 +113,7 @@ function prepareMeasure(measure, etude) {
       const note = new AlignedTabNote({ positions: tabPositions(n,scoreInstrument(etude.instrument).tuning.length), duration: n.duration+(n.dotted?'d':'') },tabAnchors.get(n.onset)??notes[i]);
       note.render_options.font = '18px Arial';
       note.render_options.draw_dots = true;
-      if(n.dotted&&etude.tabRhythmVisible!==false)note.addModifier(new TabFretDots(),0);
+      if(n.dotted&&etude.tabRhythmVisible!==false&&!etude.tabRhythmDots)note.addModifier(new TabFretDots(),0);
       return note;
     });
     measure.forEach((n,i)=>{if(n.dotted&&!isBlankEvent(n))Dot.buildAndAttach([notes[i]],{all:true});});
@@ -160,7 +159,7 @@ function measureSpacing(measure, etude, view) {
 // uses the same tick scale by default. Mobile editor rows instead allocate
 // space to each bar's actual density, without resizing other rows. This is
 // engraving geometry only: musical onset/duration and the audio clock stay intact.
-export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=0,independentRows=false,rhythmicSpacing=false}={}) {
+export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=0,independentRows=false,rhythmicSpacing=false,equalMeasures=false}={}) {
   if(!isFretted(etude.instrument))return keyboardSpacing(etude,{placements,width});
   const meters=measureMeters(etude);
   const charts=measureChordCharts(etude);
@@ -214,7 +213,9 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
      scale=Math.max(scale,bar.scale);
     }
     const fixed=24+bars.reduce((sum,bar)=>sum+bar.prefix+bar.inset+bar.tail,0);
-    return {bars,scale,fixed,minimum:fixed+bars.reduce((sum,bar)=>sum+((independentRows||rhythmicSpacing)?bar.naturalWidth:bar.capacity*scale),0)};
+    // Paper systems keep a full cell for sustained chords as well as busy bars.
+    const minimum=equalMeasures?24+bars.length*Math.max(...bars.map(bar=>bar.prefix+bar.inset+bar.tail+bar.naturalWidth)):fixed+bars.reduce((sum,bar)=>sum+((independentRows||rhythmicSpacing)?bar.naturalWidth:bar.capacity*scale),0);
+    return {bars,scale,fixed,minimum};
   });
   const totalWidth=Math.max(width,...specs.map(row=>row.minimum));
   const measures=[];
@@ -227,10 +228,12 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
     let x=12;
     bars.forEach((bar,i)=>{
       const tickScale=sharedScale;
+      const equalWidth=(rowWidth-24)/bars.length;
+      const barSpare=equalMeasures?(equalWidth-bar.prefix-bar.inset-bar.tail-bar.naturalWidth)/(bar.intervals.reduce((sum,gap)=>sum+gap.weight,0)||1):spareUnit;
       let rhythmicWidth=0;
-      const positions=(independentRows||rhythmicSpacing)?bar.intervals.map(gap=>{const position=rhythmicWidth;rhythmicWidth+=gap.width+gap.weight*spareUnit;return position;}):undefined;
-      if(independentRows||rhythmicSpacing)rhythmicWidth+=bar.naturalWidth-bar.intervals.reduce((sum,gap)=>sum+gap.width,0);
-      const barWidth=bar.prefix+bar.inset+bar.tail+((independentRows||rhythmicSpacing)?rhythmicWidth:bar.capacity*tickScale);
+      const positions=(independentRows||rhythmicSpacing||equalMeasures)?bar.intervals.map(gap=>{const position=rhythmicWidth;rhythmicWidth+=gap.width+gap.weight*barSpare;return position;}):undefined;
+      if(positions)rhythmicWidth+=bar.naturalWidth-bar.intervals.reduce((sum,gap)=>sum+gap.width,0);
+      const barWidth=equalMeasures?equalWidth:bar.prefix+bar.inset+bar.tail+(positions?rhythmicWidth:bar.capacity*tickScale);
       const leading=i===0?12:0,trailing=i===bars.length-1?12:0;
       measures[bar.index]={x,width:barWidth,cellX:x-leading,cellWidth:barWidth+leading+trailing,
         rowWidth,inset:bar.inset,tickScale,positions:positions&&bar.pointIndices.map(i=>positions[i])};
@@ -240,7 +243,7 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
   return {width:totalWidth,measures};
 }
 
-export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabShortStems=Boolean(etude.document?.viewSettings?.tabShortStems),tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
+export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabShortStems=Boolean(etude.document?.viewSettings?.tabShortStems),tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, chordChartMode='all', desktopPage=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
   if(mobile&&responsive&&!editor&&!measuresPerRow){
     const pairs=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),2,etude.document?.viewSettings?.systemBreaks??[]);
     const minimum=scoreSpacing(etude,{placements:pairs,view,width:0,barOffset,rhythmicSpacing}).width;
@@ -251,9 +254,14 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   if(!isFretted(etude.instrument))return drawKeyboardScore(element,etude,{mobile,editor,editorWidth,barOffset,systemStart,systemEnd,measuresPerRow});
   const stringCount=scoreInstrument(etude.instrument).tuning.length;
   const numberOnly=etude.document?.viewSettings?.tabRhythm===false||(editor&&!tabRhythm);
-  etude={...etude,tabRhythmVisible:!numberOnly};
+  etude={...etude,tabRhythmVisible:!numberOnly,tabRhythmDots:tabRhythm};
   const polyphonic=etude.measures.some(bar=>bar.some(n=>n.voice==='melody'));
+  const tiedEventIds=new Set(etude.measures.flat().filter(e=>e.tieTo).map(e=>e.tieTo));
+  if(etude.incomingTie&&etude.measures[0]?.[0])tiedEventIds.add(etude.measures[0][0].id);
   const compactTab=responsive&&!editor&&view==='tab';
+  // Upper/lower voice TAB already reserves upperSpace; reclaim only its
+  // redundant row padding so four systems fit without squeezing simpler TAB.
+  const compactDesktopRows=desktopPage&&!mobile&&compactTab&&polyphonic;
   const upperSpace=view!=='staff'&&((tabRhythm&&(tabBeamPosition==='above'||polyphonic))||tabPickingPosition==='above')?(compactTab?(mobile?36:48):78):0;
   element.replaceChildren();
   // Respect authored line breaks, then size vector engraving to its rhythmic
@@ -262,17 +270,18 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const perRow = editor ? 1 : measuresPerRow ? measuresPerRow : responsive ? Math.max(1,Math.min(6,Math.floor((editorWidth??980)/(dense?340:260)))) : etude.document?.viewSettings?.measuresPerRow ?? (mobile && !landscape && (enlarged || dense) ? 1 : 2);
   const placements=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),perRow,etude.document?.viewSettings?.systemBreaks??[]);
   const baseWidth=mobile&&landscape?(dense?1100:980):mobile?(enlarged?460:view==='both'?600:400):980;
-  const spacing=engraving?null:scoreSpacing(etude,{placements,view,width:editorWidth??baseWidth,barOffset,rhythmicSpacing});
+  const spacing=engraving?null:scoreSpacing(etude,{placements,view,width:editorWidth??baseWidth,barOffset,rhythmicSpacing,equalMeasures:desktopPage});
   const width=engraving?engraving.cellWidth:spacing.width;
   const labelContext=document.createElement('canvas').getContext('2d');
   labelContext.font='bold 14px Arial';
-  const charts=measureChordCharts(etude);
+  const compactCharts=chordChartMode==='halves';
+  const charts=measureChordCharts(etude).map((charts,i)=>compactCharts?summarizeMeasureChordCharts(charts,measureMeters(etude)[i]):charts);
   const harmonyLines=etude.measures.map((_,i)=>harmonyLabelLines(etude.chordShapes?.[i]||charts[i]?.length?'':etude.harmony?.[i]||'',Math.max(24,(engraving??spacing.measures[i]).width-43),text=>labelContext.measureText(text).width));
   const annotationRoom=Math.max(engraving?.annotationRoom??0,Math.max(0,...harmonyLines.map(lines=>(lines.length-1)*18))+(repeatMarks(etude).some(m=>m.sectionLabel)?32:0));
   const chartRows=[];
-  placements.forEach((p,i)=>{chartRows[p.row-1]=Math.max(chartRows[p.row-1]??0,!charts[i]?.length&&etude.chordShapes?.[i]?120:chordChartLayout(charts[i]??[],(engraving??spacing.measures[i]).width).height,engraving?.chordChartHeight??0);});
+  placements.forEach((p,i)=>{chartRows[p.row-1]=Math.max(chartRows[p.row-1]??0,!charts[i]?.length&&etude.chordShapes?.[i]?120:chordChartLayout(charts[i]??[],(engraving??spacing.measures[i]).width,compactCharts).height,engraving?.chordChartHeight??0);});
   const visibleChords=etude.chordDiagramVisible??chordDiagramVisibility(etude.chordShapes,etude.harmony);
-  const chordRowGap=!editor&&etude.harmony?.some(Boolean)?(compactTab?(mobile?16:24):36):0;
+  const chordRowGap=!editor&&etude.harmony?.some(Boolean)?(compactTab?(mobile?16:compactDesktopRows?8:24):36):0;
   // User edits may add high notes. Reserve headroom for their ledger lines
   // instead of clipping the top of the SVG or colliding with a chord box.
   const highestLine=Math.max(7,...etude.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).map(n=>(staffStepForPitch(n.pitch,etude.instrument)+2)/2));
@@ -288,7 +297,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   // Reader annotations are already attached to the actual notation above.
   // Avoid repeating the full section-label reserve as blank space on every row.
   // Keep editor/print spacing and the displayed fret/string sizes unchanged.
-  const rowAnnotationRoom=compactTab?Math.max(0,annotationRoom-(mobile?32:20)):annotationRoom;
+  const rowAnnotationRoom=compactTab?Math.max(0,annotationRoom-(mobile||compactDesktopRows?32:20)):annotationRoom;
   const baseRowHeight = (view==='tab'?(compactTab?86:144):view==='staff'?140:(responsive&&!editor?210:228))+rowAnnotationRoom+extraTabRoom+dynamicRoom+chordRowGap+headroom+footroom+upperSpace+(tabRhythm&&view!=='staff'?(compactRhythm?45:55):0)+(view==='staff'?0:(stringCount-1)*(TAB_LINE_SPACING-13));
   const rowTops=[];let height=0;
   chartRows.forEach((extra,i)=>{rowTops[i]=height;height+=baseRowHeight+extra;});height+=50;
@@ -318,7 +327,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     const stave = new Stave(x, y, w);
     const tab = new TabStave(x, y + (view==='tab'?0:84+footroom)+upperSpace, w,{num_lines:stringCount,spacing_between_lines_px:TAB_LINE_SPACING});
     if(charts[index]?.length){
-      drawMeasureChordCharts(element.querySelector('svg'),charts[index],{x,width:w,bar:index+barOffset,meter});
+      drawMeasureChordCharts(element.querySelector('svg'),charts[index],{x,width:w,bar:index+barOffset,meter,compact:compactCharts});
     }else if(visibleChords[index]) {
       const shape=etude.chordShapes[index],bottomOffset=32+(shape.frets.length-1)*12+20;
       const top=(view==='tab'?tab:stave).getYForLine(0);
@@ -398,7 +407,13 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       note.getTickContext().setX(geometry.inset+(geometry.positions?.[i]??tick*geometry.tickScale));
     });
     context.openGroup('fretiva-staff-view');voices.forEach(voice=>voice.draw(context, stave));context.closeGroup();context.openGroup('fretiva-tab-view');tabVoices.forEach(voice=>voice.draw(context, tab));context.closeGroup();
-    measure.forEach((event,i)=>drawn.push({event,note:notes[i],tab:tabs[i],row:placement.row,key:index+':'+i}));
+    measure.forEach((event,i)=>{
+      drawn.push({event,note:notes[i],tab:tabs[i],row:placement.row,key:index+':'+i});
+      if(!event.rest&&tiedEventIds.has(event.id)){
+        const node=noteElement(tabs[i]);
+        if(node){node.dataset.tieContinuation='true';node.querySelectorAll('text').forEach(text=>text.setAttribute('visibility','hidden'));}
+      }
+    });
     // Rests belong inside TAB, independently of the optional lower rhythm stems.
     if(!numberOnly){
      for(const voice of polyphonic?['melody','accompaniment']:[null]){
@@ -410,7 +425,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     if(tabRhythm){
      for(const voice of polyphonic?['melody','accompaniment']:[null]){
       const svg=element.querySelector('svg'),events=voice?measure.map(e=>e.voice===voice?e:{...e,rest:true,blank:true,notes:[]}):measure;
-      drawTabRhythm(svg,events,tabs,tab,beamGeometry.filter(b=>!voice||measure[b.indices[0]].voice===voice),voice==='melody'?'above':polyphonic?'below':tabBeamPosition,{compact:compactRhythm,shortStems:tabShortStems});
+      drawTabRhythm(svg,events,tabs,tab,beamGeometry.filter(b=>!voice||measure[b.indices[0]].voice===voice),voice==='melody'?'above':polyphonic?'below':tabBeamPosition,{compact:compactRhythm,shortStems:tabShortStems,tiedEventIds});
       svg.lastElementChild.dataset.scoreBar=index;if(voice)svg.lastElementChild.dataset.voice=voice;
      }
     }
@@ -627,7 +642,11 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     for(const label of svg.querySelectorAll(`[data-annotation-bar="${item.index}"][data-score-annotation="harmony"],[data-annotation-bar="${item.index}"][data-score-annotation="chord"]`)){
       let b=label.getBBox();
       if(label.dataset.scoreAnnotation==='chord'){
-        const bottom=navigationBottom(b.x,b.x+b.width,top-8,b.height,obstacles);
+        // Desktop pages keep each diagram and its name above the entire bar's
+        // notation, including upper-voice stems that sit beside the diagram.
+        const bottom=desktopPage
+          ? navigationBottom(x,x+item.width,top-18,b.height,obstacles,{span:true})-10
+          : navigationBottom(b.x,b.x+b.width,top-8,b.height,obstacles);
         const dy=bottom-b.y-b.height;
         label.firstElementChild.setAttribute('transform',`translate(0 ${dy})`);
         b=label.getBBox();
@@ -665,8 +684,11 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
 // Keep only a bounded set of detached vector trees. Navigating away still
 // unmounts the studio and stops audio; returning doesn't engrave it again.
 const scoreCache = new Map();
+function scoreCacheKey(etude,options) {
+  return `${etude.id}:${Boolean(options.mobile)}:${Boolean(options.enlarged)}:${Boolean(options.landscape)}:${options.view??"both"}:${options.editorWidth??""}:${Boolean(options.responsive)}:${options.measuresPerRow??0}:${Boolean(options.rhythmicSpacing)}:${options.chordChartMode??"all"}:${Boolean(options.desktopPage)}:${options.language??""}`;
+}
 export function renderCachedScore(element, etude, options = {}) {
-  const key = `${etude.id}:${Boolean(options.mobile)}:${Boolean(options.enlarged)}:${Boolean(options.landscape)}:${options.view??"both"}:${options.editorWidth??""}:${Boolean(options.responsive)}:${options.measuresPerRow??0}:${Boolean(options.rhythmicSpacing)}`;
+  const key = scoreCacheKey(etude,options);
   const cached = scoreCache.get(key);
   if (cached?.etude === etude) {
     scoreCache.delete(key); scoreCache.set(key, cached);
@@ -679,7 +701,7 @@ export function renderCachedScore(element, etude, options = {}) {
   return 'engraved';
 }
 
-function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false }) {
+function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false,chordChartMode='all',paginatedDesktop=false,pageHeader,pageFooter }) {
   const language=useLanguage();
   const rhythmStates=useMemo(()=>rhythmTimeline(practiceRange?{...etude,practiceRange}:etude),[etude,practiceRange]);
   const ref = useRef(null);
@@ -687,7 +709,8 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   const drawPositionRef=useRef(null);
   const selectBarRef=useRef(onSelectBar);selectBarRef.current=onSelectBar;
   const hasPosition=Boolean(playPosition),isPlaying=Boolean(playPosition?.playing),canSelectBar=Boolean(onSelectBar);
-  const [availableWidth,setAvailableWidth]=useState(0);
+  const [availableWidth,setAvailableWidth]=useState(paginatedDesktop?DESKTOP_SCORE_CONTENT_WIDTH:0);
+  const [pageMounts,setPageMounts]=useState(null);
   const [availableHeight,setAvailableHeight]=useState(0);
   useLayoutEffect(()=>{
     if(!responsive||!focusLayout||view!=='tab')return;
@@ -700,7 +723,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
     measure();const observer=new ResizeObserver(measure);observer.observe(viewport);
     return()=>observer.disconnect();
   },[responsive,focusLayout,view]);
-  useLayoutEffect(()=>{if(!responsive)return;const viewport=ref.current.closest('.etudeScoreViewport');const target=mobile&&viewport?viewport:ref.current;const measure=()=>{const sheet=mobile&&viewport?getComputedStyle(viewport.querySelector('.etudeSheet')):null;const width=target.clientWidth-(sheet?(parseFloat(sheet.paddingLeft)||0)+(parseFloat(sheet.paddingRight)||0):0);setAvailableWidth(Math.max(0,Math.round(width)));};measure();const observer=new ResizeObserver(measure);observer.observe(target);return()=>observer.disconnect();},[responsive,mobile]);
+  useLayoutEffect(()=>{if(paginatedDesktop){setAvailableWidth(DESKTOP_SCORE_CONTENT_WIDTH);return;}if(!responsive)return;const viewport=ref.current.closest('.etudeScoreViewport');const target=mobile&&viewport?viewport:ref.current;const measure=()=>{const sheet=mobile&&viewport?getComputedStyle(viewport.querySelector('.etudeSheet')):null;const width=target.clientWidth-(sheet?(parseFloat(sheet.paddingLeft)||0)+(parseFloat(sheet.paddingRight)||0):0);setAvailableWidth(Math.max(0,Math.round(width)));};measure();const observer=new ResizeObserver(measure);observer.observe(target);return()=>observer.disconnect();},[responsive,mobile,paginatedDesktop]);
   const practiceFollow=usePracticeFollow(ref,followMode,Boolean(playPosition?.playing),[availableWidth,view,zoom,focusLayout,measuresPerRow].join(":"));
   const follow=usePlaybackFollow(ref,followPlayback&&Boolean(playPosition?.playing));
   const followRef=useRef(follow);followRef.current=(line,current)=>followMode?practiceFollow.follow(line,current):follow(line);
@@ -715,14 +738,20 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
     return () => query.removeEventListener('change', update);
   }, []);
   useEffect(() => {
-    setRendering(true);
     let firstFrame,secondFrame,timer;
-    // Allow loading feedback to paint before synchronous engraving starts.
-    firstFrame=requestAnimationFrame(()=>{secondFrame=requestAnimationFrame(()=>{timer=setTimeout(()=>{
+    const renderZoom=focusLayout?1:zoom;
+    const options={ mobile, enlarged, landscape, view, responsive,chordChartMode,desktopPage:paginatedDesktop,language,rhythmicSpacing:followMode==='fingering',measuresPerRow,editorWidth:paginatedDesktop?DESKTOP_SCORE_CONTENT_WIDTH:responsive?Math.max(240,availableWidth/renderZoom):mobile&&!landscape&&!enlarged?600:undefined };
+    const render=()=>{
     try {
-      const renderZoom=focusLayout?1:zoom;
-      renderCachedScore(ref.current, etude, { mobile, enlarged, landscape, view, responsive,rhythmicSpacing:followMode==='fingering',measuresPerRow,editorWidth:responsive?Math.max(240,availableWidth/renderZoom):mobile&&!landscape&&!enlarged?600:undefined });
-      if(responsive){
+      if(paginatedDesktop){
+        const pages=withIsolatedScore(DESKTOP_SCORE_CONTENT_WIDTH,host=>{
+          renderCachedScore(host,etude,options);
+          return createDesktopScorePages(host.querySelector('svg'));
+        });
+        ref.current.replaceChildren(pages);
+        setPageMounts({header:ref.current.querySelector('.desktopScorePageHeader'),footer:ref.current.querySelector('.desktopScorePageExtra')});
+      }else renderCachedScore(ref.current,etude,options);
+      if(responsive&&!paginatedDesktop){
         const svg=ref.current.querySelector('svg');
         // Keep the complete engraved system inside the landscape viewport,
         // even when dense notation requires a wider internal coordinate space.
@@ -735,25 +764,33 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
     }
     catch (e) { ref.current?.replaceChildren(); setError(ko["etudes.couldNotDisplayTheScoreChooseAnotherExercise"]); console.error(e); }
     finally {setRendering(false);setRenderRevision(v=>v+1);}
-    },0);});});
+    };
+    // Cached pages can appear immediately. A cold engraving lets feedback paint
+    // once, then measures notation without recalculating the rest of the app.
+    if(paginatedDesktop&&scoreCache.get(scoreCacheKey(etude,options))?.etude===etude)render();
+    else {
+      setRendering(true);
+      firstFrame=requestAnimationFrame(()=>{secondFrame=requestAnimationFrame(()=>{timer=setTimeout(render,0);});});
+    }
     return()=>{cancelAnimationFrame(firstFrame);cancelAnimationFrame(secondFrame);clearTimeout(timer);};
-  }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth,availableHeight, zoom, measuresPerRow,focusLayout,followMode]);
+  }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth,availableHeight, zoom, measuresPerRow,focusLayout,followMode,chordChartMode,language,paginatedDesktop]);
   useEffect(() => {
-    ref.current?.querySelector('svg')?.setAttribute('aria-label', localizeUi(`${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?ko["etudes.staff"]:view==='tab'?'TAB':ko["etudes.notationAndTab"]}`));
+    ref.current?.querySelectorAll('svg[data-notation-view]').forEach(svg=>svg.setAttribute('aria-label', localizeUi(`${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?ko["etudes.staff"]:view==='tab'?'TAB':ko["etudes.notationAndTab"]}`)));
   }, [renderRevision,etude, mobile, enlarged, landscape, bpm, view,language]);
   useEffect(()=>{
-    const root=ref.current,svg=root?.querySelector('svg');if(!svg||!hasPosition)return;
+    const root=ref.current,svg=root?.querySelector('svg[data-notation-view]');if(!svg||!hasPosition)return;
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     Object.entries({class:'savedScorePlayhead',stroke:'var(--riff-danger, #c85d54)','stroke-opacity':1,'stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none','aria-hidden':'true'}).forEach(([key,value])=>line.setAttribute(key,value));
     const wash=line.cloneNode();wash.setAttribute('class','savedScorePlayheadWash');
     const progressEnabled=rhythmProgress&&followMode!=='off';
     svg.append(wash,line);line.style.visibility=wash.style.visibility=progressEnabled?'visible':'hidden';
-    const highlight=rhythmHighlighter(svg,rhythmStates);let frame,activeBar,points;
+    const highlight=rhythmHighlighter(root,rhythmStates);let frame,activeBar,points;
     const draw=()=>{
       const position=positionRef.current;if(!position)return;
       const current=position.getCurrentSlot?.()??position;
-      if(activeBar!==current.bar){const bar=svg.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;
-        for(const selection of svg.querySelectorAll('[data-start-bar]')){
+      if(activeBar!==current.bar){const bar=root.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;
+        if(line.ownerSVGElement!==bar.ownerSVGElement)bar.ownerSVGElement.append(wash,line);
+        for(const selection of root.querySelectorAll('[data-start-bar]')){
           const active=Number(selection.dataset.startBar)===current.bar&&progressEnabled;
           selection.setAttribute('fill',active?'rgba(190,155,98,.12)':'transparent');
           selection.setAttribute('stroke',active?'rgba(190,155,98,.3)':'none');
@@ -772,11 +809,11 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   },[renderRevision,hasPosition,isPlaying,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode,rhythmProgress,rhythmStates]);
   useEffect(()=>{if(!isPlaying)drawPositionRef.current?.();},[playPosition,isPlaying]);
   useEffect(()=>{
-   const svg=ref.current?.querySelector('svg');if(!svg||!canSelectBar)return;
+   const root=ref.current;if(!root?.querySelector('svg[data-notation-view]')||!canSelectBar)return;
    const position=positionRef.current,highlightedBar=position?(position.getCurrentSlot?.()??position).bar:selectedBar;
-   const nodes=[];for(const bar of svg.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':formatMessage(ko["etudes.startAtBarValue"], { value1: index+1 }),'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>selectBarRef.current?.(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectBarRef.current?.(index);}};svg.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
+   const nodes=[];for(const bar of root.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':formatMessage(ko["etudes.startAtBarValue"], { value1: index+1 }),'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>selectBarRef.current?.(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectBarRef.current?.(index);}};bar.ownerSVGElement.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
   },[renderRevision,etude,canSelectBar,selectedBar,hasPosition,mobile,enlarged,landscape,view,responsive,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
-  return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title={translateUi("etudes.goToPlayheadAndResumeAutoScroll")}><LocateFixed size={14} aria-hidden="true"/><span><Translation id="etudes.goToPlayhead" /></span></button>}{error && <p role="alert">{localizeUi(error)}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/><Translation id="etudes.preparingScore" /></span></div><div className="etudeNotation" ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
+  return <>{!paginatedDesktop&&etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{paginatedDesktop&&pageMounts?.header&&createPortal(<>{pageHeader}{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}</>,pageMounts.header)}{paginatedDesktop&&pageMounts?.footer&&pageFooter&&createPortal(pageFooter,pageMounts.footer)}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title={translateUi("etudes.goToPlayheadAndResumeAutoScroll")}><LocateFixed size={14} aria-hidden="true"/><span><Translation id="etudes.goToPlayhead" /></span></button>}{error && <p role="alert">{localizeUi(error)}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/><Translation id="etudes.preparingScore" /></span></div><div className={'etudeNotation'+(paginatedDesktop?' desktopScorePageGrid':'')} ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
 }
 export default memo(Score);
 

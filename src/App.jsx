@@ -1,5 +1,13 @@
+import FretboardViewerLayout from "./layouts/FretboardViewerLayout.jsx";
+import DesktopNoteScaleViewer from "./layouts/DesktopNoteScaleViewer.jsx";
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
-import { buildRootScalePositions, rootScaleOctaves } from './fretboard/rootScale.js';
+import DesktopHelpGuide from './navigation/DesktopHelpGuide.jsx';
+import { HelpGuideFeatureNotes, RhythmTrainerHelp, FretboardGuideIntro, HelpSampleCredits } from './navigation/HelpGuideFeatures.jsx';
+import { buildRootScaleRoute, rootScaleOctaves } from './fretboard/rootScale.js';
+import { selectRootScalePractice } from './fretboard/rootScalePractice.js';
+import { useScalePositionSwipe } from './fretboard/useScalePositionSwipe.js';
+import MobileScalePositionNavigation from './fretboard/MobileScalePositionNavigation.jsx';
+import DesktopScalePositionNavigation from './fretboard/DesktopScalePositionNavigation.jsx';
 import { useChordCatalogWindow } from './fretboard/useChordCatalogWindow.js';
 import {CHORD_ACCIDENTAL_OPTIONS,CHORD_QUALITY_OPTIONS,CHORD_EXTENSION_OPTIONS,isChordExtensionAvailableForQuality,normalizeChordExtensionForQuality,getChordDisplayRoot,getChordNameFromParts} from './chords/chordSelection.js';
 import { localizeUi } from "./i18n/core.js";
@@ -615,8 +623,8 @@ const SCALE_FAMILIES = {
 const SCALE_LICK_GROUP_ID = "lick";
 
 const PENTATONIC_TYPES = {
-  minor: { id: "minor", label: ko["app.minor"], intervals: [0, 3, 5, 7, 10], windowOffset: 0 },
   major: { id: "major", label: ko["app.major"], intervals: [0, 2, 4, 7, 9], windowOffset: -3 },
+  minor: { id: "minor", label: ko["app.minor"], intervals: [0, 3, 5, 7, 10], windowOffset: 0 },
 };
 
 const DIATONIC_SCALE_TYPES = {
@@ -1398,15 +1406,27 @@ export function buildScaleBlockPractice(root = "C", typeId = "minor", familyId =
   const type = typeSource[typeId] ?? typeSource.minor;
   const octaves = rootScaleOctaves(boxNumber);
   if (octaves) {
-    const notes = buildRootScalePositions(root, type.intervals, octaves)
-      .map((position) => makeGuitarNote({ ...position, group: family.id }));
+    const octaveSegments = buildRootScaleRoute(root, type.intervals)
+      .map(positions => positions.map(position => makeGuitarNote({ ...position, group: family.id })));
+    const rootScaleSegments = [];
+    for (let index = 0; index < octaveSegments.length; index += octaves) {
+      rootScaleSegments.push(octaveSegments.slice(index, index + octaves)
+        .flatMap((segment, offset) => offset ? segment.slice(1) : segment));
+    }
+    const notes = [...new Map(octaveSegments.flat().map(note => [note.id, note])).values()];
+    const sequence = rootScaleSegments.flatMap((segment, index) => {
+      const previous = rootScaleSegments[index - 1]?.at(-1);
+      return segment.filter((note, noteIndex) => noteIndex !== 0 || note.id !== previous?.id)
+        .map(note => ({ pitch: note.pitch, noteId: note.id, stringNumber: note.stringNumber,
+          fretNumber: note.fretNumber, rootScaleSegment: index }));
+    });
     const minFret = Math.min(...notes.map((note) => note.fretNumber));
     const maxFret = Math.max(...notes.map((note) => note.fretNumber));
     const positionLabel = translateUi(octaves === 1 ? "app.rootScaleOneOctave" : "app.rootScaleTwoOctaves");
     return {
-      root, type, family, notes, octaves,
+      root, type, family, notes, octaves, rootScaleSegments,
       label: `${root} ${type.label} ${family.label} ${positionLabel}`,
-      sequence: notes.map((note) => note.pitch),
+      sequence,
       visibleFrets: Array.from({ length: maxFret - minFret + 1 }, (_, index) => minFret + index),
     };
   }
@@ -13699,7 +13719,7 @@ const HELP_GUIDE_SECTIONS = [
       <>
         <p><Translation id="app.majorAndMinor" /><b><Translation id="app.scalesAndPentatonics" /></b><Translation id="app.canBePracticedUsingTheReferenceFretboard" /></p>
         <div className="helpFlow" aria-label={translateUi("app.scaleAndPentatonicPracticeSteps")}>
-          <span><Translation id="app.chooseAKey" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseAScaleAndType" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseBox15" /></span><i aria-hidden="true">→</i><span><Translation id="app.followTheFretboard" /></span>
+          <span><Translation id="app.chooseAKey" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseAScaleAndType" /></span><i aria-hidden="true">→</i><span><Translation id="guide.choosePosition" /></span><i aria-hidden="true">→</i><span><Translation id="app.followTheFretboard" /></span>
         </div>
         <p><Translation id="app.setTheBpmAndMetronomeThenRepeatYouCanAlsoUse" /><b><Translation id="originalUi.backingLoop" /></b><Translation id="app.toImportOrRecordABackingTrackThisModeUsesAReference" /></p>
       </>
@@ -13727,15 +13747,22 @@ const HELP_GUIDE_SECTIONS = [
     ),
   },
   {
+    id: "rhythm-trainer",
+    title: ko["app.rhythmTrainer"],
+    summary: ko["guide.trainerSummary"],
+    group: "practice",
+    content: <RhythmTrainerHelp />,
+  },
+  {
     id: "etudes",
     title: ko["app.scorePractice2"],
     summary: ko["app.chooseAPieceAndPracticeWithStaffNotationAndTab"],
     group: "practice",
     content: (
       <>
-        <p><Translation id="app.onMobileOpen" /><b><Translation id="app.menuScorePractice" /></b><Translation id="app.onDesktopUseTheLeftSidebarThe" /><b><Translation id="app.eTudes" /></b><Translation id="app.tabShowsBuiltInPracticePieces" /><b><Translation id="app.myScores" /></b><Translation id="app.showsYourSavedScores" /></p>
+        <p><Translation id="guide.scoreIntro" /></p>
         <div className="helpFlow" aria-label={translateUi("app.eTudePracticeSteps")}>
-          <span><Translation id="app.openETudes" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseACategoryAndPiece" /></span><i aria-hidden="true">→</i><span><Translation id="app.setBpm" /></span><i aria-hidden="true">→</i><span><Translation id="app.playAlong" /></span>
+          <span><Translation id="guide.openScoreRoom" /></span><i aria-hidden="true">→</i><span><Translation id="app.chooseACategoryAndPiece" /></span><i aria-hidden="true">→</i><span><Translation id="app.setBpm" /></span><i aria-hidden="true">→</i><span><Translation id="app.playAlong" /></span>
         </div>
         <ul className="helpFactList">
           <li><b><Translation id="app.chooseAPracticeCategory" /></b><Translation id="app.andUsePreviousNextToSwitchPiecesOpen" /><b><Translation id="app.tipPracticeGuide" /></b><Translation id="app.forGoalsPreparationAndPracticeSteps" /></li>
@@ -13885,7 +13912,7 @@ const HELP_GUIDE_SECTIONS = [
     badgeTone: "hot",
     content: (
       <>
-        <p><b><Translation id="app.notesChordsAndScalesPentatonics" /></b><Translation id="app.tabsHelpYouExploreFretboardPositions" /></p>
+        <FretboardGuideIntro />
         <div className="helpFlow" aria-label={translateUi("app.fretboardSteps")}>
           <span><Translation id="app.chooseATab" /></span><i aria-hidden="true">→</i><span><Translation id="app.setANoteChordOrKey" /></span><i aria-hidden="true">→</i><span><Translation id="app.checkFretboardPositions" /></span>
         </div>
@@ -13900,7 +13927,7 @@ const HELP_GUIDE_SECTIONS = [
     group: "settings",
     content: (
       <>
-        <p><b><Translation id="menu.metronome" /></b><Translation id="app.volumeAndTheSharedRhythmChordsMiniBackingParts" /><b><Translation id="app.drumsBassAndPiano" /></b><Translation id="app.haveOnOffVolumeAndDefaultRhythmControls" /></p>
+        <p><Translation id="guide.soundIntro" /></p>
         <p><Translation id="app.metronomeVolumeIsSharedByTheStandaloneMetronomeAndScorePracticeSound" /></p>
       </>
     ),
@@ -13943,6 +13970,7 @@ const HELP_GUIDE_SECTION_ORDER = [
   "single-note",
   "scale-pentatonic",
   "rhythm-chord",
+  "rhythm-trainer",
   "etudes",
   "score-library",
   "mini-backing",
@@ -16614,7 +16642,7 @@ function findSequenceStepNote(noteList, step, fallback = null) {
 
   if (typeof step !== "string" && step?.noteId) {
     const idMatch = notes.find((note) => note.id === step.noteId);
-    if (idMatch) return { ...idMatch, label: step.label ?? idMatch.label, lickOrder: step.order, technique: step.technique ?? idMatch.technique };
+    if (idMatch) return { ...idMatch, rootScaleSegment: step.rootScaleSegment, label: step.label ?? idMatch.label, lickOrder: step.order, technique: step.technique ?? idMatch.technique };
   }
 
   const hasPosition =
@@ -16874,15 +16902,16 @@ function App({ onReady }) {
   const [scaleDirection, setScaleDirection] = useState(SCALE_DIRECTIONS.LOOP);
   const [selectedScaleRoot, setSelectedScaleRoot] = useState("C");
   const [selectedScaleFamily, setSelectedScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
-  const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.minor.id);
+  const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.major.id);
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
+  const [selectedRootScaleSegment, setSelectedRootScaleSegment] = useState(0);
   const [selectedScaleLick, setSelectedScaleLick] = useState(SCALE_LICK_OPTIONS[0].id);
   const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.CHORD);
   const [viewerSwipeFeedback, setViewerSwipeFeedback] = useState("");
   const [viewerChordSwipeFeedback, setViewerChordSwipeFeedback] = useState("");
   const [viewerScaleRoot, setViewerScaleRoot] = useState("C");
   const [viewerScaleFamily, setViewerScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
-  const [viewerScaleType, setViewerScaleType] = useState(PENTATONIC_TYPES.minor.id);
+  const [viewerScaleType, setViewerScaleType] = useState(PENTATONIC_TYPES.major.id);
   const [viewerScaleBox, setViewerScaleBox] = useState(1);
   const [viewerChordBaseRoot, setViewerChordBaseRoot] = useState("C");
   const [viewerChordAccidental, setViewerChordAccidental] = useState("natural");
@@ -18472,7 +18501,7 @@ function App({ onReady }) {
     : selectedScaleLickOptions[0]?.id ?? SCALE_LICK_OPTIONS[0].id;
   const selectedScaleTypeOptions =
     selectedScaleFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
-  const selectedPentatonic = useMemo(
+  const selectedScalePattern = useMemo(
     () => buildScaleTrainingPractice(
       selectedScaleRoot,
       selectedScaleType,
@@ -18481,6 +18510,13 @@ function App({ onReady }) {
     ),
     [isSelectedScaleLick, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType],
   );
+  const scalePositionNavigationEnabled = appMode === APP_MODES.PRACTICE
+    && selectedCategory.id === "scale-block" && !isSelectedScaleLick;
+  const rootScaleSegmentPractice = scalePositionNavigationEnabled && Boolean(selectedScalePattern.rootScaleSegments?.length);
+  const selectedPentatonic = useMemo(
+    () => selectRootScalePractice(selectedScalePattern, rootScaleSegmentPractice ? selectedRootScaleSegment : null),
+    [rootScaleSegmentPractice, selectedRootScaleSegment, selectedScalePattern],
+  );
   const selectedScaleDetailOptions = isSelectedScaleLick
     ? selectedScaleLickOptions.map((lick) => ({ id: lick.id, label: lick.label }))
     : getScalePositionOptions();
@@ -18488,6 +18524,16 @@ function App({ onReady }) {
     ? safeSelectedScaleLick
     : selectedScaleBox;
   const selectedScaleDetailLabel = ko["app.position"];
+  const scalePracticePositionTriggerLabel = rootScaleSegmentPractice
+    ? translateUi("app.rootScaleOctaveLabel", { value1: rootScaleOctaves(selectedScaleDetailValue) })
+    : scalePositionNavigationEnabled ? "BOX" : getScalePositionTriggerLabel(selectedScaleDetailValue);
+  const scalePracticePositionOptions = [
+    { id: "box", label: "BOX" },
+    ...getScalePositionOptions().filter(option => rootScaleOctaves(option.id)),
+  ];
+  const scalePracticePositionValue = rootScaleSegmentPractice ? selectedScaleDetailValue : "box";
+  const scalePracticePositionIndex = rootScaleSegmentPractice ? selectedPentatonic.activeRootScaleSegment : Number(selectedScaleBox) - 1;
+  const scalePracticePositionCount = rootScaleSegmentPractice ? selectedPentatonic.rootScaleSegments.length : 5;
   const selectedPentatonicRef = useRef(selectedPentatonic);
   selectedPentatonicRef.current = selectedPentatonic;
   const viewerScaleTypeOptions =
@@ -18625,7 +18671,7 @@ function App({ onReady }) {
     }
     return new Set(CHROMATIC_NOTES);
   }, [viewerChordToneNames, viewerMode, viewerScaleBlock.notes]);
-  const viewerMapNotes = useMemo(() => {
+  const viewerAllMapNotes = useMemo(() => {
     return viewerMapStrings.flatMap((stringInfo) => {
       const openMidi = pitchToMidi(stringInfo.pitch);
       return viewerMapFrets.map((fretNumber) => {
@@ -18642,7 +18688,9 @@ function App({ onReady }) {
           solfege: SOLFEGE[noteName] ?? "",
         };
       });
-    }).filter((note) => {
+    });
+  }, [viewerMapFrets, viewerMapStrings]);
+  const viewerMapNotes = useMemo(() => viewerAllMapNotes.filter((note) => {
       if (!viewerMapPitchClasses.has(note.noteName)) return false;
       if (viewerMode === FRETBOARD_VIEWER_MODES.CHORD) {
         if (viewerChordPosition === CHORD_VIEWER_POSITION_ALL) return true;
@@ -18651,8 +18699,7 @@ function App({ onReady }) {
       }
       if (viewerMode !== FRETBOARD_VIEWER_MODES.NOTE) return note.fretNumber > 0;
       return true;
-    });
-  }, [viewerChordPosition, viewerMapFrets, viewerMapPitchClasses, viewerMapStrings, viewerMode, viewerNotePositionRange]);
+    }), [viewerAllMapNotes, viewerChordPosition, viewerMapPitchClasses, viewerMode]);
   const viewerMapTitle =
     viewerMode === FRETBOARD_VIEWER_MODES.NOTE
       ? ko["app.allNotes"]
@@ -18690,14 +18737,17 @@ function App({ onReady }) {
   const viewerChordStringStates = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
     ? viewerCurrentChordPosition?.stringStates ?? {}
     : {};
-  const viewerFretboardRange = useMemo(() => {
-    if (viewerMode === FRETBOARD_VIEWER_MODES.NOTE) return viewerNotePositionRange;
-    if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) {
+  const viewerScaleFretboardRange = useMemo(() => {
       const visibleFrets = viewerScaleBlock.visibleFrets ?? [];
       const minFret = Math.min(...visibleFrets);
       const maxFret = Math.max(...visibleFrets);
       if (!Number.isFinite(minFret) || !Number.isFinite(maxFret)) return [0, 12];
       return [minFret, Math.max(maxFret, minFret + 3)];
+  }, [viewerScaleBlock.visibleFrets]);
+  const viewerFretboardRange = useMemo(() => {
+    if (viewerMode === FRETBOARD_VIEWER_MODES.NOTE) return viewerNotePositionRange;
+    if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) {
+      return viewerScaleFretboardRange;
     }
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return [0, 12];
     return getTightChordFretRange({
@@ -18706,7 +18756,7 @@ function App({ onReady }) {
       notes: viewerFretboardNotes,
       stringStates: viewerChordStringStates,
     });
-  }, [viewerChordBarres, viewerChordStringStates, viewerCurrentChordPosition, viewerFretboardNotes, viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets]);
+  }, [viewerChordBarres, viewerChordStringStates, viewerCurrentChordPosition, viewerFretboardNotes, viewerMode, viewerNotePositionRange, viewerScaleFretboardRange]);
   const viewerVisibleFrets = useMemo(() => {
     const [startFret, endFret] = viewerFretboardRange;
     const visualStartFret = Math.max(1, startFret);
@@ -25640,8 +25690,13 @@ function App({ onReady }) {
     typeId,
     familyId = selectedScaleFamily,
     detailValue = isScaleLickFamilyId(selectedScaleFamily) ? safeSelectedScaleLick : selectedScaleBox,
+    segmentIndex = 0,
   ) => {
-    const nextPentatonic = buildScaleTrainingPractice(root, typeId, familyId, detailValue);
+    setSelectedRootScaleSegment(segmentIndex);
+    const nextPentatonic = selectRootScalePractice(
+      buildScaleTrainingPractice(root, typeId, familyId, detailValue),
+      scalePositionNavigationEnabled ? segmentIndex : null,
+    );
     const safeCategory = {
       ...normalizePracticeCategory(selectedCategory),
       notes: nextPentatonic.notes,
@@ -25663,7 +25718,12 @@ function App({ onReady }) {
     setIsHitWindowActive(false);
     setLaneFeedback([]);
     setFeedback("Ready");
-  }, [getPracticeSequence, repeatPractice, safeSelectedScaleLick, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily]);
+    setReferenceStepTick(value => value + 1);
+  }, [getPracticeSequence, scalePositionNavigationEnabled, repeatPractice, safeSelectedScaleLick, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily]);
+
+  const changeRootScaleSegment = useCallback((index) => {
+    resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, selectedScaleBox, index);
+  }, [resetScalePracticePreview, selectedScaleRoot, selectedScaleType, selectedScaleFamily, selectedScaleBox]);
 
   const changeScaleRoot = useCallback((root) => {
     setSelectedScaleRoot(root);
@@ -25699,6 +25759,17 @@ function App({ onReady }) {
     setSelectedScaleBox(nextBox);
     resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, nextBox);
   }, [resetScalePracticePreview, selectedScaleFamily, selectedScaleRoot, selectedScaleType]);
+
+  const changeScalePracticePosition = useCallback((index) => {
+    if (rootScaleSegmentPractice) changeRootScaleSegment(index);
+    else changeScaleBox(index + 1);
+  }, [changeRootScaleSegment, changeScaleBox, rootScaleSegmentPractice]);
+  const scalePositionSwipe = useScalePositionSwipe({
+    enabled: isMobileLayout && scalePositionNavigationEnabled,
+    index: scalePracticePositionIndex,
+    count: scalePracticePositionCount,
+    onSelect: changeScalePracticePosition,
+  });
 
   const changeScaleLick = useCallback((lickId) => {
     const nextLick = getScaleLickOption(selectedScaleFamily, lickId).id;
@@ -27396,6 +27467,9 @@ function App({ onReady }) {
   }, [appMode, detected, gameState, selectedCategory.id, selectedPentatonic.notes]);
   const referencePrompt = detectedScaleNote ?? currentPrompt;
   const referenceDisplayPrompt = referencePrompt;
+  const activeRootScaleNotes = selectedCategory.id === "scale-block"
+    ? selectedPentatonic.rootScaleSegments?.[selectedPentatonic.activeRootScaleSegment ?? referenceDisplayPrompt?.rootScaleSegment ?? 0]
+    : null;
   const showTrainingNoteGuide = trainingNoteGuideEnabled;
   const displayedReferencePrompt = showTrainingNoteGuide ? referenceDisplayPrompt : null;
   const referencePromptDisplayLabel = displayedReferencePrompt
@@ -27415,7 +27489,7 @@ function App({ onReady }) {
     nextNotes[0] ??
     null;
   const referenceBoardNotes = useMemo(() => {
-    const sourceNotes = selectedCategory.id === "scale-block" ? selectedPentatonic.notes : selectedCategory.notes;
+    const sourceNotes = activeRootScaleNotes ?? (selectedCategory.id === "scale-block" ? selectedPentatonic.notes : selectedCategory.notes);
     return sourceNotes.map((note) => {
       const isActive =
         showTrainingNoteGuide &&
@@ -27432,7 +27506,7 @@ function App({ onReady }) {
         isRoot: false,
       };
     });
-  }, [referenceDisplayPrompt, selectedCategory.id, selectedCategory.notes, selectedPentatonic.notes, showTrainingNoteGuide]);
+  }, [activeRootScaleNotes, referenceDisplayPrompt, selectedCategory.id, selectedCategory.notes, selectedPentatonic.notes, showTrainingNoteGuide]);
   const showLickTabFretboard = selectedCategory.id === "scale-block" && isSelectedScaleLick;
   const referenceLickTabSteps = useMemo(() => {
     if (!showLickTabFretboard) return [];
@@ -27442,6 +27516,10 @@ function App({ onReady }) {
     }));
   }, [referenceDisplayPrompt?.lickOrder, selectedPentatonic.orderedSteps, showLickTabFretboard, showTrainingNoteGuide]);
   const referenceBoardRange = useMemo(() => {
+    if (activeRootScaleNotes) {
+      const frets = activeRootScaleNotes.map(note => note.fretNumber);
+      return [Math.max(0, Math.min(...frets) - 1), Math.max(...frets)];
+    }
     if (selectedCategory.id === "scale-block") {
       return [
         Math.max(0, Math.min(...selectedPentatonic.visibleFrets) - 1),
@@ -27449,7 +27527,7 @@ function App({ onReady }) {
       ];
     }
     return [0, 3];
-  }, [selectedCategory.id, selectedPentatonic.visibleFrets]);
+  }, [activeRootScaleNotes, selectedCategory.id, selectedPentatonic.visibleFrets]);
   const getReferenceStageValue = useCallback((note) => {
     if (!note) return ko["app.ready"];
     return note.noteName ?? getPitchClass(note.pitch) ?? note.pitch;
@@ -27577,8 +27655,8 @@ function App({ onReady }) {
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
     selectedCategory.id === "first-position" ? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
-  const scaleStartPitch = directionGuideSequence[0] ?? selectedScaleRoot;
-  const scaleEndPitch = directionGuideSequence[directionGuideSequence.length - 1] ?? selectedScaleRoot;
+  const scaleStartPitch = getSequenceStepNoteName(directionGuideSequence[0]) ?? selectedScaleRoot;
+  const scaleEndPitch = getSequenceStepNoteName(directionGuideSequence[directionGuideSequence.length - 1]) ?? selectedScaleRoot;
   const normalizedMiniChordArrangementPatterns = useMemo(
     () => normalizeMiniChordArrangementPatterns(miniChordArrangementPatterns),
     [miniChordArrangementPatterns],
@@ -30330,6 +30408,36 @@ function App({ onReady }) {
     </div>
   );
 
+  const viewerScaleControls = (
+                <div className="viewerSelectGrid">
+                  <MetronomeSelectControl
+                    label={translateUi("app.key")}
+                    onChange={setViewerScaleRoot}
+                    options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
+                    value={viewerScaleRoot}
+                  />
+                  <MetronomeSelectControl
+                    label={translateUi("app.typeApp")}
+                    onChange={setViewerScaleFamily}
+                    options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
+                    value={viewerScaleFamily}
+                  />
+                  <MetronomeSelectControl
+                    label={translateUi("app.type")}
+                    onChange={setViewerScaleType}
+                    options={Object.values(viewerScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
+                    value={viewerScaleType}
+                  />
+                  <MetronomeSelectControl
+                    label="Box"
+                    onChange={(nextBox) => setViewerScaleBox(normalizeScalePosition(nextBox))}
+                    options={getScalePositionOptions()}
+                    triggerLabel={getScalePositionTriggerLabel(viewerScaleBox)}
+                    value={viewerScaleBox}
+                  />
+                </div>
+  );
+
   const referenceLandscapeBeatStrip = (
     <div className="referenceBeatMetronomeStrip" aria-label={translateUi("app.beatDotMetronome")}>
       <BeatIndicator
@@ -30349,7 +30457,7 @@ function App({ onReady }) {
   return (
     <main
       aria-hidden={appContentInteractionLocked ? true : undefined}
-      className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
+      className={`app notranslate theme-${appTheme} ${isDesktopLayout && appMode === APP_MODES.ETUDES ? "desktopScoreWorkspace" : ""} ${isDesktopLayout && appMode === APP_MODES.RHYTHM_TRAINER ? "desktopRhythmWorkspace" : ""} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
       } ${appMode === APP_MODES.PRACTICE ? "practiceMode" : ""} ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""} ${viewportClassName} ${landscapePlayFocus ? "landscapePlayFocus" : ""} ${mobileLandscapeShooterSelected ? "mobileLandscapeShooterSelected" : ""} ${mobileLandscapeShooterActive ? "mobileLandscapeShooter" : ""} ${portraitOrientationGuardActive ? "portraitOrientationGuarded" : ""}`}
       onClickCapture={handleAppClickCapture}
@@ -30661,7 +30769,7 @@ function App({ onReady }) {
       {sharedAccompanimentConfigurationDialogs}
 
       {helpGuideOpen ? (
-        <HelpGuideDialog label={translateUi("app.userGuideHelp")} onClose={() => { setHelpGuideOpen(false); setOpenHelpSectionId(""); }}>
+        <HelpGuideDialog label={translateUi("app.userGuideHelp")} initialFocusSelector={isDesktopLayout ? '.desktopHelpClose' : undefined} onClose={() => { setHelpGuideOpen(false); setOpenHelpSectionId(""); }}>
           <button
             aria-label={translateUi("app.closeUserGuide")}
             className="helpGuideDim"
@@ -30671,6 +30779,17 @@ function App({ onReady }) {
             }}
             type="button"
           />
+          {isDesktopLayout ? (
+            <DesktopHelpGuide
+              sections={ORDERED_HELP_GUIDE_SECTIONS}
+              groups={HELP_GUIDE_GROUP_LABELS}
+              activeId={openHelpSectionId || 'recent-updates'}
+              onSelect={setOpenHelpSectionId}
+              onClose={() => { setHelpGuideOpen(false); setOpenHelpSectionId(""); }}
+              credits={<HelpSampleCredits samples={VIEWER_CHORD_SAMPLES} />}
+              version={APP_VERSION_LABEL}
+            />
+          ) : (
           <section className="helpGuidePanel" aria-label={translateUi("app.userGuideHelp")}>
             <div className="helpGuideHeader">
               <div>
@@ -30722,26 +30841,22 @@ function App({ onReady }) {
                       {expanded ? (
                         <div className="helpAccordionContent">
                           {section.content}
+                          <HelpGuideFeatureNotes sectionId={section.id} />
                         </div>
                       ) : null}
                     </article>
                   </section>
                 );
               })}
-<details className="helpSampleCredits">
-              <summary><Translation id="app.guitarAudioBiblicalbricksproductionsCcBy30" /></summary>
-              <p><Translation id="app.basicMajorChordsCBUseOriginalRecordingsTheirVoicingsMayDiffer" /></p>
-              <p><a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer"><Translation id="originalUi.creativeCommonsAttribution30" /></a><Translation id="app.originalFileKeptLeadInSkippedDuringPlayback" /></p>
-              <p>{Object.entries(VIEWER_CHORD_SAMPLES).map(([root, sample]) => (
-                <a key={root} href={sample.source} target="_blank" rel="noreferrer">{sample.title} </a>
-              ))}</p>
-            </details>
+<HelpSampleCredits samples={VIEWER_CHORD_SAMPLES} />
             </div>
           </section>
+          )}
         </HelpGuideDialog>
       ) : null}
 
       {appMode !== APP_MODES.MENU
+        && !(isDesktopLayout && [APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode))
         && !([APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode) && isMobileLayout)
         && !shooterRecordingActive
         && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled)
@@ -32479,15 +32594,18 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.FRETBOARD_VIEWER) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.FRETBOARD_VIEWER)}>
         {renderAppMode(APP_MODES.FRETBOARD_VIEWER, () => (
-        <section className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode} ${!isMobileLayout ? "fretboardViewerPanel--desktopUnified" : ""}`} aria-label={translateUi("menu.fretboard")}>
-          <div
-            className={`viewerControlPanel viewerControlPanel--${viewerMode} compactControls viewerSwipeSurface ${viewerSwipeFeedback ? `viewerSwipeSurface--${viewerSwipeFeedback}` : ""}`}
-            onPointerCancel={isMobileLayout ? () => {
-              fretboardSwipeStartRef.current = null;
-            } : undefined}
-            onPointerDown={isMobileLayout ? handleFretboardSwipeStart : undefined}
-            onPointerUp={isMobileLayout ? handleFretboardSwipeEnd : undefined}
-          >
+        <FretboardViewerLayout
+          desktop={isDesktopLayout}
+          mode={viewerMode}
+          className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode} ${!isMobileLayout ? "fretboardViewerPanel--desktopUnified" : ""}`}
+          label={translateUi("menu.fretboard")}
+          controlPanelProps={{
+            className: `viewerControlPanel viewerControlPanel--${viewerMode} compactControls viewerSwipeSurface ${viewerSwipeFeedback ? `viewerSwipeSurface--${viewerSwipeFeedback}` : ""}`,
+            onPointerCancel: isMobileLayout ? () => { fretboardSwipeStartRef.current = null; } : undefined,
+            onPointerDown: isMobileLayout ? handleFretboardSwipeStart : undefined,
+            onPointerUp: isMobileLayout ? handleFretboardSwipeEnd : undefined,
+          }}
+          tabs={
             <div className="viewerModeTabs" aria-label={translateUi("app.fretboardView")}>
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.CHORD}
@@ -32495,6 +32613,14 @@ function App({ onReady }) {
                 onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
                 type="button"
               ><Translation id="app.chords" /></button>
+              {isDesktopLayout ? (
+                <button
+                  aria-pressed={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD}
+                  className={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
+                  onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
+                  type="button"
+                ><Translation id="app.notes" /> · <Translation id="app.scales" /></button>
+              ) : <>
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.NOTE}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
@@ -32512,8 +32638,10 @@ function App({ onReady }) {
                   <span><Translation id="app.pentatonics" /></span>
                 </span>
               </button>
+              </>}
             </div>
-
+          }
+          board={
             <section className={`viewerMapCard viewerMapCard--${viewerMode}`} aria-label={translateUi("app.allFretboardNotes")} ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
               <div className={`viewerMapHeader ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "viewerMapHeader--chord" : ""}`}>
                 {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
@@ -32558,7 +32686,7 @@ function App({ onReady }) {
                       ) : (
                         <strong>{viewerMapTitle}</strong>
                       )}
-                      {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
+                      {viewerMode === FRETBOARD_VIEWER_MODES.NOTE && !isDesktopLayout ? (
                         <small className="viewerSwipeHint"><Translation id="originalUi.swipe" /></small>
                       ) : null}
                     </div>
@@ -32613,38 +32741,13 @@ function App({ onReady }) {
                 )}
               </div>
             </section>
-
+          }
+          controls={
             <div className={`viewerModeControlSlot viewerModeControlSlot--${viewerMode}`}>
               {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
                 <FretboardNoteViewerControls store={viewerNoteStore} />
               ) : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
-                <div className="viewerSelectGrid">
-                  <MetronomeSelectControl
-                    label={translateUi("app.key")}
-                    onChange={setViewerScaleRoot}
-                    options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
-                    value={viewerScaleRoot}
-                  />
-                  <MetronomeSelectControl
-                    label={translateUi("app.typeApp")}
-                    onChange={setViewerScaleFamily}
-                    options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
-                    value={viewerScaleFamily}
-                  />
-                  <MetronomeSelectControl
-                    label={translateUi("app.type")}
-                    onChange={setViewerScaleType}
-                    options={Object.values(viewerScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
-                    value={viewerScaleType}
-                  />
-                  <MetronomeSelectControl
-                    label="Box"
-                    onChange={(nextBox) => setViewerScaleBox(normalizeScalePosition(nextBox))}
-                    options={getScalePositionOptions()}
-                    triggerLabel={getScalePositionTriggerLabel(viewerScaleBox)}
-                    value={viewerScaleBox}
-                  />
-                </div>
+                viewerScaleControls
               ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
                 <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label={translateUi("app.chordBuilder")}>
                   <ChordBuilderOptionSection layout="cols-7" showTitle title={translateUi("app.root")}>
@@ -32715,10 +32818,27 @@ function App({ onReady }) {
                 </div>
               ) : null}
             </div>
-
-          </div>
-
-          {fretboardCatalogReady ? (
+          }
+          explorer={isDesktopLayout ? (navigation) => (
+            <DesktopNoteScaleViewer
+              navigation={navigation}
+              noteTitle={<FretboardNoteViewerTitle store={viewerNoteStore} />}
+              noteControls={<FretboardNoteViewerControls store={viewerNoteStore} />}
+              noteBoard={<FretboardNoteViewerBoard dragToPlay fretRange={viewerNotePositionRange} notes={viewerAllMapNotes} onNotePress={handleViewerNotePress} store={viewerNoteStore} />}
+              scaleTitle={viewerScaleBlock.label}
+              scaleControls={viewerScaleControls}
+              scaleBoard={<Fretboard
+                className="viewerSharedFretboard fitRange"
+                fretRange={viewerScaleFretboardRange}
+                mode={FRETBOARD_VIEWER_MODES.SCALE}
+                notes={viewerScaleBlock.notes.map(note => ({...note,isRoot:false}))}
+                rootNote=""
+                selectedNotes={[...new Set(viewerScaleBlock.notes.map(note => note.noteName))]}
+                showFretNumbers showOnlySelected showStringNames
+              />}
+            />
+          ) : undefined}
+          catalog={fretboardCatalogReady ? (
             <Activity mode={getModeActivityState(viewerMode, FRETBOARD_VIEWER_MODES.CHORD)}>
               <section
                 aria-hidden={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "true" : undefined}
@@ -32748,7 +32868,7 @@ function App({ onReady }) {
               </section>
             </Activity>
           ) : null}
-        </section>
+        />
         ))}
         </Activity>
       ) : null}
@@ -35282,7 +35402,11 @@ function App({ onReady }) {
           )}
 
           <div className="referenceTrainingMainRow">
-            <aside className="referenceFretboard referenceTrainingBoard" aria-label={translateUi("originalUi.referenceFretboard")}>
+            <aside
+              className={`referenceFretboard referenceTrainingBoard ${scalePositionNavigationEnabled ? "referenceTrainingBoard--scalePositions" : ""}`}
+              aria-label={translateUi("originalUi.referenceFretboard")}
+              {...scalePositionSwipe}
+            >
               {selectedCategory.id === "first-position" || selectedCategory.id === "scale-block" ? (
                 selectedCategory.id === "scale-block" ? (
                   <div className="referenceHeader stage2HeaderScalePicker">
@@ -35321,10 +35445,10 @@ function App({ onReady }) {
                         dropdownDirection="down"
                         label={localizeUi(selectedScaleDetailLabel)}
                         onChange={changeScaleDetail}
-                        options={selectedScaleDetailOptions}
-                        triggerLabel={getScalePositionTriggerLabel(selectedScaleDetailValue)}
+                        options={scalePositionNavigationEnabled ? scalePracticePositionOptions : selectedScaleDetailOptions}
+                        triggerLabel={scalePracticePositionTriggerLabel}
                         showLabel={!isMobileLayout}
-                        value={selectedScaleDetailValue}
+                        value={scalePositionNavigationEnabled ? scalePracticePositionValue : selectedScaleDetailValue}
                       />
                       {isMobileLayout && <TrainingNoteGuideToggle
                           enabled={trainingNoteGuideEnabled}
@@ -35373,6 +35497,21 @@ function App({ onReady }) {
                 showOnlySelected={false}
                 tabSteps={referenceLickTabSteps}
               />
+              {scalePositionNavigationEnabled ? (isMobileLayout ? (
+                <MobileScalePositionNavigation
+                  index={scalePracticePositionIndex}
+                  count={scalePracticePositionCount}
+                  isBox={!rootScaleSegmentPractice}
+                  onSelect={changeScalePracticePosition}
+                />
+              ) : (
+                <DesktopScalePositionNavigation
+                  index={scalePracticePositionIndex}
+                  count={scalePracticePositionCount}
+                  isBox={!rootScaleSegmentPractice}
+                  onSelect={changeScalePracticePosition}
+                />
+              )) : null}
               <p>
                 {gameState === GAME_STATES.PLAYING
                   ? translateUi("app.findAndPlayTheHighlightedNoteOnTheFretboard")
@@ -35868,7 +36007,7 @@ function App({ onReady }) {
                       <b>{stringNumber}<Translation id="app.string" /></b>
                     </span>
                   ))}
-                  {selectedPentatonic.notes.map((note) => {
+                  {(activeRootScaleNotes ?? selectedPentatonic.notes).map((note) => {
                     const isActive =
                       referenceDisplayPrompt?.pitch === note.pitch &&
                       referenceDisplayPrompt?.stringNumber === note.stringNumber &&

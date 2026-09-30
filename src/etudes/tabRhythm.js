@@ -1,5 +1,17 @@
 import {overrideBeamGroups} from './beamOverrides.js';
 import {isBlankEvent,tupletGroups} from './scoreModel.js';
+import {Glyph} from 'vexflow';
+const flagPaths=new Map();
+// Use the same music-font flags as the staff. A free flag curls back towards
+// the note; a partial beam inside a group remains a straight beam segment.
+function flagPath(duration,direction,short) {
+ const code=`flag${duration}${duration==='32'?'nd':'th'}${direction>0?'Down':'Up'}`,size=short?22:30,key=`${code}:${size}`;
+ if(!flagPaths.has(key)){
+  const parts=[],path={beginPath(){},moveTo:(...p)=>parts.push(`M ${p.join(' ')}`),lineTo:(...p)=>parts.push(`L ${p.join(' ')}`),quadraticCurveTo:(...p)=>parts.push(`Q ${p.join(' ')}`),bezierCurveTo:(...p)=>parts.push(`C ${p.join(' ')}`),fill(){}};
+  Glyph.renderGlyph(path,0,0,size,code);flagPaths.set(key,parts.join(' ')+' Z');
+ }
+ return flagPaths.get(key);
+}
 // Quarter-note ticks; compound meters group three denominator beats.
 export function rhythmGroups(events,meter=[4,4],{automatic=true}={}) {
  const beat=1920/meter[1]*(meter[1]===8&&meter[0]%3===0?3:1),groups=[];let group=[],bucket=-1;
@@ -13,20 +25,24 @@ export function drawTabRests(parent,events,staffNotes,y) {
  events.forEach((e,i)=>{if(!e.rest||isBlankEvent(e))return;const note=staffNotes?.[i],svg=parent.ownerSVGElement??parent,source=note?svg.querySelector(`[id="vf-${note.getAttribute('id')}"]`):null;if(!source)return;const box=source.getBBox(),rest=source.cloneNode(true);rest.removeAttribute('id');rest.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));rest.setAttribute('transform',`translate(0 ${y-(box.y+box.height/2)})`);rest.setAttribute('class','tabRhythmRest');rest.dataset.rhythmEvent=i;g.append(rest);});
  return g;
 }
-export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',{compact=false,shortStems=position==='detached'}={}) {
+export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',{compact=false,shortStems=position==='detached',tiedEventIds=new Set()}={}) {
  shortStems=shortStems||position==='detached';
  const ns='http://www.w3.org/2000/svg',g=document.createElementNS(ns,'g');g.setAttribute('class','fretiva-tab-view etudeTabRhythm');g.setAttribute('pointer-events','none');svg.append(g);
  const gap=tab.getYForLine(1)-tab.getYForLine(0),bottom=tab.getYForLine(tab.getNumLines()-1),direction=position==='above'?-1:1,edge=direction<0?tab.getYForLine(0):bottom,base=shortStems?edge+direction*28:edge+direction*(gap*2+10-(compact&&direction>0?10:0));
  g.dataset.position=position;g.dataset.sixthY=bottom;g.dataset.beamY=base;g.dataset.lineGap=gap;
  const line=(x1,y1,x2,y2,width,kind,event)=>{const l=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1,y1,x2,y2,stroke:'#171717','stroke-width':width,class:kind}))l.setAttribute(k,v);if(event!==undefined)l.dataset.rhythmEvent=event;g.append(l);};
  const x=i=>tabs[i].getStemX();
- // Simultaneous fret numbers share a rhythm stem outside TAB, never between digits.
+ // Connect chord tones across skipped strings, leaving clearance around each fret.
  // Fret numbers are the TAB noteheads. Use a short stem for a half note and
  // no stem for a whole note, rather than adding a second, floating notehead.
  events.forEach((e,i)=>{
   if(e.rest||e.duration==='1')return;
   const toneYs=[...new Set((e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))].sort((a,b)=>a-b);
-  const anchor=(direction<0?Math.min:Math.max)(...toneYs);
+  const tied=tiedEventIds.has(e.id);
+  if(!shortStems&&!tied)for(let j=1;j<toneYs.length;j++){
+   if(toneYs[j]-toneYs[j-1]>gap+.01)line(x(i),toneYs[j-1]+9,x(i),toneYs[j]-9,1.4,'tabRhythmChordStem',i);
+  }
+  const anchor=tied?edge:(direction<0?Math.min:Math.max)(...toneYs);
   const stemStart=shortStems?base-direction*20:anchor+direction*9;
   const stemEnd=e.duration==='2'?(shortStems?stemStart+direction*10:edge+(base-edge)*.6):base;
   line(x(i),stemStart,x(i),stemEnd,1.4,'tabRhythmStem',i);
@@ -46,7 +62,20 @@ export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',
  }
  events.forEach((e,i)=>{
   if(e.rest||Number(e.duration)<8||grouped.has(i))return;
-  for(let level=0;level<(e.duration==='16'?2:1);level++)line(x(i),base-direction*level*6,x(i)+8,base-direction*(level*6+3),3,'tabRhythmFlag',i);
+  const flag=document.createElementNS(ns,'path');
+  for(const [key,value] of Object.entries({d:flagPath(e.duration,direction,shortStems),transform:`translate(${x(i)} ${base})`,fill:'#171717',stroke:'none',class:'tabRhythmFlag'}))flag.setAttribute(key,value);
+  flag.dataset.rhythmEvent=i;flag.dataset.flagDuration=e.duration;g.append(flag);
+ });
+ // A dot extends the whole chord once. Place it inside the rhythm stem's end,
+ // clear of every beam level; leave extra room beside a free, curved flag.
+ events.forEach((e,i)=>{
+  if(!e.dotted||e.rest)return;
+  const levels=Math.max(0,Math.log2(Number(e.duration)/4));
+  const end=e.duration==='1'?(tiedEventIds.has(e.id)?edge:(direction<0?Math.min:Math.max)(...(e.tones??[e]).map(n=>tab.getYForLine(n.string-1)))):e.duration==='2'?(shortStems?base-direction*10:edge+(base-edge)*.6):base;
+  const dot=document.createElementNS(ns,'circle');
+  const y=e.duration==='1'?end:end-direction*(7+Math.max(0,levels-1)*6);
+  for(const [key,value] of Object.entries({cx:x(i)+(levels>0&&!grouped.has(i)?17:7),cy:y,r:2,fill:'#171717',stroke:'none',class:'tabRhythmDot'}))dot.setAttribute(key,value);
+  dot.dataset.rhythmEvent=i;dot.dataset.dottedEvent='true';g.append(dot);
  });
  for(const group of tupletGroups(events)){
   if(group.every(i=>isBlankEvent(events[i])))continue;

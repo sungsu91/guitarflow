@@ -210,7 +210,7 @@ test('the first beginner lesson builds finger spacing one string at a time', () 
     }
   }
   assert.equal(first.measures.at(-1).at(-1).midi % 12,7);
-  assert.match(etudeStudioSource, /useState\(\(\)=>edits.records\[initialSavedId\]\?\.document\?\.bpm\?\?edits.scores\[initialId\]\?\.bpm\?\?ETUDES.find\(e=>e.id===initialId\)\?\.bpm\?\?DEFAULT_ETUDE_BPM\)/);
+  assert.match(etudeStudioSource, /useState\(\(\)=>edits.records\[savedId\]\?\.document\?\.bpm\?\?edits.scores\[selectedId\]\?\.bpm\?\?ETUDES.find\(e=>e.id===selectedId\)\?\.bpm\?\?DEFAULT_ETUDE_BPM\)/);
   assert.match(etudeStudioSource, /updateBpm\(\(edits.scores\[id\]\?\?ETUDES.find\(e => e.id === id\)\)\?\.bpm \?\? 60\)/);
 });
 

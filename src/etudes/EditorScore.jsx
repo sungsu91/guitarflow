@@ -1,3 +1,4 @@
+import {drawImportMarkers} from '../pdf/tab-import/drawImportMarkers.js';
 import { formatMessage } from "../i18n/format.js";
 import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
@@ -6,6 +7,9 @@ import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {bindAnnotationEditing} from './scoreAnnotations.js';
 import {harmonyLabelLines} from './harmonyLabelLayout.js';
 import useScoreRangeSelection from './useScoreRangeSelection.js';
+import {scoreRangeSelection} from './scoreRangeClipboard.js';
+import {drawDesktopScoreRange} from './drawDesktopScoreRange.js';
+import {desktopTabCursorBounds} from './desktopTabCursorBounds.js';
 import {drumForMidi} from './scoreInstruments.js';
 import {slurSpans} from './slurs.js';
 import {chordDiagramVisibility} from './chordStudy.js';
@@ -60,12 +64,19 @@ const Measure=memo(function Measure({onHarmonyEdit,onChordEdit,annotationOffsets
   const neighbours=[...root.querySelectorAll('[data-mode="tab"][data-cursor-x]')].filter(n=>n.dataset.event!==String(selection.event)).map(n=>Math.abs(Number(n.dataset.cursorX)+12-center)).filter(distance=>distance>0);
   const cursorWidth=compactCursor?Math.min(14,...neighbours.map(distance=>distance*.65)):28;
   if(compactCursor){y+=2;height=10;}
+  const desktopTab=!mobile&&isFretted(instrument)&&selection.mode==='tab'?desktopTabCursorBounds(root,el):{};
   // A light background behind the engraving keeps even two-digit frets readable.
-  const marker=document.createElementNS('http://www.w3.org/2000/svg','rect');Object.entries({class:'etudeInputCursor is-cursor',x:drumColumn?Number(el.dataset.inputCenterX)-10:compactCursor?center-cursorWidth/2:Number(el.dataset.cursorX)-2,y,width:drumColumn?20:cursorWidth,height,rx:instrument==='drums'?3:compactCursor?1:3,fill:drumColumn?'#e8c44c':'#167254','fill-opacity':drumColumn?0.22:0.16,stroke:compactCursor?'#167254':'none','stroke-width':compactCursor?.7:0,'vector-effect':'non-scaling-stroke','aria-label':ko["etudes.currentInputPosition"],'pointer-events':'none'}).forEach(([k,v])=>marker.setAttribute(k,String(v)));el.ownerSVGElement.prepend(marker);
+  const marker=document.createElementNS('http://www.w3.org/2000/svg','rect');Object.entries({class:'etudeInputCursor is-cursor',x:drumColumn?Number(el.dataset.inputCenterX)-10:compactCursor?center-cursorWidth/2:Number(el.dataset.cursorX)-2,y,width:drumColumn?20:cursorWidth,height,rx:instrument==='drums'?3:compactCursor?1:3,...desktopTab,fill:drumColumn?'#e8c44c':'#167254','fill-opacity':drumColumn?0.22:0.16,stroke:compactCursor?'#167254':'none','stroke-width':compactCursor?.7:0,'vector-effect':'non-scaling-stroke','aria-label':ko["etudes.currentInputPosition"],'pointer-events':'none'}).forEach(([k,v])=>marker.setAttribute(k,String(v)));el.ownerSVGElement.prepend(marker);
   return()=>marker.remove();
  },[instrument,notes,selection,keySignature,mobile,view,editorWidth,systemStart,systemEnd,scoreEnd,systemHeadroom,systemFootroom,spacingKey]);
+ useLayoutEffect(()=>{if(mobile)return;return drawImportMarkers(ref.current.shadowRoot,notes);},[annotationOffsets,chordNameMode,pianoStaffLayout,instrument,notes,slurs,chord,charts,harmony,index,keySignature,meter,mobile,incomingTie,tabRhythm,view,editorWidth,systemStart,systemEnd,scoreEnd,systemHeadroom,systemFootroom,spacingKey]);
  useLayoutEffect(()=>{ref.current.dataset.drag=String(allowDrag);ref.current.dataset.staffEditable=String(instrument==='piano'||instrument==='drums');},[allowDrag,instrument]);
  useLayoutEffect(()=>{ref.current.dataset.view=view;ref.current.shadowRoot?.querySelector('svg')?.setAttribute('aria-label',localizeUi(view==='tab'?ko["etudes.tabNotation"]:view==='staff'?ko["etudes.standardNotation"]:ko["etudes.standardNotationAndTab"]));},[view,editorWidth,systemStart,systemEnd,scoreEnd,systemHeadroom,systemFootroom,spacingKey,language]);
+ useLayoutEffect(()=>{
+  if(mobile)return;
+  const marker=drawDesktopScoreRange(ref.current.shadowRoot?.querySelector('svg'),range,view);
+  return()=>marker?.remove();
+ },[range,mobile,instrument,notes,annotationOffsets,chordNameMode,pianoStaffLayout,slurs,chord,charts,harmony,index,keySignature,meter,incomingTie,tabRhythm,view,editorWidth,systemStart,systemEnd,scoreEnd,systemHeadroom,systemFootroom,spacingKey]);
  // Keep the row wash behind the engraving and animate only one SVG line.
  // The audio clock drives its position; notation is not redrawn per frame.
  useLayoutEffect(()=>{
@@ -117,6 +128,14 @@ export default function EditorScore({onHarmonyEdit,onChordEdit,onAnnotationChang
  const playbackScrollRow=useRef(null);
  const slurs=useMemo(()=>slurSpans(score.measures),[score.measures]);
  const charts=useMemo(()=>measureChordCharts(score),[score]);
+ const selectedRanges=useMemo(()=>{
+  if(mobile||!range)return [];
+  try{
+   const bars=[];
+   for(const item of scoreRangeSelection(score.document,range).items)(bars[item.bar]??=[]).push(item.index);
+   return bars;
+  }catch{return [];}
+ },[mobile,range,score.document]);
  const visibleChords=useMemo(()=>chordDiagramVisibility(score.chordShapes,score.harmony),[score.chordShapes,score.harmony]);
  const ref=useRef(null),contentRef=useRef(null),boundsRef=useRef(null),[layoutEdit,setLayoutEdit]=useState(false),[fitScale,setFitScale]=useState(1);
  const perRow=score.document.viewSettings?.measuresPerRow??1,breaks=score.document.viewSettings?.systemBreaks??EMPTY_BREAKS;
@@ -158,7 +177,7 @@ export default function EditorScore({onHarmonyEdit,onChordEdit,onAnnotationChang
   };
   fit();const observer=new ResizeObserver(fit);observer.observe(canvas);return()=>observer.disconnect();
  },[mobile,perRow,spacing,view,systemHeadroom,systemFootroom,engravingWidth,layoutEdit]);
- const rangeHandlers=useScoreRangeSelection({canvas:ref,enabled:!mobile&&Boolean(onRangeChange),onRangeChange,onSelect,clearRange});
+ const rangeHandlers=useScoreRangeSelection({canvas:ref,enabled:!mobile&&Boolean(onRangeChange),hasRange:Boolean(range),onRangeChange,clearRange});
  const dragHandlers=useScoreDrag({canvas:ref,score,onSelect,onMove,onMessage,enabled:allowDrag});
  useLayoutEffect(()=>{
   const canvas=ref.current;if(pinch.isBusy())return;
@@ -179,9 +198,9 @@ export default function EditorScore({onHarmonyEdit,onChordEdit,onAnnotationChang
  return <><div className="etudeMeasureLayoutBar" aria-label={translateUi("etudes.barLayout")}>{capoControl}<div className="editorBarCount"><span><Translation id="etudes.perLine" /></span><div role="group" aria-label={translateUi("etudes.barsPerLine")}>{[1,2,3,4].map(n=><button type="button" key={n} aria-label={translateUi("etudes.value1BarsPerLine", { value1: n })} aria-pressed={perRow===n} onClick={()=>{onLayoutChange({measuresPerRow:n,systemBreaks:[]});if(n===1)setLayoutEdit(false);}}>{n}</button>)}</div><span><Translation id="app.bar" /></span></div>{editControl?editControl(layoutEdit,()=>setLayoutEdit(v=>!v),perRow===1):<button type="button" aria-pressed={layoutEdit} disabled={perRow===1} title={translateUi("etudes.splitIndividualLinesWhenShowing2OrMoreBars")} onClick={()=>setLayoutEdit(v=>!v)}><Translation id="etudes.editLines" /></button>}{desktopViewControls}</div>
  {!mobile&&onRangeChange&&<small className="etudeRangeHint">{range?translateUi("etudes.rangeSelectedCtrlCCopyEscDeselect"):translateUi("etudes.dragSelectRangeCtrlCCtrlVAltDragMoveNote")}</small>}
  {mobile&&perRow>2&&<small className="etudeLayoutHint"><Translation id="etudes.reviewTheLayoutHereUse1BarViewForDetailedInput" /></small>}
- <div ref={ref} className="etudeEditorCanvas" data-document-pinch={mobile} data-score-input tabIndex={0} role="group" aria-label={translateUi("etudes.scoreKeyboardInput")} onKeyDown={onKeyDown} {...dragHandlers} {...rangeHandlers} onClickCapture={e=>{rangeHandlers.onClickCapture?.(e);if(!e.defaultPrevented)dragHandlers.onClickCapture?.(e);}} onPointerCancel={e=>{rangeHandlers.onPointerCancel?.(e);dragHandlers.onPointerCancel?.(e);}} onKeyDownCapture={e=>{rangeHandlers.onKeyDownCapture?.(e);if(!e.defaultPrevented)dragHandlers.onKeyDownCapture?.(e);}}>
+ <div ref={ref} className="etudeEditorCanvas" data-document-pinch={mobile} data-score-input tabIndex={0} role="group" aria-label={translateUi("etudes.scoreKeyboardInput")} onKeyDown={onKeyDown} {...dragHandlers} {...rangeHandlers} onClickCapture={e=>{rangeHandlers.onClickCapture?.(e);if(!e.defaultPrevented)dragHandlers.onClickCapture?.(e);}} onPointerCancel={e=>{rangeHandlers.onPointerCancel?.(e);dragHandlers.onPointerCancel?.(e);}} onLostPointerCapture={e=>{rangeHandlers.onLostPointerCapture?.(e);dragHandlers.onLostPointerCapture?.(e);}} onKeyDownCapture={e=>{rangeHandlers.onKeyDownCapture?.(e);if(!e.defaultPrevented)dragHandlers.onKeyDownCapture?.(e);}}>
   <div ref={boundsRef} className="etudeZoomBounds" style={{width:`${zoom*widthRatio*(mobile?fitScale:1)}%`}}><div ref={contentRef} className="etudeMeasureGrid" style={{width:'100%'}} >
-   {score.measures.map((notes,i)=>(!pageView||i===cursor.bar)&&<Measure onHarmonyEdit={onHarmonyEdit} onChordEdit={onChordEdit} annotationOffsets={score.document.measures[i].annotationOffsets} chordNameMode={score.document.measures[i].chordNameMode} onAnnotationChange={onAnnotationChange} onHarmonyChange={onHarmonyChange} range={range} pianoStaffLayout={score.document?.viewSettings?.pianoStaffLayout} slurs={slurs} lastEntered={lastEntered} key={score.document.measures[i].id} {...{instrument:score.instrument,notes,index:i,keySignature:score.keySignature,meter:score.meter,mobile,onSelect,view,tabRhythm,tabBeamPosition:score.document.viewSettings?.tabBeamPosition,tabShortStems:score.document.viewSettings?.tabShortStems,tabPickingPosition:score.document.viewSettings?.tabPickingPosition,allowDrag}} placement={placements[i]} engraving={spacing.measures[i]} sectionLabel={score.document.measures[i].sectionLabel} endBarline={score.document.measures[i].endBarline} repeatStart={score.document.measures[i].repeatStart} repeatEnd={score.document.measures[i].repeatEnd} ending={score.document.measures[i].ending} marker={score.document.measures[i].marker} command={score.document.measures[i].command} previousEnding={score.document.measures[i-1]?.ending} nextEnding={score.document.measures[i+1]?.ending} systemNavigation={score.document.measures.some(m=>m.ending||m.marker||m.command)} systemStart={pageView||placements[i].column===1} systemEnd={pageView||!placements[i+1]||placements[i+1].row!==placements[i].row} scoreEnd={i===score.measures.length-1} systemHeadroom={systemHeadroom} systemFootroom={systemFootroom} layoutEdit={layoutEdit} breakBefore={breaks.includes(score.document.measures[i].id)} onBreak={onBreak} playingRow={Boolean(playPosition&&placements[playPosition.bar]?.row===placements[i].row)} playPosition={playPosition?.bar===i?playPosition:null} incomingTie={score.instrument==='piano'?(i?score.measures[i-1].filter(e=>e.tieTo).map(e=>e.tieTo).join('|'):''):Boolean(i&&score.measures[i-1].at(-1)?.tieTo===notes[0]?.id)} chord={score.chordShapes?.[i]} chordVisible={visibleChords[i]} charts={charts[i]} harmony={score.harmony?.[i]} selection={!playPosition&&cursor.target!=='bar'&&cursor.bar===i?cursor:null}/>)}
+   {score.measures.map((notes,i)=>(!pageView||i===cursor.bar)&&<Measure onHarmonyEdit={onHarmonyEdit} onChordEdit={onChordEdit} annotationOffsets={score.document.measures[i].annotationOffsets} chordNameMode={score.document.measures[i].chordNameMode} onAnnotationChange={onAnnotationChange} onHarmonyChange={onHarmonyChange} range={selectedRanges[i]} pianoStaffLayout={score.document?.viewSettings?.pianoStaffLayout} slurs={slurs} lastEntered={lastEntered} key={score.document.measures[i].id} {...{instrument:score.instrument,notes,index:i,keySignature:score.keySignature,meter:score.meter,mobile,onSelect,view,tabRhythm,tabBeamPosition:score.document.viewSettings?.tabBeamPosition,tabShortStems:score.document.viewSettings?.tabShortStems,tabPickingPosition:score.document.viewSettings?.tabPickingPosition,allowDrag}} placement={placements[i]} engraving={spacing.measures[i]} sectionLabel={score.document.measures[i].sectionLabel} endBarline={score.document.measures[i].endBarline} repeatStart={score.document.measures[i].repeatStart} repeatEnd={score.document.measures[i].repeatEnd} ending={score.document.measures[i].ending} marker={score.document.measures[i].marker} command={score.document.measures[i].command} previousEnding={score.document.measures[i-1]?.ending} nextEnding={score.document.measures[i+1]?.ending} systemNavigation={score.document.measures.some(m=>m.ending||m.marker||m.command)} systemStart={pageView||placements[i].column===1} systemEnd={pageView||!placements[i+1]||placements[i+1].row!==placements[i].row} scoreEnd={i===score.measures.length-1} systemHeadroom={systemHeadroom} systemFootroom={systemFootroom} layoutEdit={layoutEdit} breakBefore={breaks.includes(score.document.measures[i].id)} onBreak={onBreak} playingRow={Boolean(playPosition&&placements[playPosition.bar]?.row===placements[i].row)} playPosition={playPosition?.bar===i?playPosition:null} incomingTie={score.instrument==='piano'?(i?score.measures[i-1].filter(e=>e.tieTo).map(e=>e.tieTo).join('|'):''):Boolean(i&&score.measures[i-1].at(-1)?.tieTo===notes[0]?.id)} chord={score.chordShapes?.[i]} chordVisible={visibleChords[i]} charts={charts[i]} harmony={score.harmony?.[i]} selection={!range&&!playPosition&&cursor.target!=='bar'&&cursor.bar===i?cursor:null}/>)}
   </div></div>
  </div></>;
 }

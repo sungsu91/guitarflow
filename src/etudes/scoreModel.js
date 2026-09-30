@@ -1,3 +1,4 @@
+import {scoreMeasureLimit,scoreMeasureLimitMessage} from './scoreLimits.js';
 import { t as translateUi } from '../i18n/core.js';
 import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
@@ -71,6 +72,7 @@ function compileBar(bar,d) {
  }
  compileStats.bars++;
  const errors=[],issues=[],events=[];let end=0;
+ if(bar.pdfImport?.needsReview||bar.events.some(e=>e.pdfImport?.status==='unresolved'))issues.push('PDF TAB 미확정 입력 또는 리듬을 검토해 주세요.');
  const capacity=d.meter[0]*1920/d.meter[1];
  if(!Array.isArray(bar.events)||!bar.events.length||bar.events.length>64)return {errors:[ko["etudes.eachBarNeeds164NotesOrRests"]],issues,events};
  for(const e of bar.events){
@@ -124,7 +126,7 @@ export function compileDocumentV2(d,base={}) {
  if(!Number.isInteger(d.bpm)||d.bpm<30||d.bpm>240)errors.push(ko["etudes.bpmMustBe30240"]);
  if(!['C','G','D','A','E','B','F','Bb','Eb','Ab','Db','Gb','Am','Em','Bm','F#m','C#m','G#m','Dm','Gm','Cm','Fm'].includes(d.keySignature))errors.push(ko["etudes.checkTheKeySignature"]);
  if(['title','english','purpose'].some(k=>typeof d[k]!=='string'||d[k].length>2000)||!Array.isArray(d.tips)||d.tips.some(t=>typeof t!=='string'))errors.push(ko["etudes.checkTheTitleAndDescriptionFormat"]);
- if(!Array.isArray(d.measures)||!d.measures.length||d.measures.length>64)errors.push(ko["etudes.theScoreMustContain164BarsScoremodel"]);
+ if(!Array.isArray(d.measures)||!d.measures.length||d.measures.length>scoreMeasureLimit(d))errors.push(scoreMeasureLimitMessage(d));
  else if(d.measures.some(m=>!m||!Array.isArray(m.events)||m.events.some(e=>!e||typeof e.rest!=='boolean'||!Array.isArray(e.notes)||e.notes.some(n=>!n||typeof n!=='object'))))errors.push(ko["etudes.checkTheNoteAndRestStructure"]);
  if(errors.length)return {score:null,errors,issues};
  issues.push(...repeatIssues(d.measures));

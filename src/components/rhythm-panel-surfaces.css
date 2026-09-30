@@ -298,6 +298,23 @@ html body #root .app .backingLoopMiniPlayer :is(.backingLoopRepeatButton,.backin
   color:#e5bb70!important;
   opacity:1!important;
 }
+/* Keep every repeat mode the same width, with room for a legible single-track marker. */
+html body #root .app .backingLoopMiniPlayer .backingLoopRepeatButton {
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
+  max-width:36px!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopRepeatButton > svg {
+  width:30px!important;
+  height:26px!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopRepeatState--one {
+  width:12px!important;
+  height:12px!important;
+  font-size:12px!important;
+  font-weight:800!important;
+}
 html body #root .app .backingLoopMainControls {
   background:transparent!important;border:1px solid var(--studio-border)!important;border-radius:7px!important;box-shadow:none!important;
 }

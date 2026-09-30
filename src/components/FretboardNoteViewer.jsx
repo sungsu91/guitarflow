@@ -29,6 +29,7 @@ export const FretboardNoteViewerTitle = memo(function FretboardNoteViewerTitle({
 });
 
 export const FretboardNoteViewerBoard = memo(function FretboardNoteViewerBoard({
+  dragToPlay = false,
   fretRange,
   notes,
   onNotePress,
@@ -48,6 +49,7 @@ export const FretboardNoteViewerBoard = memo(function FretboardNoteViewerBoard({
 
   return (
     <Fretboard
+      dragToPlay={dragToPlay}
       className={`viewerSharedFretboard allNotes ${noteFilter !== ALL_FRETBOARD_NOTES ? "noteFilterActive" : ""}`}
       fretRange={fretRange}
       mode="note"

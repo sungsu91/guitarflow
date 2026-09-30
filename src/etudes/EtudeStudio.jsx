@@ -7,6 +7,7 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import EtudePicker from './EtudePicker.jsx';
 import {loadScoreFolders,updateScoreFolders,SCORE_FOLDERS_KEY} from '../pdf/scoreFolders.js';
+import {resolveLessonSelection} from '../pdf/practiceSelection.js';
 import PracticeSheet from './PracticeSheet.jsx';
 import usePracticeSession,{PracticeSessionPlayback} from './usePracticeSession.jsx';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
@@ -59,26 +60,30 @@ function LessonTips({ model }) {
 }
 
 
-export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, pdfScores=[], onSelectPdf, onManagePdf, onSelectionChange, importBusy=false, initialId=DEFAULT_ETUDE_ID, initialSavedId='' }) {
+export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, pdfScores=[], onSelectPdf, onManagePdf, onSelectionChange, importBusy=false, desktopStorage, initialId=DEFAULT_ETUDE_ID, initialSavedId='' }) {
   useLanguage();
   const [edits,setEdits]=useState(loadEdits);
   const readFavorites=()=>{try{const data=loadScoreFolders(localStorage);return {data,values:data.favorites,error:''};}catch(e){return {values:{},error:e.message};}};
   const [favoriteStore,setFavoriteStore]=useState(readFavorites);
   useEffect(()=>{const refresh=e=>{if(!e||e.type==='focus'||e.key===SCORE_FOLDERS_KEY)setFavoriteStore(readFavorites());};window.addEventListener('storage',refresh);window.addEventListener('focus',refresh);return()=>{window.removeEventListener('storage',refresh);window.removeEventListener('focus',refresh);};},[]);
   const [editing,setEditing]=useState(null);
-  const [savedId,setSavedId]=useState(initialSavedId);
+  const [editorSession,setEditorSession]=useState(0);
+  const openSavedForEditing=document=>{setEditorSession(v=>v+1);setSavedId(document.id);setEditing(structuredClone(document));updateBpm(document.bpm);};
+  const [initialLesson]=useState(()=>resolveLessonSelection({lessonId:initialId,savedId:initialSavedId},ETUDES,edits.records,DEFAULT_ETUDE_ID));
+  const [savedId,setSavedId]=useState(initialLesson.savedId);
   const savedScores=Object.values(edits.records).filter(r=>r.status!=='unreadable');
   const savedRecord=savedScores.find(r=>r.document.id===savedId);
   const compiled=useMemo(()=>savedRecord?compileScoreDocument(savedRecord.document):null,[savedRecord]);
-  const [selectedId, setSelectedId] = useState(initialId);
-  const [bpm, updateBpm] = useState(()=>edits.records[initialSavedId]?.document?.bpm??edits.scores[initialId]?.bpm??ETUDES.find(e=>e.id===initialId)?.bpm??DEFAULT_ETUDE_BPM);
+  const [selectedId, setSelectedId] = useState(initialLesson.lessonId);
+  const [bpm, updateBpm] = useState(()=>edits.records[savedId]?.document?.bpm??edits.scores[selectedId]?.bpm??ETUDES.find(e=>e.id===selectedId)?.bpm??DEFAULT_ETUDE_BPM);
+  useEffect(()=>{onSelectionChange?.(selectedId,savedId);},[selectedId,savedId,onSelectionChange]);
   const list = useMemo(() => sortEtudesByDifficulty(ETUDES.map(e=>edits.scores[e.id]??e)), [edits]);
   const selected = compiled?.score ?? list.find(e => e.id === selectedId) ?? list[0];
   const session=usePracticeSession(selected,bpm,updateBpm);
   const {controller,layout}=session;
   const filters=selected?{type:selected.type,level:selected.level,style:ko["app.all"]}:undefined;
-  const select = id => { controller.current?.stop(); setSavedId(''); setSelectedId(id); onSelectionChange?.(id,''); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
-  const selectSaved=id=>{controller.current?.stop();setSavedId(id);onSelectionChange?.(selectedId,id);updateBpm(savedScores.find(r=>r.document.id===id)?.document.bpm??list.find(e=>e.id===selectedId)?.bpm??60);};
+  const select = id => { controller.current?.stop(); setSavedId(''); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
+  const selectSaved=id=>{controller.current?.stop();setSavedId(id);updateBpm(savedScores.find(r=>r.document.id===id)?.document.bpm??list.find(e=>e.id===selectedId)?.bpm??60);};
   const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:[ko["etudes.thisBrowserCannotSaveLocallyExportAFileInstead"]]};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
   const canEdit=Boolean(savedRecord)||import.meta.env.DEV;
   const editScore=score=>{if(!canEdit)return;controller.current?.stop();setEditing(savedRecord?structuredClone(savedRecord.document):copyDocument(toScoreDocument(score)));};
@@ -92,9 +97,8 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, p
  };
   return <>{favoriteStore.error&&<p role="alert">{localizeUi(favoriteStore.error)}</p>}{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.map(localizeUi).join(' ')}</p>}
 
-    <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{!layout.focus&&<SongPicker model={model} mobile={mobile}/>}<PracticeSheet model={model} mobile={mobile} title={savedRecord?.document.title} heading={savedRecord?<header className="etudeSheetHeader"><h2>{savedRecord.document.title}</h2><div className="etudeSheetMeta"><span>{savedRecord.document.keySignature}</span><span>♩ = {bpm}</span></div></header>:undefined} lessonTips={savedRecord?undefined:<LessonTips model={model}/>}/></section>
+    <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{mobile&&!layout.focus&&<SongPicker model={model} mobile={mobile}/>}<PracticeSheet model={model} mobile={mobile} desktopPicker={!mobile?<SongPicker model={model} mobile={false}/>:undefined} desktopStorage={desktopStorage} title={savedRecord?.document.title} heading={savedRecord?<header className="etudeSheetHeader"><h2>{savedRecord.document.title}</h2><div className="etudeSheetMeta"><span>{savedRecord.document.keySignature}</span><span>♩ = {bpm}</span></div></header>:undefined} lessonTips={savedRecord?undefined:<LessonTips model={model}/>}/></section>
     <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)||Boolean(compiled?.issues?.length)}/>
-    {editing&&<Suspense fallback={<p role="status"><Translation id="etudes.preparingTheEditor" /></p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
+    {editing&&<Suspense fallback={<p role="status"><Translation id="etudes.preparingTheEditor" /></p>}><ScoreEditor key={`${editing.id}:${editorSession}`} savedScores={savedScores} onOpenSaved={openSavedForEditing} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
   </>;
 }
-

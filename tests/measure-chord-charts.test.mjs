@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ETUDES} from '../src/etudes/catalog.js';
-import {measureChordCharts,chordChartLayout} from '../src/etudes/measureChordCharts.js';
+import {measureChordCharts,summarizeMeasureChordCharts,chordChartLayout} from '../src/etudes/measureChordCharts.js';
 import {nightBloomsAgain as night} from '../src/etudes/nightBloomsAgain.js';
 import {lightStays as light} from '../src/etudes/lightStays.js';
 
@@ -37,4 +37,32 @@ test('user-authored single diagrams retain their editor visibility and range han
  const score=ETUDES.find(e=>e.chordShapes?.some(Boolean));
  const custom={...score,document:{...score.document,kind:'user'}};
  assert(measureChordCharts(custom).every(c=>!c.length),'existing user charts use their original annotation renderer');
+});
+
+test('desktop charts summarize each half without changing authored chord events',()=>{
+ const charts=[['C',0,480],['Dm',480,960],['Em',960,1440],['F',1440,1680],['G',1680,1920]]
+  .map(([name,startTick,endTick])=>({name,startTick,endTick,frets:[null,3,2,0,1,0]}));
+ const original=structuredClone(charts),summary=summarizeMeasureChordCharts(charts);
+ assert.deepEqual(summary.map(c=>[c.name,c.halfLabel]),[['C','app.firstBeat'],['Em','app.secondBeat']]);
+ assert.deepEqual(chordChartLayout(summary,180,true),{columns:2,height:108});
+ assert.deepEqual(charts,original);
+});
+
+test('half-bar summary respects compound meters and preserves distinct voicings',()=>{
+ const frets=[null,0,2,2,1,0],charts=[
+  {name:'Am',frets,startTick:0,endTick:720},
+  {name:'Am',frets:[...frets.slice(0,5),3],startTick:720,endTick:1440},
+ ];
+ assert.equal(summarizeMeasureChordCharts(charts,[6,8]).length,2);
+ assert.equal(summarizeMeasureChordCharts(charts.map(c=>({...c,frets})),[6,8]).length,1);
+ assert.deepEqual(summarizeMeasureChordCharts([], [3,4]),[]);
+ for(const score of ETUDES){
+  const original=JSON.stringify(score);
+  for(const [i,charts] of measureChordCharts(score).entries()){
+   const summary=summarizeMeasureChordCharts(charts,score.document?.measures[i]?.meter??score.meter);
+   assert(summary.length<=2,score.id);
+   assert(summary.every(c=>charts.some(source=>source.name===c.name&&JSON.stringify(source.frets)===JSON.stringify(c.frets))));
+  }
+  assert.equal(JSON.stringify(score),original);
+ }
 });

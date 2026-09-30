@@ -1,0 +1,45 @@
+.desktopScoreEditorHelp{width:min(1060px,calc(100vw - 64px));height:min(790px,calc(100dvh - 64px));max-width:none;max-height:none;padding:0;border:1px solid var(--ed-line);border-radius:16px;background:var(--ed-surface);color:var(--ed-ink);overflow:hidden;box-shadow:0 22px 70px #0003}
+.desktopScoreEditorHelp::backdrop{background:#19151080}
+.desktopScoreEditorHelp[open]{display:flex;flex-direction:column}
+.desktopScoreEditorHelp .scoreHelpHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:24px 28px 20px;border-bottom:1px solid var(--ed-line);background:var(--ed-bg);flex-shrink:0}
+.desktopScoreEditorHelp .scoreHelpHeader h2{display:flex;align-items:center;gap:10px;margin:0;font-size:21px;color:var(--ed-ink)}
+.desktopScoreEditorHelp .scoreHelpHeader p{margin:9px 0 0;color:var(--ed-muted);font-size:13px}
+.desktopScoreEditorHelp .scoreHelpHeader button{width:36px;height:36px;min-height:36px;flex-shrink:0;padding:0}
+.desktopScoreEditorHelp .scoreHelpLayout{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:0;flex:1}
+.desktopScoreEditorHelp .scoreHelpNavigation{padding:20px 14px;border-right:1px solid var(--ed-line);background:var(--ed-bg);overflow-y:auto}
+.desktopScoreEditorHelp .scoreHelpSearch{display:flex;flex-direction:row;align-items:center;gap:7px;padding:0 10px;border:1px solid var(--ed-line);border-radius:8px;background:var(--ed-surface);color:var(--ed-muted)}
+.desktopScoreEditorHelp .scoreHelpSearch input{width:100%;min-width:0;border:0!important;background:transparent!important;padding:12px 0;font-size:12px}
+.desktopScoreEditorHelp .scoreHelpCount{margin:14px 10px 8px;font-size:11px;color:var(--ed-muted)}
+.desktopScoreEditorHelp nav{display:grid;gap:5px}
+.desktopScoreEditorHelp nav button{justify-content:flex-start!important;text-align:left;padding:12px;min-height:42px;border-color:transparent!important;box-shadow:none!important;background:transparent!important;white-space:normal;word-break:keep-all}
+.desktopScoreEditorHelp nav button[aria-current=page]{background:var(--ed-active)!important;color:var(--ed-on-accent)!important}
+.desktopScoreEditorHelp .scoreHelpArticle{overflow-y:auto;overscroll-behavior:contain;min-width:0;padding:28px 34px 36px;scrollbar-gutter:stable}
+.desktopScoreEditorHelp h3{margin:0 0 10px;font-size:24px;color:var(--ed-ink)}
+.desktopScoreEditorHelp .scoreHelpIntro{color:var(--ed-muted);margin:0 0 28px;font-size:14px;line-height:1.75}
+.desktopScoreEditorHelp section+section{margin-top:28px;padding-top:24px;border-top:1px solid var(--ed-line)}
+.desktopScoreEditorHelp h4{margin:0 0 12px;font-size:16px;color:var(--ed-ink)}
+.desktopScoreEditorHelp section p,.desktopScoreEditorHelp li{font-size:14px;line-height:1.85;word-break:keep-all;overflow-wrap:anywhere}
+.desktopScoreEditorHelp section p{margin:0}
+.desktopScoreEditorHelp ol{padding-left:22px;margin:0}
+.desktopScoreEditorHelp li{padding-left:5px;margin-bottom:8px}
+.desktopScoreEditorHelp .scoreHelpSequence{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:16px;padding:12px;background:var(--ed-bg);border-radius:9px}
+.desktopScoreEditorHelp .scoreHelpSequence span{padding:5px 9px;background:var(--ed-surface);border:1px solid var(--ed-line);border-radius:6px;font-size:12px;font-weight:600}
+.desktopScoreEditorHelp .scoreHelpTip{margin-top:17px;padding:14px 16px;border-left:3px solid var(--ed-active);background:var(--ed-bg);border-radius:0 8px 8px 0}
+.desktopScoreEditorHelp .scoreHelpTip strong{display:block;margin-bottom:6px;font-size:12px;color:var(--ed-ink)}
+.desktopScoreEditorHelp .scoreHelpTip p{font-size:13px;color:var(--ed-muted)}
+.desktopScoreEditorHelp dl{margin:0;font-size:13px;line-height:1.65}
+.desktopScoreEditorHelp dl>div{display:grid;grid-template-columns:minmax(135px,.85fr) minmax(0,1.3fr);gap:15px;padding:11px 0;border-bottom:1px solid var(--ed-line)}
+.desktopScoreEditorHelp dt{font-weight:600}
+.desktopScoreEditorHelp dd{margin:0;color:var(--ed-muted);overflow-wrap:anywhere}
+.desktopScoreEditorHelp kbd{font:12px ui-monospace,Consolas,monospace;display:inline-block;padding:4px 7px;border:1px solid var(--ed-line);border-bottom-width:2px;border-radius:5px;background:var(--ed-bg)}
+.desktopScoreEditorHelp .scoreHelpEmpty{display:grid;justify-items:center;align-content:center;gap:16px;min-height:300px;color:var(--ed-muted)}
+.desktopScoreEditorHelp .scoreHelpEmpty button{padding:10px 20px}
+.desktopEditorHelpButton{display:inline-flex;align-items:center;gap:7px}
+@media(max-width:1100px){.desktopScoreEditorHelp .scoreHelpLayout{grid-template-columns:235px minmax(0,1fr)}.desktopScoreEditorHelp .scoreHelpArticle{padding:24px}.desktopScoreEditorHelp dl>div{grid-template-columns:1fr;gap:5px}}
+/* Match the editor's layered theme so global button rules cannot hide the
+   selected topic or add a second border inside the search field. */
+@layer score-workspace{
+ .editorDesign .desktopScoreEditorHelp nav button{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+ .editorDesign .desktopScoreEditorHelp nav button[aria-current=page]{background:var(--ed-active)!important;color:var(--ed-on-accent)!important}
+ .editorDesign .desktopScoreEditorHelp .scoreHelpSearch input{background:transparent!important;border:0!important;padding:12px 0!important;font-size:12px!important}
+}

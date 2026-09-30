@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const appSource = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
-const desktopCss = readFileSync(new URL("../src/layouts/desktop-layout.css", import.meta.url), "utf8");
+const desktopGuideCss = readFileSync(new URL("../src/navigation/desktop-help-guide.css", import.meta.url), "utf8");
 const appCss = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
 
 test("help guide exposes the complete FRETIVA LAB manual", () => {
@@ -68,7 +68,8 @@ test("help guide puts shared navigation immediately after welcome", () => {
 });
 
 test("help guide stays viewport-bound and scrollable on mobile and desktop", () => {
-  assert.match(desktopCss, /\.desktopLayout \.helpGuidePanel \{\s*width: min\(620px, calc\(100vw - 64px\)\) !important;/);
+  assert.match(desktopGuideCss, /width: min\(1320px, calc\(100vw - 64px\)\);/);
+  assert.match(desktopGuideCss, /height: min\(940px, calc\(100dvh - 48px\)\);/);
   assert.match(appCss, /\.helpGuidePanel \{[\s\S]*?max-height: min\(760px, calc\(100dvh - 42px\)\);[\s\S]*?overflow: hidden;/);
   assert.match(appCss, /\.helpAccordion \{[\s\S]*?min-height: 0;[\s\S]*?overflow-y: auto;/);
   assert.match(appCss, /@media \(max-width: 430px\)[\s\S]*?\.helpGuidePanel\.helpGuidePanel \{[\s\S]*?max-height: calc\(100dvh - 20px\);/);

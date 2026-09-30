@@ -1,5 +1,5 @@
 import ko from "../../i18n/locales/ko.js";
-import { t as translateUi } from "./../../i18n/core.js";
+import { localizeUi, t as translateUi } from "./../../i18n/core.js";
 import { useLanguage } from "./../../i18n/react.jsx";
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 

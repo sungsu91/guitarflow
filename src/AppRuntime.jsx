@@ -28,6 +28,7 @@ import "./fretboard/viewer-surface.css";
 import "./layouts/desktop-parity.css";
 import "./navigation/activity-visibility.css";
 import "./ui/readability.css";
+import "./layouts/desktop-fretboard.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";

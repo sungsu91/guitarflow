@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildRootScalePositions, rootScaleOctaves } from "../src/fretboard/rootScale.js";
+import { buildRootScalePositions, buildRootScaleRoute, rootScaleOctaves } from "../src/fretboard/rootScale.js";
 
 const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const tuning = { 6: 40, 5: 45, 4: 50, 3: 55, 2: 59, 1: 64 };
@@ -10,6 +10,30 @@ const scales = {
   majorPentatonic: [0, 2, 4, 7, 9],
   minorPentatonic: [0, 3, 5, 7, 10],
 };
+
+test("C major connects the four requested root positions in order", () => {
+  const segments = buildRootScaleRoute("C", scales.major);
+  assert.deepEqual(segments.map(notes => [notes[0].stringNumber, notes[0].fretNumber,
+    notes.at(-1).stringNumber, notes.at(-1).fretNumber]),
+  [[5, 3, 3, 5], [3, 5, 1, 8], [6, 8, 4, 10], [4, 10, 2, 13]]);
+  assert.deepEqual(segments[1][2], { stringNumber: 2, fretNumber: 5, pitch: "E4" });
+});
+
+test("every key and scale has four playable octave segments connected in pairs", () => {
+  for (const root of names) for (const intervals of Object.values(scales)) {
+    const segments = buildRootScaleRoute(root, intervals);
+    assert.equal(segments.length, 4);
+    assert.deepEqual(segments[0].at(-1), segments[1][0]);
+    assert.deepEqual(segments[2].at(-1), segments[3][0]);
+    assert.ok(segments[0][0].fretNumber <= segments[2][0].fretNumber);
+    for (const notes of segments) {
+      const start = tuning[notes[0].stringNumber] + notes[0].fretNumber;
+      assert.equal(start % 12, names.indexOf(root));
+      assert.deepEqual(notes.map(note => tuning[note.stringNumber] + note.fretNumber - start), [...intervals, 12]);
+      assert.ok(notes.every(note => note.fretNumber >= 0 && note.fretNumber <= 18));
+    }
+  }
+});
 
 test("all 96 root scales have complete pitches, playable frets, and exact octave endpoints", () => {
   for (const root of names) for (const intervals of Object.values(scales)) for (const octaves of [1, 2]) {

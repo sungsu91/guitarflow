@@ -307,7 +307,7 @@ function BackingLoopPlayerBar({ controller, mobile = false, inlinePlaylist = fal
           title={repeatMode === "repeat-one" ? translateUi("components.repeatOne") : repeatMode === "repeat-all" ? translateUi("components.repeatAll") : translateUi("components.repeatOffPlayListOnce")}
           type="button"
         >
-          <Repeat2 aria-hidden="true" size={22} strokeWidth={2.15} />
+          <Repeat2 aria-hidden="true" size={22} strokeWidth={2.15} preserveAspectRatio="none" />
           {repeatMode === "repeat-all" ? (
             <b aria-hidden="true" className="backingLoopRepeatState backingLoopRepeatState--all">•</b>
           ) : null}

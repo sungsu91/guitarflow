@@ -8,7 +8,7 @@ import {SCORE_SOURCE_HANDLE,SCORE_SOURCE_URL} from './scoreSource.js';
 import {measureLayout} from './measureLayout.js';
 import {slurSpans} from './slurs.js';
 import {measureChordCharts} from './measureChordCharts.js';
-import {PRINT_TOP,PRINT_BOTTOM,PRINT_MARGIN} from '../printing/printGeometry.js';
+import {PRINT_BOTTOM,PRINT_MARGIN} from '../printing/printGeometry.js';
 
 // Engrave once at physical paper width; metadata edits repaginate the fixed score.
 export function renderScorePrint(main,container,view,metadata,initial,onPages) {
@@ -33,7 +33,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   sheets.push(paper);return paper;
  };
  let sheet=newSheet();
- const heading=doc.createElement('h1');heading.textContent=settings.title;sheet.querySelector('.scoreHeading').append(heading);
+ const heading=doc.createElement('h1');heading.textContent=settings.title;sheet.querySelector('.print-page-branding').append(heading);
  const credits=doc.createElement('div');credits.className='print-description-row';
  const credit=doc.createElement('p');credit.className='scoreCredit print-description-left';
  const credit2=doc.createElement('p');credit2.className='print-description-right';credits.append(credit,credit2);sheet.querySelector('.scoreHeading').append(credits);
@@ -43,7 +43,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   if(!section||row!==nextRow){section=doc.createElement('section');sections.push(section);sheet.append(section);row=nextRow;}
   const cell=doc.createElement('div');cell.style.gridColumn=measure?.style.gridColumn??'1 / -1';cell.style.gridRow='1';cell.style.width=measure?.style.width??'';cell.style.marginLeft=measure?.style.marginLeft??'';
   const drawing=doc.importNode(svg,true);
-  drawing.querySelectorAll('.etudeEditorHit,.etudeInputCursor,.etudeLastEntered,.etudePlayingSlot,.etudePlayingRow,.etudeBeamRangeSelection').forEach(node=>node.remove());cell.append(drawing);section.append(cell);
+  drawing.querySelectorAll('.etudeEditorHit,.etudeInputCursor,.etudeLastEntered,.etudePlayingSlot,.etudePlayingRow,.etudeBeamRangeSelection,.etudeScoreRangeSelection').forEach(node=>node.remove());cell.append(drawing);section.append(cell);
  }
  // Re-engrave at paper width with readable symbols, never a
  // narrow scaled copy of the mobile editor.
@@ -61,7 +61,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
  }
  const renderForPrint=virtualWidth=>{
   if(!compiled)return;
-  const spacing=scoreSpacing(compiled,{placements,view,width:virtualWidth,independentRows:true});
+  const spacing=scoreSpacing(compiled,{placements,view,width:virtualWidth,independentRows:true,equalMeasures:true});
   const systemFootroom=Math.max(0,...compiled.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).map(n=>(-7-staffStepForPitch(n.pitch,compiled.instrument))*5));
   let cellIndex=0;
   for(const section of sections){for(const cell of section.children){
@@ -69,7 +69,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
    const first=placements[i].column===1,last=!placements[i+1]||placements[i+1].row!==placements[i].row;
    const host=document.createElement('div');host.style.cssText='position:fixed;left:-100000px;top:0;visibility:hidden';document.body.append(host);
    try{
-   drawScore(host,{...compiled,document:undefined,measureCharts:[measureChordCharts(compiled)[i]],slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],annotationOffsets:[m.annotationOffsets],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
+   drawScore(host,{...compiled,document:undefined,measureCharts:[measureChordCharts(compiled)[i]],slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],incomingTie:Boolean(i&&compiled.measures[i-1].at(-1)?.tieTo===compiled.measures[i][0]?.id),repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],annotationOffsets:[m.annotationOffsets],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
     {editor:true,barOffset:i,view,systemFootroom,editorWidth:geometry.cellWidth,engraving:geometry,systemStart:first,systemEnd:last,scoreEnd:i===compiled.measures.length-1,tabRhythm:metadata.viewSettings?.tabRhythm!==false,tabBeamPosition:metadata.viewSettings?.tabBeamPosition,tabPickingPosition:metadata.viewSettings?.tabPickingPosition});
    const svg=host.querySelector('svg');svg.querySelectorAll('.etudeEditorHit,.etudeInputCursor').forEach(el=>el.remove());
    // Keep small annotations readable at physical paper size without changing
@@ -106,7 +106,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   const gap=12;let pageIndex=0;
   const pageAt=index=>{
    const paper=sheets[index]||newSheet();
-   paper.style.paddingTop=(index===0?PRINT_TOP:PRINT_MARGIN)+'px';
+   paper.style.paddingTop=PRINT_MARGIN+'px';
    return paper;
   };
   // Retain frames and page identities while moving rows. Removing page 2 here

@@ -1,0 +1,47 @@
+/* Mobile scale practice keeps the existing picker and adds a quiet position row. */
+html body #root .mobileLayoutShell main.app.app.app.practiceMode.viewport-mobile-surface
+  .scaleBlockTrainingPanel.referenceTrainingPanel .referenceTrainingBoard--scalePositions {
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+}
+
+.mobileLayoutShell .referenceTrainingBoard--scalePositions :is(.trainingSharedFretboard, .mobileScalePositionNavigation) {
+  touch-action: pan-y;
+  user-select: none;
+}
+
+html body #root .mobileLayoutShell main.app.app .mobileScalePositionNavigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 28px;
+  color: var(--riff-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+html body #root .mobileLayoutShell main.app.app .mobileScalePositionNavigation button {
+  display: grid !important;
+  place-items: center;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  transform: none !important;
+}
+
+html body #root .mobileLayoutShell main.app.app .mobileScalePositionNavigation button::before,
+html body #root .mobileLayoutShell main.app.app .mobileScalePositionNavigation button::after {
+  content: none !important;
+}
+
+.mobileScalePositionNavigation button:disabled { opacity: 0.3; }
+.mobileScalePositionNavigation button:focus-visible { outline: 1px solid currentColor; outline-offset: -3px; }
+.mobileScalePositionCount { font-variant-numeric: tabular-nums; }

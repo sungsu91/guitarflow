@@ -3,7 +3,6 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {
   AudioLines,
-  ChevronDown,
   CircleHelp,
   Gamepad2,
   Grid3X3,
@@ -13,11 +12,11 @@ import {
   Settings,
   Sun,
   Timer,
-  Volume2,
 } from "lucide-react";
 import MetronomeVolumeControl from "../components/MetronomeVolumeControl.jsx";
 import GrooveVolumeControl from "../components/GrooveVolumeControl.jsx";
 import LanguageSettings from '../i18n/LanguageSettings.jsx';
+import DesktopSoundSettings from './DesktopSoundSettings.jsx';
 
 function InstagramMark({ size = 18 }) {
   return (
@@ -155,12 +154,8 @@ export default function DesktopSidebarNavigation({
         <div className="desktopSidebarDivider" role="separator" />
 
         <div className="desktopSidebarGroup desktopSidebarUtilityGroup">
-          <details className="desktopSidebarSettings">
-            <summary>
-              <span className="desktopSidebarIcon" aria-hidden="true"><Volume2 size={18} /></span>
-              <span className="desktopSidebarLabel"><Translation id="app.soundRhythm" /></span>
-              <ChevronDown className="desktopSidebarChevron" size={16} aria-hidden="true" />
-            </summary>
+          <DesktopSoundSettings activeKey={activeKey}>
+            {(close) => (
             <div className="desktopSidebarSoundControls">
               {inputControls}
               <MetronomeVolumeControl className="desktopSidebarSoundRow" />
@@ -193,7 +188,7 @@ export default function DesktopSidebarNavigation({
               <button
                 className="desktopSidebarSubAction"
                 disabled={accompanimentControlsDisabled}
-                onClick={onOpenRhythmSettings}
+                onClick={() => { close(); onOpenRhythmSettings(); }}
                 type="button"
               >
                 <Settings size={14} aria-hidden="true" /><Translation id="app.customRhythms" /></button>
@@ -204,7 +199,8 @@ export default function DesktopSidebarNavigation({
                 type="button"
               ><Translation id="app.resetSound" /></button>
             </div>
-          </details>
+            )}
+          </DesktopSoundSettings>
           <DesktopSidebarItem icon={CircleHelp} label={translateUi("app.guideHelp")} onClick={onOpenHelp} />
           {shareControls}
           <a

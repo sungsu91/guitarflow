@@ -4,6 +4,9 @@ import { localizeUi } from "./../i18n/core.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import { memo, useEffect, useRef, useState } from "react";
+import useFretboardGlissando from '../fretboard/useFretboardGlissando.js';
+import {triggerNoteRipple} from '../fretboard/noteRipple.js';
+import '../fretboard/noteGlissando.css';
 import {
   LICK_TECHNIQUES,
   buildLickTechniqueRelations,
@@ -173,6 +176,7 @@ function getTabStepDisplay(step) {
 
 function Fretboard({
   animateFretWindow = false,
+  dragToPlay = false,
   barres = [],
   className = "",
   editable = false,
@@ -218,6 +222,14 @@ function Fretboard({
   const selected = new Set(selectedNotes);
   const openNotesByString = new Map();
   const occupiedPositions = editable ? new Set() : null;
+  const glissandoEnabled = dragToPlay && !editable && !isTabMode && Boolean(onNotePress);
+  const soundNote = (element, note) => {
+    if (glissandoEnabled) triggerNoteRipple(element);
+    else triggerNotePressFeedback(element);
+    onNotePress(note);
+  };
+  const glissando = useFretboardGlissando({enabled: glissandoEnabled, notes: renderNotes, onPlay: soundNote});
+  const ripple = glissandoEnabled ? <span className="fretboardNoteRipple" aria-hidden="true"><span className="fretboardNoteRippleRing"/><span className="fretboardNoteRippleDrops"/></span> : null;
 
   renderNotes.forEach((note) => {
     occupiedPositions?.add(`${Number(note.stringNumber)}-${Number(note.fretNumber)}`);
@@ -440,8 +452,10 @@ function Fretboard({
   const activateNote = (event, note) => {
     if (!onNotePress || !note) return;
     event.stopPropagation();
-    triggerNotePressFeedback(event.currentTarget);
-    onNotePress(note);
+    // Mouse/pen notes already sounded on pointerdown; keyboard and touch keep
+    // their normal activation path without a duplicate note on release.
+    if (glissandoEnabled && event.type === 'click' && event.detail > 0 && event.nativeEvent.pointerType !== 'touch') return;
+    soundNote(event.currentTarget, note);
   };
   const handleNoteKeyDown = (event, note) => {
     if ((!onNotePress && !editable) || !note || !["Enter", " "].includes(event.key)) return;
@@ -505,7 +519,8 @@ function Fretboard({
 
   return (
     <div
-      className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${editable ? "fretboardComponent--editable" : ""} ${className}`}
+      className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${editable ? "fretboardComponent--editable" : ""} ${glissandoEnabled ? "fretboardComponent--glissando" : ""} ${className}`}
+      {...glissando}
       data-fret-window-start={isTabMode ? undefined : visualStartFret}
       onClick={editable ? () => {
         setDeleteTargetKey("");
@@ -571,6 +586,7 @@ function Fretboard({
                     tabIndex={onNotePress || editable ? 0 : undefined}
                   >
                     {localizeUi(openLabel)}
+                    {ripple}
                     {editable && deleteTargetKey === getEditablePositionKey(openNote) ? (
                       <button
                         aria-label={translateUi("components.deleteValue1OpenStringValue2", { value1: openAccessiblePitch, value2: stringInfo.stringNumber })}
@@ -774,6 +790,7 @@ function Fretboard({
               title={translateUi("components.value1StringValue2FretValue3", { value1: accessiblePitch, value2: note.stringNumber, value3: note.fretNumber })}
             >
               <b>{localizeUi(displayLabel)}</b>
+              {ripple}
               {editable && deleteTargetKey === getEditablePositionKey(note) ? (
                 <button
                   aria-label={translateUi("components.deleteValue1StringValue2FretValue3", { value1: accessiblePitch, value2: note.stringNumber, value3: note.fretNumber })}

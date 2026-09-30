@@ -32,6 +32,26 @@ export default function usePracticeFollow(root,mode,playing,revision){
   if(widget&&widget.right>rect.left&&widget.left<rect.right&&widget.bottom>top&&widget.top<bottom){if(widget.top-top>=bottom-widget.bottom)bottom=Math.max(top,widget.top-8);else top=Math.min(bottom,widget.bottom+8);}
   const height=Math.max(1,bottom-top-12),signature=[rect.width,rect.height,height,top-rect.top,svg.getAttribute('viewBox')].join(':');
   const backwards=s.bar!=null&&(current.bar<s.bar||current.visit<s.visit||current.cycle!==s.cycle||current.bar===s.bar&&current.event<s.event);
+  const paper=svg.closest('.desktopScorePage');
+  if(paper){
+    const matrix=svg.getScreenCTM();if(!matrix)return;
+    const page=paper.getBoundingClientRect();
+    const rowTop=Number(bar.dataset.rowTop)*matrix.d+matrix.f;
+    const rowBottom=Number(bar.dataset.rowBottom)*matrix.d+matrix.f;
+    const fits=mode==='page'&&page.height<=height;
+    const targetTop=fits?page.top:Math.max(page.top,rowTop);
+    const targetBottom=fits?page.bottom:rowBottom;
+    const needsScroll=targetTop<top-2||targetBottom>bottom+2;
+    if(needsScroll&&(force||s.dirty||s.svg!==svg||s.row!==row||backwards)){
+      const first=paper.dataset.scorePage==='1'&&row===1;
+      scroller.scrollTo({top:first?0:Math.max(0,scroller.scrollTop+targetTop-top),behavior:'instant'});
+    }
+    const cursor=line.getBoundingClientRect().left-rect.left+scroller.scrollLeft;
+    const left=followHorizontalTarget(cursor,scroller.clientWidth,scroller.scrollLeft,scroller.scrollWidth-scroller.clientWidth);
+    if(Math.abs(scroller.scrollLeft-left)>1)scroller.scrollTo({left,behavior:'instant'});
+    Object.assign(s,{dirty:false,svg,row,bar:current.bar,event:current.event,visit:current.visit,cycle:current.cycle,signature});
+    return;
+  }
   // Unlike vertical following, the beat can leave the viewport within one row.
   // Track its screen position every frame, including row changes and loop wraps.
   const maxLeft=scroller.scrollWidth-scroller.clientWidth;

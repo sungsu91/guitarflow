@@ -1,3 +1,4 @@
+import {scoreMeasureLimit,scoreMeasureLimitMessage} from './scoreLimits.js';
 import ko from "../i18n/locales/ko.js";
 import {blankEvent,blankMeasure,newId,ticksOf} from './scoreModel.js';
 
@@ -29,7 +30,7 @@ export function editWholeBeat(document,cursor,{copy=false}={}){
  let events;
  if(copy){
   target=start+beat;if(target>=capacity){bar++;target=0;}
-  if(bar>=measures.length){if(measures.length>=64)throw Error(ko["etudes.theMaximumIs64Bars"]);measures.push(blankMeasure(document.meter));}
+  if(bar>=measures.length){if(measures.length>=scoreMeasureLimit(document))throw Error(scoreMeasureLimitMessage(document));measures.push(blankMeasure(document.meter));}
   const source=range(document.measures[cursor.bar].events,start,start+beat);
   const ids=new Map(source.map(e=>[e.id,newId('event')])),groups=new Map();
   events=source.map(e=>{if(e.tuplet&&!groups.has(e.tuplet.groupId))groups.set(e.tuplet.groupId,newId('tuplet'));return {...e,id:ids.get(e.id),onset:e.onset-start+target,notes:e.notes.map(n=>({...n,id:newId('tone')})),tieTo:ids.get(e.tieTo)??null,slurTo:ids.get(e.slurTo)??null,tuplet:e.tuplet?{...e.tuplet,groupId:groups.get(e.tuplet.groupId)}:null};});

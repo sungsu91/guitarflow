@@ -1,0 +1,44 @@
+/* Opt-in desktop listening UI. The chip itself never moves or grows. */
+html[data-rifflab-layout="desktop"] .fretboardViewerPanel .fretboardComponent--glissando {
+  touch-action: pan-x pan-y;
+  user-select: none;
+}
+html[data-rifflab-layout="desktop"] .fretboardComponent--glissando [data-note-pitch].is-interactive::after {
+  inset: -3px;
+}
+/* Generic button :active transforms must not replace fretboard positioning. */
+html[data-rifflab-layout="desktop"] .fretboardComponent--glissando .fretboardNoteChip.is-interactive {
+  transform: translate(-50%, -50%) !important;
+  transition: opacity 100ms, box-shadow 100ms !important;
+}
+html[data-rifflab-layout="desktop"] .fretboardComponent--glissando .fretboardStringState.noteOpen.is-interactive {
+  transform: translate(-50%, -50%) !important;
+  transition: opacity 100ms, box-shadow 100ms !important;
+}
+.fretboardNoteRipple {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  color: var(--theme-accent, #947651);
+  pointer-events: none;
+}
+.fretboardNoteRipple, .fretboardNoteRippleRing, .fretboardNoteRippleDrops {
+  transition: none !important;
+}
+.fretboardNoteRippleRing, .fretboardNoteRippleDrops {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.fretboardNoteRippleRing { border: 1.5px solid currentColor; }
+.fretboardNoteRippleDrops {
+  inset: -4px;
+  background:
+    radial-gradient(circle at 25% 8%, currentColor 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 96% 45%, currentColor 0 1px, transparent 1.6px),
+    radial-gradient(circle at 65% 94%, currentColor 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 4% 68%, currentColor 0 1px, transparent 1.6px);
+}

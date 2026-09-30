@@ -1,0 +1,16 @@
+.etudeEditor .scoreOpenDialog{box-sizing:border-box;width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:24px;border:1px solid var(--ed-line);border-radius:16px;background:var(--ed-surface);color:var(--ed-ink);box-shadow:0 12px 48px #231c2033;overflow:auto}
+.scoreOpenDialog::backdrop{background:#24232166}
+.scoreOpenHeading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.scoreOpenHeading h2{margin:0;font-size:20px}
+.etudeEditor .scoreOpenHeading button{padding:8px;min-width:40px}
+.scoreOpenDialog>p{margin:10px 0 18px;font-size:13px;color:var(--ed-muted)}
+.etudeEditor .scoreOpenDialog>input{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--ed-line);border-radius:8px;font:inherit;background:var(--ed-surface);color:var(--ed-ink)}
+.scoreOpenDialog .scoreOpenList{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:8px}
+.etudeEditor .scoreOpenDialog .scoreOpenItem{display:flex;align-items:center;gap:12px;box-sizing:border-box;width:100%;padding:14px;text-align:left;white-space:normal;min-height:72px}
+.scoreOpenItem>svg,.scoreOpenStatus{flex-shrink:0}
+.scoreOpenDescription{display:grid;gap:6px;flex:1;min-width:0}
+.scoreOpenDescription strong{overflow-wrap:anywhere}
+.scoreOpenDescription small{font-size:12px;font-weight:400;color:var(--ed-muted);overflow-wrap:anywhere}
+.scoreOpenStatus{font-size:11px;color:var(--ed-muted)}
+.scoreOpenDialog .scoreOpenEmpty{padding:28px 12px;text-align:center;line-height:1.7}
+.scoreOpenDialog :focus-visible{outline:2px solid var(--ed-active);outline-offset:3px}

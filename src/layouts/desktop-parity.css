@@ -42,12 +42,17 @@ html[data-rifflab-layout="desktop"] .desktopWorkspaceContent {
 .desktopSidebar .shooterShareFeedback input { width: 100%; min-width: 0; }
 
 html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel > .stage3DesktopPrimaryColumn {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
   > .chordTransitionPanel .stage3ProgressHud {
   grid-template-columns: minmax(0, 1fr) auto !important;
   grid-template-rows: auto auto !important;
   gap: 8px !important;
   height: auto !important;
-  min-height: 110px !important;
+  min-height: 144px !important;
+  container-type: inline-size;
 }
 html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
   > .chordTransitionPanel .stage3ProgressHud .stage3DesktopBeatHeading {
@@ -59,15 +64,41 @@ html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMod
   padding: 0 !important;
 }
 html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .beatIndicator {
+  --desktop-beat-columns: var(--beat-count);
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  width: min(100%, 720px) !important;
+  max-width: 100% !important;
+  gap: 12px !important;
+  padding: 4px 0 !important;
+}
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .beatIndicator--beats-9 { --desktop-beat-columns: 5; }
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .beatIndicator--beats-12 { --desktop-beat-columns: 6; }
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
   > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .beatIndicatorRow {
-  display: flex !important; gap: 4px !important; justify-content: space-around;
+  display: grid !important;
+  grid-template-columns: repeat(var(--desktop-beat-columns), minmax(0, 1fr)) !important;
+  width: 100% !important;
+  gap: clamp(8px, 2cqw, 24px) !important;
+  justify-items: center;
 }
 html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
   > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .referenceBeatMetronomeDot.beatDot {
-  --beat-dot-size: 32px;
-  flex: 1 1 0;
-  width: auto !important; min-width: 0 !important;
-  height: 40px !important; min-height: 40px !important;
+  --beat-dot-size: clamp(36px, calc((100cqw - 32px) / var(--desktop-beat-columns) - 16px), 64px);
+  --beat-dot-touch: calc(var(--beat-dot-size) + 8px);
+  width: var(--beat-dot-touch) !important; min-width: 0 !important;
+  height: var(--beat-dot-touch) !important; min-height: var(--beat-dot-touch) !important;
+  padding: 4px !important;
+}
+@container (max-width: 400px) {
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip
+    :is(.beatIndicator--beats-5, .beatIndicator--beats-6, .beatIndicator--beats-9, .beatIndicator--beats-12) { --desktop-beat-columns: 3; }
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3ProgressHud .stage3ReferenceBeatMetronomeStrip .beatIndicator--beats-7 { --desktop-beat-columns: 4; }
 }
 html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
   > .chordTransitionPanel .stage3ProgressHud .stage3MetronomeSoundToggle--desktop {

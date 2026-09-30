@@ -52,3 +52,20 @@ html body .mobileLayoutShell main.app.app.app
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* Portrait scale maps need room per fret, especially the full root-note range.
+   Keep the existing fitted board on mobile landscape and desktop. */
+@media (orientation: portrait) {
+  .mobileLayoutShell .fretboardViewerPanel--scale .viewerSharedFretboard.fitRange {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+  }
+
+  .mobileLayoutShell .fretboardViewerPanel--scale .viewerSharedFretboard.fitRange
+    .fretboardComponentScroller {
+    min-width: max(100%, calc(var(--fret-slot-count) * 46px + var(--fretboard-label-left) + var(--fretboard-label-right) + 2px)) !important;
+    max-width: none !important;
+  }
+}

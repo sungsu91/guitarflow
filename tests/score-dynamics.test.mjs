@@ -18,4 +18,8 @@ test('score output applies authored dynamics without staggering simultaneous str
  const count=calls.length;
  for(const velocity of [0,-2])assert.equal(context.output.schedule([{...base,string:3,velocity}],4).length,0);
  assert.equal(calls.length,count,'silent dynamics must not feed zero into an exponential gain ramp');
+ // A roll arrives as single-note batches; it must retain the parent chord's
+ // normalization instead of becoming six solo attacks at full strength.
+ context.output.schedule([{...base,string:6,velocity:.8,roll:{size:6,velocity:.9}}],5);
+ const rolled=calls.at(-1);assert.equal(rolled.at,5);assert.equal(rolled.level,.46/Math.sqrt(6)*.9*.8);
 });

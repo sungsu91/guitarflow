@@ -1,0 +1,5 @@
+.etudeEditor--desktop .desktopEditorTopBar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 20px;flex-shrink:0;padding:0 0 12px;border-bottom:1px solid var(--ed-line)}
+.etudeEditor--desktop .desktopEditorTopBar .etudeHeaderActions{flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-left:auto;max-width:100%}
+.etudeEditor--desktop .desktopEditorTopBar .etudeHeaderActions p[role=status]{margin:0 4px;max-width:none}
+.etudeEditor--desktop .desktopEditorTopBar button{white-space:nowrap}
+.etudeEditor--desktop .desktopPdfSave{display:inline-flex;align-items:center;justify-content:center;gap:6px}

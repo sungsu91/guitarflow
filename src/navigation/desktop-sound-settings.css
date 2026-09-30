@@ -1,0 +1,100 @@
+/* The native popover escapes the sidebar's scroll clipping and inherits its theme. */
+html body #root .desktopLayout .desktopSoundSettingsTrigger {
+  width: 100%;
+  border-color: var(--desktop-sidebar-card-border) !important;
+  background: var(--desktop-sidebar-card-bg) !important;
+  color: var(--desktop-sidebar-card-text) !important;
+  box-shadow: var(--desktop-sidebar-card-shadow) !important;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsTrigger[aria-expanded="true"] {
+  border-color: var(--riff-border-selected) !important;
+  background: var(--desktop-sidebar-card-hover-bg) !important;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsPanel {
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  width: 320px;
+  max-height: calc(100dvh - 24px);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--riff-border-panel);
+  border-radius: 16px;
+  background: var(--riff-surface-panel);
+  color: var(--riff-text-primary);
+  box-shadow: 0 12px 36px #0003;
+  text-align: left;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsPanel:popover-open {
+  display: flex;
+  flex-direction: column;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsHeader {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 12px 16px;
+  border-bottom: 1px solid var(--riff-divider);
+  font-size: 13px;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsClose {
+  display: grid !important;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin-left: auto;
+  padding: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: var(--riff-text-muted) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsClose:hover {
+  border-color: var(--riff-border-soft) !important;
+  background: color-mix(in srgb, var(--riff-text-primary) 8%, transparent) !important;
+  color: var(--riff-text-strong) !important;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsBody {
+  min-height: 0;
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--riff-border-selected) transparent;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsPanel .desktopSidebarSoundControls {
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsPanel .desktopSidebarSoundRow {
+  gap: 8px;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsPanel .desktopSidebarSoundRow > span {
+  font-size: 12px;
+}
+
+html body #root .desktopLayout .desktopSoundSettingsPanel :is(.desktopSidebarSubAction, .desktopSidebarReset) {
+  min-height: 36px;
+  font-size: 12px;
+}

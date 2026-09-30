@@ -6,6 +6,10 @@ import test from "node:test";
 const desktopStyleUrl = new URL("../src/layouts/desktop-layout.css", import.meta.url);
 const desktopLayoutUrl = new URL("../src/layouts/DesktopLayout.jsx", import.meta.url);
 const appUrl = new URL("../src/App.jsx", import.meta.url);
+const desktopStyles = async () => (await Promise.all([
+  readFile(desktopStyleUrl, "utf8"),
+  readFile(new URL("../src/layouts/desktop-fretboard.css", import.meta.url), "utf8"),
+])).join("\n");
 
 test("desktop metronome uses one shared tree in a monitor-width workspace", async () => {
   const styles = await readFile(desktopStyleUrl, "utf8");
@@ -35,7 +39,7 @@ test("desktop metronome uses one shared tree in a monitor-width workspace", asyn
 
 test("desktop supporting panels move beside the unchanged mobile-first content", async () => {
   const [styles, appSource] = await Promise.all([
-    readFile(desktopStyleUrl, "utf8"),
+    desktopStyles(),
     readFile(appUrl, "utf8"),
   ]);
 
@@ -98,8 +102,9 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /html:has\(body \.desktopLayout\) \{[\s\S]*scrollbar-gutter: stable/);
   assert.match(styles, /\.fretboardViewerPanel\.fretboardViewerPanel--desktopUnified[\s\S]*grid-template-columns: minmax\(320px, 1fr\) var\(--desktop-fretboard-catalog-width\)/);
   assert.match(styles, /> \.fretboardViewerPanel--desktopUnified[\s\S]*> \.viewerControlPanel \{[\s\S]*grid-column: 1[\s\S]*width: 100% !important/);
-  assert.match(styles, /\.fretboardViewerPanel--desktopUnified\.fretboardViewerPanel:not\(\.fretboardViewerPanel--chord\)[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
-  assert.match(styles, /> :is\(\.viewerMapCard, \.viewerModeControlSlot\) \{[\s\S]*width: min\(980px, 100%\) !important/);
+  assert.match(styles, /\.desktopFretboardViewer:not\(\.fretboardViewerPanel--chord\) \{[\s\S]*display: block !important/);
+  assert.match(styles, /\.desktopNoteScaleViewer \{[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\)/);
+  assert.match(styles, /@media \(max-width: 1279px\)[\s\S]*\.desktopNoteScaleViewer \{ grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(styles, /\.fretboardViewerPanel--desktopUnified\.fretboardViewerPanel\.fretboardViewerPanel[\s\S]*> \.viewerModeTabs\.viewerModeTabs[\s\S]*height: 56px !important/);
   assert.match(styles, /main\.app\.app\.app\.theme-light[\s\S]*> \.fretboardViewerPanel--desktopUnified[\s\S]*border-color: rgba\(160, 128, 78, 0\.43\) !important/);
   assert.match(styles, /main\.app\.app\.app\.theme-brand[\s\S]*> \.fretboardViewerPanel--desktopUnified[\s\S]*background: linear-gradient\(180deg, #242018, #15130f\) !important/);
@@ -107,7 +112,7 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
 
 test("desktop fretboard preserves the selected view and supports mouse-dragging catalog rows", async () => {
   const [styles, appSource] = await Promise.all([
-    readFile(desktopStyleUrl, "utf8"),
+    desktopStyles(),
     readFile(appUrl, "utf8"),
   ]);
 

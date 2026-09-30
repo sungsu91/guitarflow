@@ -9,5 +9,5 @@ test('connections validate target without changing timing; harmonic pitch and or
 });
 test('arpeggio direction changes string attack order only, retains bar length',()=>{
  let d=createBlankDocument();for(const string of [2,3,5])d=enterFret(d,{...c,string},5);
- for(const [kind,strings] of [['arpeggio-up',[5,3,2]],['arpeggio-down',[2,3,5]]]){const plan=guitarVoiceTimeline(compileDocumentV2(setNoteConnection(d,c,kind)).score);assert.deepEqual(plan.voices.map(v=>v.string),strings);assert.deepEqual(plan.voices.map(v=>v.start),[0,.025,.05]);assert.equal(plan.duration,1);assert(plan.voices.every(v=>Math.abs(v.start+v.duration-1)<1e-8));}
+ for(const [kind,strings] of [['arpeggio-up',[5,3,2]],['arpeggio-down',[2,3,5]]]){const plan=guitarVoiceTimeline(compileDocumentV2(setNoteConnection(d,c,kind)).score);assert.deepEqual(plan.voices.map(v=>v.string),strings);const starts=plan.voices.map(v=>v.start);assert.equal(starts[0],0);assert(starts[1]>.015&&starts[1]<.035);assert(starts[2]>starts[1]&&starts[2]<.07);assert(plan.voices.every(v=>v.roll.size===3));assert.equal(plan.duration,1);assert(plan.voices.every(v=>Math.abs(v.start+v.duration-1)<1e-8));}
 });

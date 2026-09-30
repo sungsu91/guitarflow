@@ -1,0 +1,10 @@
+import {cp,mkdir,readdir} from 'node:fs/promises';
+const root='public/tab-ocr';
+await mkdir(`${root}/core`,{recursive:true});
+await mkdir(`${root}/lang`,{recursive:true});
+await cp('node_modules/tesseract.js/dist/worker.min.js',`${root}/worker.min.js`);
+for(const file of await readdir('node_modules/tesseract.js-core'))if(file.endsWith('.wasm')||file.endsWith('.wasm.js'))await cp(`node_modules/tesseract.js-core/${file}`,`${root}/core/${file}`);
+await cp('node_modules/@tesseract.js-data/eng/4.0.0/eng.traineddata.gz',`${root}/lang/eng.traineddata.gz`);
+await cp('node_modules/tesseract.js/LICENSE.md',`${root}/LICENSE-tesseract.js`);
+await cp('node_modules/tesseract.js-core/LICENSE',`${root}/LICENSE-core`);
+console.log('Local TAB OCR worker, WebAssembly and language assets ready.');

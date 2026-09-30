@@ -20,16 +20,22 @@ test('TAB beams mirror around the staff and retain the existing below default',(
    const part=(group,kind)=>group.children.find(n=>n.attributes.class===kind).attributes;
    assert.equal(part(below,'tabRhythmStem').y1,100+(strings-1)*13+9);
    assert.equal(part(above,'tabRhythmStem').y1,91);
-   assert.equal(part(above,'tabRhythmFlag').y2,67);
+   assert.match(part(above,'tabRhythmFlag').d,/C /,'standalone notes have a curved music-font flag');
+   assert.equal(part(above,'tabRhythmFlag').transform,'translate(50 64)');
    assert.equal(part(shortAbove,'tabRhythmStem').y1,92);
    assert.equal(part(shortAbove,'tabRhythmStem').y2,72);
    assert.equal(part(detached,'tabRhythmStem').y1,Number(detached.dataset.beamY)-20);
    assert.ok(part(detached,'tabRhythmStem').y1>tab.getYForLine(strings-1));
-   for(const group of [below,above,detached]){
-    assert.equal(group.children.some(n=>n.attributes.class==='tabRhythmChordStem'),false);
+   for(const group of [below,above]){
+    const connector=part(group,'tabRhythmChordStem');
+    assert.equal(connector.x1,part(group,'tabRhythmStem').x1);
+    assert.equal(connector.x2,connector.x1);
+    assert.equal(connector.y1,109);
+    assert.equal(connector.y2,100+(strings-1)*13-9);
     assert.ok(part(group,'tabRhythmStem'));
     assert.ok(part(group,'tabRhythmFlag'));
    }
+   for(const group of [detached,shortAbove])assert.equal(group.children.some(n=>n.attributes.class==='tabRhythmChordStem'),false);
   }
  }finally{globalThis.document=original;}
 });

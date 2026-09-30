@@ -1,0 +1,342 @@
+/* Chord navigation stays inside the instrument column, as in the original
+   desktop composition. Mobile keeps its existing markup and styles. */
+@media (min-width: 1024px) {
+html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app:has(> .fretboardViewerPanel) {
+    width: 100%;
+    max-width: none;
+    padding-inline: clamp(18px, 2vw, 34px);
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel.fretboardViewerPanel--desktopUnified {
+    --desktop-fretboard-catalog-width: minmax(0, 1.25fr);
+    --desktop-fretboard-column-gap: 18px;
+    display: grid !important;
+    grid-template-columns: minmax(320px, 1fr) var(--desktop-fretboard-catalog-width) !important;
+    align-items: start;
+    gap: var(--desktop-fretboard-column-gap) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified
+    > .viewerControlPanel {
+    grid-column: 1;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    width: calc(100% - 14px) !important;
+    min-width: 0 !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    margin: 0 6px 1px !important;
+    padding: 3px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-radius: 13px !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs
+    > button {
+    min-width: 0 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    margin: 0 !important;
+    padding: 0 5px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app.theme-light
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs {
+    border-color: rgba(160, 128, 78, 0.43) !important;
+    background:
+      linear-gradient(180deg, rgba(213, 196, 163, 0.28), rgba(255, 255, 255, 0.66)),
+      #eee6d7 !important;
+    box-shadow:
+      inset 0 1px 2px rgba(99, 62, 49, 0.12),
+      0 1px 0 rgba(255, 255, 255, 0.84) !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app.theme-brand
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs {
+    border-color: rgba(217, 170, 85, 0.3) !important;
+    background: linear-gradient(180deg, #242018, #15130f) !important;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.42),
+      0 1px 0 rgba(255, 229, 169, 0.045) !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord > .viewerControlPanel,
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord
+    > .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord > .chordCatalogPanel {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    height: min(850px, calc(100dvh - 120px)) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 120px) !important;
+    margin-top: 0 !important;
+    overflow: hidden !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord > .viewerSampleCredits {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+
+  html[data-rifflab-layout="desktop"] #root .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord
+    > .chordCatalogPanel.chordCatalogPanel {
+    margin-top: 0 !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord
+    > .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel
+    > .viewerChordReferenceFooter.viewerChordReferenceFooter {
+    min-height: 56px !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord.fretboardViewerPanel
+    > .chordCatalogPanel.chordCatalogPanel
+    > .chordCatalogScroll.chordCatalogScroll.chordCatalogScroll {
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord .chordMiniGrid[data-desktop-draggable="true"] {
+    overflow-x: auto !important;
+    cursor: grab;
+    scroll-behavior: auto;
+    scroll-snap-type: none !important;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord .chordMiniGrid[data-desktop-draggable="true"]
+    > .chordMiniCard {
+    flex: 0 0 clamp(206px, 14vw, 264px) !important;
+  }
+
+
+  html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord .chordMiniGrid[data-desktop-draggable="true"]:active {
+    cursor: grabbing;
+  }
+}
+
+@media (max-width: 1199px) {
+  html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app > .desktopFretboardViewer.fretboardViewerPanel--chord {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+
+    > .chordCatalogPanel {
+      grid-column: 1 !important;
+      grid-row: 2 !important;
+      height: 620px !important;
+      max-height: none !important;
+    }
+  }
+}
+
+/* Note and scale share a desktop workspace, with their own controls attached
+   to each instrument. They no longer inherit the chord column's dimensions. */
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app > .desktopFretboardViewer:not(.fretboardViewerPanel--chord) {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 16px !important;
+
+  .desktopNoteScaleViewer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .desktopTheoryCard {
+    display: grid;
+    grid-template-rows: 54px auto 154px auto;
+    align-content: start;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--riff-border-control, #b7a380);
+    border-radius: 16px;
+    background: var(--panel-bg, rgba(255, 255, 255, .26));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+  }
+
+  .desktopTheoryNavigation { min-width: 0; }
+
+  .desktopTheoryNavigation .viewerModeTabs {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    padding: 3px !important;
+    gap: 4px !important;
+    border-radius: 11px !important;
+  }
+
+  .desktopTheoryNavigation .viewerModeTabs button {
+    min-width: 0 !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+  }
+
+  .desktopTheorySectionLabel {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    align-self: start;
+    min-height: 46px;
+    padding: 0 4px;
+    font-size: 16px;
+    font-weight: 800;
+    border-bottom: 1px solid var(--riff-joined-panel-divider);
+  }
+
+  .desktopTheoryHeading {
+    display: grid;
+    align-content: center;
+    gap: 5px;
+    min-width: 0;
+    min-height: 84px;
+    padding: 12px 4px 16px;
+    text-align: left;
+  }
+
+  .desktopTheoryHeading > span { font-size: 11px; opacity: .75; }
+  .desktopTheoryHeading > strong { font-size: clamp(20px, 1.5vw, 27px); line-height: 1.3; overflow-wrap: anywhere; }
+  .desktopTheoryControls { min-width: 0; padding-bottom: 14px; }
+
+  .viewerNotePanel {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto !important;
+    gap: 8px !important;
+    height: 100%;
+    min-width: 0;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .viewerNotePanel > span { font-size: 12px; text-align: left; }
+  .viewerNotePanel > .viewerNoteButtons { display: grid !important; grid-column: 1 / -1; grid-template-columns: repeat(7, minmax(0, 1fr)) !important; gap: 6px !important; }
+  .viewerNoteButtons > button { min-width: 0; min-height: 34px !important; height: auto !important; padding: 5px 2px !important; font-size: 12px !important; }
+
+  .viewerSelectGrid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 8px !important;
+    height: 100%;
+    padding: 0 !important;
+  }
+
+  .viewerSelectGrid .metronomeSelectControl { min-width: 0 !important; padding: 7px 10px !important; border-radius: 10px !important; }
+  .viewerSelectGrid .metronomeSelectLabel { font-size: 11px !important; line-height: 1.25 !important; }
+  .viewerSelectGrid .metronomeSelectButton { min-height: 30px !important; padding: 3px 0 !important; font-size: 14px !important; }
+
+  .desktopTheoryBoard { min-width: 0; }
+  .viewerSharedFretboard {
+    --fretboard-label-left: 66px !important;
+    --fretboard-label-right: 12px !important;
+    --fretboard-board-top: 30px !important;
+    --fretboard-board-bottom: 22px !important;
+    --fretboard-board-height: clamp(220px, 28vh, 280px) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain;
+  }
+
+  .viewerSharedFretboard .fretboardComponentScroller {
+    width: 100% !important;
+    min-width: max(100%, calc(var(--fret-slot-count) * 34px + var(--fretboard-label-left) + var(--fretboard-label-right))) !important;
+    min-height: calc(var(--fretboard-board-height) + var(--fretboard-board-top) + var(--fretboard-board-bottom)) !important;
+  }
+
+  .viewerSharedFretboard :is(.fretboardGrid, .fretboardFretNumbers) { grid-template-columns: repeat(var(--fret-slot-count), minmax(0, 1fr)) !important; }
+  .viewerSharedFretboard .fretboardNoteChip { width: 28px !important; min-width: 28px !important; height: 28px !important; min-height: 28px !important; }
+  .viewerSharedFretboard.allNotes .fretboardNoteChip { width: 24px !important; min-width: 24px !important; height: 24px !important; min-height: 24px !important; }
+  .viewerSharedFretboard .fretboardNoteChip > b { font-size: 12px !important; line-height: 1 !important; }
+  .viewerSharedFretboard.allNotes .fretboardNoteChip > b { font-size: 10px !important; }
+  .viewerSharedFretboard .fretboardFretNumbers { font-size: 11px !important; }
+  .viewerSharedFretboard .fretboardStringRow > span { font-size: 9px !important; }
+
+  @media (max-width: 1279px) {
+    .desktopNoteScaleViewer { grid-template-columns: minmax(0, 1fr); }
+    .desktopTheoryCard { grid-template-rows: auto auto auto; grid-template-columns: minmax(170px, 220px) minmax(0, 1fr); gap: 10px 14px; }
+    .desktopTheoryNavigation, .desktopTheorySectionLabel { grid-column: 1 / -1; }
+    .desktopTheoryHeading { grid-column: 1; grid-row: 2; min-height: 70px; padding-bottom: 8px; }
+    .desktopTheoryControls { grid-column: 1; grid-row: 3; padding-bottom: 0; }
+    .desktopTheoryBoard { grid-column: 2; grid-row: 2 / 4; align-self: center; }
+    .viewerNotePanel > .viewerNoteButtons { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    .viewerSelectGrid { height: auto; }
+    .viewerSelectGrid .metronomeSelectButton { font-size: 12px !important; }
+    .viewerSharedFretboard { --fretboard-board-height: 220px !important; }
+  }
+}

@@ -2,6 +2,7 @@ import {slurSpans,slurCovers} from './slurs.js';
 import {performedMeasures} from './scoreMeters.js';
 import {scoreBarOrder} from './scoreRepeats.js';
 import {ticksOf} from './scoreModel.js';
+import {rolledChordAttack} from '../audio/guitarArticulation.js';
 // All times use sounding MIDI (the guitar staff is engraved one octave higher).
 export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {playEmptyScore=false} = {}) {
   const events = [], pending = new Map(), passes = new Map();
@@ -21,7 +22,7 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
       if (!includeNotes) { sequential = onset + beats * 480; continue; }
       const tones=[...(e.tones??[e])];if(e.arpeggio)tones.sort((a,b)=>e.arpeggio==='up'?b.string-a.string:a.string-b.string);
       if (!e.rest) for (const [toneIndex,tone] of tones.entries()) {
-        const delay=e.arpeggio?Math.min(.025,duration/(tones.length*3))*toneIndex:0;
+        const roll=e.arpeggio?rolledChordAttack(tones.length,toneIndex,duration):null,delay=roll?.delay??0;
         const toneStart=start+delay,toneDuration=(e.sustainTicks!=null?e.sustainTicks/480*60/bpm:duration)-delay;
         const key = `${e.id}:${tone.string}:${tone.midi}`, candidate = pending.get(key);
         pending.delete(key);
@@ -30,6 +31,7 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
         const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, ...(score.instrument==='drums'?{drumTechnique:tone.drumTechnique,drumArticulation:tone.drumArticulation,beatSeconds:60/bpm*(e.tuplet?2/3:1),writtenDuration:e.duration}:{}), fret:tone.fret, string:tone.string, voice:e.voice, start:toneStart, duration:0, technique:null,letRing:Boolean(e.letRing),expressions:[]};
         const velocity=e.velocityByPass?.[Math.min(pass,e.velocityByPass.length-1)]??e.velocity;
         if(!prior&&velocity!==undefined)note.velocity=velocity;
+        if(!prior&&roll)note.roll=roll;
         if(e.dampAtEnd)note.dampAtEnd=true;
         if(e.releaseTail)note.releaseTail=e.releaseTail;
         note.expressions.push({start:toneStart,duration:toneDuration,bendEffect:tone.bendEffect??null,vibrato:Boolean(e.vibrato),slideOut:e.slideOut??null,slideIn:e.slideIn??null});

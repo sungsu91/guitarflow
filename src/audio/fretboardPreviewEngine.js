@@ -1,6 +1,7 @@
 import {scheduleScoreExpressions,maximumBend} from './scoreExpressions.js';
 import {getStringBuffer,PLUCK_VARIANTS} from "./pluckedString.js";
 import { AUDIO_BUS_IDS, getAudioBusInput } from "./audioBus.js";
+import {guitarFingerParts} from './guitarArticulation.js';
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -246,16 +247,9 @@ function schedulePluck(
         source.playbackRate.setValueAtTime(oldRate, arrival - glide);
         source.playbackRate.exponentialRampToValueAtTime(rate, arrival);
       } else {
-        // H/P change the vibrating string's pitch, without creating a source
-        // or re-running the pick envelope at the destination.
-        source.playbackRate.setValueAtTime(oldRate, arrival);
-        source.playbackRate.exponentialRampToValueAtTime(rate, arrival + Math.min(0.008, segment.duration * 0.1));
-      }
-      if(segment.connection==='H'||segment.connection==='P'){
-        const target=1,settle=Math.min(.035,segment.duration*.2);
-        articulation.gain.setValueAtTime(1,arrival);
-        articulation.gain.linearRampToValueAtTime(segment.connection==='H'?1.12:1.18,arrival+.004);
-        articulation.gain.linearRampToValueAtTime(target,arrival+settle);
+        // Bend continuations retain the string source. Finger attacks were
+        // separated by scheduleGuitarPhrase and never glide between pitches.
+        source.playbackRate.setValueAtTime(rate, arrival);
       }
       previous = segment;
     }
@@ -322,6 +316,19 @@ function schedulePluck(
 // Reuse the fretboard's plucked-string PCM, filtering and attack envelope.
 // MIDI comes from the compiled score, so alternate tuning is preserved.
 export function scheduleGuitarPhrase(audio, phrase, when, output, level = 0.4) {
+  const parts=guitarFingerParts(phrase);
+  if(parts.length>1){
+    // One transport voice owns all finger attacks, including ones scheduled
+    // ahead. Stopping/replacing the string releases every part together.
+    const voice=new EventTarget(),sources=[];let remaining=parts.length;
+    parts.forEach((part,index)=>{
+      const at=when+part.start-phrase.start,source=scheduleGuitarPhrase(audio,part,at,output,level);
+      if(index<parts.length-1)source.release(when+parts[index+1].start-phrase.start-.004);
+      source.addEventListener('ended',()=>{if(--remaining===0)voice.dispatchEvent(new Event('ended'));},{once:true});sources.push(source);
+    });
+    voice.release=at=>sources.forEach(source=>source.release(at));
+    return voice;
+  }
   const position={stringNumber:phrase.string,fretNumber:phrase.fret??0,midi:phrase.midi,frequency:440*2**((phrase.midi-69)/12)};
   if(phrase.dead){
     const source=audio.createBufferSource(),gain=audio.createGain(),tone=audio.createBiquadFilter(),release=audio.createGain();
@@ -333,9 +340,14 @@ export function scheduleGuitarPhrase(audio, phrase, when, output, level = 0.4) {
   }
   const down=phrase.pickStroke==='down',up=phrase.pickStroke==='up';
   const natural=1.5+phrase.string*.18;
-  return schedulePluck(audio,position,when,level*(down?1.07:up?.93:1),Math.max(natural,phrase.duration+(phrase.releaseTail??0)),output,null,down?.004:up?.006:.005,down?.87:up?1.13:1,phrase);
+  const finger=phrase.fingerAttack,rolled=Boolean(phrase.roll);
+  const strength=finger==='P'?.8:finger==='H'?.7:down?1.07:up?.93:1;
+  const attack=finger==='P'?.004:finger==='H'?.008:phrase.roll?.attackSeconds??(down?.004:up?.006:.005);
+  const brightness=finger==='P'?.76:finger==='H'?.64:rolled?.9:down?.87:up?1.13:1;
+  return schedulePluck(audio,position,when,level*strength,Math.max(natural,phrase.duration+(phrase.releaseTail??0)),output,null,attack,brightness,phrase);
 }
 export function warmGuitarPhrase(audio,phrase,offset=0){
+ const parts=guitarFingerParts(phrase);if(parts.length>1)return parts.map((part,index)=>warmGuitarPhrase(audio,part,offset+index));
  const position={stringNumber:phrase.string,fretNumber:phrase.fret??0,midi:phrase.midi,frequency:440*2**((phrase.midi-69)/12)};
  const duration=Math.max(1.5+phrase.string*.18,phrase.duration+(phrase.releaseTail??0)),rate=Math.max(1,...(phrase.segments??[]).map(s=>2**((s.midi-phrase.midi+maximumBend(phrase))/12)));
  // One upcoming attack only; variants fill the bounded cache as they are used.

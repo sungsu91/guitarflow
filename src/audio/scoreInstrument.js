@@ -41,14 +41,16 @@ export function createScoreVoiceOutput(audio){
   schedule(phrases,when,instrument='clean-guitar',pianoBuffer=null){
    if(disposed)return [];
    if(instrument==='clean-guitar')phrases.forEach((phrase,index)=>warmGuitarPhrase(audio,phrase,index));
-   const level=.46/Math.sqrt(Math.max(1,phrases.length));
    // Read the clock once, after any cache misses, so a late chord still has
    // sample-identical starts rather than one clock read per string.
    const at=Math.max(when,audio.currentTime+.016);
    return phrases.map(phrase=>{
     const voiceKey=instrument==='drums'&&[42,44,46].includes(phrase.midi)?'hi-hat':phrase.string;
     strings.get(voiceKey)?.release(at);
-    const voiceLevel=level*(Number.isFinite(phrase.velocity)?Math.max(0,Math.min(1,phrase.velocity)):1);
+    // Rolled strings arrive in separate scheduler batches but still belong to
+    // one chord. Normalize against that chord, not a one-note batch.
+    const level=.46/Math.sqrt(Math.max(1,phrases.length,phrase.roll?.size??0));
+    const voiceLevel=level*(phrase.roll?.velocity??1)*(Number.isFinite(phrase.velocity)?Math.max(0,Math.min(1,phrase.velocity)):1);
     if(voiceLevel===0)return null;
     const palmGate=phrase.dead?null:createPalmMuteGate(audio,phrase,at,output),destination=palmGate??output;
     const source=instrument==='drums'?scheduleDrum(audio,phrase,at,destination,voiceLevel):instrument==='piano'&&!phrase.dead?pianoVoice(audio,phrase,at,destination,pianoBuffer,voiceLevel):scheduleGuitarPhrase(audio,phrase,at,destination,voiceLevel);

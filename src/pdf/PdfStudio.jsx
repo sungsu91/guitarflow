@@ -9,7 +9,8 @@ import './libraryDesign.css';
 import {normalizePdfBarEntry} from './pdfBarRows.js';
 import ScoreLibraryTabs from './ScoreLibraryTabs.jsx';
 import {normalizePageEdits} from './pdfAnnotations.js';
-import {lazy,Suspense,useEffect,useRef,useState} from 'react';
+import {lazy,Suspense,useCallback,useEffect,useRef,useState} from 'react';
+import {readPracticeSelection,writePracticeSelection} from './practiceSelection.js';
 import {listPdfs,getPdf,savePdf,patchPdf,deletePdf,validatePdfFile,uniquePdfTitle,storageError,downloadBlob,exportPdfLibrary,readBackup} from './pdfLibrary.js';
 import {inspectPdf} from './pdfRenderer.js';
 import './pdfStudio.css';
@@ -17,6 +18,7 @@ import './scoreFileBrowser.css';
 import './scoreLibraryTheme.css';
 import './scoreLibraryMobile.css';
 import './librarySafeArea.css';
+import '../layouts/desktop-score-practice.css';
 const preloadPdfPractice=()=>import('./PdfPractice.jsx');
 const PdfPractice=lazy(preloadPdfPractice);
 const Lessons=lazy(()=>import('../etudes/EtudeStudio.jsx'));
@@ -34,13 +36,41 @@ function MetadataDialog({record,onSave,onClose,busy,error}) {
 }
 export default function PdfStudio({mobile,onOpenMenu,onExit}) {
   useLanguage();
- const [lessonSavedId,setLessonSavedId]=useState(''),[lessonId,setLessonId]=useState(undefined);
+ const [initialSelection]=useState(readPracticeSelection);
+ const [lessonSavedId,setLessonSavedId]=useState(initialSelection.savedId),[lessonId,setLessonId]=useState(initialSelection.lessonId||undefined);
+ const [restoring,setRestoring]=useState(Boolean(initialSelection.pdfId));
  const [records,setRecords]=useState([]),[opened,setOpened]=useState(null),[pending,setPending]=useState(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(''),[estimate,setEstimate]=useState(null);
  const [transfer,setTransfer]=useState(null);
+ // Activity restarts effects when returning from another tool; keep the
+ // current choice instead of restoring this mount's older PDF a second time.
+ const restorationComplete=useRef(false);
  const practiceInput=useRef(null);
  const studio=useRef(null),pdfClose=useRef(null),input=useRef(null),backup=useRef(null);
  const refresh=async()=>{try{setRecords(await listPdfs());setEstimate(await navigator.storage?.estimate?.());}catch(e){setError(storageError(e));}};
- useEffect(()=>{void refresh();},[]);
+ useEffect(()=>{
+  let active=true;
+  void (async()=>{
+   try{
+    const entries=await listPdfs();if(!active)return;setRecords(entries);
+    if(!restorationComplete.current&&initialSelection.pdfId){
+     const record=entries.find(entry=>entry.id===initialSelection.pdfId);
+     const blob=record?await getPdf(record.id):null;if(!active)return;
+     if(blob){void preloadPdfPractice();setOpened({record,blob});}
+     else writePracticeSelection({...initialSelection,pdfId:''});
+    }
+   }catch(e){if(active)setError(storageError(e));}
+   finally{if(active){restorationComplete.current=true;setRestoring(false);}}
+  })();
+  void navigator.storage?.estimate?.().then(value=>{if(active)setEstimate(value);}).catch(()=>{});
+  return()=>{active=false;};
+ },[initialSelection]);
+ const rememberLesson=useCallback((id,saved)=>{
+  setLessonId(id);setLessonSavedId(saved);
+  writePracticeSelection({lessonId:id,savedId:saved,pdfId:''});
+ },[]);
+ useEffect(()=>{
+  if(opened)writePracticeSelection({lessonId,savedId:lessonSavedId,pdfId:opened.record.id});
+ },[opened?.record.id,lessonId,lessonSavedId]);
  const open=async (record,edit=false)=>{void preloadPdfPractice();setBusy(true);setError('');try{const blob=await getPdf(record.id);if(!blob)throw Error(ko["pdf.noOriginalPdfIsStoredImportABackupOrTheOriginalAgain"]);setOpened({record,blob,edit});}catch(e){setError(e.message);}finally{setBusy(false);}};
  const importPdfFile=async (blob,openAfterSave=false)=>{if(!blob){input.current.click();return;}setBusy(true);setError('');setMessage(ko["pdf.checkingPdfAndPreparingTheFirstPage"]);try{await validatePdfFile(blob);const title=uniquePdfTitle(await listPdfs(),blob.name.replace(/\.pdf$/i,''));const info=await inspectPdf(blob);const record={...pdfMetadata({title,...info,zoom:'fit'}),...info,id:crypto.randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastPracticedAt:null};setPending({record,blob,openAfterSave});setMessage(ko["pdf.reviewTheDetailsThenSave"]);}catch(e){setError(e.name==='PasswordException'?ko["pdf.chooseAnUnlockedPdfCopy"]:e.message);}finally{setBusy(false);}};
  const importPdf=e=>{const blob=e.target.files?.[0];e.target.value='';if(blob)void importPdfFile(blob,true);};
@@ -64,17 +94,18 @@ export default function PdfStudio({mobile,onOpenMenu,onExit}) {
  };
  const run=async action=>{setBusy(true);setError('');try{await action();}catch(e){setError(storageError(e));}finally{setBusy(false);}};
  const storageContent=<><p><Translation id="pdf.storedOnlyInThisBrowserOnThisDeviceBrowserDataCleanupOr" /></p>{estimate&&<p><Translation id="pdf.siteStorage" />{(estimate.usage/1048576).toFixed(1)}<Translation id="pdf.mbQuota" />{(estimate.quota/1048576).toFixed(0)}<Translation id="originalUi.mb" /></p>}<button type="button" onClick={()=>void run(async()=>{const granted=await navigator.storage?.persist?.();setMessage(granted?ko["pdf.persistentStorageWasGranted"]:ko["pdf.theBrowserDidNotGrantPersistentStorageKeepABackup"]);})}><Translation id="pdf.requestPersistentStorage" /></button><button type="button" disabled={busy||!records.length} onClick={()=>void run(async()=>downloadBlob(await exportPdfLibrary(),'FRETIVA-PDF-library.fretiva-pdf'))}><Translation id="pdf.backUpPdfLibrary" /></button><button type="button" disabled={busy} onClick={()=>backup.current.click()}><Translation id="pdf.restorePdfBackup" /></button><p><Translation id="pdf.pdfBackupsIncludeOriginalsMarginCropsTextNotesBarsAndPracticeSettings" /></p></>;
- const top=<ScoreLibraryTabs><LibraryStorage mobile={mobile} compact>{storageContent}<button type="button" disabled={busy} onClick={()=>practiceInput.current.click()}><Translation id="pdf.importPracticeFile"/></button></LibraryStorage></ScoreLibraryTabs>;
+ const storage=<LibraryStorage mobile={mobile} compact>{storageContent}<button type="button" disabled={busy} onClick={()=>practiceInput.current.click()}><Translation id="pdf.importPracticeFile"/></button></LibraryStorage>;
+ const top=<ScoreLibraryTabs>{storage}</ScoreLibraryTabs>;
 
  return <section id={!opened?'scoreLibraryHome':undefined} ref={studio} data-library-view={!opened?'lessons':undefined} className={`pdfStudio ${mobile?'pdfStudio--mobile':'pdfStudio--desktop'}`}>
-  {!opened&&<LibraryHeader mobile={mobile} onMenu={onOpenMenu} onExit={onExit}/>}
+  {mobile&&!opened&&<LibraryHeader mobile={mobile} onMenu={onOpenMenu} onExit={onExit}/>}
   <input ref={input} type="file" accept="application/pdf,.pdf" hidden aria-label={translateUi("pdf.choosePdfFile")} onChange={importPdf}/><input ref={backup} type="file" accept=".fretiva-pdf" hidden aria-label={translateUi("pdf.choosePdfBackup")} onChange={restore}/>
   <input ref={practiceInput} type="file" accept=".fretiva-pdf" hidden aria-label={translateUi("pdf.importPracticeFile")} onChange={e=>void restore(e,true)}/>
-  {(!mobile||!opened)&&top}
+  {((mobile&&!opened)||(!mobile&&opened))&&top}
   {error&&<p role="alert" className="pdfError">{localizeUi(error)}</p>}{message&&!opened&&<p role="status">{localizeUi(message)}</p>}
   <div id="score-library-panel" role="region" aria-label={translateUi("score.practiceRoom")}>
-  {opened?<Suspense fallback={<div className="pdfOpeningPreview"><header><strong>{opened.record.title}</strong><span>{opened.record.lastPage} / {opened.record.pageCount}</span></header>{opened.record.thumbnail&&<img src={opened.record.thumbnail} alt={translateUi("pdf.savedFirstPagePreview")}/>}</div>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{setOpened(null);void refresh();}}/></Suspense>:<>
-   <Suspense fallback={<p><Translation id="pdf.preparingPracticePiece" /></p>}><Lessons importBusy={busy} pdfScores={records} onSelectPdf={record=>{void open(record);}} onManagePdf={async(action,record,title)=>{if(action==='rename')await patchPdf(record.id,{title});else await deletePdf(record.id);await refresh();}} onSelectionChange={(id,saved)=>{setLessonId(id);setLessonSavedId(saved);}} initialId={lessonId} initialSavedId={lessonSavedId} {...{mobile,onOpenMenu,onExit}} onImportPdf={importScorePdf}/></Suspense>
+  {restoring?<p role="status"><Translation id="pdf.preparingPracticePiece" /></p>:opened?<Suspense fallback={<div className="pdfOpeningPreview"><header><strong>{opened.record.title}</strong><span>{opened.record.lastPage} / {opened.record.pageCount}</span></header>{opened.record.thumbnail&&<img src={opened.record.thumbnail} alt={translateUi("pdf.savedFirstPagePreview")}/>}</div>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{rememberLesson(lessonId,lessonSavedId);setOpened(null);void refresh();}}/></Suspense>:<>
+   <Suspense fallback={<p><Translation id="pdf.preparingPracticePiece" /></p>}><Lessons desktopStorage={!mobile?storage:undefined} importBusy={busy} pdfScores={records} onSelectPdf={record=>{void open(record);}} onManagePdf={async(action,record,title)=>{if(action==='rename')await patchPdf(record.id,{title});else await deletePdf(record.id);await refresh();}} onSelectionChange={rememberLesson} initialId={lessonId} initialSavedId={lessonSavedId} {...{mobile,onOpenMenu,onExit}} onImportPdf={importScorePdf}/></Suspense>
   </>}
   </div>
   {pending&&<MetadataDialog key={pending.record.id} record={pending.record} {...{busy,error}} onSave={save} onClose={()=>setPending(null)}/>}

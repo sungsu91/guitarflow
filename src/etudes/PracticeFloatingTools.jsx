@@ -25,14 +25,15 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
     const viewport=window.visualViewport, left=viewport?.offsetLeft??0,top=viewport?.offsetTop??0;
     const width=viewport?.width??innerWidth,height=viewport?.height??innerHeight;
     const sidebar=document.documentElement.dataset.rifflabLayout==='desktop'&&!document.fullscreenElement?document.querySelector('.desktopSidebar')?.getBoundingClientRect():null;
-    const workspaceLeft=sidebar?.width?Math.max(left,sidebar.right+16):left;
+    const reader=sidebar&&ref.current?.classList.contains('etudeRemote--desktop')?document.querySelector('.desktopScoreWorkspace .desktopPracticeReader')?.getBoundingClientRect():null;
+    const workspaceLeft=reader?.width?Math.max(left,reader.left):sidebar?.width?Math.max(left,sidebar.right+16):left;
     const rect=ref.current?.getBoundingClientRect();
     const nav=document.querySelector('.etudePracticeLayout.is-focus')?null:document.querySelector('.integratedBottomNav')?.getBoundingClientRect();
     const safe=Math.max(safeBottom,parseFloat(getComputedStyle(ref.current).getPropertyValue('--floating-safe-bottom'))||0);
     const bottom=Math.min(top+height-safe-(bottomPinned?0:12),!bottomPinned&&nav?.height&&nav.top>top?nav.top-12:Infinity);
     const maxY=Math.max(top+12,bottom-(rect?.height??100));
     const maxX=Math.max(workspaceLeft+8,left+width-(rect?.width??280)-(avoidPanel&&width>=800?500:52));
-    const next={x:edge?left+width-(rect?.width??40):Math.max(workspaceLeft+8,Math.min(p?.x??workspaceLeft+12,maxX)),y:avoidPanel&&width<800?maxY:Math.max(top+12,Math.min(p?.y??(edge?top+height*.42:maxY),maxY))};
+    const next={x:edge?left+width-(rect?.width??40):Math.max(workspaceLeft+8,Math.min(p?.x??(reader?maxX:workspaceLeft+12),maxX)),y:avoidPanel&&width<800?maxY:Math.max(top+12,Math.min(p?.y??(edge?top+height*.42:maxY),maxY))};
     if(bottomPinned){next.x=left+(width-(rect?.width??340))/2;next.y=movableBottom?Math.max(top+12,Math.min(p?.y??maxY,maxY)):maxY;}
     const toolbar=document.querySelector('.etudePracticeLayout.is-focus .etudeViewTools')?.getBoundingClientRect();
     if(!edge&&toolbar&&next.x<toolbar.right+8&&next.x+(rect?.width??290)>toolbar.left&&next.y<toolbar.bottom+8)next.y=Math.min(maxY,toolbar.bottom+8);
@@ -41,7 +42,8 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
   };
   useLayoutEffect(()=>{
     if(!enabled||!ref.current)return;
-    const update=()=>ref.current&&!dock&&setPosition(p=>{const n=clamp(p);return p?.x===n.x&&p?.y===n.y?p:n;});
+    // Activity may detach the ref before React evaluates a queued resize update.
+    const update=()=>ref.current&&!dock&&setPosition(p=>{if(!ref.current)return p;const n=clamp(p);return p?.x===n.x&&p?.y===n.y?p:n;});
     update();const observer=new ResizeObserver(update);observer.observe(ref.current);
     window.addEventListener('resize',update);window.visualViewport?.addEventListener('resize',update);window.visualViewport?.addEventListener('scroll',update);
     return()=>{observer.disconnect();window.removeEventListener('resize',update);window.visualViewport?.removeEventListener('resize',update);window.visualViewport?.removeEventListener('scroll',update);};

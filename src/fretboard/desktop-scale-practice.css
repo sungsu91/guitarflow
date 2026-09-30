@@ -1,0 +1,84 @@
+/* Desktop scale practice: keep the fretboard and position controls together,
+   directly below the picker. Mobile and single-note training keep their layout. */
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  .scaleBlockTrainingPanel.referenceTrainingPanel > .referenceTrainingMainRow
+  > .referenceTrainingBoard.referenceTrainingBoard--scalePositions {
+  grid-template-rows: auto auto auto !important;
+  align-content: start !important;
+  row-gap: 12px !important;
+}
+
+html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+  .scaleBlockTrainingPanel.referenceTrainingPanel
+  .referenceTrainingBoard.referenceTrainingBoard--scalePositions > .trainingSharedFretboard {
+  align-self: start !important;
+  transform: none !important;
+}
+
+html body .desktopLayout main.app.app .desktopScalePositionNavigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  gap: 20px;
+  min-height: 32px;
+  color: var(--riff-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Keep the global raised button hover from leaking into these quiet arrows. */
+html body #root .desktopLayout main.app .desktopScalePositionNavigation button {
+  box-sizing: border-box;
+  display: grid !important;
+  place-items: center;
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid var(--riff-border-soft) !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  transform: none !important;
+  filter: none !important;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease !important;
+}
+
+html body #root .desktopLayout main.app .desktopScalePositionNavigation button::before,
+html body #root .desktopLayout main.app .desktopScalePositionNavigation button::after {
+  content: none !important;
+}
+
+html body #root .desktopLayout main.app .desktopScalePositionNavigation button:enabled:hover {
+  border-color: var(--riff-border-selected) !important;
+  background: color-mix(in srgb, var(--riff-text-primary) 7%, transparent) !important;
+  color: var(--riff-text-strong) !important;
+}
+
+html body #root .desktopLayout main.app .desktopScalePositionNavigation button:enabled:active {
+  border-color: var(--riff-border-selected) !important;
+  background: color-mix(in srgb, var(--riff-text-primary) 13%, transparent) !important;
+  color: var(--riff-text-strong) !important;
+}
+
+html body #root .desktopLayout main.app .desktopScalePositionNavigation button:focus-visible {
+  outline: 2px solid var(--riff-border-selected) !important;
+  outline-offset: 3px !important;
+}
+
+html body #root .desktopLayout main.app .desktopScalePositionNavigation button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.desktopScalePositionCount { min-width: 96px; text-align: center; font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root .desktopLayout main.app .desktopScalePositionNavigation button {
+    transition: none !important;
+  }
+}

@@ -5,12 +5,14 @@ import test from "node:test";
 
 const desktopStyleUrl = new URL("../src/layouts/desktop-layout.css", import.meta.url);
 const sidebarSourceUrl = new URL("../src/navigation/DesktopSidebarNavigation.jsx", import.meta.url);
+const soundSettingsSourceUrl = new URL("../src/navigation/DesktopSoundSettings.jsx", import.meta.url);
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
 
 test("desktop navigation is a fixed full sidebar on the left wall", async () => {
-  const [styles, sidebarSource] = await Promise.all([
+  const [styles, sidebarSource, soundSettingsSource] = await Promise.all([
     readFile(desktopStyleUrl, "utf8"),
     readFile(sidebarSourceUrl, "utf8"),
+    readFile(soundSettingsSourceUrl, "utf8"),
   ]);
 
   assert.match(
@@ -58,7 +60,7 @@ test("desktop navigation is a fixed full sidebar on the left wall", async () => 
     "사운드 및 리듬 설정",
     "사용설명서 & 도움말",
     "문의하기",
-  ].forEach((label) => assert.match(sidebarSource, new RegExp(label.replace("&", "&"))));
+  ].forEach((label) => assert.match(sidebarSource + soundSettingsSource, new RegExp(label.replace("&", "&"))));
   assert.match(sidebarSource, /mark="초보 ★"/);
   assert.match(sidebarSource, /mark="SOLO"/);
   assert.match(sidebarSource, /mark="HOT •"/);
@@ -81,7 +83,7 @@ test("desktop uses direct sidebar utilities while mobile keeps the popup navigat
   );
   assert.match(appSource, /\{utilityMenuOpen && !isDesktopLayout \? \(/);
   assert.match(appSource, /<DesktopSidebarNavigation[\s\S]*?onOpenTuner=\{showTunerMode\}[\s\S]*?onResetSound=\{resetSoundSettings\}/);
-  assert.match(sidebarSource, /<details className="desktopSidebarSettings">[\s\S]*?backingVolumeControls\.map/);
+  assert.match(sidebarSource, /<DesktopSoundSettings activeKey=\{activeKey\}>[\s\S]*?backingVolumeControls\.map/);
   assert.match(sidebarSource, /onOpenRhythmSettings/);
   assert.match(
     styles,
