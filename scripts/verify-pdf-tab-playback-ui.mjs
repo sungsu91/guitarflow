@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE),browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
-const inventory=JSON.parse(await readFile('artifacts/pdf-tab-folder/inventory.json')),folder='artifacts/pdf-tab-100/ui';await mkdir(folder,{recursive:true});
+const inventory=JSON.parse(await readFile('artifacts/pdf-tab-folder/inventory.json')),folder=process.env.PDF_TAB_UI_OUTPUT||'artifacts/pdf-tab-100/ui';await mkdir(folder,{recursive:true});
 const results=[],origin=process.env.PDF_TAB_APP_ORIGIN||'http://127.0.0.1:5174';
 try{for(const index of process.argv.slice(2).length?process.argv.slice(2).map(Number):[0,4]){
  const p=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[];p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(30000);

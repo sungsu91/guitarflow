@@ -21,4 +21,4 @@ for(const file of process.argv.slice(2).length?process.argv.slice(2):['artifacts
  }
  result.missingFrets=result.expectedFrets-result.correctFrets;results.push(result);
 }
-console.log(JSON.stringify(results,null,2));await writeFile('artifacts/pdf-tab-100/accuracy.json',JSON.stringify(results,null,2));
+console.log(JSON.stringify(results,null,2));await writeFile(`${process.env.PDF_TAB_QUALITY_OUTPUT||'artifacts/pdf-tab-100'}/accuracy.json`,JSON.stringify(results,null,2));

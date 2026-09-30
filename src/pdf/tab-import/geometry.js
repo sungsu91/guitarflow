@@ -2,6 +2,7 @@ import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {textFretsForStaff,attachPrintedTuplets} from './pdfText.js';
 import {hasSevenCap} from './glyphValidation.js';
 import {attachNativeTabSymbols} from './tabSymbols.js';
+import {attachImageRests} from './imageRests.js';
 
 const median = values => [...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
 export function runs(values, gap = 1) {
@@ -153,7 +154,13 @@ export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=i
         let inkCount=0;for(let dx=Math.ceil(g*.28);dx<=g*.7;dx++)if(y>=0&&y<height)inkCount+=beamInk[y*width+Math.round(x+dx)]??0;
         if(inkCount>=2)flagRows.push(y);
       }
-      const flags=runs(flagRows).filter(rows=>rows.length>g*.2&&rows.length<g*1.6);
+      // Some TAB engravers use a compact upward hook at a down-stem end.
+      // Its dark tip can be only 2–4 pixels tall after rasterization.
+      const flagRuns=runs(flagRows),normalFlags=flagRuns.filter(rows=>rows.length>g*.2&&rows.length<g*1.6);
+      const compactFlags=flagRuns.filter(rows=>rows.length>=Math.max(2,g*.08)&&rows.length<g*1.6);
+      // A tiny disconnected edge beside a full flag is raster noise, not a
+      // second flag. The compact fallback accepts exactly one small hook.
+      const flags=normalFlags.length?normalFlags:compactFlags.length===1?compactFlags:[];
       const duration=count===1?'8':count===2?'16':count===0&&flags.length===2?'16':count===0&&flags.length===1?'8':count===0&&sideInk<g*.15?'4':null;
       stems.push({x,y:end,direction,beamCount:count,flagCount:flags.length,duration,confidence:duration?.length? .97:0,beamYs:beams.map(ys=>median(ys))});
     }
@@ -219,6 +226,6 @@ export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C}){
     const result={...staff,bars,candidates,nativeText,measures:rhythms};attachHalfNoteStubs(ink,width,height,result,candidates);attachPrintedTuplets(result,glyphs);output.push(result);
   }
   const rhythmicPage=output.some(s=>s.measures.some(m=>m.rhythm.some(r=>s.candidates.some(c=>Math.abs(c.cx-r.x)<s.spacing*.4))));
-  for(const staff of output)attachNativeTabSymbols(ink,width,staff,{rhythmicPage});
+  for(const staff of output){attachNativeTabSymbols(ink,width,staff,{rhythmicPage});attachImageRests(ink,width,height,staff);}
   return {page,width,height,staffs:output};
 }

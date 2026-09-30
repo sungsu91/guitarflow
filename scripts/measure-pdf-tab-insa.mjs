@@ -11,5 +11,5 @@ for(let i=0;i<4;i++){
  }
  result.extraConfirmedFrets+=m.slots.filter(s=>!m.rhythm.some(r=>Math.abs(s.x-r.x)<1e-6)).reduce((n,s)=>n+s.notes.filter(n=>n.status==='confirmed').length,0);
 }
-result.missingFrets=result.expectedFrets-result.correctFrets;console.log(JSON.stringify(result,null,2));await writeFile('artifacts/pdf-tab-100/insa-accuracy.json',JSON.stringify(result,null,2));
+result.missingFrets=result.expectedFrets-result.correctFrets;console.log(JSON.stringify(result,null,2));await writeFile(`${process.env.PDF_TAB_QUALITY_OUTPUT||'artifacts/pdf-tab-100'}/insa-accuracy.json`,JSON.stringify(result,null,2));
 assert.equal(result.matchingRhythmBars,4);assert.deepEqual(result.wrongFrets,[]);assert.equal(result.extraConfirmedFrets,0);

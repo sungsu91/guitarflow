@@ -46,7 +46,7 @@ test('a two-pixel antialiasing break before a beam does not turn an eighth into 
 });
 const fixture=(scale=1,text='3',confidence=.93)=>resolvePage({page:1,width:600*scale,height:400*scale,staffs:[{...staff,spacing:20*scale,candidates:[80,130,180,230].map((x,i)=>({id:`c${i}`,cx:x*scale,x:(x-5)*scale,y:95*scale,width:10*scale,height:10*scale,string:1,stringDistance:0,parts:1,ocr:{text,confidence,agrees:true,alternatives:[]}})),measures:[{x:30*scale,y:100*scale,width:250*scale,height:100*scale,boundariesKnown:true,rhythm:[80,130,180,230].map(x=>({x:x*scale,y:250*scale,duration:'4',confidence:.98}))}]}]});
 test('matching reads at different source resolutions can confirm a fret without duplicating positions',()=>{
- const a=fixture(),b=fixture(2),before=JSON.stringify(a),r=combineZoomReadings(a,b);assert.equal(summarizeAnalysis([r]).confirmed,4);assert.equal(r.staffs[0].measures[0].slots.length,4);assert.equal(JSON.stringify(a),before);assert.equal(r.staffs[0].measures[0].source.pageWidth,1200);
+ const a=fixture(),b=fixture(2),before=JSON.stringify(a),r=combineZoomReadings(a,b);assert.equal(summarizeAnalysis([r]).confirmed,4);assert.equal(r.staffs[0].measures[0].slots.length,4);assert.equal(JSON.stringify(a),before);assert.equal(r.staffs[0].measures[0].source.pageWidth,600);assert.equal(r.staffs[0].measures[0].slots[0].x,80);
 });
 test('zoom disagreement, layout mismatch and weaker enlarged readings never overwrite confirmed notes',()=>{
  const a=fixture(1,'3',.99),b=fixture(2,'8');assert.equal(combineZoomReadings(a,b).staffs[0].measures[0].slots[0].notes[0].fret,3);
@@ -56,4 +56,13 @@ test('zoom disagreement, layout mismatch and weaker enlarged readings never over
 test('multiple OCR attempts never outvote a conflicting high-confidence digit',()=>{
  const r=agreeReadings([{text:'3',confidence:.97},{text:'3',confidence:.96},{text:'8',confidence:.98}]);assert.equal(r.agrees,false);
  assert.equal(agreeReadings([{text:'3',confidence:.96},{text:'3',confidence:.95}]).agrees,true);
+});
+
+test('one-to-one zoom evidence preserves a strong original crop and adds a different confirmed crop once',()=>{
+ const a=fixture(1,'3',.99),b=fixture(2,'3',.99);a.staffs[0].candidates[3].ocr.confidence=.2;b.staffs[0].candidates[0].ocr.confidence=.2;
+ const r=combineZoomReadings(resolvePage(a),resolvePage(b));assert.equal(summarizeAnalysis([r]).confirmed,4);assert.equal(r.staffs[0].measures[0].slots.length,4);
+});
+test('more enlarged digits cannot replace an already read rest or complete rhythm',()=>{
+ const a=fixture(1,'3',.99),b=fixture(2,'3',.99);a.staffs[0].candidates.shift();a.staffs[0].measures[0].rhythm[0].rest=true;
+ const r=combineZoomReadings(resolvePage(a),b);assert.equal(r.staffs[0].measures[0].slots[0].rest,true);assert.equal(summarizeAnalysis([r]).confirmed,3);
 });

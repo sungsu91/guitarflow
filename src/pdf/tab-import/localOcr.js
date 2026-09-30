@@ -1,6 +1,7 @@
 import {createWorker,PSM,OEM} from 'tesseract.js';
 import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {abortable} from './abortable.js';
+import {glyphFeature,corroboratePageGlyphs} from './glyphConsensus.js';
 const cropCache=new Map();let cacheBytes=0;
 const MAX_CACHE_BYTES=32*1024*1024;
 export const clearOcrCache=()=>{cropCache.clear();cacheBytes=0;};
@@ -44,13 +45,14 @@ function reading(data){
 export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
   const candidates=geometry.staffs.flatMap(s=>s.candidates.map(c=>({candidate:c,staff:s})));
   if(candidates.length>C.maxCandidatesPerPage)throw Error('이 페이지의 기호가 너무 많습니다. TAB 영역만 있는 PDF로 다시 시도해 주세요.');
+  const features=new Map(candidates.flatMap(({candidate:c})=>{const feature=glyphFeature(c);return feature?[[c.id,feature]]:[];}));
   const crop=document.createElement('canvas'),small=document.createElement('canvas');crop.width=144;crop.height=112;
   const ctx=crop.getContext('2d');
   try{for(const [i,{candidate:c,staff}] of candidates.entries()){
     signal?.throwIfAborted();
     if(c.ocr?.method==='pdf-text-on-tab-line')continue;
     const overlapsBar=staff.bars.some(x=>x>=c.x-staff.spacing*.20&&x<=c.x+c.width+staff.spacing*.20);
-    if(c.stringDistance>C.stringTolerance||overlapsBar){c.ocr={text:'',confidence:0,agrees:false,method:'geometry-rejected'};}
+    if(c.restSymbol||c.stringDistance>C.stringTolerance||overlapsBar){c.ocr={text:'',confidence:0,agrees:false,method:'geometry-rejected'};}
     else {
       const cacheKey=`${c.width},${c.height},${c.parts}:`+btoa(String.fromCharCode(...c.grayscale));
       if(cropCache.has(cacheKey)){const hit=cropCache.get(cacheKey);cropCache.delete(cacheKey);cropCache.set(cacheKey,hit);c.ocr={...structuredClone(hit.reading),cacheHit:true};}
@@ -79,5 +81,6 @@ export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
     delete c.bitmap;delete c.grayscale;
     if(i%10===0||i===candidates.length-1)onProgress?.((i+1)/candidates.length);
   }}finally{crop.width=crop.height=small.width=small.height=0;}
+  corroboratePageGlyphs(geometry,features);
   return geometry;
 }

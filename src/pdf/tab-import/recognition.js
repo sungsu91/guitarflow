@@ -19,7 +19,7 @@ export function resolvePage(geometry,config=C){
   let measureNumber=0;
   const staffs=geometry.staffs.map(staff=>{let previousChord=null;return {...staff,measures:staff.measures.map(measure=>{
     const source={page:geometry.page,staff:staff.id,measure:++measureNumber,x:measure.x,y:measure.y,width:measure.width,height:measure.height,coordinateSpace:'render-pixels',pageWidth:geometry.width,pageHeight:geometry.height};
-    const candidates=staff.candidates.filter(c=>c.cx>measure.x&&c.cx<measure.x+measure.width);
+    const candidates=staff.candidates.filter(c=>!c.restSymbol&&c.cx>measure.x&&c.cx<measure.x+measure.width);
     const slots=measure.rhythm.map(r=>({...r,notes:[],rejections:[],source:{...source,x:r.x,width:staff.spacing,height:staff.height}}));
     // A confidently read number survives absent/unknown rhythm. Its source
     // column is a review position, never an inferred rhythmic duration.
