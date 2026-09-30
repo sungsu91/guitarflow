@@ -1,6 +1,23 @@
 import {createWorker,PSM,OEM} from 'tesseract.js';
 import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {abortable} from './abortable.js';
+const cropCache=new Map();let cacheBytes=0;
+const MAX_CACHE_BYTES=32*1024*1024;
+export const clearOcrCache=()=>{cropCache.clear();cacheBytes=0;};
+function cacheReading(key,reading){
+  const bytes=2*(key.length+JSON.stringify(reading).length);
+  while(cropCache.size&&(cacheBytes+bytes>MAX_CACHE_BYTES||cropCache.size>=20000)){const oldest=cropCache.keys().next().value;cacheBytes-=cropCache.get(oldest).bytes;cropCache.delete(oldest);}
+  cropCache.set(key,{reading:structuredClone(reading),bytes});cacheBytes+=bytes;
+}
+
+export function agreeReadings(reads){
+  const groups=new Map();
+  for(const r of reads){const items=groups.get(r.text)??[];items.push(r);groups.set(r.text,items);}
+  const ranked=[...groups].filter(([text])=>/^\d{1,2}$/.test(text)&&Number(text)<=24).map(([text,items])=>({text,items:items.sort((a,b)=>b.confidence-a.confidence)})).sort((a,b)=>(b.items[1]?.confidence??0)-(a.items[1]?.confidence??0));
+  const best=ranked[0],confidence=best?.items[1]?.confidence??0;
+  const conflict=reads.some(r=>r.text!==best?.text&&/^\d{1,2}$/.test(r.text)&&r.confidence>=C.confirmed);
+  return {text:best?.text??reads[0]?.text??'',confidence,agrees:Boolean(best?.items.length>=2&&!conflict),alternatives:reads.filter(r=>r.text&&r.text!==best?.text).map(r=>({text:r.text,confidence:r.confidence})),wordConfidence:best?.items[0]?.wordConfidence??0};
+}
 
 // Every asset is served locally. No PDF data or crop leaves the browser.
 export async function createLocalOcr(signal){
@@ -27,7 +44,7 @@ function reading(data){
 export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
   const candidates=geometry.staffs.flatMap(s=>s.candidates.map(c=>({candidate:c,staff:s})));
   if(candidates.length>C.maxCandidatesPerPage)throw Error('이 페이지의 기호가 너무 많습니다. TAB 영역만 있는 PDF로 다시 시도해 주세요.');
-  const crop=document.createElement('canvas'),small=document.createElement('canvas');crop.width=112;crop.height=88;
+  const crop=document.createElement('canvas'),small=document.createElement('canvas');crop.width=144;crop.height=112;
   const ctx=crop.getContext('2d');
   try{for(const [i,{candidate:c,staff}] of candidates.entries()){
     signal?.throwIfAborted();
@@ -35,18 +52,28 @@ export async function recognizeCandidates(geometry,ocr,{signal,onProgress}={}){
     const overlapsBar=staff.bars.some(x=>x>=c.x-staff.spacing*.20&&x<=c.x+c.width+staff.spacing*.20);
     if(c.stringDistance>C.stringTolerance||overlapsBar){c.ocr={text:'',confidence:0,agrees:false,method:'geometry-rejected'};}
     else {
+      const cacheKey=`${c.width},${c.height},${c.parts}:`+btoa(String.fromCharCode(...c.grayscale));
+      if(cropCache.has(cacheKey)){const hit=cropCache.get(cacheKey);cropCache.delete(cacheKey);cropCache.set(cacheKey,hit);c.ocr={...structuredClone(hit.reading),cacheHit:true};}
+      else{
       small.width=c.width;small.height=c.height;const sctx=small.getContext('2d'),image=sctx.createImageData(c.width,c.height);
       for(let j=0;j<c.grayscale.length;j++){const v=c.grayscale[j];image.data.set([v,v,v,255],j*4);}sctx.putImageData(image,0,0);
       const reads=[];
       // Separate crop scales/segmentation modes must agree. Never concatenate
       // neighboring rhythmic slots into a two-digit fret.
-      for(const [mode,targetHeight] of [[PSM.SINGLE_WORD,44],[PSM.RAW_LINE,52]]){
-        const scale=Math.min(targetHeight/c.height,76/c.width),w=c.width*scale,h=c.height*scale;
+      for(const [mode,targetHeight,threshold] of [[PSM.SINGLE_WORD,44,null],[PSM.RAW_LINE,52,null],[c.parts===1?PSM.SINGLE_CHAR:PSM.SINGLE_WORD,72,145],[PSM.SINGLE_WORD,80,185]]){
+        if(threshold&&agreeReadings(reads).agrees&&agreeReadings(reads).confidence>=C.confirmed)break;
+        if(threshold){for(let j=0;j<c.grayscale.length;j++){const v=c.grayscale[j]<threshold?0:255;image.data.set([v,v,v,255],j*4);}sctx.putImageData(image,0,0);}
+        // Keep the established white margin for the two original scales.
+        // A larger box alone changes Tesseract's isolated-character scores.
+        crop.width=threshold?144:112;crop.height=threshold?112:88;
+        const scale=Math.min(targetHeight/c.height,110/c.width),w=c.width*scale,h=c.height*scale;
         ctx.fillStyle='white';ctx.fillRect(0,0,crop.width,crop.height);ctx.imageSmoothingEnabled=true;ctx.drawImage(small,(crop.width-w)/2,(crop.height-h)/2,w,h);
         await abortable(ocr.worker.setParameters({tessedit_pageseg_mode:mode}),signal);
         reads.push(reading((await abortable(ocr.worker.recognize(crop,{}, {blocks:true,text:true}),signal)).data));signal?.throwIfAborted();
       }
-      c.ocr={text:reads[0].text,confidence:Math.min(...reads.map(r=>r.confidence)),wordConfidence:Math.min(...reads.map(r=>r.wordConfidence)),agrees:reads[0].text===reads[1].text,alternatives:reads.flatMap(r=>r.alternatives),method:'local-tesseract-character-two-scales'};
+      c.ocr={...agreeReadings(reads),attempts:reads.length,enlarged:reads.length>2,method:'local-tesseract-character-multiscale'};
+      cacheReading(cacheKey,c.ocr);
+      }
       if(c.ocr.text==='7'&&c.sevenCap===false)c.ocr.shapeRejected='rest-like-seven';
     }
     delete c.bitmap;delete c.grayscale;

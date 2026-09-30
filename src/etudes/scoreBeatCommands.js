@@ -11,7 +11,7 @@ function segment(event,start,end){
  while(at<b){
   const duration=['1','2','4','8','16','32','64'].find(v=>1920/Number(v)<=b-at);
   if(!duration)throw Error(ko["etudes.checkNoteLengthsAtBeatBoundaries"]);
-  result.push({...structuredClone(event),id:newId('event'),onset:at,duration,dotted:false,tuplet:null,tieTo:null,slurTo:null,technique:null});at+=1920/Number(duration);
+  result.push({...structuredClone(event),id:newId('event'),notes:event.notes.map(n=>({...structuredClone(n),id:newId('tone')})),onset:at,duration,dotted:false,tuplet:null,tieTo:null,slurTo:null,technique:null});at+=1920/Number(duration);
  }
  for(let i=0;i<result.length-1;i++)if(!event.rest)result[i].tieTo=result[i+1].id;
  return result;

@@ -1,4 +1,5 @@
 import DifficultyStars from './DifficultyStars.jsx';
+import {scorePlaybackReadiness} from './scorePlaybackReadiness.js';
 import {sortEtudesByDifficulty} from './difficultyRatings.js';
 import { formatMessage } from "../i18n/format.js";
 import { localizeUi } from "./../i18n/core.js";
@@ -74,6 +75,7 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, p
   const savedScores=Object.values(edits.records).filter(r=>r.status!=='unreadable');
   const savedRecord=savedScores.find(r=>r.document.id===savedId);
   const compiled=useMemo(()=>savedRecord?compileScoreDocument(savedRecord.document):null,[savedRecord]);
+  const playback=useMemo(()=>savedRecord?scorePlaybackReadiness(savedRecord.document,compiled):{allowed:true,preview:false},[savedRecord,compiled]);
   const [selectedId, setSelectedId] = useState(initialLesson.lessonId);
   const [bpm, updateBpm] = useState(()=>edits.records[savedId]?.document?.bpm??edits.scores[selectedId]?.bpm??ETUDES.find(e=>e.id===selectedId)?.bpm??DEFAULT_ETUDE_BPM);
   useEffect(()=>{onSelectionChange?.(selectedId,savedId);},[selectedId,savedId,onSelectionChange]);
@@ -98,7 +100,7 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, p
   return <>{favoriteStore.error&&<p role="alert">{localizeUi(favoriteStore.error)}</p>}{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.map(localizeUi).join(' ')}</p>}
 
     <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{mobile&&!layout.focus&&<SongPicker model={model} mobile={mobile}/>}<PracticeSheet model={model} mobile={mobile} desktopPicker={!mobile?<SongPicker model={model} mobile={false}/>:undefined} desktopStorage={desktopStorage} title={savedRecord?.document.title} heading={savedRecord?<header className="etudeSheetHeader"><h2>{savedRecord.document.title}</h2><div className="etudeSheetMeta"><span>{savedRecord.document.keySignature}</span><span>♩ = {bpm}</span></div></header>:undefined} lessonTips={savedRecord?undefined:<LessonTips model={model}/>}/></section>
-    <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)||Boolean(compiled?.issues?.length)}/>
+    <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)||!playback.allowed}/>
     {editing&&<Suspense fallback={<p role="status"><Translation id="etudes.preparingTheEditor" /></p>}><ScoreEditor key={`${editing.id}:${editorSession}`} savedScores={savedScores} onOpenSaved={openSavedForEditing} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
   </>;
 }

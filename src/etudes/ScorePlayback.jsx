@@ -4,6 +4,7 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import { BACKING_TRANSPORT_LOOKAHEAD_SECONDS } from '../audio/transportClock.js';
 import {isFretted} from './scoreInstruments.js';
+import {hasImportedTab} from './scorePlaybackReadiness.js';
 import PracticeTransport from './PracticeTransport.jsx';
 import {performedMeasures,practiceClicks,measureMeters} from './scoreMeters.js';
 import {createPortal} from 'react-dom';
@@ -27,6 +28,9 @@ export default function ScorePlayback({drumAudio,volume=1,score:sourceScore,prac
  const fixedInstrument=score&&!isFretted(score.instrument)?score.instrument==='drums'?'drums':'piano':null;
  const instrument=fixedInstrument??(dock||practice?'clean-guitar':storedInstrument),setInstrument=fixedInstrument||dock||practice?()=>{}:setStoredInstrument;
  useEffect(()=>{if(dock&&fixedInstrument==='piano')setSound(true);},[dock,fixedInstrument]);
+ // Imported fingerings should be audible on opening. The user can still mute
+ // this document afterwards; edits and seeking do not reset that choice.
+ useEffect(()=>{if(hasImportedTab(sourceScore?.document))setSound(true);},[sourceScore?.id]);
  const timbres=fixedInstrument?[[fixedInstrument,fixedInstrument==='drums'?ko["app.drums"]:ko["etudes.piano"]]]:[['clean-guitar',ko["etudes.cleanGuitar"]],['piano',ko["etudes.piano"]]];
  const voiceSettings=useRef({sound,instrument,volume});voiceSettings.current={sound:sound&&!metronomeOnly&&!drumAudio?.muted,instrument,volume};
  const session=useRef(null),trailing=useRef(null),token=useRef(0),held=useRef(null),pending=useRef(null),notify=useRef(onPosition);

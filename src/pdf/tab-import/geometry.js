@@ -65,11 +65,20 @@ export function detectBarlines(ink,width,staff){
 export function removeStaffRules(ink,width,height,staff){
   const clean=ink.slice(),g=staff.spacing;
   for(const line of staff.lines){
+    const half=Math.ceil(staff.thickness/2)+1;
+    const crossing=new Uint8Array(width);
+    for(let x=staff.x;x<=staff.x+staff.width;x++){
+      let above=false,below=false;
+      for(let dx=-Math.ceil(g*.12);dx<=Math.ceil(g*.12);dx++)for(let dy=half+1;dy<=half+Math.ceil(g*.16);dy++){
+        above||=Boolean(ink[(line-dy)*width+x+dx]);below||=Boolean(ink[(line+dy)*width+x+dx]);
+      }
+      crossing[x]=above&&below?1:0;
+    }
     for(let y=Math.max(0,line-staff.thickness-1);y<=Math.min(height-1,line+staff.thickness+1);y++){
       let start=-1;
       for(let x=Math.max(0,staff.x-2);x<=Math.min(width-1,staff.x+staff.width+2);x++){
         if(ink[y*width+x]){if(start<0)start=x;}
-        else if(start>=0){if(x-start>g*1.5)clean.fill(0,y*width+start,y*width+x);start=-1;}
+        else if(start>=0){if(x-start>g*1.5)for(let at=start;at<x;at++)if(!crossing[at])clean[y*width+at]=0;start=-1;}
       }
     }
   }
@@ -96,7 +105,7 @@ export function fretComponents(clean,width,height,staff){
   return parts.sort((a,b)=>a.string-b.string||a.x-b.x);
 }
 
-export function detectRhythm(ink,width,height,staff,measure,anchors=[]){
+export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=ink){
   const g=staff.spacing,bottom=staff.lines[5],top=staff.lines[0],stems=[];
   // Analyse both sides, then prefer the side with clear connected beams/stems.
   for(const direction of [1,-1]){
@@ -114,29 +123,39 @@ export function detectRhythm(ink,width,height,staff,measure,anchors=[]){
     const groups=[];for(const c of candidates){const last=groups.at(-1);if(last&&c.x-last.at(-1).x<=2)last.push(c);else groups.push([c]);}
     for(const group of groups){
       if(group.length>g*.28)continue;
-      const x=median(group.map(c=>c.x)),end=median(group.map(c=>c.end)),beamYs=[],shortBeamYs=[];
+      const x=median(group.map(c=>c.x)),beamYs=[],shortBeamYs=[];
+      let end=median(group.map(c=>c.end)),gap=0;const initialEnd=end;
+      // A blurred/sloping beam can leave a one- or two-pixel break at the
+      // stem. Follow only its narrow continuation; detached picking stays out.
+      for(let k=1;k<=Math.ceil(g*.5);k++){
+        const y=Math.round(initialEnd+direction*k);
+        if(y<0||y>=height)break;
+        if([-1,0,1].some(dx=>ink[y*width+Math.round(x+dx)])){end=y;gap=0;}
+        else if(++gap>2)break;
+      }
       for(let y=Math.floor(end-g*.9);y<=Math.ceil(end+g*.9);y++){
-        if(y<0||y>=height||Math.abs(y-edge)<g*.5)continue;
+        // Picking marks beyond the stem end are not a second beam.
+        if(y<0||y>=height||direction*(y-end)>1||Math.abs(y-edge)<g*.5)continue;
         let left=0,right=0;
-        for(let dx=1;dx<g*2.8;dx++){if(!ink[y*width+Math.round(x-dx)])break;left++;}
-        for(let dx=1;dx<g*2.8;dx++){if(!ink[y*width+Math.round(x+dx)])break;right++;}
+        for(let dx=1;dx<g*2.8;dx++){if(!beamInk[y*width+Math.round(x-dx)])break;left++;}
+        for(let dx=1;dx<g*2.8;dx++){if(!beamInk[y*width+Math.round(x+dx)])break;right++;}
         if(Math.max(left,right)>g*.85)beamYs.push(y);
         if(Math.max(left,right)>g*.4)shortBeamYs.push(y);
       }
       const beams=runs(beamYs.length?shortBeamYs:beamYs).filter(rows=>rows.length>=Math.max(2,g*.07)&&rows.length<g*.45);
       const count=beams.length;
-      // Unconnected flags, dots, tuplets, ties, and half/whole-note conventions
-      // require a separate recognizer; spacing alone never supplies a duration.
+      // Inspect flags toward the staff, not detached picking marks beyond the
+      // stem end. Spacing between note columns never supplies a duration.
       let sideInk=0;
-      if(count===0)for(let y=Math.round(end-g*.6);y<end+g*.6;y++)for(let dx=Math.ceil(g*.2);dx<g*.7;dx++)if(y>=0&&y<height)sideInk+=ink[y*width+Math.round(x+dx)]??0;
+      if(count===0)for(let y=Math.round(end-g*.6);y<end+g*.6;y++)for(let dx=Math.ceil(g*.2);dx<g*.7;dx++)if(y>=0&&y<height&&direction*(y-end)<=1)sideInk+=beamInk[y*width+Math.round(x+dx)]??0;
       const flagRows=[];
-      if(count===0)for(let y=Math.round(end-g*1.8);y<=end;y++){
-        let inkCount=0;for(let dx=Math.ceil(g*.28);dx<=g*.7;dx++)if(y>=0&&y<height)inkCount+=ink[y*width+Math.round(x+dx)]??0;
+      if(count===0)for(let y=Math.round(Math.min(end,end-direction*g*1.8));y<=Math.max(end,end-direction*g*1.8);y++){
+        let inkCount=0;for(let dx=Math.ceil(g*.28);dx<=g*.7;dx++)if(y>=0&&y<height)inkCount+=beamInk[y*width+Math.round(x+dx)]??0;
         if(inkCount>=2)flagRows.push(y);
       }
       const flags=runs(flagRows).filter(rows=>rows.length>g*.2&&rows.length<g*1.6);
-      const duration=count===1?'8':count===2?'16':count===0&&flags.length===1?'8':count===0&&sideInk<g*.15?'4':null;
-      stems.push({x,y:end,direction,beamCount:count,duration,confidence:duration?.length? .97:0,beamYs:beams.map(ys=>median(ys))});
+      const duration=count===1?'8':count===2?'16':count===0&&flags.length===2?'16':count===0&&flags.length===1?'8':count===0&&sideInk<g*.15?'4':null;
+      stems.push({x,y:end,direction,beamCount:count,flagCount:flags.length,duration,confidence:duration?.length? .97:0,beamYs:beams.map(ys=>median(ys))});
     }
   }
   const below=stems.filter(s=>s.direction===1),above=stems.filter(s=>s.direction===-1);
@@ -165,7 +184,7 @@ export function attachHalfNoteStubs(ink,width,height,staff,anchors){
 }
 
 export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C}){
-  const ink=binaryPage(rgba,width,height),lines=binaryPage(rgba,width,height,config.lineThreshold),staffs=detectStaffs(lines,width,height,config),output=[];
+  const ink=binaryPage(rgba,width,height),beamInk=binaryPage(rgba,width,height,config.beamThreshold??145),lines=binaryPage(rgba,width,height,config.lineThreshold),staffs=detectStaffs(lines,width,height,config),output=[];
   for(const staff of staffs){
     const {bars,measures}=detectBarlines(ink,width,staff),clean=removeStaffRules(ink,width,height,staff),parts=fretComponents(clean,width,height,staff);
     // At least two digit-sized objects on actual strings excludes empty graphics.
@@ -177,9 +196,20 @@ export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C}){
         prior.width=part.x+part.width-prior.x;prior.y=Math.min(prior.y,part.y);prior.height=Math.max(prior.y+prior.height,part.y+part.height)-prior.y;prior.cx=prior.x+prior.width/2;prior.parts=2;
       }else candidates.push({...part,parts:1});
     }
-    const textFrets=textFretsForStaff(glyphs,staff),rhythms=measures.map((m,i)=>({...m,index:i,rhythm:detectRhythm(ink,width,height,staff,m,textFrets.length?textFrets:parts.filter(p=>p.stringDistance<config.stringTolerance))}));
+    const textFrets=textFretsForStaff(glyphs,staff),rhythms=measures.map((m,i)=>({...m,index:i,rhythm:detectRhythm(ink,width,height,staff,m,textFrets.length?textFrets:parts.filter(p=>p.stringDistance<config.stringTolerance),beamInk)}));
     const nativeText=textFrets.length>=4&&Math.max(...textFrets.map(c=>c.cx))-Math.min(...textFrets.map(c=>c.cx))>staff.width*.3;
     if(nativeText)candidates=textFrets;
+    else candidates=candidates.filter(c=>{
+      // Stem fragments crossing a string are not the digit 1. Inspect rows
+      // away from the ruled line, where a real digit has its head/curve/serif.
+      let widest=0;
+      for(let y=c.y;y<c.y+c.height;y++){
+        if(Math.abs(y-staff.lines[c.string-1])<=Math.ceil(staff.thickness/2)+1)continue;
+        const xs=[];for(let x=c.x;x<c.x+c.width;x++)if(ink[y*width+x])xs.push(x);
+        if(xs.length)widest=Math.max(widest,xs.at(-1)-xs[0]+1);
+      }
+      return widest>staff.spacing*.28;
+    });
     candidates.forEach((c,i)=>{c.id=`p${page}s${staff.id}c${i}`;if(c.ocr)return;c.bitmap=new Uint8Array(c.width*c.height);c.grayscale=new Uint8Array(c.width*c.height);for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){const p=(c.y+y)*width+c.x+x;c.bitmap[y*c.width+x]=clean[p];c.grayscale[y*c.width+x]=Math.round(rgba[p*4]*.299+rgba[p*4+1]*.587+rgba[p*4+2]*.114);}});
     for(const c of candidates)if(!c.ocr){
       const top=Math.max(0,c.y-Math.ceil(staff.spacing*.45)),h=c.y-top+Math.ceil(c.height*.25),cap=new Uint8Array(c.width*h);

@@ -29,7 +29,7 @@ test('pitch judgment, projectile scoring and collision geometry remain identical
  newMapPaths.push('src/shooter/maps/MapSkinRenderer.jsx', 'src/shooter/maps/map-skins.css', 'src/shooter/maps/skins/scenicMaps.js', ...['underwater-blue','aurora-glacier','above-the-clouds','milky-way-desert','firefly-forest'].map(id => `public/assets/maps/${id}/background.png`));
  const progressionPaths=['src/shooter/progressionSettings.js','src/shooter/ProgressSettings.jsx','src/shooter/progress-settings.css','src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx'];
  // Score playback is independent of shooter judgment and collision audio.
- const scoreAudioPaths=['src/audio/scoreInstrument.js','src/audio/scoreDrums.js','src/audio/scoreExpressions.js','src/audio/fretboardPreviewEngine.js','src/audio/viewerChordSamples.js'];
+ const scoreAudioPaths=['src/audio/scoreInstrument.js','src/audio/scoreDrums.js','src/audio/scoreExpressions.js','src/audio/fretboardPreviewEngine.js','src/audio/viewerChordSamples.js','src/audio/guitarArticulation.js']; // Score articulation shipped in 1a0828e2; gameplay slices stay guarded.
  // Approved instrument samples were committed with the score-player release.
  const scoreSamplePaths=JSON.parse(readFileSync(new URL('../scripts/release-audio-assets.json',import.meta.url),'utf8')).map(path=>`public/${path}`);
  scoreSamplePaths.push('public/sounds/guitar-chords/ATTRIBUTION.txt', 'public/sounds/rhythm-count/README.md');

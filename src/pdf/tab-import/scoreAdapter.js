@@ -15,7 +15,8 @@ export function analysisToDocument(analysis){
   doc.measures=sourceMeasures.map((measure,index)=>{
     let onset=0;
     // Pitch and rhythm are independent evidence. Keep verified fret/string
-    // pairs even when the bar's rhythm requires review; compilation blocks play.
+    // pairs even when the bar's rhythm requires review. Preview playback uses
+    // these entered frets without marking the recognition as reviewed.
     const overflow=measure.slots.length>16,knownGrid=measure.rhythmValid&&!overflow;
     // Dense noise must not erase an entire bar of verified fret numbers. Keep
     // all pitched columns when they fit, then fill the remaining review cells.

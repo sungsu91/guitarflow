@@ -3,6 +3,7 @@ import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {createLocalOcr,recognizeCandidates} from './localOcr.js';
 import {resolvePage,summarizeAnalysis} from './recognition.js';
 import {projectPdfText} from './pdfText.js';
+import {combineZoomReadings} from './zoomConsensus.js';
 
 function geometryInWorker(image,page,signal,glyphs){
   return new Promise((resolve,reject)=>{
@@ -17,7 +18,7 @@ function geometryInWorker(image,page,signal,glyphs){
   });
 }
 
-export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false}={}){
+export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,renderScale=C.renderScale,autoZoom=true}={}){
   if(!file||file.size>C.maxFileBytes)throw Error('40MB 이하의 기타 TAB PDF를 선택해 주세요.');
   if(!/\.pdf$/i.test(file.name))throw Error('PDF 파일을 선택해 주세요.');
   signal?.throwIfAborted();
@@ -30,18 +31,28 @@ export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false}={
     if(pdf.numPages>C.maxPages)throw Error(`한 번에 ${C.maxPages}페이지까지 분석할 수 있습니다.`);
     for(let number=1;number<=pdf.numPages;number++){
       signal?.throwIfAborted();
-      const page=await pdf.getPage(number),base=page.getViewport({scale:1}),scale=Math.min(C.renderScale,Math.sqrt(C.maxPixels/(base.width*base.height))),viewport=page.getViewport({scale}),canvas=document.createElement('canvas');
-      canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+      const page=await pdf.getPage(number),base=page.getViewport({scale:1}),canvas=document.createElement('canvas');
       try{
-        onProgress({progress:(number-1)/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · TAB 6줄과 마디 분석 중…`});
+        const read=async(requestedScale,zoom=false)=>{
+        const scale=Math.min(Math.max(2,Math.min(5,requestedScale)),Math.sqrt(C.maxPixels/(base.width*base.height))),viewport=page.getViewport({scale});
+        canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+        onProgress({progress:(number-1+(zoom ? .55 : 0))/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · ${zoom?'확대 TAB':'TAB'} 6줄과 마디 분석 중…`});
         const ctx=canvas.getContext('2d',{willReadFrequently:true});render=page.render({canvasContext:ctx,viewport});await render.promise;render=null;signal?.throwIfAborted();
-        if(debug){const preview=document.createElement('canvas');preview.width=900;preview.height=Math.round(900*canvas.height/canvas.width);preview.getContext('2d').drawImage(canvas,0,0,preview.width,preview.height);previews.push(preview.toDataURL('image/jpeg',.8));preview.width=preview.height=0;}
+        if(debug&&!zoom){const preview=document.createElement('canvas');preview.width=900;preview.height=Math.round(900*canvas.height/canvas.width);preview.getContext('2d').drawImage(canvas,0,0,preview.width,preview.height);previews.push(preview.toDataURL('image/jpeg',.8));preview.width=preview.height=0;}
         const glyphs=projectPdfText(await page.getTextContent(),viewport);
         const geometry=await geometryInWorker(ctx.getImageData(0,0,canvas.width,canvas.height),number,signal,glyphs);
         canvas.width=canvas.height=0;
         if(!ocr&&geometry.staffs.some(s=>s.candidates.some(c=>!c.ocr)))ocr=await createLocalOcr(signal);
-        await recognizeCandidates(geometry,ocr,{signal,onProgress:f=>onProgress({progress:(number-1+.15+f*.8)/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · 프렛 후보 확인 중…`})});
-        const resolved=resolvePage(geometry);pages.push(resolved);
+        await recognizeCandidates(geometry,ocr,{signal,onProgress:f=>onProgress({progress:(number-1+(zoom ? .55 : .1)+f*.4)/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · ${zoom?'확대하여 프렛 재확인':'프렛 후보 확인'} 중…`})});
+        return resolvePage(geometry);
+        };
+        let resolved=await read(renderScale);
+        const summary=summarizeAnalysis([resolved]);
+        if(autoZoom&&renderScale<4.5&&summary.needsReview&&resolved.staffs.some(s=>!s.nativeText)&&Math.sqrt(C.maxPixels/(base.width*base.height))>renderScale*1.1){
+          resolved=combineZoomReadings(resolved,await read(4.5,true));
+        }
+        pages.push(resolved);
+        onProgress({progress:number/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · 분석 완료`});
         if(debug)console.info('[PDF TAB]',`Page ${number}`,summarizeAnalysis([resolved]));
         await new Promise(resolve=>setTimeout(resolve,0));
       }finally{canvas.width=canvas.height=0;page.cleanup();}
