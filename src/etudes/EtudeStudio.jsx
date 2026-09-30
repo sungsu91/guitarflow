@@ -70,7 +70,8 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, p
   useEffect(()=>{const refresh=e=>{if(!e||e.type==='focus'||e.key===SCORE_FOLDERS_KEY)setFavoriteStore(readFavorites());};window.addEventListener('storage',refresh);window.addEventListener('focus',refresh);return()=>{window.removeEventListener('storage',refresh);window.removeEventListener('focus',refresh);};},[]);
   const [editing,setEditing]=useState(null);
   const [editorSession,setEditorSession]=useState(0);
-  const openSavedForEditing=document=>{setEditorSession(v=>v+1);setSavedId(document.id);setEditing(structuredClone(document));updateBpm(document.bpm);};
+  const [editorOpenState,setEditorOpenState]=useState(null);
+  const openSavedForEditing=(document,{saved=true,notice=''}={})=>{setEditorSession(v=>v+1);setEditorOpenState({id:document.id,saved,notice});if(saved)setSavedId(document.id);setEditing(structuredClone(document));updateBpm(document.bpm);};
   const [initialLesson]=useState(()=>resolveLessonSelection({lessonId:initialId,savedId:initialSavedId},ETUDES,edits.records,DEFAULT_ETUDE_ID));
   const [savedId,setSavedId]=useState(initialLesson.savedId);
   const savedScores=Object.values(edits.records).filter(r=>r.status!=='unreadable');
@@ -102,6 +103,6 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, p
 
     <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{mobile&&!layout.focus&&<SongPicker model={model} mobile={mobile}/>}<PracticeSheet model={model} mobile={mobile} desktopPicker={!mobile?<SongPicker model={model} mobile={false}/>:undefined} desktopStorage={desktopStorage} title={savedRecord?.document.title} heading={savedRecord?<header className="etudeSheetHeader"><h2>{savedRecord.document.title}</h2><div className="etudeSheetMeta"><span>{savedRecord.document.keySignature}</span><span>♩ = {bpm}</span></div></header>:undefined} lessonTips={savedRecord?undefined:<LessonTips model={model}/>}/></section>
     <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)||!playback.allowed}/>
-    {editing&&<Suspense fallback={<p role="status"><Translation id="etudes.preparingTheEditor" /></p>}><ScoreEditor key={`${editing.id}:${editorSession}`} savedScores={savedScores} onOpenSaved={openSavedForEditing} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
+    {editing&&<Suspense fallback={<p role="status"><Translation id="etudes.preparingTheEditor" /></p>}><ScoreEditor key={`${editing.id}:${editorSession}`} initiallySaved={editorOpenState?.id===editing.id?editorOpenState.saved:true} initialNotice={editorOpenState?.id===editing.id?editorOpenState.notice:''} savedScores={savedScores} onOpenSaved={openSavedForEditing} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>{setEditing(null);setEditorOpenState(null);}} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
   </>;
 }

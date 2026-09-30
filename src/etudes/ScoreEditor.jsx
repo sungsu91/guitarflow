@@ -125,10 +125,11 @@ function Controls({draft,setDraft,bar,setBar,event,setEvent,section='note',mobil
  </div>;
 }
 
-export default function ScoreEditor({score,document:initialDocument,original,mobile,onClose,onSave,onImportPdf,savedScores=[],onOpenSaved}) {
+export default function ScoreEditor({score,document:initialDocument,original,mobile,onClose,onSave,onImportPdf,savedScores=[],onOpenSaved,initiallySaved=true,initialNotice=''}) {
   useLanguage();
  const [draft,updateDraft]=useState(()=>ensurePianoVoices(normalizePitches(editorDocumentDefaults(initialDocument??toScoreDocument(score),mobile))));
- const draftRef=useRef(draft),undoStack=useRef([]),redoStack=useRef([]),digits=useRef(null),clipboard=useRef(null),savedRef=useRef(draft),openedRef=useRef(draft);
+ const draftRef=useRef(draft),undoStack=useRef([]),redoStack=useRef([]),digits=useRef(null),clipboard=useRef(null),savedRef=useRef(initiallySaved?draft:null),openedRef=useRef(draft);
+ const [storageNotice,setStorageNotice]=useState(initialNotice);
  const [scoreRange,setScoreRange]=useState(null);
  const [openLibrary,setOpenLibrary]=useState(false),[pendingOpen,setPendingOpen]=useState(null);
  const [chordNameBar,setChordNameBar]=useState(null);
@@ -166,7 +167,7 @@ export default function ScoreEditor({score,document:initialDocument,original,mob
  const onTabBeam=value=>setDraft(d=>{const v=d.viewSettings??{},short=Boolean(v.tabShortStems||v.tabBeamPosition==='detached');return {...d,viewSettings:{...v,tabBeamPosition:value==='above'||value==='below'?value:v.tabBeamPosition==='above'?'above':'below',tabShortStems:value==='detached'?!short:short,tabRhythm:value==='hidden'?false:true}};});
  const onPickingPosition=value=>setDraft(d=>({...d,viewSettings:{...d.viewSettings,tabPickingPosition:value}}));
  const playbackController=useRef(null);
- const afterClose=useRef(null);const finishClose=savedDocument=>{if(pendingOpen){onOpenSaved(savedDocument?.id===pendingOpen.id?savedDocument:pendingOpen);return;}onClose();afterClose.current?.();};
+ const afterClose=useRef(null);const finishClose=savedDocument=>{if(pendingOpen){const same=savedDocument?.id===pendingOpen.document.id;onOpenSaved(same?savedDocument:pendingOpen.document,same?{saved:true}:pendingOpen.options);return;}onClose();afterClose.current?.();};
  const dialog=useRef(null),file=useRef(null),cursorRef=useRef(cursor);
  const cancelDigits=useCallback(()=>{digits.current=null;},[]);
  const setDraft=useCallback((update,{coalesce=false,keepDigits=false}={})=>{if(!keepDigits)cancelDigits();const before=draftRef.current;if(isPiano(before))pianoHistory.current.set(before,rememberPiano());let after=typeof update==='function'?update(before):update;after=editorDocumentDefaults(reconcileImportedEdits(before,after),mobile);after=shareUnchanged(before,refreshAutomaticChordNames(ensurePianoVoices(normalizePitches(after))));if(before===after)return;
@@ -285,14 +286,23 @@ export default function ScoreEditor({score,document:initialDocument,original,mob
   const copying=copy||saveRequest.copy;
   if(copy)document=copyDocument(document);
   const saved=onSave(document);if(!saved.saved&&!saved.score)throw Error(saved.errors?.join(' / ')||ko["etudes.couldNotSaveTryAgain"]);
-  if(!copying){setDraft(saved.record?.document??document);savedRef.current=draftRef.current;}
+  if(!copying){setDraft(saved.record?.document??document);savedRef.current=draftRef.current;setStorageNotice('');}
   setMessage(saved.record?.status==='draft'?ko["etudes.incompleteDraftSavedResolveRhythmAndInputIssuesToEnablePlayback"]:ko["etudes.savedToMyScores"]);
   const close=saveRequest.close,target=saveRequest.instrumentTarget;setSaveRequest(null);if(target)startInstrumentDocument(target);else if(close)finishClose(saved.record?.document??document);
  };
  const saveDialog=saveRequest&&<ScoreSaveDialog allowCopy={!mobile&&!saveRequest.copy&&!saveRequest.close&&!saveRequest.instrumentTarget} showNotes={!mobile} document={saveRequest.document} onSave={commitSave} onClose={()=>setSaveRequest(null)}/>;
  const close=()=>{if(!exitTuplet())return;if(savedRef.current!==draftRef.current)setClosing(true);else finishClose();};
  const openSavedLibrary=()=>{cancelDigits();playbackController.current?.stop();setOpenLibrary(true);};
- const openSavedScore=document=>{setOpenLibrary(false);if(!exitTuplet())return;if(savedRef.current!==draftRef.current){setPendingOpen(document);setClosing(true);}else onOpenSaved(document);};
+ const openSavedScore=(document,options={})=>{setOpenLibrary(false);if(!exitTuplet())return false;if(savedRef.current!==draftRef.current){setPendingOpen({document,options});setClosing(true);}else onOpenSaved(document,options);return true;};
+ const openPdfDraft=document=>{
+  if(!exitTuplet())throw Error('현재 셋잇단 입력을 완료한 뒤 다시 열어 주세요.');
+  const saved=onSave(document),options={saved:Boolean(saved.saved),imported:true,notice:saved.saved?'':`브라우저에 저장하지 못해 임시 초안으로 열었습니다. 닫기 전에 제작 악보 파일로 보관하거나 브라우저 저장을 다시 시도해 주세요. ${saved.errors?.join(' / ')||''}`};
+  if(openSavedScore(saved.saved?saved.record.document:document,options))setPdfTabOpen(false);
+ };
+ const downloadDraft=()=>{
+  const document=draftRef.current,url=URL.createObjectURL(new Blob([JSON.stringify(document)],{type:'application/json'})),link=window.document.createElement('a');
+  link.href=url;link.download=`${document.title.replace(/[<>:"/\\|?*\x00-\x1f]/g,'_')||'TAB 초안'}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
  const importFile=async e=>{const selected=e.target.files?.[0];e.target.value='';if(!selected)return;try{if(isPdfScoreFile(selected)){if(!onImportPdf)throw Error(ko["etudes.openPdfsUsingImportPdfInTheScoreLibrary"]);afterClose.current=()=>onImportPdf(selected);close();return;}if(selected.size>2*1024*1024)throw Error(ko["etudes.chooseAScoreJsonFileNoLargerThan2Mb"]);const next=upgradeDocument(JSON.parse((await selected.text()).replace(/^\uFEFF/,'')));if(!hasEditableShape(next))throw Error(ko["etudes.checkTheNoteStructure"]);setDraft({...next,id:draft.id,kind:'user'});resetPianoEntry();select({bar:0,event:0,string:draftRef.current.tuning.length,mode:'tab'});setMessage(ko["etudes.fileImportedYouCanSaveIncompleteWorkAsADraft"]);}catch(e){setMessage(e.message);}};
  const applyPitch=(midi,string)=>{const possible=pitchCandidates(tone,midi,effectiveTuning(draft)).filter(n=>n.fret+(draft.capo??0)<=maxFret(draft));if(!possible.length){setMessage(ko["etudes.thisPitchCannotBePlayedAtFrets024InTheCurrent"]);return;}const choice=string?possible.find(n=>n.string===string):possible.find(n=>n.string===tone?.string);
   if(!choice){setCandidates(possible);setPitch(midi);setMessage(ko["etudes.chooseAStringAndFretForTheSamePitchPositionsAreNot"]);return;}
@@ -442,6 +452,7 @@ export default function ScoreEditor({score,document:initialDocument,original,mob
  return <dialog ref={dialog} className={`etudeEditor editorDesign etudeEditor--${mobile?'mobile':'desktop'}`} data-ui="score-editor" aria-label={translateUi("etudes.scoreEditor")} onKeyDown={dialogKeyDown} onCancel={e=>{e.preventDefault();close();}}>
   <div className="desktopEditorTopBar"><button type="button" className="desktopEditorHelpButton" aria-haspopup="dialog" onClick={()=>{cancelDigits();playbackController.current?.stop();setHelpOpen(true);}}><BookOpen size={18} aria-hidden="true"/><Translation id="editor.help" /></button><div className="etudeHeaderActions"><button type="button" onClick={()=>{cancelDigits();playbackController.current?.stop();setPdfTabOpen(true);}}>PDF에서 TAB 초안 생성</button><button type="button" onClick={openSavedLibrary}><Translation id="editor.openCreatedScores" /></button><button type="button" className="desktopPdfSave" disabled={!result.score} onClick={previewPrint}><Printer size={17} aria-hidden="true"/><Translation id="etudes.savePdf" /></button><p role="status">{savedRef.current===draft?translateUi("etudes.savedNoChanges"):translateUi("etudes.unsavedChanges")}</p><button type="button" className="etudeEditorSave" onClick={()=>save()}><Translation id="etudes.saveInThisBrowser" /></button><button type="button" onClick={close}><Translation id="common.close" /></button></div></div>
   <DesktopPdfTabReview document={draft} cursor={active} onSelect={select} onConfirm={()=>{try{setDraft(d=>confirmImportedMeasure(d,barIndex));setMessage('현재 마디를 사용자 확인으로 확정했습니다.');}catch(e){setMessage(e.message);}}}/>
+  {storageNotice&&<div className="pdfTabStorageNotice" role="alert"><span>{storageNotice}</span><button type="button" onClick={downloadDraft}>제작 악보 파일로 저장</button></div>}
   {mobile?palette:<div className="etudeDesktopToolbarRow">{palette}</div>}
   {mobile?<><nav className="etudeEditorTabs"><button type="button" aria-pressed={tab==='score'} onClick={()=>setTab('score')}><Translation id="etudes.scoreInput" /></button><button type="button" aria-pressed={tab==='properties'} onClick={()=>setTab('properties')}><Translation id="etudes.selectedNoteProperties" /></button></nav>{tab==='score'?<>{sheet}<div className="etudeMobileKeypad">{['←','↑','↓','→','0','1','2','3','4','5','6','7','8','9',ko["common.delete"]].map(k=><button type="button" key={k} onClick={()=>keyDown({key:({'←':'ArrowLeft','→':'ArrowRight','↑':'ArrowUp','↓':'ArrowDown','삭제':'Delete'})[k]??k,target:dialog.current,preventDefault(){}})}>{localizeUi(k)}</button>)}</div></>:controls}</>:<div className="etudeEditorDesktopBody" >{sheet}<aside className="desktopToolColumn" aria-label={translateUi("etudes.scoreInputTools")}>  <MobileScoreInput drums={draft.instrument==='drums'} fretted={fretted} pitchInput={pitchInput} {...{tabRhythm,tabBeamPosition,tabShortStems,tabPickingPosition,onTabBeam,onPickingPosition}} desktop desktopPickingControls={<DesktopPickingControls restart={pickRestart} onRestart={setPickRestart} scope={pickScope} onScope={setPickScope} pattern={pickPattern} onPattern={setPickPattern} skipLegato={skipLegato} onSkipLegato={setSkipLegato} measures={draft.measures} currentBar={barIndex} endBar={Math.max(barIndex,Math.min(rangeEnd,draft.measures.length-1))} onEndBar={setRangeEnd} onApply={applyDesktopPicking}/>} openTool={mobileSheet} onTool={toggleMobileTool} onCloseTool={closeMobileTool} techniques={mobileTechniques} repeatBar={draft.measures[barIndex]} repeatIssue={repeatIssues(draft.measures)[0]} onRepeat={applyRepeat} onNavigation={applyNavigation} onResetBar={resetCurrentBar} onDeleteBar={removeBar} canDeleteBar={draft.measures.length>1} feedback={mobileFeedback} cursor={active} event={event} meter={draft.meter} onKey={mobileKey} onCopyBeat={()=>wholeBeat(true)} onDeleteBeat={()=>wholeBeat(false)} onCopyLine={copyLine} onDeleteLine={deleteLine} onBar={delta=>setBar(Math.max(0,Math.min(draft.measures.length-1,barIndex+delta)))} onAddBar={addEmpty} onPick={directPick} onBatch={pattern=>setDraft(d=>applyPicking(d,{pattern,skipLegato:true}))}
 />{batchPanels}<div className="etudeEditorBottom"><ScorePlayback volume={draft.instrument==='drums'?drumVolume:1} score={result.score} disabled={!playback.allowed} dock onBpm={bpm=>setDraft(d=>({...d,bpm}))} controller={playbackController} startAt={active} onPosition={setPlayPosition}/>  </div></aside></div>}
@@ -452,9 +463,9 @@ export default function ScoreEditor({score,document:initialDocument,original,mob
   {scoreSettingsOpen&&<ScoreSaveDialog mode="edit" showNotes document={draft} onClose={()=>setScoreSettingsOpen(false)} onSave={document=>{setDraft(document);setScoreSettingsOpen(false);}}/>}
   {settings.popup}{instrumentDialog}
   {quickPanel}{saveDialog}{chordDialog}{chordNameDialog}
-  {pdfTabOpen&&<Suspense fallback={<p role="status">PDF TAB 분석 준비 중…</p>}><DesktopPdfTabImport onClose={()=>setPdfTabOpen(false)} onOpen={document=>{const saved=onSave(document);if(!saved.saved)throw Error(saved.errors?.join(' / ')||'초안을 저장하지 못했습니다.');setPdfTabOpen(false);openSavedScore(saved.record.document);}}/></Suspense>}
+  {(pdfTabOpen||pendingOpen?.options.imported)&&<Suspense fallback={<p role="status">PDF TAB 분석 준비 중…</p>}><DesktopPdfTabImport active={pdfTabOpen} onClose={()=>setPdfTabOpen(false)} onOpen={openPdfDraft}/></Suspense>}
   {openLibrary&&<ScoreOpenDialog records={savedScores} onOpen={openSavedScore} onClose={()=>setOpenLibrary(false)}/>}
-  {closing&&<div className="etudeEditorClosePrompt" role="alert"><p><Translation id="etudes.youHaveUnsavedChanges" /></p><button type="button" onClick={()=>save(true)}><Translation id={pendingOpen?"editor.saveAndOpen":"etudes.saveDraftAndClose"} /></button><button type="button" onClick={finishClose}><Translation id={pendingOpen?"editor.discardAndOpen":"etudes.discardChangesAndClose"} /></button><button type="button" onClick={()=>{setClosing(false);setPendingOpen(null);afterClose.current=null;}}><Translation id="etudes.keepEditing" /></button></div>}
+  {closing&&<div className="etudeEditorClosePrompt" role="alert"><p><Translation id="etudes.youHaveUnsavedChanges" /></p><button type="button" onClick={()=>save(true)}><Translation id={pendingOpen?"editor.saveAndOpen":"etudes.saveDraftAndClose"} /></button><button type="button" onClick={finishClose}><Translation id={pendingOpen?"editor.discardAndOpen":"etudes.discardChangesAndClose"} /></button><button type="button" onClick={()=>{if(pendingOpen?.options.imported)setPdfTabOpen(true);setClosing(false);setPendingOpen(null);afterClose.current=null;}}><Translation id="etudes.keepEditing" /></button></div>}
 
  </dialog>;
 }
