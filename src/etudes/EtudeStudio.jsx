@@ -1,3 +1,4 @@
+import {createEditorDocument} from './editorDocumentDefaults.js';
 import DifficultyStars from './DifficultyStars.jsx';
 import {scorePlaybackReadiness} from './scorePlaybackReadiness.js';
 import {sortEtudesByDifficulty} from './difficultyRatings.js';
@@ -18,7 +19,7 @@ import './practiceLayout.css';
 import './etudes.css';
 import {toScoreDocument,compileScoreDocument} from './scoreDocument.js';
 import {loadLibrary,saveLibraryDocument,renameLibraryDocument,deleteLibraryDocument} from './scoreLibrary.js';
-import {copyDocument,createBlankDocument} from './scoreModel.js';
+import {copyDocument} from './scoreModel.js';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
@@ -93,7 +94,7 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, p
   const toggleFavorite=()=>{try{const data=loadScoreFolders(localStorage);const next=updateScoreFolders(localStorage,{type:'favorite',keys:[favoriteKey],value:!data.favorites[favoriteKey]});setFavoriteStore({data:next,values:next.favorites,error:''});}catch(e){setFavoriteStore(current=>({...current,error:formatMessage(ko["etudes.couldNotSaveFavoritesValue"], { value1: e.message })}));}};
   const organize=operation=>{const data=updateScoreFolders(localStorage,operation);setFavoriteStore({data,values:data.favorites,error:''});};
   const manageScore=async(action,entry,title)=>{controller.current?.stop();if(entry.pdf)await onManagePdf?.(action,entry.pdf,title);else {const result=action==='rename'?renameLibraryDocument(localStorage,entry.id,title,ETUDES):deleteLibraryDocument(localStorage,entry.id,ETUDES);if(!result.saved)throw Error(result.errors.join(' '));setEdits(loadEdits());if(action==='delete'&&savedId===entry.id)select(selectedId);}};
-  const model = { ...session, importBusy, importPdf:()=>{controller.current?.stop();onImportPdf?.();},folderData:favoriteStore.data,organize,manageScore, pdfScores,selectPdf:record=>{controller.current?.stop();onSelectPdf?.(record);}, favorites:favoriteStore.values,isFavorite:Boolean(favoriteStore.values[favoriteKey]),toggleFavorite, createScore:()=>{controller.current?.stop();setEditing(createBlankDocument());},canEdit, savedScores,savedId,selectSaved,editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
+  const model = { ...session, importBusy, importPdf:()=>{controller.current?.stop();onImportPdf?.();},folderData:favoriteStore.data,organize,manageScore, pdfScores,selectPdf:record=>{controller.current?.stop();onSelectPdf?.(record);}, favorites:favoriteStore.values,isFavorite:Boolean(favoriteStore.values[favoriteKey]),toggleFavorite, createScore:()=>{controller.current?.stop();setEditing(createEditorDocument(mobile));},canEdit, savedScores,savedId,selectSaved,editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
  };
