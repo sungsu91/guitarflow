@@ -115,7 +115,7 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
       <span className="grooveTrackRailHeader" aria-hidden="true"/>
       {pattern.rows.map((row,r)=><GrooveTrackName key={r} row={row} r={r} changeRow={changeRow}/>)}
     </div>
-    <div ref={root} className="grooveHorizontalScroll" aria-label={translateUi("metronome.grooveEditingGrid")}><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{width:zoom>1?`${zoom*100}%`:'100%',minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18*zoom}px)`:undefined}}>
+    <div ref={root} className="grooveHorizontalScroll" aria-label={`${translateUi("metronome.grooveEditingGrid")} · ${translateUi("metronome.grooveBarNumber",{value1:barIndex+1})}`}><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{width:zoom>1?`${zoom*100}%`:'100%',minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18*zoom}px)`:undefined}}>
       <div className="grooveTrackHeader"><div className="grooveSteps grooveLabels">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=><span key={s}>{localizeUi(s===0?b+1:label(s))}</span>)}</div>)}</div>{removing && <div/>}</div>
       <div className="grooveTrackList" aria-label={translateUi("metronome.grooveTrackList")}>
         {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} quick={quick} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing} barIndex={barIndex}/> )}
@@ -129,15 +129,18 @@ function GrooveEditor({store,...options}) {
   const pattern=useSyncExternalStore(store.subscribe,store.getSnapshot,store.getSnapshot);
   const barCount=getGrooveBarCount(pattern);
   const [selectedBar,setSelectedBar]=useState(0);
-  const barIndex=Math.min(selectedBar,barCount-1);
-  useEffect(()=>setSelectedBar(value=>Math.min(value,barCount-1)),[barCount]);
   const playingBar=useGroovePlayingBar(options.clock,options.playing,options.beats,options.divisions,barCount);
+  const barIndex=Math.min(playingBar>=0?playingBar:selectedBar,barCount-1);
+  // Follow the same audio clock as the playhead, then retain the last bar on stop.
+  useEffect(()=>{
+    setSelectedBar(value=>Math.min(playingBar>=0?playingBar:value,barCount-1));
+  },[playingBar,barCount]);
   const props={...options,pattern,store,barIndex,playingBar};
   const changeLength=(count,selectNew=false)=>{
     options.onChange(resizeGroovePattern(store.getSnapshot(),count));
     setSelectedBar(selectNew?count-1:Math.min(barIndex,count-1));
   };
-  const barProps={count:barCount,selected:barIndex,onLength:changeLength,onSelect:setSelectedBar,
+  const barProps={count:barCount,selected:barIndex,onLength:changeLength,onSelect:bar=>setSelectedBar(playingBar>=0?playingBar:bar),
     onCopy:()=>options.onChange(copyGrooveBar(store.getSnapshot(),barIndex-1,barIndex))};
   const BarControls=options.mobile?MobileGrooveBarControls:DesktopGrooveBarControls;
   const Overview=options.mobile?MobileGrooveOverview:DesktopGrooveOverview;

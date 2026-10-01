@@ -15,6 +15,8 @@ html body #root .app .grooveOverview .grooveBarCard[aria-pressed=true] {border-c
 .grooveBarCardTitle b {display:grid;place-items:center;width:18px;height:18px;border:1px solid currentColor;border-radius:50%;font-size:11px}
 .grooveBarCardTitle em {margin-left:auto;font-size:10px;font-style:normal;color:var(--groove-text)}
 .grooveBarCard.is-playing .grooveBarCardTitle b {background:var(--groove-gold,#edc565);color:#352713;border-color:var(--groove-gold,#edc565)}
+html body #root .app .grooveOverview .grooveBarCard.is-playing {border-color:var(--groove-gold,#edc565);box-shadow:inset 0 0 0 2px var(--groove-gold,#edc565)}
+.grooveBarCard.is-playing .grooveBarCardTitle em {padding:1px 5px;border-radius:4px;background:var(--groove-gold,#edc565);color:#352713;font-weight:700;white-space:nowrap}
 .grooveBarMiniature {display:grid;gap:4px;max-height:100px;overflow:auto;scrollbar-width:thin}
 .grooveMiniRow {display:grid;grid-template-columns:repeat(var(--groove-preview-steps),minmax(0,1fr));gap:3px}
 .grooveMiniRow.is-muted {opacity:.35}

@@ -37,8 +37,22 @@ html body .app .sharedBackingDock--desktop .backingDockStop{min-height:36px}
 
 /* The mobile fold control is outside the player's two content rows. */
 @layer rhythm-surfaces {
- html body .app .sharedBackingDock--mobile .backingLoopPanel--mobile {
-  height:auto!important;grid-template-rows:auto auto!important;padding:28px 4px 6px!important;
+ html body #root .app.viewport-mobile-surface .sharedBackingDock--mobile .backingLoopPanel--mobile {
+  height:auto!important;min-height:0!important;max-height:none!important;grid-template-rows:auto auto!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;margin:0!important;padding:28px 4px 6px!important;
+ }
+ html body #root .app.viewport-mobile-surface .sharedBackingDock--mobile .backingLoopMiniPlayer--mobile {
+  height:auto!important;min-height:0!important;grid-template-rows:auto 14px auto!important;
+  grid-row:1!important;grid-column:1!important;
+ }
+ html body #root .app.viewport-mobile-surface .sharedBackingDock--mobile .backingLoopMainControls {
+  margin-top:0!important;grid-row:2!important;grid-column:1!important;
+ }
+ /* The drag handle sits on the dark player, not on a light button surface. */
+ html body #root .app .backingLoopPanel--mobile .backingLoopTrackInfo.is-drag-handle {
+  height:auto!important;min-height:32px;background:transparent!important;
+  border:0!important;box-shadow:none!important;color:var(--studio-player-text)!important;
  }
  html body .app .sharedBackingDock--mobile .backingLoopPanel--mobile>.backingPanelClose {
   position:absolute!important;top:2px!important;right:4px!important;z-index:50;
@@ -46,5 +60,11 @@ html body .app .sharedBackingDock--desktop .backingDockStop{min-height:36px}
   width:28px!important;min-width:28px!important;height:26px!important;min-height:26px!important;
   padding:0!important;border:0!important;background:transparent!important;color:inherit!important;
   font-size:24px;box-shadow:none!important;cursor:pointer;
+ }
+}
+/* Tablet keeps its larger controls while reserving the floating fold row. */
+@layer tablet-readability {
+ .tabletLayout .sharedBackingDock--mobile .backingLoopPanel--mobile {
+  padding-top:28px!important;
  }
 }

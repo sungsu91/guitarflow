@@ -55,7 +55,7 @@ export function MobileGrooveBarControls(props) {
 }
 
 function BarCard({pattern,bar,selected,playingBar,stepsPerBar,onSelect}) {
-  return <button type="button" className={`grooveBarCard ${playingBar===bar?'is-playing':''}`} aria-label={barLabel(bar)} aria-pressed={selected===bar} onClick={()=>onSelect(bar)}>
+  return <button type="button" className={`grooveBarCard ${playingBar===bar?'is-playing':''}`} aria-label={barLabel(bar)} aria-pressed={selected===bar} aria-current={playingBar===bar?'step':undefined} onClick={()=>onSelect(bar)}>
     <span className="grooveBarCardTitle"><b>{bar+1}</b><strong>{barLabel(bar)}</strong>{playingBar===bar && <em>{t('metronome.grooveBarPlaying')}</em>}</span>
     <span className="grooveBarMiniature" aria-hidden="true" style={{'--groove-preview-steps':stepsPerBar}}>
       {pattern.rows.map((row,r)=><span className={`grooveMiniRow ${row.muted?'is-muted':''}`} key={r}>
