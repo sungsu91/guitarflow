@@ -1,4 +1,5 @@
 import { ENGLISH_TUNER_GUIDANCE_BADGES } from "./tunerGuidanceBadges.js";
+import {useTabletLayout} from '../layouts/TabletLayout.jsx';
 import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
@@ -1392,6 +1393,16 @@ function MobileTunerLayout({ activeMenu, controller, guidance, onCloseMenu, onOp
   );
 }
 
+function TabletTunerLayout({controller,guidance,...controls}) {
+  return <>
+    <MobileTunerControls mobile controller={controller} {...controls}/>
+    <div className="tunerModeBody tunerModeBody--mobile tunerModeBody--tablet">
+      <TunerDashboard controller={controller} guidance={guidance} showDirectionScale showReadout/>
+      <TunerHeadstock instrument={controller.instrument} onNextDesign={controller.nextHeadstockDesign} onSelectString={controller.selectString} preset={controller.preset} reading={controller.reading} selectedString={controller.selectedString} showMode={false} showTarget/>
+    </div>
+  </>;
+}
+
 function DesktopTunerLayout({
   activeMenu,
   controller,
@@ -1445,6 +1456,7 @@ export default function TunerMode({
   mobile = false,
   onBackgroundChange,
 }) {
+  const tablet = useTabletLayout();
   const controller = useTunerController(active);
   useEffect(() => {
     if (active && controller.micState === "denied") {
@@ -1498,7 +1510,7 @@ export default function TunerMode({
 
   const handleBackgroundPointerDown = useCallback((event) => {
     backgroundSwipeRef.current = null;
-    if (!mobile || !active || activeSheet || event.isPrimary === false) return;
+    if ((!mobile && !tablet) || !active || activeSheet || event.isPrimary === false) return;
     if (event.target instanceof Element && event.target.closest("button, a, input, select, textarea, [role='button']")) return;
 
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -1516,7 +1528,7 @@ export default function TunerMode({
       startX: event.clientX,
       startY: event.clientY,
     };
-  }, [active, activeSheet, mobile]);
+  }, [active, activeSheet, mobile, tablet]);
 
   const handleBackgroundPointerMove = useCallback((event) => {
     const swipe = backgroundSwipeRef.current;
@@ -1575,7 +1587,7 @@ export default function TunerMode({
         ))}
       </div>
       <div className="tunerBackgroundShade" aria-hidden="true" />
-      {mobile ? <MobileTunerLayout {...layoutProps} /> : <DesktopTunerLayout {...layoutProps} />}
+      {tablet ? <TabletTunerLayout {...layoutProps} /> : mobile ? <MobileTunerLayout {...layoutProps} /> : <DesktopTunerLayout {...layoutProps} />}
     </section>
   );
 }

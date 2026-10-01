@@ -106,7 +106,6 @@ export default function useBackingLoop(ownerMode = "") {
   const [libraryEditMode, setLibraryEditMode] = useState(false);
   const [libraryView, setLibraryView] = useState("playlist");
   const [playlistPanelView, setPlaylistPanelView] = useState("queue");
-  const [playlistLibraryPickerOpen, setPlaylistLibraryPickerOpen] = useState(false);
   const [selectedLibraryIds, setSelectedLibraryIds] = useState([]);
   const [notice, setNotice] = useState("");
   const [phase, setPhase] = useState("idle");
@@ -119,7 +118,6 @@ export default function useBackingLoop(ownerMode = "") {
   const [playlistDeleteTargetId, setPlaylistDeleteTargetId] = useState("");
   const [playlistItemsDeleteTargetId, setPlaylistItemsDeleteTargetId] = useState("");
   const [playlistItemsDeleteTargetIds, setPlaylistItemsDeleteTargetIds] = useState([]);
-  const [playlistLibraryTargetId, setPlaylistLibraryTargetId] = useState("");
   const [playlistRenameDraft, setPlaylistRenameDraft] = useState("");
   const [playlistSaveTargetId, setPlaylistSaveTargetId] = useState("");
   const [playlistState, setPlaylistState] = useState(createDefaultBackingPlaylistState);
@@ -567,11 +565,11 @@ export default function useBackingLoop(ownerMode = "") {
   const deactivateBackingLoop = useCallback(() => {
     modeActiveRef.current = false;
     setDialog("");
+    setPlaylistPanelView("queue");
     setSaveError("");
     setPlaylistDeleteTargetId("");
     setPlaylistItemsDeleteTargetId("");
     setPlaylistItemsDeleteTargetIds([]);
-    setPlaylistLibraryPickerOpen(false);
     const phaseBeforeDeactivate = phaseRef.current;
     const playbackPositionMs = getPlaybackAudio()
       ? Math.max(0, getPlaybackAudio().currentTime * 1000)
@@ -1008,10 +1006,7 @@ export default function useBackingLoop(ownerMode = "") {
     setLibraryEditMode(false);
     setLibraryView("playlist");
     setPlaylistPanelView("queue");
-    setPlaylistLibraryPickerOpen(false);
-    setPlaylistLibraryTargetId("");
     setSelectedSavedItemIds([]);
-    setPlaylistLibraryTargetId("");
     setDialog("load");
   }, []);
 
@@ -1123,7 +1118,6 @@ export default function useBackingLoop(ownerMode = "") {
         setSelectedSavedItemIds(importedIds);
       }
       setSelectedLibraryIds([]);
-      setPlaylistLibraryPickerOpen(false);
       setImportRejectedCount(rejected.length);
       const targetTitle = getBackingPlaylistById(nextPlaylistState, importTargetId)?.title || ko["backingLoop.currentPlaylist"];
       setNotice(storageFailureCount
@@ -1403,7 +1397,6 @@ export default function useBackingLoop(ownerMode = "") {
     const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
     setLibraryView("playlist");
     setPlaylistPanelView("queue");
-    setPlaylistLibraryPickerOpen(false);
     setLibraryEditMode(false);
     setSelectedLibraryId("");
     setSelectedLibraryIds([]);
@@ -1414,8 +1407,11 @@ export default function useBackingLoop(ownerMode = "") {
 
   const showCurrentPlaylist = useCallback(() => {
     setPlaylistPanelView("queue");
-    setPlaylistLibraryPickerOpen(false);
-    setPlaylistLibraryTargetId("");
+    setSelectedSavedItemIds([]);
+  }, []);
+
+  const showGroovePacks = useCallback(() => {
+    setPlaylistPanelView("grooves");
     setSelectedSavedItemIds([]);
   }, []);
 
@@ -1423,8 +1419,6 @@ export default function useBackingLoop(ownerMode = "") {
     const savedPlaylist = playlistStateRef.current.savedPlaylists.find((playlist) => playlist.id === playlistId);
     if (!savedPlaylist) return;
     setPlaylistPanelView(savedPlaylist.id);
-    setPlaylistLibraryPickerOpen(false);
-    setPlaylistLibraryTargetId("");
     setSelectedSavedItemIds([]);
   }, []);
 
@@ -1500,25 +1494,6 @@ export default function useBackingLoop(ownerMode = "") {
     setNotice(formatMessage(ko["backingLoop.removedValue2SelectedTracksFromValue1AudioFilesAreKept"], { value1: playlist.title, value2: itemIds.length }));
   }, [commitPlaylistState, playlistItemsDeleteTargetId, playlistItemsDeleteTargetIds, resetAudioPosition, setPhaseImmediate]);
 
-  const togglePlaylistLibraryPicker = useCallback((playlistId = "") => {
-    const targetPlaylist = getBackingPlaylistById(playlistStateRef.current, playlistId)
-      || getActiveBackingPlaylist(playlistStateRef.current);
-    setPlaylistLibraryPickerOpen((open) => (
-      playlistLibraryTargetId === targetPlaylist.id ? !open : true
-    ));
-    setPlaylistLibraryTargetId(targetPlaylist.id);
-    setSelectedLibraryIds([]);
-  }, [playlistLibraryTargetId]);
-
-  const addGrooveToPlaylist = useCallback((id) => {
-    if (!listGrooveBackingSources().some(item => item.id === id)) return;
-    const target = getBackingPlaylistById(playlistStateRef.current, playlistLibraryTargetId)
-      || getActiveBackingPlaylist(playlistStateRef.current);
-    commitPlaylistState(state => addBackingPlaylistItems(state, target.id, [id]));
-    setNotice(ko["backingLoop.groovePackLinkedItsOriginalPatternAndBpmAreShared"]);
-    setPlaylistLibraryPickerOpen(false);
-  }, [commitPlaylistState, playlistLibraryTargetId]);
-
   const saveCurrentPlaylist = useCallback(() => {
     const saveTarget = playlistStateRef.current.savedPlaylists.find((playlist) => playlist.id === playlistSaveTargetId);
     const title = saveTarget?.title || playlistRenameDraft.trim();
@@ -1572,7 +1547,6 @@ export default function useBackingLoop(ownerMode = "") {
     setSelectedPlaylistItemId(activePlaylist.itemIds[0] || "");
     setSelectedQueueItemIds([...activePlaylist.itemIds]);
     setPlaylistPanelView("queue");
-    setPlaylistLibraryPickerOpen(false);
     setNotice(formatMessage(ko["backingLoop.loadedValue1IntoTheCurrentPlaylist"], { value1: savedPlaylist.title }));
   }, [commitPlaylistState, resetAudioPosition, setPhaseImmediate]);
 
@@ -1781,6 +1755,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [resetAudioPosition, setPhaseImmediate]);
 
   const playPlaylistItem = useCallback(async (itemId, options = {}) => {
+    if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
     const currentState = playlistStateRef.current;
     const playbackPlaylist = getBackingPlaylistById(currentState, options.playlistId)
       || getActiveBackingPlaylist(currentState);
@@ -1799,7 +1774,7 @@ export default function useBackingLoop(ownerMode = "") {
       playedItemIds: [targetId],
       playlistId: playbackPlaylist.id,
     };
-    playlistAutoplayRef.current = true;
+    playlistAutoplayRef.current = options.autoplay !== false;
     setPlaylistPlaybackActive(true);
     if (playbackPlaylist.id === currentState.currentQueue.id) setSelectedPlaylistItemId(targetId);
     const loaded = await loadRecording(targetId, {
@@ -1813,8 +1788,18 @@ export default function useBackingLoop(ownerMode = "") {
       setPlaylistPlaybackActive(false);
       return;
     }
-    setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
+    if (options.autoplay !== false) setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
   }, [dialog, loadRecording, selectedPlaylistItemId]);
+
+  const selectGroovePack = useCallback((itemId, { autoplay = false } = {}) => {
+    if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
+    if (!listGrooveBackingSources().some(item => item.id === itemId)) return;
+    // Keep catalog references in the shared queue; saved lists and packs are unchanged.
+    const nextState = commitPlaylistState(state => addBackingPlaylistItems(state, state.currentQueue.id, [itemId]));
+    setSelectedQueueItemIds([itemId]);
+    showCurrentPlaylist();
+    return playPlaylistItem(itemId, { autoplay, playlistId: nextState.currentQueue.id });
+  }, [commitPlaylistState, playPlaylistItem, showCurrentPlaylist]);
 
   const playSelectedQueueItems = useCallback(() => {
     const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
@@ -2152,7 +2137,6 @@ export default function useBackingLoop(ownerMode = "") {
 
   return {
     activePlaylist,
-    addGrooveToPlaylist,
     applyTrim,
     audioRef,
     audioUrl,
@@ -2209,8 +2193,6 @@ export default function useBackingLoop(ownerMode = "") {
     playlistEntries,
     playlistPlaybackActive,
     playlistPlaybackMode: playlistState.playbackMode,
-    playlistLibraryPickerOpen,
-    playlistLibraryTargetId,
     playlistPanelView,
     playlistPlayingItemId,
     playlistPlayingPlaylistId,
@@ -2279,6 +2261,8 @@ export default function useBackingLoop(ownerMode = "") {
     clearLibraryRecordingSelection,
     saveCurrentPlaylist,
     showCurrentPlaylist,
+    showGroovePacks,
+    selectGroovePack,
     showSavedPlaylist,
     showPlaylistView,
     selectAllQueueItems,
@@ -2287,6 +2271,5 @@ export default function useBackingLoop(ownerMode = "") {
     clearSavedPlaylistItemSelection,
     toggleQueueItemSelection,
     toggleSavedPlaylistItemSelection,
-    togglePlaylistLibraryPicker,
   };
 }

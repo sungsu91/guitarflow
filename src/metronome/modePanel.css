@@ -1,0 +1,175 @@
+/* Register before legacy device layers so the shared panel joins consistently
+   on first load and after route changes, including tablet important rules. */
+@layer metronome-primary-tabs {
+  html body .app.metronomeMode > .standaloneMetronomePanel {
+    --metronome-mode-panel-gap:10px;
+    row-gap:var(--metronome-mode-panel-gap)!important;
+  }
+  html body .app.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector {
+    display:flex!important;
+    align-items:center!important;
+    flex-wrap:nowrap!important;
+    gap:8px!important;
+    position:relative;
+    z-index:2;
+    box-sizing:border-box;
+    min-width:0;
+    min-height:68px!important;
+    padding:10px 18px!important;
+    margin:0 0 calc(-1 * var(--metronome-mode-panel-gap))!important;
+    border:1px solid var(--studio-border,var(--groove-border,#b5914e))!important;
+    border-bottom:0!important;
+    border-radius:12px 12px 0 0!important;
+    background:var(--studio-surface,var(--groove-surface,#faf6ef))!important;
+    box-shadow:none!important;
+  }
+  html body .app.metronomeMode > .standaloneMetronomePanel > :is(.grooveEditor,.metronomeBeatMatrix--main) {
+    margin-top:0!important;
+    border:1px solid var(--studio-border,var(--groove-border,#b5914e))!important;
+    border-top:0!important;
+    border-radius:0 0 12px 12px!important;
+    background:var(--studio-surface,var(--groove-surface,#faf6ef))!important;
+    box-shadow:none!important;
+  }
+  html body .app.metronomeMode .grooveEditor > .grooveToolbar {
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  html body .app.metronomeMode .grooveModeSelector > .metronomeModeButton {
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    flex:0 0 auto!important;
+    width:94px!important;
+    min-width:94px!important;
+    height:46px!important;
+    min-height:46px!important;
+    padding:6px 12px!important;
+    border:1px solid var(--groove-border,#bba98a)!important;
+    border-radius:8px!important;
+    background:var(--groove-control,#f4efe4)!important;
+    color:var(--groove-text,#342c25)!important;
+    -webkit-text-fill-color:currentColor!important;
+    background-image:none!important;
+    font-weight:800!important;
+    line-height:1!important;
+    box-shadow:none!important;
+  }
+  html body .app.metronomeMode .grooveModeSelector > .metronomeModeButton[aria-pressed=true] {
+    background:var(--groove-gold,#edc565)!important;
+    border-color:var(--groove-goldEdge,#b5914e)!important;
+    color:#32220c!important;
+    box-shadow:inset 0 0 0 1px var(--groove-goldEdge,#b5914e)!important;
+  }
+  html body .app.metronomeMode .metronomeModeNumber {
+    color:inherit!important;
+    -webkit-text-fill-color:currentColor!important;
+    font-size:23px!important;
+    font-weight:800!important;
+    line-height:1!important;
+  }
+  html body .app.metronomeMode .metronomeModeName {
+    color:inherit!important;
+    -webkit-text-fill-color:currentColor!important;
+    font-size:12px!important;
+    font-weight:700!important;
+    line-height:1!important;
+  }
+  html body .app.metronomeMode .grooveModeSelector > .groovePacksTrigger {
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    min-height:32px!important;
+    height:32px!important;
+    margin-left:auto!important;
+    padding:4px 8px!important;
+    font-size:12px!important;
+    white-space:nowrap;
+  }
+  html body .app.metronomeMode .metronomeModeButton:focus-visible {
+    outline:2px solid var(--groove-goldEdge,#b5914e)!important;
+    outline-offset:3px;
+  }
+  /* Desktop groove mode renders its primary tabs inside the editor toolbar. */
+  html body .desktopLayout .app.metronomeMode > .standaloneMetronomePanel:has(> .grooveEditor--withModes) {
+    grid-template-rows:auto auto auto auto auto!important;
+    grid-template-areas:"handle handle" "advanced advanced" "visual visual" "transport transport" "controls backing"!important;
+  }
+  html body .desktopLayout .app.metronomeMode > .standaloneMetronomePanel.dockCollapsed:has(> .grooveEditor--withModes) {
+    grid-template-rows:auto auto auto auto!important;
+    grid-template-areas:"handle handle" "visual visual" "transport transport" "controls backing"!important;
+  }
+  html body .desktopLayout .app.metronomeMode > .standaloneMetronomePanel > .grooveEditor--withModes {
+    border-top:1px solid var(--studio-border,var(--groove-border,#b5914e))!important;
+    border-radius:12px!important;
+  }
+  html body .desktopLayout .app.metronomeMode .grooveEditor--withModes > .grooveToolbar {
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+  }
+  html body .desktopLayout .app.metronomeMode .grooveToolbar > .grooveModeSelector {
+    display:flex!important;
+    align-items:center!important;
+    flex:0 0 auto!important;
+    gap:8px!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  html body .desktopLayout .app.metronomeMode .grooveToolbar > .grooveModeSelector + .grooveStrengthControl {
+    margin-left:auto!important;
+  }
+  html body .desktopLayout .app.metronomeMode .grooveToolbar > .groovePacksTrigger {
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:4px!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:4px 8px!important;
+    font-size:12px!important;
+    white-space:nowrap;
+  }
+  @media (max-width:1279px) {
+    html body .desktopLayout .app.metronomeMode .grooveEditor--withModes > .grooveToolbar,
+    html body .desktopLayout .app.metronomeMode .grooveToolbar > .grooveModeSelector {gap:5px!important}
+    html body .desktopLayout .app.metronomeMode .grooveToolbar .metronomeModeButton {
+      width:64px!important;
+      min-width:64px!important;
+      padding:5px!important;
+      gap:4px!important;
+    }
+  }
+  /* Compact touch layout keeps the three primary tabs on one line. */
+  html body .app.viewport-mobile-surface.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector {
+    min-height:62px!important;
+    padding:9px 8px!important;
+    gap:5px!important;
+  }
+  html body .app.viewport-mobile-surface.metronomeMode .grooveModeSelector > .metronomeModeButton {
+    width:56px!important;
+    min-width:56px!important;
+    height:44px!important;
+    min-height:44px!important;
+    padding:5px!important;
+    gap:4px!important;
+  }
+  html body .app.viewport-mobile-surface.metronomeMode .metronomeModeNumber {font-size:21px!important}
+  html body .app.viewport-mobile-surface.metronomeMode .metronomeModeName {font-size:10px!important}
+  html body .app.viewport-mobile-surface.metronomeMode .grooveModeSelector > .groovePacksTrigger {padding:3px!important;font-size:11px!important}
+  html body .tabletLayout .app.metronomeMode .grooveModeSelector > .metronomeModeButton {width:94px!important;min-width:94px!important;height:48px!important;min-height:48px!important}
+  html body .tabletLayout .app.metronomeMode .metronomeModeNumber {font-size:23px!important}
+  html body .tabletLayout .app.metronomeMode .metronomeModeName {font-size:12px!important}
+  /* Tablet landscape already overlays the header inside its visual grid area. */
+  @media (min-width:960px) and (orientation:landscape) {
+    html body .tabletLayout .app.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector {margin:0!important}
+  }
+}

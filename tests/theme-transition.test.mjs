@@ -3,11 +3,9 @@ import { readFile } from './helpers/i18n-source.mjs';
 import test from "node:test";
 
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
-const splashSource = await readFile(new URL("../src/launch/SplashIntro.jsx", import.meta.url), "utf8");
 const splashStyles = await readFile(new URL("../src/launch/splash-intro.css", import.meta.url), "utf8");
-const polishStyles = await readFile(new URL("../src/polish.css", import.meta.url), "utf8");
 
-test("theme changes advance the shared launch logo through the storyboard milestones", () => {
+test("theme changes keep the shared readiness and progress handoff", () => {
   assert.match(appSource, /function ThemeTransitionOverlay[\s\S]*?<SplashIntro/);
   assert.match(appSource, /phase: "covering",\s*progress: 0/);
 
@@ -21,51 +19,7 @@ test("theme changes advance the shared launch logo through the storyboard milest
   assert.match(splashStyles, /html\.app-is-theme-loading[\s\S]*?overflow: hidden/);
 });
 
-test("controlled splash crossfades the supplied FRETIVA storyboard with lightweight stages", () => {
-  const frameReferences = splashSource.match(/fretiva-intro-\d{2}\.png/g) ?? [];
-
-  assert.equal(frameReferences.length, 4);
-  assert.match(splashSource, /INTRO_FRAMES\.map/);
-  assert.match(splashSource, /launchSplash__frame--visible/);
-  assert.match(splashSource, /launchSplash__frame--hint/);
-  assert.match(splashSource, /launchSplash__brand/);
-  assert.match(splashSource, />FRETIVA</);
-  assert.match(splashSource, />LAB</);
-  assert.match(splashSource, /role="progressbar"/);
-  assert.match(splashSource, /launchSplash--step-\$\{progressStep\}/);
-  assert.match(splashStyles, /\.launchSplash--controlled/);
-  assert.match(splashStyles, /\.launchSplash--controlled \.launchSplash__frame[\s\S]*?transition:/);
-  assert.match(splashStyles, /transform:/);
-  assert.match(splashStyles, /opacity:/);
-  assert.match(splashStyles, /aspect-ratio: 768 \/ 1840/);
-  assert.match(splashStyles, /object-fit: contain/);
-  assert.match(
-    splashStyles,
-    /@media \(orientation: portrait\)[\s\S]*?width: 100vw;[\s\S]*?height: 100lvh;[\s\S]*?object-fit: cover/,
-  );
-  assert.match(splashStyles, /\.launchSplash__progress[\s\S]*?position: fixed/);
-  assert.match(splashStyles, /will-change: opacity/);
-  assert.match(splashStyles, /@keyframes launchIntroBrandIn/);
-  assert.match(splashStyles, /\.launchSplash__brand[\s\S]*?top: 43%/);
-  assert.match(splashStyles, /font-size: clamp\(48px, 14\.2vw, 96px\)/);
-  assert.match(splashStyles, /\.launchSplash--controlled\.launchSplash--step-logo-hint[\s\S]*?opacity: 0\.82/);
-  assert.doesNotMatch(splashStyles, /transform: scale\(1\.018\)/);
-  assert.doesNotMatch(splashStyles, /transform: scale\(1\.015\)/);
-  assert.match(splashStyles, /\.launchSplash__content[\s\S]*?min-width: 0/);
-  assert.match(splashStyles, /\.launchSplash \{[\s\S]*?width: 100vw/);
-  assert.match(splashStyles, /--launch-stage-shift-x: 0px/);
-  assert.match(
-    splashStyles,
-    /\.launchSplash__stage[\s\S]*?left: 50%[\s\S]*?transform: translate3d\(calc\(-50% \+ var\(--launch-stage-shift-x\)\), 0, 0\)/,
-  );
-  assert.doesNotMatch(splashSource, /<svg|ClipPath|JUST_PIECE_CLIP_PATH|PLAY_PIECE_CLIP_PATH/);
-  assert.doesNotMatch(splashSource, /--launch-backdrop-image/);
-  assert.doesNotMatch(splashStyles, /background-image: var\(--launch-backdrop-image\)/);
-  assert.doesNotMatch(splashStyles, /filter:\s*blur/);
-  assert.doesNotMatch(polishStyles, /\.themeTransitionOverlay/);
-});
-
-test("theme storyboard timing stays compact", () => {
+test("theme transition timing stays compact", () => {
   const timingBlock = appSource.match(
     /const THEME_TRANSITION_TIMINGS = Object\.freeze\(\{([\s\S]*?)\}\);/,
   );
@@ -76,36 +30,4 @@ test("theme storyboard timing stays compact", () => {
   assert.equal(timings.length, 5);
   assert.ok(timings.every((duration) => duration >= 100 && duration <= 250));
   assert.ok(timings.reduce((total, duration) => total + duration, 0) <= 1000);
-});
-
-test("desktop launch branding stays centered inside the narrow fretboard frame", () => {
-  assert.match(
-    splashStyles,
-    /@media \(min-width: 768px\) and \(min-height: 600px\) and \(orientation: landscape\)/,
-  );
-  assert.match(
-    splashStyles,
-    /@media \(min-width: 768px\)[\s\S]*?--launch-stage-shift-x: 0px;[\s\S]*?\.launchSplash__brand \{[\s\S]*?width: 92%;[\s\S]*?translate3d\(-50%, 0, 0\)/,
-  );
-  assert.match(
-    splashStyles,
-    /\.launchSplash__brand \{[\s\S]*?left: calc\(50% - clamp\(8px, 1\.1dvh, 12px\)\);[\s\S]*?width: 92%;/,
-  );
-  assert.match(
-    splashStyles,
-    /\.launchSplash__brand strong \{[\s\S]*?font-size: clamp\(54px, 9dvh, 84px\);[\s\S]*?white-space: nowrap;/,
-  );
-  assert.match(
-    splashStyles,
-    /\.launchSplash--controlled \.launchSplash__brand \{[\s\S]*?width: calc\(100% - clamp\(12px, 1\.6dvh, 18px\)\);/,
-  );
-  assert.match(
-    splashStyles,
-    /\.launchSplash--controlled \.launchSplash__brand strong \{[\s\S]*?font-size: clamp\(40px, 6\.7dvh, 64px\);[\s\S]*?letter-spacing: 0\.13em;/,
-  );
-  assert.match(splashStyles, /@keyframes launchIntroDesktopBrandIn[\s\S]*?opacity: 1/);
-  assert.match(
-    splashStyles,
-    /launchSplash--autonomous \.launchSplash__brand \{[\s\S]*?animation-name: launchIntroDesktopBrandIn/,
-  );
 });

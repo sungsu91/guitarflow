@@ -4,21 +4,22 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import GrooveTonePicker from './GrooveTonePicker.jsx';
 import React, {useEffect, useRef, useState, useSyncExternalStore, useCallback} from 'react';
-import {applyGrooveQuick, createGrooveRow, GROOVE_TONES} from './groove.js';
+import {applyGrooveQuick, createGrooveRow, GROOVE_TONES, GROOVE_BAR_STEPS, getGrooveBarCount, resizeGroovePattern, copyGrooveBar, clearGrooveBar} from './groove.js';
+import {DesktopGrooveBarControls, MobileGrooveBarControls, DesktopGrooveOverview, MobileGrooveOverview, useGroovePlayingBar} from './GrooveMeasures.jsx';
 import './groove.css';
 
 
 const GrooveTrackName=GrooveTonePicker;
 
-const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,quick,changeRow,canRemove,removing}) {
+const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,quick,changeRow,canRemove,removing,barIndex}) {
   useLanguage();
   const groups=Array.from({length:beats},(_,b)=>b);
   return <div className={`grooveTrack ${row.muted?'is-muted':''}`}>
         <div className="grooveSteps">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=>{
-          const i=b*divisions+s,velocity=row.velocities?.[i]??70;
-          return <button type="button" key={s} aria-label={translateUi("metronome.rowValue1StepValue2", { value1: r+1, value2: i+1 })} aria-pressed={row.steps[i]} data-strength={velocity>=85?"strong":velocity>=55?"medium":velocity>=35?"soft":"ghost"} title={translateUi("metronome.rowValue1StepValue2VelocityValue3", { value1: r+1, value2: i+1, value3: velocity })} onClick={()=>{
-            if(quick!=='default') {changeRow(r,applyGrooveQuick(row,quick,i,beats,divisions,paint));return;}
-            const steps=[...row.steps],velocities=Array.from({length:72},(_,k)=>row.velocities?.[k]??70);
+          const step=b*divisions+s,i=barIndex*GROOVE_BAR_STEPS+step,velocity=row.velocities?.[i]??70;
+          return <button type="button" key={s} aria-label={translateUi("metronome.rowValue1StepValue2", { value1: r+1, value2: step+1 })} aria-pressed={row.steps[i]} data-strength={velocity>=85?"strong":velocity>=55?"medium":velocity>=35?"soft":"ghost"} title={translateUi("metronome.rowValue1StepValue2VelocityValue3", { value1: r+1, value2: step+1, value3: velocity })} onClick={()=>{
+            if(quick!=='default') {changeRow(r,applyGrooveQuick(row,quick,i,beats,divisions,paint,barIndex));return;}
+            const steps=[...row.steps],velocities=Array.from({length:row.steps.length},(_,k)=>row.velocities?.[k]??70);
             steps[i]=!(steps[i] && velocities[i]===Number(paint));
             velocities[i]=Number(paint);
             changeRow(r,{steps,velocities});
@@ -28,7 +29,7 @@ const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,q
       </div>;
 });
 
-function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint, quick, removing, mobile}) {
+function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint, quick, removing, mobile, barIndex, playingBar}) {
   useLanguage();
   const root=useRef(null);
   const viewport=useRef(null);
@@ -117,29 +118,44 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
     <div ref={root} className="grooveHorizontalScroll" aria-label={translateUi("metronome.grooveEditingGrid")}><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{width:zoom>1?`${zoom*100}%`:'100%',minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18*zoom}px)`:undefined}}>
       <div className="grooveTrackHeader"><div className="grooveSteps grooveLabels">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=><span key={s}>{localizeUi(s===0?b+1:label(s))}</span>)}</div>)}</div>{removing && <div/>}</div>
       <div className="grooveTrackList" aria-label={translateUi("metronome.grooveTrackList")}>
-        {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} quick={quick} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing}/> )}
+        {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} quick={quick} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing} barIndex={barIndex}/> )}
       </div>
-      <div className="groovePlayTrack" aria-hidden="true"><i ref={playhead} style={{visibility:playing?'visible':'hidden'}}/></div>
+      <div className="groovePlayTrack" aria-hidden="true"><i ref={playhead} style={{visibility:playing && playingBar===barIndex?'visible':'hidden'}}/></div>
     </div></div>
   </div>;
 }
 function GrooveEditor({store,...options}) {
   useLanguage();
   const pattern=useSyncExternalStore(store.subscribe,store.getSnapshot,store.getSnapshot);
-  const props={...options,pattern,store};
+  const barCount=getGrooveBarCount(pattern);
+  const [selectedBar,setSelectedBar]=useState(0);
+  const barIndex=Math.min(selectedBar,barCount-1);
+  useEffect(()=>setSelectedBar(value=>Math.min(value,barCount-1)),[barCount]);
+  const playingBar=useGroovePlayingBar(options.clock,options.playing,options.beats,options.divisions,barCount);
+  const props={...options,pattern,store,barIndex,playingBar};
+  const changeLength=(count,selectNew=false)=>{
+    options.onChange(resizeGroovePattern(store.getSnapshot(),count));
+    setSelectedBar(selectNew?count-1:Math.min(barIndex,count-1));
+  };
+  const barProps={count:barCount,selected:barIndex,onLength:changeLength,onSelect:setSelectedBar,
+    onCopy:()=>options.onChange(copyGrooveBar(store.getSnapshot(),barIndex-1,barIndex))};
+  const BarControls=options.mobile?MobileGrooveBarControls:DesktopGrooveBarControls;
+  const Overview=options.mobile?MobileGrooveOverview:DesktopGrooveOverview;
   const [paint,setPaint]=useState('70');
   const [removing,setRemoving]=useState(false);
   const [quick,setQuick]=useState('default');
   const resetDialog=useRef(null);
   const strength=<><label className="grooveStrengthControl"><Translation id="metronome.velocity" /><select className="grooveStrengthSelect" aria-label={translateUi("metronome.velocityGrooveEditor")} value={paint} onChange={e=>setPaint(e.target.value)}><option value="70"><Translation id="metronome.mediumCompact" /></option><option value="100"><Translation id="metronome.strong" /></option><option value="45"><Translation id="metronome.soft" /></option></select></label><label className="grooveStrengthControl grooveQuickControl"><Translation id="metronome.quick" /><select className="grooveStrengthSelect" aria-label={translateUi("metronome.quickGrooveEditor")} value={quick} onChange={e=>setQuick(e.target.value)}><option value="default"><Translation id="metronome.stepCompact" /></option><option value="bulk"><Translation id="etudes.fill" /></option><option value="partial"><Translation id="metronome.partial" /></option></select></label></>;
-  return <section className={`grooveEditor grooveEditor--${props.mobile?'mobile':'desktop'}`} aria-label={translateUi("app.groovePacksApp")}>
-    <div className="grooveToolbar">{strength}<span className="grooveRowLabel"><Translation id="metronome.rows" /></span><button type="button" aria-label={translateUi("metronome.addRow")} onClick={()=>props.onChange({...props.pattern,name:'custom',rows:[...props.pattern.rows,createGrooveRow(GROOVE_TONES.find(([id])=>!props.pattern.rows.some(row=>row.tone===id))?.[0]??'clap')]})}><Translation id="metronome.add" /></button><button type="button" className="grooveDeleteToggle" aria-label={translateUi("etudes.deleteRow")} aria-pressed={removing} onClick={()=>setRemoving(value=>!value)}><Translation id="metronome.deleteCompact" /></button><button type="button" className="grooveSaveButton" onClick={props.onSave}><Translation id="common.save" /></button><button type="button" onClick={()=>resetDialog.current?.showModal()}><Translation id="app.reset" /></button></div>
+  return <section className={`grooveEditor grooveEditor--${props.mobile?'mobile':'desktop'} ${barCount===1?'grooveEditor--single':''} ${props.modeControls?'grooveEditor--withModes':''}`} aria-label={translateUi("app.groovePacksApp")}>
+    <div className="grooveToolbar">{props.modeControls}{strength}<span className="grooveRowLabel"><Translation id="metronome.rows" /></span><button type="button" aria-label={translateUi("metronome.addRow")} onClick={()=>props.onChange({...props.pattern,name:'custom',rows:[...props.pattern.rows,createGrooveRow(GROOVE_TONES.find(([id])=>!props.pattern.rows.some(row=>row.tone===id))?.[0]??'clap',barCount)]})}><Translation id="metronome.add" /></button><button type="button" className="grooveDeleteToggle" aria-label={translateUi("etudes.deleteRow")} aria-pressed={removing} onClick={()=>setRemoving(value=>!value)}><Translation id="metronome.deleteCompact" /></button><button type="button" className="grooveSaveButton" onClick={props.onSave}><Translation id="common.save" /></button><button type="button" onClick={()=>resetDialog.current?.showModal()}><Translation id="app.reset" /></button>{props.packAction}</div>
     <Grid {...props} paint={paint} quick={quick} removing={removing}/>
+    <BarControls {...barProps}/>
+    {barCount>1 && <Overview {...barProps} pattern={pattern} stepsPerBar={options.beats*options.divisions} playingBar={playingBar}/>}
     <dialog ref={resetDialog} className="grooveResetDialog" aria-labelledby="groove-reset-title">
-      <p id="groove-reset-title"><Translation id="metronome.resetThePattern" /></p>
+      <p id="groove-reset-title">{translateUi("metronome.resetGrooveBar",{value1:barIndex+1})}</p>
       <div><button type="button" autoFocus onClick={()=>resetDialog.current?.close()}><Translation id="components.no" /></button><button type="button" onClick={()=>{
         const current=store.getSnapshot();
-        props.onChange({...current,name:'custom',rows:current.rows.map(row=>({...row,steps:Array(72).fill(false)}))});
+        props.onChange(clearGrooveBar(current,barIndex));
         resetDialog.current?.close();
       }}><Translation id="etudes.yes" /></button></div>
     </dialog>

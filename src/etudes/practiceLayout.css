@@ -129,6 +129,26 @@ html body main.app.app.app .etudeBackingDrawer>.backingPanelClose{position:absol
 
 .etudeFloatingTheme .etudeBackingDrawer.etudeBackingDrawer--movable{padding:4px}
 .etudeBackingDrawer .backingLoopPanel{position:relative;padding-top:30px!important}
+/* PDF readers mount floating tools outside main.app. Scope by the drawer so
+   the fold control cannot become an extra grid row in that presentation. */
+@layer rhythm-surfaces {
+ html[data-rifflab-layout="desktop"] body :is(.etudeBackingDrawer--desktop,.backingDockPanel) .backingLoopPanel.backingLoopPanel--desktop {
+  position:relative!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  box-sizing:border-box!important;padding:6px!important;gap:4px!important;margin:0!important;
+ }
+ html[data-rifflab-layout="desktop"] body :is(.etudeBackingDrawer--desktop,.backingDockPanel) .backingLoopPanel>.backingPanelClose {
+  position:absolute!important;top:7px!important;right:7px!important;z-index:50;
+  width:24px!important;min-width:24px!important;height:24px!important;min-height:24px!important;
+  padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;
+  color:var(--studio-player-text,#fbf3df)!important;
+ }
+ html[data-rifflab-layout="desktop"] body :is(.etudeBackingDrawer--desktop,.backingDockPanel) .backingLoopMiniPlayer--desktop {
+  grid-row:1!important;grid-column:1!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;
+ }
+ html[data-rifflab-layout="desktop"] body :is(.etudeBackingDrawer--desktop,.backingDockPanel) .backingLoopMainControls {grid-row:2!important;grid-column:1!important;min-width:0!important;width:100%!important;box-sizing:border-box!important}
+ html[data-rifflab-layout="desktop"] body :is(.etudeBackingDrawer--desktop,.backingDockPanel) .backingLoopTrackInfo {padding-right:26px!important;min-width:0!important;background:transparent!important;color:var(--studio-player-text,#fbf3df)!important}
+}
 html body main.app.app.app .etudeBackingDrawer .backingLoopPanel>.backingPanelClose{position:absolute;top:2px;right:4px;z-index:50;display:flex;align-items:center;justify-content:center;width:28px;height:26px;min-height:26px;padding:0;border:0;background:transparent!important;color:var(--theme-text,#493523)!important;font-size:24px;font-weight:800;box-shadow:none!important;border:0!important;cursor:pointer}
 /* Focus menus open over the score, outside the toolbar's former scroll clip. */
 .pdfStudio .etudePracticeLayout.etudeCompactTools.is-focus .etudePracticeToolbar .etudeViewTools{overflow:visible}

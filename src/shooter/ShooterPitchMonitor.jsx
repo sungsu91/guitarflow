@@ -72,9 +72,10 @@ function DesktopPitchMonitor({ pitch, message, arenaRef }) {
   </output>;
 }
 
-export default function ShooterPitchMonitor({ mobile, pitch, reason, active = true, micStatus, arenaRef }) {
+export default function ShooterPitchMonitor({ mobile, embedded = false, pitch, reason, active = true, micStatus, arenaRef }) {
   const message = active ? (STATUS[reason] ?? ko["tuner.waitingForSound"])
     : ({ 'Permission Denied': ko["shooter.allowMicrophoneAccess"], 'MIDI Disconnected': ko["shooter.connectAMidiDevice"], 'Device Disconnected': ko["shooter.audioDeviceDisconnected"], 'Input Error': ko["shooter.audioInputConnectionFailed"] }[micStatus] ?? ko["shooter.connectingMicrophone"]);
+  if (embedded) return <output className="dsPitch"><span>{translateUi("shooter.playedNote")}</span><b>{pitch?.note ?? "—"}</b><span>{pitch ? `${pitch.frequency.toFixed(1)} Hz` : "— Hz"}</span><small>{localizeUi(message)}</small></output>;
   return mobile
     ? <MobilePitchMonitor pitch={pitch} message={message} />
     : <DesktopPitchMonitor pitch={pitch} message={message} arenaRef={arenaRef} />;

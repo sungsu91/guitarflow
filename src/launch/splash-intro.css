@@ -47,16 +47,16 @@
 }
 
 html.app-is-launching {
-  scrollbar-color: transparent #020202;
+  scrollbar-color: transparent #1c1715;
 }
 
 /* iOS can paint the home-indicator area from the document background while
- * compositing fixed layers. Keep it dark until the splash handoff is finished.
+ * compositing fixed layers. Keep the brand background until the splash handoff is finished.
  * The root selector also outranks the app's important theme backgrounds. */
 html:is(.app-is-launching, .app-is-theme-loading),
 html:is(.app-is-launching, .app-is-theme-loading) body:has(> #root),
 html:is(.app-is-launching, .app-is-theme-loading) body > #root {
-  background: #020202 !important;
+  background: #1c1715 !important;
 }
 
 html.app-is-launching,
@@ -77,623 +77,133 @@ html.app-is-theme-loading body {
 
 html.app-is-launching::-webkit-scrollbar {
   width: 12px;
-  background: #020202;
+  background: #1c1715;
 }
 
 html.app-is-launching::-webkit-scrollbar-thumb,
 html.app-is-launching::-webkit-scrollbar-track {
-  background: #020202;
+  background: #1c1715;
 }
 
 .launchSplash {
   --launch-exit-ms: 320ms;
-  --launch-stage-shift-x: clamp(-8px, -0.45vw, -4px);
   position: fixed;
   inset: 0;
   z-index: 2147483000;
-  box-sizing: border-box;
-  display: grid;
-  width: 100vw;
-  min-height: 100vh;
-  min-height: 100lvh;
+  width: 100%;
+  height: 100dvh;
   overflow: hidden;
-  padding: 0;
-  place-items: center;
-  contain: layout paint style;
   isolation: isolate;
+  contain: layout paint style;
   overscroll-behavior: none;
   touch-action: none;
-  background: #020202;
-  color: #dededb;
-  will-change: opacity;
+  background: #1c1715;
+  color: #f4e8d8;
+  font-family: Arial, "Noto Sans KR", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
-
-.launchSplash::after {
+.launchSplash, .launchSplash * { box-sizing: border-box; }
+.launchSplash__layout { position: relative; width: 100%; height: 100%; min-width: 0; }
+.launchSplash__patterns { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.launchSplash__header {
   position: absolute;
-  inset: -5%;
-  content: "";
-  pointer-events: none;
-}
-
-.launchSplash::after {
-  z-index: -1;
-  background:
-    radial-gradient(circle at 50% 52%, transparent 0 24%, rgba(0, 0, 0, 0.38) 70%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 35% 65%, rgba(0, 0, 0, 0.58));
-}
-
-.launchSplash__content {
-  position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  align-content: center;
-}
-
-.launchSplash__stage {
-  position: relative;
-  left: 50%;
-  justify-self: start;
-  width: min(100vw, calc(100dvh * 0.4173913043), 768px);
-  max-width: none;
-  aspect-ratio: 768 / 1840;
-  isolation: isolate;
-  transform: translate3d(calc(-50% + var(--launch-stage-shift-x)), 0, 0);
-}
-
-.launchSplash--controlled .launchSplash__stage {
-  width: min(100vw, calc(80dvh * 0.4173913043), 768px);
-}
-
-.launchSplash__frameStack {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #050505;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.52);
-}
-
-.launchSplash__frame {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  opacity: 0;
-  user-select: none;
-  will-change: opacity;
-}
-
-.launchSplash--autonomous .launchSplash__frame--shadow {
-  animation: launchIntroShadowIn 240ms ease-out both;
-}
-
-.launchSplash--autonomous .launchSplash__frame--light {
-  animation: launchIntroFrameIn 520ms cubic-bezier(0.18, 0.76, 0.24, 1) 190ms both;
-}
-
-.launchSplash--autonomous .launchSplash__frame--flash {
-  animation: launchIntroFlashFrameIn 380ms ease-out 600ms both;
-}
-
-.launchSplash--autonomous .launchSplash__frame--logo {
-  animation: launchIntroLogoIn 520ms cubic-bezier(0.16, 0.76, 0.2, 1) 930ms both;
-}
-
-.launchSplash--controlled .launchSplash__frame {
-  transition: opacity 300ms ease-out;
-}
-
-.launchSplash--controlled .launchSplash__frame--shadow {
-  animation: launchIntroShadowIn 220ms ease-out both;
-}
-
-.launchSplash--controlled .launchSplash__frame--visible {
-  opacity: 1;
-}
-
-.launchSplash--controlled .launchSplash__frame--hint {
-  opacity: 0.18;
-}
-
-.launchSplash--exiting .launchSplash__frame--logo {
-  opacity: 1;
-}
-
-.launchSplash__lightSweep,
-.launchSplash__centerFlash,
-.launchSplash__completionLight {
-  position: absolute;
-  z-index: 5;
-  display: block;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.launchSplash__lightSweep {
-  top: -20%;
-  bottom: -20%;
-  left: 0;
-  width: 16%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 252, 0.2), transparent);
-  transform: translate3d(-150%, 0, 0) skewX(-7deg);
-}
-
-.launchSplash--autonomous .launchSplash__lightSweep,
-.launchSplash--controlled.launchSplash--step-light .launchSplash__lightSweep {
-  animation: launchIntroLightSweep 760ms cubic-bezier(0.22, 0.72, 0.28, 1) 170ms both;
-}
-
-.launchSplash--controlled.launchSplash--step-light .launchSplash__lightSweep {
-  animation-delay: 0ms;
-}
-
-.launchSplash__centerFlash {
-  inset: 18% 10%;
-  background: radial-gradient(circle at 50% 53%, rgba(255, 255, 255, 0.88), rgba(239, 239, 234, 0.2) 12%, transparent 42%);
-  transform: scale(0.72);
-}
-
-.launchSplash--autonomous .launchSplash__centerFlash,
-.launchSplash--controlled.launchSplash--step-flash .launchSplash__centerFlash {
-  animation: launchIntroCenterFlash 440ms ease-out 590ms both;
-}
-
-.launchSplash--controlled.launchSplash--step-flash .launchSplash__centerFlash {
-  animation-delay: 0ms;
-}
-
-.launchSplash__completionLight {
-  inset: 20% 4%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.13) 49%, transparent 63%);
-  transform: translate3d(-36%, 0, 0);
-}
-
-.launchSplash--autonomous .launchSplash__completionLight,
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__completionLight {
-  animation: launchIntroCompletionLight 2600ms ease-in-out 1280ms infinite;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__completionLight {
-  animation-delay: 0ms;
-}
-
-.launchSplash__brand {
-  position: absolute;
-  top: 43%;
-  left: 50%;
-  z-index: 6;
-  display: grid;
-  justify-items: center;
-  width: min(88%, 680px);
-  color: #e8e8e6;
-  opacity: 0;
-  pointer-events: none;
-  text-align: center;
-  transform: translate3d(-50%, 16px, 0) scale(0.97);
-  transform-origin: center;
-  will-change: opacity, transform;
-}
-
-.launchSplash__brand::before {
-  position: absolute;
-  inset: -54% -12% -72%;
-  z-index: -1;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.58), transparent 68%);
-  content: "";
-}
-
-.launchSplash__brand strong {
-  display: block;
-  margin-left: 0.17em;
-  background: linear-gradient(180deg, #ffffff 0%, #d7d7d4 34%, #8f9092 62%, #f4f4f1 100%);
-  background-clip: text;
-  color: transparent;
-  font-family: "Arial Narrow", "Segoe UI", sans-serif;
-  font-size: clamp(48px, 14.2vw, 96px);
-  font-stretch: condensed;
-  font-weight: 300;
-  letter-spacing: 0.17em;
-  line-height: 0.92;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.34), 0 5px 18px rgba(0, 0, 0, 0.72);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.launchSplash__brandSubline {
-  display: grid;
-  grid-template-columns: minmax(46px, 1fr) auto minmax(46px, 1fr);
+  display: flex;
   align-items: center;
-  width: min(72%, 430px);
-  gap: clamp(14px, 4vw, 28px);
-  margin-top: clamp(14px, 2.4vh, 24px);
-  color: rgba(242, 242, 239, 0.94);
-  font-family: "Segoe UI", sans-serif;
-  font-size: clamp(13px, 3.9vw, 22px);
-  font-weight: 400;
-  letter-spacing: 0.56em;
-  line-height: 1;
-  text-indent: 0.56em;
-}
-
-.launchSplash__brandSubline i {
-  display: block;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(239, 239, 236, 0.88));
-}
-
-.launchSplash__brandSubline i:last-child {
-  background: linear-gradient(90deg, rgba(239, 239, 236, 0.88), transparent);
-}
-
-.launchSplash__brandMark {
-  width: clamp(8px, 2.4vw, 14px);
-  aspect-ratio: 1;
-  margin-top: clamp(17px, 2.8vh, 28px);
-  border: 1px solid rgba(255, 255, 252, 0.72);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(145, 146, 148, 0.82));
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.24);
-  transform: rotate(45deg);
-}
-
-.launchSplash--autonomous .launchSplash__brand {
-  animation: launchIntroBrandIn 560ms cubic-bezier(0.16, 0.76, 0.2, 1) 930ms both;
-}
-
-.launchSplash--controlled .launchSplash__brand {
-  transition: opacity 160ms ease-out, transform 220ms cubic-bezier(0.18, 0.76, 0.24, 1);
-}
-
-.launchSplash--controlled.launchSplash--step-logo-hint .launchSplash__brand {
-  opacity: 0.82;
-  transform: translate3d(-50%, 2px, 0) scale(0.997);
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__brand,
-.launchSplash--exiting .launchSplash__brand {
-  opacity: 1;
-  transform: translate3d(-50%, 0, 0) scale(1);
-}
-
-.launchSplash__progress {
-  display: grid;
-  justify-items: center;
-  width: min(74vw, 460px);
-  gap: 9px;
-  margin-top: clamp(12px, 2.2vh, 20px);
-  color: rgba(223, 223, 220, 0.76);
-  font-size: clamp(10px, 2.8vw, 13px);
+  justify-content: space-between;
+  gap: 24px;
+  color: #f4e8d8;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.12em;
 }
-
-.launchSplash__progressTrack {
-  position: relative;
+.launchSplash__header span + span { color: #bea598; font-size: 11px; font-weight: 400; }
+.launchSplash__brand {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  width: 90%;
+  transform: translate(-50%, -40%);
+  text-align: center;
+}
+.launchSplash__wordmark { display: grid; justify-items: center; }
+.launchSplash__wordmark strong, .launchSplash__wordmark > span {
   display: block;
-  width: 100%;
-  height: 1px;
-  overflow: visible;
-  background: rgba(255, 255, 255, 0.17);
-}
-
-.launchSplash__progressValue {
-  position: absolute;
-  inset: -0.5px 0;
-  display: block;
-  background: linear-gradient(90deg, #777775, #e8e8e4 76%, #ffffff);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.26);
-  transform: scaleX(var(--launch-progress-scale, 0));
-  transform-origin: left center;
-  transition: transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
-}
-
-.launchSplash__progressValue::after {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.72);
-  content: "";
-  transform: translate(50%, -50%);
-}
-
-.launchSplash__progress strong {
-  font: inherit;
-  font-weight: 500;
-}
-
-.launchSplash--ready .launchSplash__progress strong,
-.launchSplash--exiting .launchSplash__progress strong {
-  color: #f2f2ef;
-  letter-spacing: 0.18em;
-}
-
-.launchSplash__statusText {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
+  max-width: 100%;
+  color: #f4e8d8;
+  font-family: "Arial Black", Arial, sans-serif;
+  /* The app disables synthesized faces globally; this wordmark needs italic. */
+  font-synthesis: weight style;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
   white-space: nowrap;
 }
-
-.launchSplash--exiting {
-  animation: launchBackdropOut var(--launch-exit-ms) ease-in forwards;
+.launchSplash__wordmark > span { margin-top: 0.12em; color: #f08062; letter-spacing: -0.035em; }
+.launchSplash__brand p { margin: 22px 0 0; color: #bea598; font-weight: 400; line-height: 1.5; }
+.launchSplash__footer { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); }
+.launchSplash__statusLine { display: flex; justify-content: space-between; align-items: end; gap: 16px; font-size: 14px; font-weight: 400; }
+.launchSplash__loadingLabel { flex-shrink: 0; color: #bea598; font-size: 10px; letter-spacing: 0.1em; }
+.launchSplash__progress { position: relative; width: 100%; height: 3px; margin-top: 14px; overflow: hidden; background: #50362e; }
+.launchSplash__progress > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #f08062;
+  transform-origin: left center;
+  transition: transform 180ms ease-out;
 }
+.launchSplash__progress--indeterminate > span { width: 20%; animation: launchLoadingSweep 2s linear infinite; }
+.launchSplash__signature { margin: 22px 0 0; color: #bea598; text-align: center; font-size: 9px; letter-spacing: 0.2em; }
 
-@keyframes launchIntroShadowIn {
-  from {
-    opacity: 0;
-  }
+/* Desktop composition has its own type scale and generous horizontal stage. */
+.launchSplash__layout--desktop .launchSplash__header { top: 7%; left: 4.7%; right: 4.7%; }
+.launchSplash__layout--desktop .launchSplash__brand { top: 48%; }
+.launchSplash__layout--desktop .launchSplash__wordmark strong { font-size: clamp(96px, min(11.4vw, 24dvh), 290px); }
+.launchSplash__layout--desktop .launchSplash__wordmark > span { font-size: clamp(44px, min(4.7vw, 10dvh), 120px); }
+.launchSplash__layout--desktop .launchSplash__brand p { font-size: clamp(14px, 1.4vw, 24px); }
+.launchSplash__layout--desktop .launchSplash__footer { bottom: max(8%, env(safe-area-inset-bottom)); width: min(45%, 920px); }
 
-  to {
-    opacity: 1;
-  }
+/* Mobile composition remains independently adjustable, including phone rotation. */
+.launchSplash__layout--mobile .launchSplash__header {
+  top: max(5.1%, calc(env(safe-area-inset-top, 0px) + 18px));
+  left: max(8.15%, env(safe-area-inset-left, 0px));
+  right: max(8.15%, env(safe-area-inset-right, 0px));
+  font-size: clamp(10px, 2.5vw, 16px);
 }
-
-@keyframes launchIntroFrameIn {
-  0% {
-    opacity: 0;
-  }
-
-  35% {
-    opacity: 0.34;
-  }
-
-  100% {
-    opacity: 1;
-  }
+.launchSplash__layout--mobile .launchSplash__brand { top: 49%; width: 90%; }
+.launchSplash__layout--mobile .launchSplash__wordmark strong { font-size: clamp(44px, 14.5vw, 148px); }
+.launchSplash__layout--mobile .launchSplash__wordmark > span { font-size: clamp(27px, 8.1vw, 82px); }
+.launchSplash__layout--mobile .launchSplash__brand p { margin-top: 18px; font-size: clamp(11px, 2.68vw, 23px); }
+.launchSplash__layout--mobile .launchSplash__footer {
+  bottom: max(8.4%, calc(env(safe-area-inset-bottom, 0px) + 24px));
+  width: 83.7%;
 }
-
-@keyframes launchIntroFlashFrameIn {
-  0% {
-    opacity: 0;
-  }
-
-  45% {
-    opacity: 0.74;
-  }
-
-  100% {
-    opacity: 1;
-  }
+.launchSplash__layout--mobile .launchSplash__statusLine { gap: 10px; font-size: clamp(11px, 2.4vw, 20px); }
+.launchSplash__layout--mobile .launchSplash__loadingLabel { font-size: clamp(9px, 1.85vw, 14px); }
+.launchSplash__layout--mobile .launchSplash__signature { font-size: clamp(7px, 1.76vw, 12px); }
+.launchSplash--exiting { animation: launchBackdropOut var(--launch-exit-ms) ease-out both; }
+@keyframes launchBackdropOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes launchLoadingSweep {
+  0% { transform: translateX(-100%); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateX(500%); opacity: 0; }
 }
-
-@keyframes launchIntroLogoIn {
-  0% {
-    opacity: 0;
-  }
-
-  48% {
-    opacity: 0.42;
-  }
-
-  100% {
-    opacity: 1;
-  }
+@media (max-height: 560px) and (orientation: landscape) {
+  .launchSplash__layout--mobile .launchSplash__header { top: max(18px, env(safe-area-inset-top, 0px)); font-size: 10px; }
+  .launchSplash__layout--mobile .launchSplash__brand { top: 44%; }
+  .launchSplash__layout--mobile .launchSplash__wordmark strong { font-size: min(14.5vw, 20dvh); }
+  .launchSplash__layout--mobile .launchSplash__wordmark > span { font-size: min(8.1vw, 10dvh); }
+  .launchSplash__layout--mobile .launchSplash__brand p { margin-top: 10px; font-size: 11px; }
+  .launchSplash__layout--mobile .launchSplash__footer { bottom: max(20px, env(safe-area-inset-bottom, 0px)); width: 56%; }
+  .launchSplash__layout--mobile .launchSplash__statusLine { font-size: 10px; }
+  .launchSplash__layout--mobile .launchSplash__signature { margin-top: 12px; font-size: 7px; }
 }
-
-@keyframes launchIntroBrandIn {
-  0% {
-    opacity: 0;
-    transform: translate3d(-50%, 16px, 0) scale(0.97);
-  }
-
-  52% {
-    opacity: 0.46;
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate3d(-50%, 0, 0) scale(1);
-  }
-}
-
-@keyframes launchIntroDesktopBrandIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes launchIntroLightSweep {
-  0% {
-    opacity: 0;
-    transform: translate3d(-150%, 0, 0) skewX(-7deg);
-  }
-
-  24% {
-    opacity: 0.4;
-  }
-
-  72% {
-    opacity: 0.22;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate3d(360%, 0, 0) skewX(-7deg);
-  }
-}
-
-@keyframes launchIntroCenterFlash {
-  0%,
-  100% {
-    opacity: 0;
-    transform: scale(0.72);
-  }
-
-  44% {
-    opacity: 0.72;
-    transform: scale(1);
-  }
-
-  68% {
-    opacity: 0.28;
-    transform: scale(1.08);
-  }
-}
-
-@keyframes launchIntroCompletionLight {
-  0%,
-  18% {
-    opacity: 0;
-    transform: translate3d(-36%, 0, 0);
-  }
-
-  48% {
-    opacity: 0.22;
-  }
-
-  76%,
-  100% {
-    opacity: 0;
-    transform: translate3d(36%, 0, 0);
-  }
-}
-
-@keyframes launchBackdropOut {
-  0%,
-  28% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-@media (orientation: portrait) {
-  .launchSplash {
-    --launch-stage-shift-x: 0px;
-  }
-
-  .launchSplash__stage,
-  .launchSplash--controlled .launchSplash__stage {
-    width: 100vw;
-    height: 100vh;
-    height: 100lvh;
-    aspect-ratio: auto;
-  }
-
-  .launchSplash__frame {
-    object-fit: cover;
-  }
-
-  .launchSplash__frameStack {
-    box-shadow: none;
-  }
-
-  .launchSplash__progress {
-    position: fixed;
-    bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px));
-    left: 50%;
-    z-index: 10;
-    margin-top: 0;
-    transform: translateX(-50%);
-  }
-}
-
-@media (pointer: coarse), (display-mode: standalone) {
-  .launchSplash {
-    /* Cover the home-indicator inset even while the standalone viewport settles.
-     * Padding keeps the storyboard's original size and centre unchanged. */
-    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-}
-
-@media (min-width: 768px) and (min-height: 600px) and (orientation: landscape) {
-  .launchSplash {
-    --launch-stage-shift-x: 0px;
-  }
-
-  .launchSplash__brand {
-    left: calc(50% - clamp(8px, 1.1dvh, 12px));
-    width: 92%;
-    transform: translate3d(-50%, 0, 0) scale(1);
-    will-change: opacity;
-  }
-
-  .launchSplash__brand strong {
-    max-width: 100%;
-    margin-left: 0.15em;
-    font-size: clamp(54px, 9dvh, 84px);
-    letter-spacing: 0.15em;
-    white-space: nowrap;
-  }
-
-  .launchSplash--controlled .launchSplash__brand {
-    width: calc(100% - clamp(12px, 1.6dvh, 18px));
-  }
-
-  .launchSplash--controlled .launchSplash__brand strong {
-    font-size: clamp(40px, 6.7dvh, 64px);
-    letter-spacing: 0.13em;
-  }
-
-  .launchSplash--autonomous .launchSplash__brand {
-    animation-name: launchIntroDesktopBrandIn;
-  }
-
-  .launchSplash--controlled .launchSplash__brand {
-    transition: opacity 160ms ease-out;
-  }
-
-  .launchSplash--controlled.launchSplash--step-logo-hint .launchSplash__brand,
-  .launchSplash--controlled.launchSplash--step-complete .launchSplash__brand,
-  .launchSplash--exiting .launchSplash__brand {
-    transform: translate3d(-50%, 0, 0) scale(1);
-  }
-}
-
-@media (max-height: 520px) and (orientation: landscape) {
-  .launchSplash--controlled .launchSplash__stage {
-    width: min(100vw, calc(72dvh * 0.4173913043), 768px);
-  }
-
-  .launchSplash__progress {
-    margin-top: 8px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .launchSplash--autonomous .launchSplash__frame,
-  .launchSplash--controlled .launchSplash__frame,
-  .launchSplash--autonomous .launchSplash__brand {
-    animation-delay: 0ms !important;
-    animation-duration: 1ms !important;
-    transition-duration: 1ms !important;
-  }
-
-  .launchSplash--controlled .launchSplash__brand {
-    transition-duration: 1ms !important;
-  }
-
-  .launchSplash__progressValue {
-    transition-duration: 1ms;
-  }
-
-  .launchSplash__lightSweep,
-  .launchSplash__centerFlash,
-  .launchSplash__completionLight {
-    animation: none !important;
-    opacity: 0;
-  }
-
-  .launchSplash--exiting {
-    animation-duration: 160ms;
-  }
+  .launchSplash__progress > span { transition: none; }
+  .launchSplash__progress--indeterminate > span { animation: none; transform: translateX(200%); }
+  .launchSplash--exiting { animation-duration: 120ms; }
 }

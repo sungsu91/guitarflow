@@ -67,6 +67,7 @@ function SharedBackingDock({ controller, mobile, mode }) {
   const drag = useRef(null);
   const dragged = useRef(false);
   const panel = useRef(null);
+  const [left,setLeft] = useState(null);
   const panelHeight = useRef(250);
   const previousMode = useRef(mode);
   const clearance = Math.max(mobile ? 88 : 12, dock.clearance);
@@ -79,6 +80,7 @@ function SharedBackingDock({ controller, mobile, mode }) {
     if (dock.view === 'hidden') return;
     const resize = () => {
       if (panel.current) panelHeight.current = panel.current.getBoundingClientRect().height;
+      if(panel.current&&!mobile)setLeft(value=>value===null?null:Math.max(12,Math.min(window.innerWidth-panel.current.offsetWidth-12,value)));
       setDockTop(clampTop(top));
     };
     resize();
@@ -97,19 +99,28 @@ function SharedBackingDock({ controller, mobile, mode }) {
   const pointerDown = useCallback(event => {
     if (event.button !== 0) return;
     dragged.current = false;
-    drag.current = { y: event.clientY, top };
+    event.preventDefault();
+    const rect=panel.current?.getBoundingClientRect();
+    drag.current = { x:event.clientX, y: event.clientY, top, left:rect?.left??0 };
     event.currentTarget.setPointerCapture(event.pointerId);
   }, [top]);
   const pointerMove = useCallback(event => {
     if (!drag.current) return;
-    const dy = event.clientY - drag.current.y;
-    if (Math.abs(dy) > 5) dragged.current = true;
-    if (dragged.current) setDockTop(clampTop(drag.current.top + dy));
-  }, [clampTop, setDockTop]);
+    const g=drag.current,dy = event.clientY - g.y,dx=event.clientX-g.x;
+    if (Math.hypot(dx,dy) > 5) dragged.current = true;
+    if (dragged.current) {
+      g.nextTop=clampTop(g.top+dy);
+      g.nextLeft=open&&!mobile?Math.max(12,Math.min(innerWidth-(panel.current?.offsetWidth??420)-12,g.left+dx)):null;
+      if(panel.current){panel.current.style.top=`${g.nextTop}px`;if(g.nextLeft!==null){panel.current.style.left=`${g.nextLeft}px`;panel.current.style.right='auto';}}
+      else setDockTop(g.nextTop);
+    }
+  }, [clampTop, setDockTop,open,mobile]);
   const pointerUp = useCallback(event => {
+    if(drag.current?.nextTop!==undefined)setDockTop(drag.current.nextTop);
+    if(drag.current?.nextLeft!=null)setLeft(drag.current.nextLeft);
     drag.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-  }, []);
+  }, [setDockTop]);
   const keyDown = useCallback(event => {
     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
     event.preventDefault();
@@ -119,7 +130,7 @@ function SharedBackingDock({ controller, mobile, mode }) {
   const moveHandle = {onPointerDown:pointerDown, onPointerMove:pointerMove, onPointerUp:pointerUp, onPointerCancel:pointerUp, onKeyDown:keyDown};
   return <div className={`sharedBackingDock ${mobile?'sharedBackingDock--mobile':'sharedBackingDock--desktop'}`} data-ui="backing-loop" style={{'--dock-clearance':`${clearance}px`}}>
     {!open && <BackingDockEdge playing={controller.isPlaying} paused={controller.isPaused} title={controller.title} top={top} onToggle={toggle} onStop={stop} {...moveHandle}/>}
-    {open && <aside ref={panel} id="shared-backing-dock-panel" className="backingDockPanel" style={{top}} aria-label={korean?'백킹루프':'Backing loop'} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
+    {open && <aside ref={panel} id="shared-backing-dock-panel" className="backingDockPanel" style={{top,...(!mobile&&left!==null?{left,right:'auto'}:{})}} aria-label={korean?'백킹루프':'Backing loop'} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
       <BackingLoopDragContext.Provider value={moveHandle}>
         <BackingLoopFoldContext.Provider value={close}>
           {mobile ? <MobileBackingLoop controller={controller}/> : <DesktopBackingLoop controller={controller} presentation="standalone"/>}
@@ -712,6 +723,15 @@ function BackingPlaylistNavigation({ controller }) {
         type="button"
       >
         <ListMusic aria-hidden="true" size={12} /><Translation id="backingLoop.currentPlaylist" /></button>
+      <button
+        aria-selected={controller.playlistPanelView === "grooves"}
+        className={controller.playlistPanelView === "grooves" ? "selected" : ""}
+        onClick={controller.showGroovePacks}
+        role="tab"
+        type="button"
+      >
+        <Music2 aria-hidden="true" size={12} /><Translation id="app.groovePacksApp" />
+      </button>
       {controller.savedPlaylists.map((playlist) => (
         <button
           aria-label={translateUi("components.openSavedPlaylistValue1", { value1: playlist.title })}
@@ -734,16 +754,17 @@ function BackingPlaylistNavigation({ controller }) {
 function BackingCurrentPlaylistPane({ controller }) {
   useLanguage();
   const selectedCount = controller.selectedQueueItemIds.length;
+  const currentItemRef = useRef(null);
+  useEffect(() => {
+    currentItemRef.current?.scrollIntoView({ block: "nearest" });
+  }, [controller.selectedPlaylistItemId]);
   return (
     <>
       <div className="backingLoopPlaylistActions">
-        <button className="primary" onClick={() => controller.togglePlaylistLibraryPicker(controller.activePlaylist.id)} type="button">
-          <Plus aria-hidden="true" size={13} /><Translation id="app.groovePacksApp" /></button>
         <button onClick={() => controller.openImportFilePicker(controller.activePlaylist.id)} type="button">
           <Plus aria-hidden="true" size={13} /><Translation id="components.addDeviceFiles" /></button>
         <span>{controller.playlistEntries.length}<Translation id="audioStudio.tracks" /></span>
       </div>
-      {controller.playlistLibraryPickerOpen ? <BackingGroovePicker controller={controller} /> : null}
       <div className="backingLoopPlaylistSelectionTools">
         <button
           disabled={!controller.playlistEntries.length || selectedCount === controller.playlistEntries.length}
@@ -760,6 +781,7 @@ function BackingCurrentPlaylistPane({ controller }) {
           <div
             className={`backingLoopPlaylistItem ${controller.selectedQueueItemIds.includes(item.id) ? "selected" : ""} ${item.id === controller.playlistPlayingItemId ? "playing" : ""}`}
             key={item.id}
+            ref={item.id === controller.selectedPlaylistItemId ? currentItemRef : undefined}
           >
             <label className="backingLoopPlaylistItemCheck">
               <input
@@ -860,15 +882,10 @@ function BackingSavedPlaylistPane({ controller }) {
         </button>
       </div>
       <div className="backingLoopPlaylistActions backingLoopSavedPlaylistActions">
-        <button className="primary" onClick={() => controller.togglePlaylistLibraryPicker(playlist.id)} type="button">
-          <Plus aria-hidden="true" size={13} /><Translation id="app.groovePacksApp" /></button>
         <button onClick={() => controller.openImportFilePicker(playlist.id)} type="button">
           <Plus aria-hidden="true" size={13} /><Translation id="components.addDeviceFiles" /></button>
         <span>{entries.length}<Translation id="audioStudio.tracks" /></span>
       </div>
-      {controller.playlistLibraryPickerOpen && controller.playlistLibraryTargetId === playlist.id
-        ? <BackingGroovePicker controller={controller} />
-        : null}
       <div className="backingLoopPlaylistSelectionTools backingLoopSavedPlaylistSelectionTools">
         <button
           disabled={!entries.length || selectedCount === entries.length}
@@ -912,7 +929,7 @@ function BackingSavedPlaylistPane({ controller }) {
         )) : (
           <div className="backingLoopLibraryEmpty">
             <ListMusic aria-hidden="true" size={18} />
-            <span><Translation id="components.addGroovePacksOrDeviceFilesToThisPlaylist" /></span>
+            <span><Translation id="components.selectTracksInTheCurrentPlaylistThenSaveTheList" /></span>
           </div>
         )}
       </div>
@@ -923,7 +940,7 @@ function BackingSavedPlaylistPane({ controller }) {
 function LoadBackingLoopDialog({ controller }) {
   useLanguage();
   return (
-    <section className="backingLoopDialog backingLoopLoadDialog backingLoopPlaylistDialog">
+    <section className={`backingLoopDialog backingLoopLoadDialog backingLoopPlaylistDialog ${controller.playlistPanelView === "grooves" ? "backingLoopPlaylistDialog--grooves" : ""}`}>
       <div className="backingLoopDialogHeading">
         <div>
           <strong><Translation id="originalUi.playlist" /></strong>
@@ -935,6 +952,8 @@ function LoadBackingLoopDialog({ controller }) {
       <BackingPlaylistNavigation controller={controller} />
       {controller.playlistPanelView === "queue"
         ? <BackingCurrentPlaylistPane controller={controller} />
+        : controller.playlistPanelView === "grooves"
+        ? <BackingGroovePicker controller={controller} />
         : <BackingSavedPlaylistPane controller={controller} />}
     </section>
   );

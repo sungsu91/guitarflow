@@ -1,0 +1,33 @@
+/* Desktop skins materialize in the landscape; shared picker behavior stays intact. */
+@layer desktop-scene {
+ html body .desktopSceneSkinDock .shooterGuitarPickerModal {
+  position:relative!important;background:linear-gradient(90deg,rgba(5,19,33,.7),rgba(8,25,42,.36) 78%,transparent)!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;
+  padding:20px 14px!important;animation:dsHologramMaterialize .48s ease-out both;
+ }
+ html body .desktopSceneSkinDock .shooterGuitarPickerModal::before {
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,#b9eee8,transparent 75%) top left/100% 1px no-repeat,linear-gradient(90deg,#b9eee880,transparent 75%) bottom left/100% 1px no-repeat,linear-gradient(#b9eee8,transparent) top left/1px 70px no-repeat;
+ }
+ html body .desktopSceneSkinDock .shooterGuitarPickerModal::after {
+  content:"";position:absolute;top:0;left:0;right:0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#befff1aa,transparent);box-shadow:0 0 14px #b5fff288;
+  animation:dsHologramScan .65s ease-out both;
+ }
+ html body .desktopSceneSkinDock .shooterGuitarPickerHeader {border:0!important;background:transparent!important;padding-bottom:14px!important;letter-spacing:2px}
+ html body .desktopSceneSkinDock .shooterSkinTabs {gap:4px!important;padding-bottom:12px!important;border-bottom:1px solid #c7eee52b!important;background:transparent!important}
+ html body .desktopSceneSkinDock button {background-color:rgba(18,44,59,.22)!important;border-color:#c7eee524!important;border-radius:3px!important;color:#e5f3ed!important;text-shadow:0 1px 5px #06111d!important;transition:background-color .2s,border-color .2s,box-shadow .2s}
+ html body .desktopSceneSkinDock button:hover {background-color:#8ed9df20!important;border-color:#c0f5ef77!important}
+ html body .desktopSceneSkinDock button:is(.selected,[aria-pressed="true"]) {background:#93dfd51c!important;border-color:#b7f0e7aa!important;box-shadow:inset 0 -2px #b7f0e7,0 0 14px #91dfd319!important}
+ html body .desktopSceneSkinDock button:focus-visible {outline:2px solid #c3f8ee!important;outline-offset:2px!important}
+ html body .desktopSceneSkinDock :is(.shooterGuitarPickerGrid,.shooterMapPickerGrid,.desktopMapGallery)>button {animation:dsHologramItem .4s ease-out both}
+ html body .desktopSceneSkinDock :is(.shooterGuitarPickerGrid,.shooterMapPickerGrid,.desktopMapGallery)>button:nth-child(2n) {animation-delay:.06s}
+ html body .desktopSceneSkinDock :is(.shooterGuitarPickerGrid,.shooterMapPickerGrid,.desktopMapGallery)>button:nth-child(n+3) {animation-delay:.12s}
+ html body .desktopSceneSkinDock :is(.shooterSkinPickerBodyFrame,.shooterSkinPickerBody) {scrollbar-color:#afdcd55c transparent!important;scrollbar-width:thin}
+ html body .desktopSceneSkinDock ::-webkit-scrollbar {width:4px!important;background:transparent!important}
+ html body .desktopSceneSkinDock ::-webkit-scrollbar-thumb {background:#afdcd55c!important;border-radius:4px!important}
+ @keyframes dsHologramMaterialize {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0)}}
+ @keyframes dsHologramScan {0%{top:0;opacity:0}20%{opacity:.8}100%{top:100%;opacity:0}}
+ @keyframes dsHologramItem {from{opacity:0;filter:blur(3px);transform:translateY(5px)}to{opacity:1;filter:blur(0);transform:none}}
+ @media(prefers-reduced-motion:reduce){html body .desktopSceneSkinDock *,html body .desktopSceneSkinDock *::after {animation:none!important;transition:none!important}}
+}

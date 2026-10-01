@@ -1,3 +1,4 @@
+import {desktopScoreScale,DESKTOP_SCORE_WIDTH} from '../etudes/desktopScoreSizing.js';
 import {pageVisibleHeight} from './pdfGapCuts.js';
 import ko from "./../i18n/locales/ko.js";
 import { formatMessage } from "./../i18n/core.js";
@@ -17,7 +18,7 @@ export default function PdfContinuous({pageCount,pageEdits,onPageSeen,...props})
  const bounds=useRef(null),content=useRef(null),root=useRef(null),slots=useRef([]),reported=useRef(props.pageNumber),seen=useRef(onPageSeen);
  const documentKey=pdfDocumentKey(props.blob,props.documentId);
  const [visiblePages,setVisiblePages]=useState([]);
- const [pdf,setPdf]=useState(null),[ratios,setRatios]=useState({}),[width,setWidth]=useState(0),[active,setActive]=useState(props.pageNumber),[error,setError]=useState('');
+ const [pdf,setPdf]=useState(null),[ratios,setRatios]=useState({}),[width,setWidth]=useState(0),[height,setHeight]=useState(0),[active,setActive]=useState(props.pageNumber),[error,setError]=useState('');
  useScorePinch({enabled:props.mobile,viewport:root,content,bounds,zoom:Number(props.zoom)||100,onZoom:props.onZoomChange,controller:props.zoomController});
  seen.current=onPageSeen;
 
@@ -33,7 +34,7 @@ export default function PdfContinuous({pageCount,pageEdits,onPageSeen,...props})
  useEffect(()=>{if(!pdf)return;let live=true;
   (async()=>{const sizes={};for(const n of Array.from({length:pageCount},(_,i)=>i+1)){if(n<1||n>pdf.numPages||!live)continue;const page=await pdf.getPage(n),v=page.getViewport({scale:1});sizes[n]={ratio:v.height/v.width,width:v.width};}if(live)setRatios(old=>({...old,...sizes}));})().catch(e=>{if(live)setError(formatMessage(ko["pdf.couldnTReadPageSizeValue1"], { value1: e.message }));});return()=>{live=false;};
  },[pdf,pageCount]);
- useLayoutEffect(()=>{const observer=new ResizeObserver(([e])=>setWidth(e.contentRect.width));observer.observe(root.current);return()=>observer.disconnect();},[]);
+ useLayoutEffect(()=>{const observer=new ResizeObserver(([e])=>{setWidth(e.contentRect.width);setHeight(e.contentRect.height)});observer.observe(root.current);return()=>observer.disconnect();},[]);
  useLayoutEffect(()=>{
   // Updates reported by scrolling must never scroll the document back to a page boundary.
   if(reported.current===props.pageNumber&&root.current.dataset.initialized)return;
@@ -43,20 +44,22 @@ export default function PdfContinuous({pageCount,pageEdits,onPageSeen,...props})
  },[props.pageNumber,ratios,width]);
  useEffect(()=>{const node=root.current;let frame,timer;
   const read=()=>{if(root.current.dataset.pinching)return;const top=node.getBoundingClientRect().top+Math.min(80,node.clientHeight*.2);let closest=1;
-   for(let n=1;n<=pageCount;n++){const slot=slots.current[n];if(slot&&slot.getBoundingClientRect().top<=top)closest=n;else break;}
+   for(let n=1;n<=pageCount;n++){const slot=slots.current[n];if(slot&&slot.getBoundingClientRect().top<=top){if(props.zoom!=='auto'||!slots.current[closest]||slot.offsetTop>slots.current[closest].offsetTop)closest=n;}else break;}
    // A short last page cannot align to the viewport top; keep the actual final page selected.
    if(node.scrollHeight>node.clientHeight&&node.scrollHeight-node.scrollTop-node.clientHeight<=2)closest=pageCount;
    setActive(closest);clearTimeout(timer);timer=setTimeout(()=>{if(reported.current!==closest){reported.current=closest;seen.current(closest);}},220);
   };const scroll=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(read);};node.addEventListener('scroll',scroll,{passive:true});
   return()=>{node.removeEventListener('scroll',scroll);cancelAnimationFrame(frame);clearTimeout(timer);};
  },[pageCount]);
+ const auto=!props.mobile&&props.zoom==='auto';
+ const autoWidth=DESKTOP_SCORE_WIDTH*desktopScoreScale({width:width-24,height:height-42});
  return <div ref={root} data-document-pinch={props.mobile} className="pdfViewport pdfContinuous" aria-label={translateUi("pdf.allPdfPagesVertically")}>
   {error&&<p role="alert">{localizeUi(error)}</p>}
-  <div ref={bounds} className="pdfContinuousBounds" style={props.mobile?{width:width*(Number(props.zoom)||100)/100}:undefined}><div ref={content} className="pdfContinuousPages">
-  {Array.from({length:pageCount},(_,i)=>{const n=i+1,edit=pageEdits?.[n],crop=pageCrop(edit),fitted=props.zoom==='fit'||props.zoom==='page',pageWidth=props.mobile?width*(Number(props.zoom)||100)/100:fitted?width:(ratios[n]?.width??595)*Number(props.zoom)/100*(crop?.width??1),height=pageWidth*(ratios[n]?.ratio??1.414)*(crop?pageVisibleHeight(crop)/crop.width:1);
-   return <section key={n} ref={el=>slots.current[n]=el} className="pdfContinuousSlot" data-pdf-page-slot={n} style={{height:height+30,width:props.mobile?pageWidth:Math.max(width,pageWidth)}} aria-label={translateUi("pdf.pageValue1", { value1: n })}>
+  <div ref={bounds} className="pdfContinuousBounds" style={props.mobile?{width:width*(Number(props.zoom)||100)/100}:undefined}><div ref={content} className="pdfContinuousPages" style={auto?{display:"flex",flexWrap:"wrap",alignItems:"flex-start",justifyContent:"center",gap:20}:undefined}>
+  {Array.from({length:pageCount},(_,i)=>{const n=i+1,edit=pageEdits?.[n],crop=pageCrop(edit),fitted=props.zoom==='fit'||props.zoom==='page',pageWidth=auto?autoWidth:props.mobile?width*(Number(props.zoom)||100)/100:fitted?width:(ratios[n]?.width??595)*Number(props.zoom)/100*(crop?.width??1),height=pageWidth*(ratios[n]?.ratio??1.414)*(crop?pageVisibleHeight(crop)/crop.width:1);
+   return <section key={n} ref={el=>slots.current[n]=el} className="pdfContinuousSlot" data-pdf-page-slot={n} style={{height:height+30,width:auto?pageWidth:props.mobile?pageWidth:Math.max(width,pageWidth)}} aria-label={translateUi("pdf.pageValue1", { value1: n })}>
     <div className="pdfPageNumber">{n} / {pageCount}</div>
-    {pdf&&width>0&&(Math.abs(n-active)<=1||visiblePages.includes(n))?<PdfPage {...props} pageEdits={pageEdits} pageCount={pageCount} sharedPdf={pdf} embedded pageNumber={n} zoom={props.mobile?100:props.zoom==='page'?'fit':props.zoom} pageEdit={edit} draftRow={props.draftRow?.page===n?props.draftRow:null}/>:<div className="pdfPagePlaceholder" style={{height}}>{n===active&&props.thumbnail?<img src={props.thumbnail} alt={translateUi("pdf.savedFirstPagePreview")} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:translateUi("pdf.pageValue1", { value1: n })}</div>}
+    {pdf&&width>0&&(Math.abs(n-active)<=1||visiblePages.includes(n))?<PdfPage {...props} pageEdits={pageEdits} pageCount={pageCount} sharedPdf={pdf} embedded pageNumber={n} zoom={props.mobile?100:auto||props.zoom==='page'?'fit':props.zoom} pageEdit={edit} draftRow={props.draftRow?.page===n?props.draftRow:null}/>:<div className="pdfPagePlaceholder" style={{height}}>{n===active&&props.thumbnail?<img src={props.thumbnail} alt={translateUi("pdf.savedFirstPagePreview")} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:translateUi("pdf.pageValue1", { value1: n })}</div>}
    </section>;
   })}
  </div></div></div>;

@@ -17,6 +17,7 @@ import MetronomeVolumeControl from "../components/MetronomeVolumeControl.jsx";
 import GrooveVolumeControl from "../components/GrooveVolumeControl.jsx";
 import LanguageSettings from '../i18n/LanguageSettings.jsx';
 import DesktopSoundSettings from './DesktopSoundSettings.jsx';
+import './desktop-sidebar-polish.css';
 
 function InstagramMark({ size = 18 }) {
   return (
@@ -104,7 +105,6 @@ export default function DesktopSidebarNavigation({
         </div>
       </div>
 
-      <LanguageSettings desktop />
       <nav className="desktopSidebarNav" aria-label={translateUi("navigation.mainScreens")}>
         <div className="desktopSidebarGroup">
           <DesktopSidebarItem active={activeKey === "tuner"} icon={Radio} label={translateUi("menu.tuner")} onClick={onOpenTuner} />
@@ -216,6 +216,7 @@ export default function DesktopSidebarNavigation({
       </nav>
 
       <footer className="desktopSidebarFooter">
+        <div className="desktopSidebarPreferences">
         <div className="desktopSidebarThemeOptions" role="radiogroup" aria-label={translateUi("navigation.displayTheme")}>
           {themeOptions.map((option) => (
             <button
@@ -233,6 +234,8 @@ export default function DesktopSidebarNavigation({
               <span>{localizeUi(option.label)}</span>
             </button>
           ))}
+        </div>
+        <LanguageSettings desktop compact />
         </div>
         <small>{localizeUi(versionLabel)}</small>
       </footer>

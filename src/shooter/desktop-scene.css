@@ -1,0 +1,77 @@
+@layer desktop-scene {
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) {--ds-ink:#eee3cf;--ds-muted:#bcae94;--ds-gold:#d7b875}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena {top:66px!important}
+ .desktopLayout :is(.dsHeader,.dsInput,.dsTarget,.dsSession) {position:absolute;z-index:80;color:var(--ds-ink)!important;text-shadow:0 2px 12px #0009!important;font-family:inherit;box-sizing:border-box}
+ .dsHeader {inset:24px 30px auto;display:flex;justify-content:space-between;align-items:start;pointer-events:none}
+ .dsHeader h1 {margin:0 0 6px;font-size:26px!important;color:var(--ds-ink)!important}
+ .dsHeader small {font-size:10px;letter-spacing:2px;color:var(--ds-muted)!important}
+ .dsHeaderActions {display:flex;gap:8px;pointer-events:auto}
+ .desktopLayout :is(.dsHeader,.dsSession) button {min-height:36px!important;padding:8px 12px!important;background:#10172770!important;border:1px solid #c7ab7338!important;border-radius:7px!important;color:var(--ds-ink)!important;box-shadow:none!important;font:inherit;font-size:12px!important;cursor:pointer}
+ .dsHeader button:disabled {opacity:.4}
+ .dsInput {left:clamp(24px,5%,90px);top:170px;width:clamp(160px,17%,230px)}
+ .dsInput>small,.dsSession>small {display:block;color:var(--ds-gold)!important;letter-spacing:2px;font-size:11px;padding-bottom:16px;border-bottom:1px solid #dac29955}
+ .dsPitch {display:flex;flex-direction:column;gap:14px;margin-top:20px}
+ .dsPitch b {font-size:62px!important;font-weight:650;color:#a7dfc7!important;line-height:1.1}
+ .dsPitch span {color:var(--ds-ink)!important;font-size:14px}
+ .dsPitch small,.dsInput p {font-size:12px!important;color:var(--ds-muted)!important;line-height:1.6}
+ .dsInput p {padding-top:20px;border-top:1px solid #dac29933;margin-top:26px}
+ .dsTarget {top:90px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none}
+ .dsTarget span {display:block;font-size:13px;color:var(--ds-gold)!important}
+ .dsTarget strong {font-size:48px!important;color:var(--ds-ink)!important;line-height:1.4}
+ .dsSession {right:clamp(24px,5%,90px);top:170px;width:clamp(165px,18%,240px);display:flex;flex-direction:column;gap:12px}
+ .dsSession>span {font-size:12px;color:var(--ds-muted)!important}
+ .dsBest {font-size:38px!important;line-height:1.2;color:var(--ds-ink)!important}
+ .dsSession dl {margin:0;padding:16px 0;border-block:1px solid #dac29944}
+ .dsSession dl div {display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+ .dsSession dt {font-size:12px}.dsSession dd {margin:0;font-size:23px;color:var(--ds-ink)!important}.dsSession .dsHearts {color:#ef8590!important;letter-spacing:5px}
+ .dsSession h2 {margin:4px 0;font-size:14px;color:var(--ds-gold)!important}
+ .dsSession label {display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--ds-muted)!important}
+ .desktopLayout .dsSession select {width:120px;min-width:0;min-height:34px;background:#111b2bcc!important;color:#eee3cf!important;border:1px solid #dac29944!important;border-radius:6px;padding:4px;font-size:11px;color-scheme:dark}
+ .dsSession button {text-align:left}.dsSession button span {float:right}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCountInOverlay {background:transparent!important;backdrop-filter:none!important;box-shadow:none!important}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) :is(.mobileShooterLives,.shooterStartPanelButton--secondary,.shooterStartPanelButton--mapEdit) {display:none!important}
+ /* A non-modal skin editor belongs inside the scene, not over app navigation. */
+ html body .desktopSceneSkinDock {position:absolute!important;inset:110px auto 22px 24px!important;width:clamp(270px,25vw,400px)!important;height:auto!important;max-height:none!important;display:block!important;background:transparent!important;backdrop-filter:none!important;padding:0!important;z-index:110!important;transform:none!important;pointer-events:none!important}
+ html body .desktopSceneSkinDock .shooterSkinConfigurator {position:static!important;inset:auto!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;transform:none!important;padding:0!important;pointer-events:auto!important}
+ html body .desktopSceneSkinDock .shooterGuitarPickerModal {position:static!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;margin:0!important;padding:16px!important;background:rgba(12,21,35,.93)!important;color:#eee3cf!important;border:1px solid #dac29944!important;border-radius:14px!important;box-shadow:0 12px 35px #0003!important;backdrop-filter:blur(16px)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+ html body .desktopSceneSkinDock :is(h2,strong,small,label) {color:#eee3cf!important;text-shadow:none!important}
+ html body .desktopSceneSkinDock :is(.shooterSkinPickerBodyFrame,.shooterSkinPickerBody) {min-height:0!important;flex:1!important;overflow-y:auto!important;max-height:none!important}
+ html body .desktopSceneSkinDock :is(.shooterGuitarPickerGrid,.shooterMapPickerGrid) {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body .desktopSceneSkinDock button {color:#eee3cf!important;background-color:#243144!important;border-color:#b69a6555!important;text-shadow:none!important}
+ .desktopMapGallery {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .desktopMapGallery button {padding:0!important;overflow:hidden;border:1px solid #b69a6555;border-radius:8px;cursor:pointer;min-width:0}
+ .desktopMapGallery button[aria-pressed=true] {outline:2px solid #d7b875;outline-offset:-2px}
+ .desktopMapGallery img {display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.desktopMapGallery span {display:block;padding:9px 5px;font-size:11px}
+ @media(max-width:1250px){.dsInput{left:18px;top:160px;width:145px}.dsSession{right:18px;top:160px;width:150px}.dsSession select{width:90px!important}.dsSession .dsBest{font-size:28px!important}.dsHeader{inset:20px 18px auto}.dsHeader h1{font-size:20px!important}.dsHeader small{letter-spacing:0}.dsHeaderActions{gap:4px}.dsHeaderActions button{font-size:10px!important;padding:5px!important}html body .desktopSceneSkinDock{left:12px!important;width:260px!important}.dsTarget strong{font-size:36px!important}}
+ @media(max-height:780px){.dsSession,.dsInput{top:125px}.dsSession{gap:7px}.dsSession dl{padding:7px 0}.dsSession dl div{margin:6px 0}.dsPitch{gap:8px}.dsPitch b{font-size:48px!important}}
+}
+@layer desktop-scene {
+ html body .desktopSceneSkinDock button {background-image:none!important;box-shadow:none!important}
+ html body .desktopSceneSkinDock button:is(.selected,[aria-pressed="true"]) {background:#3b3528!important;border-color:#d7b875!important;box-shadow:inset 0 0 0 1px #d7b875!important}
+ html body .desktopSceneSkinDock button::before,html body .desktopSceneSkinDock button::after {content:none!important}
+ .dsHint {display:block;max-width:280px;margin:4px auto;font-size:11px;color:#d1c3a7!important;line-height:1.5}
+ .desktopLayout .dsSession select:disabled {opacity:.55}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCountInOverlay::before,.desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCountInOverlay::after {background:transparent!important;backdrop-filter:none!important}
+}
+@layer desktop-scene {
+ html body .desktopSceneSkinDock .desktopMapGallery button {display:block!important;width:100%!important;min-width:0!important;text-align:left!important;white-space:normal!important}
+ html body .desktopSceneSkinDock .desktopMapGallery img {width:100%!important;max-width:none!important;height:auto!important;aspect-ratio:16/9;object-fit:cover}
+ html body .desktopSceneSkinDock .desktopMapGallery span {display:block!important;color:#eee3cf!important;font-size:11px!important;line-height:1.5!important;padding:8px!important;white-space:normal!important}
+ .desktopShooterMaps::after {content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(4,10,22,.4),transparent 35%,transparent 65%,rgba(4,10,22,.4))}
+}
+@layer desktop-scene {
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena {
+  width:min(49%,calc(100% - 340px))!important;max-width:none!important;
+  height:calc(100dvh - 150px)!important;aspect-ratio:auto!important;
+ }
+ .dsPlayfieldGuide {position:absolute;inset:0 0 auto;pointer-events:none;z-index:0;background:linear-gradient(90deg,#b6dcff09,transparent 15%,transparent 85%,#b6dcff09);mask-image:linear-gradient(transparent,#000 13%,#000);border-inline:1px solid #c7ddf52b;box-sizing:border-box}
+ .dsLifeLine {position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#edc49b88 20%,#edc49b88 80%,transparent);box-shadow:0 0 9px #eeb58b44}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCenterStatus--startMenu {left:50%!important;top:59%!important;width:min(280px,85%)!important;max-width:85%!important;transform:translateX(-50%)!important;overflow:visible!important}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanel {display:flex!important;flex-direction:column!important;width:100%!important;min-height:0!important;overflow:visible!important}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanelButton--primary {width:100%!important;height:auto!important;min-height:48px!important;padding:12px 24px!important;overflow:visible!important;display:flex!important;align-items:center!important;justify-content:center!important}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanelLabel {position:relative!important;inset:auto!important;transform:none!important;white-space:normal!important;line-height:1.4!important}
+}
+@layer desktop-scene {
+ .dsRecordingEntry {display:flex;pointer-events:auto}
+ .desktopLayout .dsRecordingEntry .shooterRecordingHudButton {display:flex!important;align-items:center;gap:6px;width:auto!important;height:auto!important;position:static!important}
+}

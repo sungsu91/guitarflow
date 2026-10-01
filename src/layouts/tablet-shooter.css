@@ -1,0 +1,147 @@
+/* Tablet scene UI is sized independently of the phone's canonical viewport.
+   Artwork uses its intrinsic ratio; gameplay reads the rendered player bounds. */
+@layer tablet-shooter {
+  html[data-rifflab-device="tablet"] { --tablet-shooter-hud-height: 120px; }
+  .tabletLayout .mobileShooterTopHud {
+    height: var(--tablet-shooter-hud-height) !important;
+    min-height: var(--tablet-shooter-hud-height) !important;
+    padding: 8px !important; gap: 8px !important;
+  }
+  .tabletLayout .shooterArena { top: var(--tablet-shooter-hud-height) !important; container-type: size; }
+  .tabletLayout .mobileShooterPrimaryHudRow {
+    display: grid !important;
+    grid-template-columns: minmax(128px,1.25fr) minmax(240px,2fr) 88px 104px 88px !important;
+    height: 64px !important; gap: 8px !important; align-items: stretch !important;
+  }
+  .tabletLayout :is(.mobileShooterDifficultyControl,.mobileShooterDifficultyHud,.mobileShooterPlayHelpHud,.mobileShooterSolfegeHud,.shooterRecordingEntrySlot,.shooterRecordingHudButton,.mobileShooterMicHud) {
+    position: relative !important; inset: auto !important; width: 100% !important;
+    height: 64px !important; min-height: 64px !important; min-width: 0 !important; margin: 0 !important;
+  }
+  .tabletLayout .mobileShooterDifficultyHud { padding: 6px 10px !important; }
+  .tabletLayout .mobileShooterDifficultyHud strong { font-size: 20px !important; line-height: 1.4 !important; }
+  .tabletLayout .mobileShooterPlayHelpHud { grid-template-columns: minmax(48px,1fr) repeat(4,minmax(48px,1fr)) !important; }
+  .tabletLayout .mobileShooterTopHud :is(button,select) { font-size: 18px !important; }
+  .tabletLayout .mobileShooterTopHud svg { width: 22px !important; height: 22px !important; }
+  .tabletLayout .mobileShooterTopHud :is(small,.mobileShooterPlayHelpLabel,.mobileShooterSolfegeHud span,.shooterRecordingHudButton span) {
+    font-size: 16px !important; line-height: 1.3 !important; color: #f5dfaf !important; opacity: 1 !important;
+  }
+  .tabletLayout .mobileShooterMicHud > span { gap: 6px !important; }
+  .tabletLayout .mobileShooterMicHud b { font-size: 16px !important; color: #f5dfaf !important; }
+  .tabletLayout .mobileShooterSolfegeHud > b { width: auto !important; gap: 4px !important; font-size: 16px !important; }
+  .tabletLayout .mobileShooterPlayHelpOption:not(.selected) { color: #d9d0bc !important; }
+  .tabletLayout .mobileShooterPlayHelpMessageBar {
+    position: relative !important; inset: auto !important; min-height: 32px !important;
+    height: auto !important; padding: 5px 10px !important;
+  }
+  .tabletLayout .mobileShooterPlayHelpMessageBar p { font-size: 16px !important; line-height: 1.35 !important; color: #f5dfaf !important; }
+
+  /* A short score strip leaves both sides of the play field open. */
+  .tabletLayout .mobileShooterScoreHud {
+    inset: 16px 16px auto !important; width: auto !important;
+    display: grid !important; grid-template-columns: repeat(4,minmax(0,1fr)) !important; gap: 0 !important;
+    padding: 10px 0 !important; border: 1px solid #eac37b59 !important; border-radius: 14px !important;
+    background: #08151fd9 !important; box-shadow: 0 4px 16px #0003 !important;
+  }
+  .tabletLayout .mobileShooterScoreHud > div {
+    display: grid !important; place-items: center !important; gap: 4px !important;
+    padding: 0 8px !important; margin: 0 !important; border: 0 !important; text-align: center !important;
+  }
+  .tabletLayout .mobileShooterScoreHud > div + div { border-left: 1px solid #eac37b40 !important; }
+  .tabletLayout .mobileShooterScoreHud > div > span { font-size: 15px !important; line-height: 1.3 !important; color: #f5dfaf !important; }
+  .tabletLayout .mobileShooterScoreHud > div > strong { font-size: 30px !important; line-height: 1.15 !important; }
+  .tabletLayout .mobileShooterTargetHud { top: 112px !important; width: 180px !important; padding: 8px !important; }
+  .tabletLayout .mobileShooterTargetHud > span { font-size: 16px !important; line-height: 1.4 !important; }
+  .tabletLayout .mobileShooterTargetHud > strong { font-size: 34px !important; line-height: 1.2 !important; }
+  .tabletLayout .mobileShooterTargetHud > small { font-size: 14px !important; line-height: 1.3 !important; }
+  html[data-rifflab-device="tablet"] .shooterPitchMonitorMobile {
+    top: calc(var(--tablet-inset) + var(--tablet-shooter-hud-height) + 120px) !important;
+    left: calc(var(--tablet-inset) + 20px) !important; max-width: min(29vw,280px) !important;
+    font-size: 16px !important; line-height: 1.4 !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterPitchMonitorMobile small { font-size: 15px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] .shooterPitchMonitorMobile b { font-size: 24px !important; }
+
+  .tabletLayout .shooterCenterStatus--startMenu {
+    top: 50% !important; width: min(360px,calc(100% - 48px)) !important; max-width: none !important;
+  }
+  .tabletLayout .shooterStartPanel { width: 100% !important; max-width: none !important; gap: 14px !important; }
+  .tabletLayout .shooterStartPanelButton {
+    width: 100% !important; min-width: 0 !important; height: 76px !important; min-height: 76px !important;
+    padding: 12px 24px !important; border-radius: 18px !important;
+  }
+  .tabletLayout .shooterStartPanelLabel { font-size: 24px !important; line-height: 1.4 !important; }
+  .tabletLayout .shooterStartPanelLabel strong { font-size: 24px !important; line-height: 1.4 !important; }
+  .tabletLayout .shooterStartPanelLabel small { font-size: 16px !important; line-height: 1.4 !important; }
+  .tabletLayout .guitarPlayer {
+    --tablet-guitar-height: clamp(160px,22cqh,260px);
+    --tablet-effect-scale: 1.6;
+    width: calc(var(--tablet-guitar-height) * 0.45) !important; height: var(--tablet-guitar-height) !important;
+    bottom: max(64px,7%) !important;
+  }
+  .tabletLayout .guitarPlayerAsset {
+    width: auto !important; height: 100% !important; max-width: none !important; max-height: none !important;
+    aspect-ratio: auto !important; object-fit: contain !important;
+  }
+  .tabletLayout .guitarPlayerEffectLayer { width: min(calc(var(--guitar-effect-width,188px) * var(--tablet-effect-scale)),65cqw) !important; }
+  .tabletLayout .shooterPetCompanion {
+    --tablet-pet-size: clamp(88px,min(14cqw,14cqh),144px);
+    width: var(--tablet-pet-size) !important; height: var(--tablet-pet-size) !important;
+    top: clamp(calc(var(--tablet-pet-size) / 2 + 12px),calc(var(--shooter-pet-y,88) * 1%),calc(100% - var(--tablet-pet-size) / 2 - 74px)) !important;
+  }
+  .tabletLayout .mobileShooterLives { right: 16px !important; bottom: 14px !important; min-height: 48px !important; padding: 8px 14px !important; gap: 8px !important; background: #08151fe6 !important; }
+  .tabletLayout .mobileShooterLives > span { font-size: 16px !important; line-height: 1.3 !important; color: #f5dfaf !important; }
+  .tabletLayout .mobileShooterLives i { font-size: 28px !important; line-height: 1 !important; }
+  .tabletLayout .shooterPausePanel { width: min(380px,calc(100vw - 64px)) !important; }
+  .tabletLayout .shooterPausePanelButton { min-height: 64px !important; }
+  .tabletLayout .shooterPausePanelLabel strong { font-size: 22px !important; line-height: 1.4 !important; }
+  .tabletLayout .shooterPausePanelLabel small { font-size: 15px !important; line-height: 1.4 !important; }
+  .tabletLayout .shooterResultHost { width: min(420px,calc(100% - 32px)) !important; }
+  .tabletLayout .shooterGameOverPanel h2 { font-size: 22px !important; }
+  .tabletLayout :is(.shooterResultLabel,.shooterResultBest,.shooterShareFeedback) { font-size: 16px !important; }
+  .tabletLayout .shooterResultButton { min-height: 56px !important; font-size: 18px !important; }
+
+  /* Settings are outside the arena, often rendered through portals. */
+  html[data-rifflab-device="tablet"] :is(.shooterGuitarPickerModal,.shooterSettingsPopover,.mobileShooterPlayHelpTooltip) :is(button,select,input,strong) { font-size: 17px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] :is(.shooterGuitarPickerModal,.shooterSettingsPopover,.mobileShooterPlayHelpTooltip) :is(p,small,label) { font-size: 15px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerModal :is(button,select) { min-height: 48px !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerModal { background: #201c16fa !important; }
+  html[data-rifflab-device="tablet"][data-theme="light"] .shooterGuitarPickerModal { background: #f5eee1fa !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerHeader > div > span { font-size: 14px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinSectionHeader { font-size: 15px !important; line-height: 1.4 !important; padding-block: 8px !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerModal .shooterGuitarPickerItem { min-height: 144px !important; }
+  html[data-rifflab-device="tablet"] .shooterSettingsPopover { --shooter-settings-width: 420; }
+  html[data-rifflab-device="tablet"] .shooterSettingsPopover button { min-height: 48px !important; }
+  html[data-rifflab-device="tablet"] .shooterSettingsPopover h2 { font-size: 20px !important; }
+  html[data-rifflab-device="tablet"] .shooterSettingsPopover h3 { font-size: 17px !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerGrid { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  .tabletLayout .mobileShooterPlayHelpTooltip { top: 192px !important; width: min(480px,calc(100% - 32px)) !important; }
+
+  @media (max-width: 759px) {
+    html[data-rifflab-device="tablet"] { --tablet-shooter-hud-height: 192px; }
+    .tabletLayout .mobileShooterPrimaryHudRow { grid-template-columns: minmax(112px,1fr) 76px 100px 80px !important; grid-template-rows: 64px 64px !important; height: 136px !important; }
+    .tabletLayout .mobileShooterPlayHelpHud { grid-column: 1 / -1 !important; grid-row: 2 !important; }
+    .tabletLayout .mobileShooterScoreHud { inset: 12px 12px auto !important; }
+    .tabletLayout .mobileShooterScoreHud > div { padding-inline: 4px !important; }
+    .tabletLayout .mobileShooterScoreHud > div > span { font-size: 14px !important; white-space: normal !important; }
+    .tabletLayout .mobileShooterScoreHud > div > strong { font-size: 24px !important; }
+    .tabletLayout .mobileShooterTargetHud { top: 104px !important; width: 128px !important; }
+    .tabletLayout .mobileShooterTargetHud > strong { font-size: 30px !important; }
+    .tabletLayout .guitarPlayer { --tablet-effect-scale: 1.25; }
+    html[data-rifflab-device="tablet"] .shooterPitchMonitorMobile { left: calc(var(--tablet-inset) + 12px) !important; font-size: 14px !important; }
+    html[data-rifflab-device="tablet"] .shooterPitchMonitorMobile small { font-size: 13px !important; }
+    html[data-rifflab-device="tablet"] .shooterGuitarPickerGrid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  }
+  @media (orientation: landscape) and (max-height: 950px) {
+    .tabletLayout .shooterCenterStatus--startMenu { top: 51% !important; width: min(640px,calc(100% - 64px)) !important; }
+    .tabletLayout .shooterStartPanel { grid-template-columns: repeat(2,minmax(0,1fr)) !important; grid-template-rows: auto !important; height: auto !important; min-height: 0 !important; gap: 16px !important; }
+    .tabletLayout .shooterStartPanelButton { height: 64px !important; min-height: 64px !important; }
+    .tabletLayout .shooterStartPanelLabel strong { font-size: 22px !important; }
+    .tabletLayout .guitarPlayer { --tablet-guitar-height: clamp(128px,26cqh,180px); --tablet-effect-scale: 1.1; }
+  }
+  @media (max-width: 479px) {
+    .tabletLayout .mobileShooterPrimaryHudRow { grid-template-columns: minmax(100px,1fr) 64px 90px 70px !important; gap: 6px !important; }
+    .tabletLayout .mobileShooterDifficultyHud strong { font-size: 18px !important; }
+    .tabletLayout .shooterStartPanelButton { height: 64px !important; min-height: 64px !important; }
+    .tabletLayout .shooterStartPanelLabel strong { font-size: 22px !important; }
+  }
+}

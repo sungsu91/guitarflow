@@ -1,0 +1,3 @@
+/* Declare before lazy route/component styles: important tablet overrides must
+   have the same priority on a fresh load and after a Vite hot update. */
+@layer tablet-shooter, tablet-readability, tablet-layout;

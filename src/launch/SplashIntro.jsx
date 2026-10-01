@@ -1,49 +1,18 @@
-import { Translation } from "../i18n/react.jsx";
-import ko from "../i18n/locales/ko.js";
-import { localizeUi } from "./../i18n/core.js";
-import { t as translateUi } from "./../i18n/core.js";
-import { useLanguage } from "./../i18n/react.jsx";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { APP_LAUNCH_TIMINGS } from "./appLaunch";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { localizeUi, t } from '../i18n/core.js';
+import { useLanguage } from '../i18n/react.jsx';
+import { getIsMobileLayout, MOBILE_LAYOUT_MEDIA_QUERY } from '../layouts/mobileLayout.js';
+import { APP_LAUNCH_TIMINGS } from './appLaunch.js';
+import { DesktopLayout, MobileLayout } from './SplashLayouts.jsx';
 
-export const APP_INTRO_FRAME_SOURCES = Object.freeze({
-  shadow: "/assets/branding/fretiva-intro-01.png?v=07ceb7ec",
-  light: "/assets/branding/fretiva-intro-02.png?v=13de555d",
-  flash: "/assets/branding/fretiva-intro-03.png?v=11895103",
-  logo: "/assets/branding/fretiva-intro-04.png?v=11895103",
-});
-
-const INTRO_FRAMES = Object.freeze([
-  { id: "shadow", src: APP_INTRO_FRAME_SOURCES.shadow },
-  { id: "light", src: APP_INTRO_FRAME_SOURCES.light },
-  { id: "flash", src: APP_INTRO_FRAME_SOURCES.flash },
-  { id: "logo", src: APP_INTRO_FRAME_SOURCES.logo },
-]);
-
-function normalizeProgress(progress) {
-  if (!Number.isFinite(progress)) return null;
-  return Math.min(100, Math.max(0, Math.round(progress)));
-}
-
-function getProgressStep(progress) {
-  if (progress >= 100) return "complete";
-  if (progress >= 80) return "logo-hint";
-  if (progress >= 55) return "flash";
-  if (progress >= 25) return "light";
-  return "shadow";
-}
-
-function getControlledFrameClass(frameId, progress) {
-  if (frameId === "shadow") return " launchSplash__frame--visible";
-  if (frameId === "light" && progress >= 25) return " launchSplash__frame--visible";
-  if (frameId === "flash" && progress >= 55) return " launchSplash__frame--visible";
-  if (frameId === "logo" && progress >= 100) return " launchSplash__frame--visible";
-  if (frameId === "logo" && progress >= 80) return " launchSplash__frame--hint";
-  return "";
+function subscribeLayout(listener) {
+  const queries = [window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY), window.matchMedia('(pointer: coarse)')];
+  queries.forEach(query => query.addEventListener('change', listener));
+  return () => queries.forEach(query => query.removeEventListener('change', listener));
 }
 
 export default function SplashIntro({
-  ariaLabel = ko["launch.loadingFretivaLab"],
+  ariaLabel,
   exitMs = APP_LAUNCH_TIMINGS.exitMs,
   fallbackMs = APP_LAUNCH_TIMINGS.fallbackMs,
   minimumIntroMs = APP_LAUNCH_TIMINGS.minimumIntroMs,
@@ -51,151 +20,65 @@ export default function SplashIntro({
   progress = null,
   readySettleMs = APP_LAUNCH_TIMINGS.readySettleMs,
   readyPromise,
-  statusText = ko["launch.preparingTheFretivaLabApp"],
+  statusText,
 }) {
   useLanguage();
-  const [phase, setPhase] = useState("entering");
-  const launchStartedAtRef = useRef(Date.now());
+  const mobile = useSyncExternalStore(subscribeLayout, getIsMobileLayout, () => false);
+  const [phase, setPhase] = useState('entering');
   const completedRef = useRef(false);
   const completeExit = useCallback(() => {
     if (completedRef.current) return;
     completedRef.current = true;
     onComplete?.();
   }, [onComplete]);
-  const normalizedProgress = normalizeProgress(progress);
-  const controlledProgress = normalizedProgress !== null;
-  const progressStep = controlledProgress ? getProgressStep(normalizedProgress) : null;
-  const readyToExit = phase === "ready" || phase === "exiting";
+  const normalizedProgress = Number.isFinite(progress) ? Math.min(100, Math.max(0, Math.round(progress))) : null;
 
   useEffect(() => {
     let cancelled = false;
-    let fallbackTimerId = null;
-    let minimumTimerId = null;
-    let readyTimerId = null;
-
-    const minimumIntro = minimumIntroMs > 0
-      ? new Promise((resolve) => {
-        minimumTimerId = window.setTimeout(resolve, minimumIntroMs);
-      })
+    let minimumTimerId, fallbackTimerId, readyTimerId;
+    const minimum = minimumIntroMs > 0
+      ? new Promise(resolve => { minimumTimerId = window.setTimeout(resolve, minimumIntroMs); })
       : Promise.resolve();
-    const fallback = new Promise((resolve) => {
-      fallbackTimerId = window.setTimeout(() => resolve("fallback"), fallbackMs);
+    const fallback = new Promise(resolve => {
+      fallbackTimerId = window.setTimeout(() => resolve('fallback'), fallbackMs);
     });
-    const appReady = Promise.resolve(readyPromise).then(
-      () => "ready",
-      () => "ready-error",
-    );
-
-    Promise.all([minimumIntro, Promise.race([appReady, fallback])]).then(([, result]) => {
+    const appReady = Promise.resolve(readyPromise).then(() => 'ready', () => 'ready-error');
+    Promise.all([minimum, Promise.race([appReady, fallback])]).then(([, result]) => {
       if (cancelled) return;
-      if (result === "fallback") {
-        console.warn("FRETIVA LAB launch fallback released the splash before the app-ready signal.");
-      }
-      setPhase("ready");
-      const elapsedMs = Date.now() - launchStartedAtRef.current;
-      const autonomousCompletionRemainingMs = Math.max(
-        0,
-        APP_LAUNCH_TIMINGS.autonomousSequenceMs
-          + APP_LAUNCH_TIMINGS.completeHoldMs
-          - elapsedMs,
-      );
-      const settleBeforeExitMs = controlledProgress
-        ? readySettleMs
-        : Math.max(readySettleMs, autonomousCompletionRemainingMs);
-      readyTimerId = window.setTimeout(() => {
-        if (cancelled) return;
-        setPhase("exiting");
-      }, settleBeforeExitMs);
+      window.clearTimeout(fallbackTimerId);
+      if (result === 'fallback') console.warn('FRETIVA LAB launch fallback released the splash before the app-ready signal.');
+      // Readiness controls the handoff; never wait for the four-second visual loop.
+      if (readySettleMs > 0) {
+        setPhase('ready');
+        readyTimerId = window.setTimeout(() => setPhase('exiting'), readySettleMs);
+      } else setPhase('exiting');
     });
-
     return () => {
       cancelled = true;
-      if (minimumTimerId !== null) window.clearTimeout(minimumTimerId);
-      if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
-      if (readyTimerId !== null) window.clearTimeout(readyTimerId);
+      window.clearTimeout(minimumTimerId);
+      window.clearTimeout(fallbackTimerId);
+      window.clearTimeout(readyTimerId);
     };
-  }, [controlledProgress, fallbackMs, minimumIntroMs, readyPromise, readySettleMs]);
+  }, [fallbackMs, minimumIntroMs, readyPromise, readySettleMs]);
 
   useEffect(() => {
-    if (phase !== "exiting") return undefined;
-    // Start the escape timer after the exit has committed. Normally animationend
-    // completes the handoff; this only covers disabled or cancelled animations.
-    const fallbackTimerId = window.setTimeout(completeExit, exitMs + 1000);
-    return () => window.clearTimeout(fallbackTimerId);
+    if (phase !== 'exiting') return undefined;
+    // Release even if a browser cancels CSS animation or drops its end event.
+    const timer = window.setTimeout(completeExit, exitMs + 100);
+    return () => window.clearTimeout(timer);
   }, [completeExit, exitMs, phase]);
 
+  const Layout = mobile ? MobileLayout : DesktopLayout;
   return (
     <section
-      aria-label={localizeUi(ariaLabel)}
-      aria-live="polite"
-      className={`launchSplash launchSplash--${phase} ${
-        controlledProgress
-          ? `launchSplash--controlled launchSplash--step-${progressStep}`
-          : "launchSplash--autonomous"
-      }`}
-      role="status"
-      onAnimationEnd={(event) => {
-        if (phase === "exiting" && event.target === event.currentTarget
-          && event.animationName === "launchBackdropOut") completeExit();
+      aria-label={ariaLabel ? localizeUi(ariaLabel) : t('launch.loadingFretivaLab')}
+      aria-live="polite" className={`launchSplash launchSplash--${phase}`} role="status"
+      onAnimationEnd={event => {
+        if (phase === 'exiting' && event.target === event.currentTarget && event.animationName === 'launchBackdropOut') completeExit();
       }}
-      style={{
-        "--launch-exit-ms": `${exitMs}ms`,
-      }}
+      style={{ '--launch-exit-ms': `${exitMs}ms` }}
     >
-      <div className="launchSplash__content">
-        <div aria-hidden="true" className="launchSplash__stage">
-          <div className="launchSplash__frameStack">
-            {INTRO_FRAMES.map((frame) => (
-              <img
-                alt=""
-                className={`launchSplash__frame launchSplash__frame--${frame.id}${
-                  controlledProgress ? getControlledFrameClass(frame.id, normalizedProgress) : ""
-                }`}
-                decoding="async"
-                draggable="false"
-                fetchPriority={frame.id === "shadow" ? "high" : "auto"}
-                height="1840"
-                key={frame.id}
-                loading="eager"
-                src={frame.src}
-                width="768"
-              />
-            ))}
-            <span className="launchSplash__lightSweep" />
-            <span className="launchSplash__centerFlash" />
-            <span className="launchSplash__completionLight" />
-            <span className="launchSplash__brand">
-              <strong><Translation id="originalUi.fretiva" /></strong>
-              <span className="launchSplash__brandSubline">
-                <i />
-                <span><Translation id="originalUi.lab" /></span>
-                <i />
-              </span>
-              <span className="launchSplash__brandMark" />
-            </span>
-          </div>
-        </div>
-
-        {controlledProgress ? (
-          <div
-            aria-label={readyToExit ? translateUi("launch.themeReady") : translateUi("launch.preparingThemeValue1", { value1: normalizedProgress })}
-            aria-valuemax="100"
-            aria-valuemin="0"
-            aria-valuenow={readyToExit ? 100 : normalizedProgress}
-            className="launchSplash__progress"
-            role="progressbar"
-          >
-            <span aria-hidden="true" className="launchSplash__progressTrack">
-              <span
-                className="launchSplash__progressValue"
-                style={{ "--launch-progress-scale": normalizedProgress / 100 }}
-              />
-            </span>
-            <strong>{readyToExit ? "READY" : `LOADING ${normalizedProgress}%`}</strong>
-          </div>
-        ) : null}
-      </div>
-      <span className="launchSplash__statusText">{localizeUi(statusText)}</span>
+      <Layout progress={normalizedProgress} ready={phase !== 'entering'} statusText={statusText ? localizeUi(statusText) : t('launch.preparingMusic')} />
     </section>
   );
 }

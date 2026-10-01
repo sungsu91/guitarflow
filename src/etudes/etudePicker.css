@@ -28,3 +28,8 @@ html body #root main.app .scoreWorkspaceHeading .libraryStorageCompact{display:i
 html body #root main.app.app.app .etudePickerDialog .etudePickerDifficultyGroup{margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
 html body #root main.app.app.app .etudePickerDialog .etudePickerDifficultyGroup+.etudePickerDifficultyGroup{margin-top:16px!important}
 html body #root main.app.app.app .etudePickerDialog .etudePickerDifficultyHeading{margin:0 0 7px!important;padding:7px 2px!important;border-bottom:1px solid #e3d9ca!important;font-size:12px!important;line-height:1.4!important;font-weight:700!important;color:#65513b!important}
+
+/* Saved notation and original PDFs use separate views of the same libraries. */
+html body #root main.app.app.app .etudePickerDialog footer .etudePickerImport{display:flex!important;align-items:center!important;gap:5px!important;background:transparent!important;color:#65513b!important;border:1px solid #d5c8b7!important}
+html body #root main.app.app.app .etudePickerDialog.is-mobile footer{flex-wrap:wrap!important}
+html body #root main.app.app.app .etudePickerDialog.is-mobile footer>span{order:-1;flex-basis:100%!important}

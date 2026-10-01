@@ -11,7 +11,7 @@ export function MobilePdfHeader({title,editing,onBack,onLocate,canLocate,onDone,
  useEffect(()=>{const close=e=>{if(!root.current?.contains(e.target))setMenu(false);};document.addEventListener('pointerdown',close,true);return()=>document.removeEventListener('pointerdown',close,true);},[]);
  const act=name=>{setMenu(false);onAction(name);};
  return <header className="mobilePdfHud" ref={root}>
-  <button type="button" aria-label={translateUi("score.backToRoom")} onClick={onBack}><ArrowLeft size={21}/></button>
+  {onBack&&<button type="button" aria-label={translateUi("score.backToRoom")} onClick={onBack}><ArrowLeft size={21}/></button>}
   <h1>{title}</h1>
   <button type="button" aria-label={translateUi("pdf.pdfDocumentMenu")} aria-expanded={menu} onClick={()=>{setMenu(v=>!v);}}><MoreVertical size={19}/></button>
   <button type="button" aria-label={translateUi("pdf.quickPdfEdit")} aria-pressed={editing} onClick={onDone}>{editing?translateUi("common.done"):translateUi("common.edit")}</button>

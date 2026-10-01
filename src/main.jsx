@@ -1,3 +1,5 @@
+import "./metronome/modePanel.css";
+import "./layouts/tablet-layer-order.css";
 import { Translation } from "./i18n/react.jsx";
 import React from "react";
 import { syncDocumentLanguage } from './i18n/core.js';

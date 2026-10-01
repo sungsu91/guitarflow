@@ -6,7 +6,7 @@ import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {useEffect,useRef,useState} from 'react';
-import {ChevronDown,FolderOpen,FolderPlus,Check,Star,X,Search} from 'lucide-react';
+import {ChevronDown,FolderOpen,FolderPlus,Check,Star,X,Search,FilePlus2} from 'lucide-react';
 import './etudePicker.css';
 
 export default function EtudePicker({model,mobile}) {
@@ -17,11 +17,11 @@ export default function EtudePicker({model,mobile}) {
  const dialog=useRef(null),opener=useRef(null);
  const types=[...new Set(model.list.map(e=>e.type))];
  const entries=[...model.list.map(e=>({key:`score:etude:${e.id}`,id:e.id,title:e.english??e.title,type:e.type,score:e,saved:false})),...model.savedScores.map(r=>({key:`score:${r.document.id}`,id:r.document.id,title:r.document.title,type:ko["app.savedScores"],saved:true})),...(model.pdfScores??[]).map(r=>({key:`pdf:${r.id}`,id:r.id,title:r.title,type:'PDF',saved:true,pdf:r}))];
- const current=entries.find(e=>e.saved?e.id===model.savedId:!model.savedId&&e.id===model.selected.id);
+ const current=model.activePdf?entries.find(e=>e.pdf&&e.id===model.activePdf.id):entries.find(e=>e.saved?e.id===model.savedId:!model.savedId&&e.id===model.selected.id);
  const open=(next,event)=>{opener.current=event.currentTarget;setManaging(false);setSelection([]);setManageError('');setQuery('');setCategory(ko["app.all"]);setPicked(next==='saved'&&!current?.saved?null:current?.key??null);setTab(next);};
  const close=()=>{setAction(null);setTab(null);opener.current?.focus({preventScroll:true});};
  useEffect(()=>{if(tab&&!dialog.current.open)dialog.current.showModal();},[tab]);
- const visible=entries.filter(e=>(tab==='saved'?e.saved:!e.saved)&&(category===ko["app.all"]||(folder?model.folderData?.locations[e.key]===folder.id:category===ko["etudes.favorites"]?model.favorites[e.key]:e.type===category))&&`${e.title} ${e.type}`.toLowerCase().includes(query.trim().toLowerCase()));
+ const visible=entries.filter(e=>(tab==='saved'?e.saved:!e.saved)&&(category===ko["app.all"]||(category==='file:pdf'?Boolean(e.pdf):folder?model.folderData?.locations[e.key]===folder.id:category===ko["etudes.favorites"]?model.favorites[e.key]:e.type===category))&&`${e.title} ${e.type}`.toLowerCase().includes(query.trim().toLowerCase()));
  const difficultyGroups=tab==='types'?[...visible.reduce((groups,entry)=>{
   const rating=etudeDifficulty(entry.score);
   if(!groups.has(rating))groups.set(rating,[]);
@@ -34,7 +34,7 @@ export default function EtudePicker({model,mobile}) {
   if(action.type==='rename-score'||action.type==='delete-score'){await model.manageScore(action.type==='rename-score'?'rename':'delete',action.entry,action.name);if(action.type==='delete-score'){setPicked(null);setSelection([]);}}
   else {const id=action.id??crypto.randomUUID();model.organize({...action,id});if(action.type==='create')setCategory('folder:'+id);if(action.type==='remove')setCategory(ko['app.all']);if(action.type==='move')setSelection([]);}
  };
- const chosen=entries.find(e=>e.key===picked);
+ const chosen=visible.find(e=>e.key===picked);
  const activeSource=current?(current.saved?'saved':'types'):null;
  return <><div className="etudeQuickSelects">{[['types',ko["app.chooseAPracticeCategory"],model.savedId?ko["etudes.practiceCategories"]:model.selected.type],['saved',ko["app.savedScores"],model.savedId?current?.title:ko["etudes.chooseScore"]]].map(([key,label,value])=>{
  const active=activeSource===key;
@@ -46,6 +46,7 @@ export default function EtudePicker({model,mobile}) {
  <label className="etudePickerSearch"><Search size={16}/><input autoFocus type="search" aria-label={translateUi("etudes.searchScores")} placeholder={translateUi("etudes.searchScores")} value={query} onChange={e=>setQuery(e.target.value)}/></label>
  <nav className="etudePickerCategories" aria-label={translateUi("etudes.filterScores")}>
  {[ko["app.all"],ko["etudes.favorites"]].map(type=><button type="button" key={type} aria-pressed={category===type} onClick={()=>{setCategory(type);setPicked(null);setSelection([]);}}>{localizeUi(type)}</button>)}
+ {tab==='saved'&&<button type="button" aria-pressed={category==='file:pdf'} onClick={()=>{setCategory('file:pdf');setPicked(null);setSelection([]);}}><Translation id="etudes.savedPdfTab"/></button>}
  {folders.map(f=><button type="button" key={f.id} aria-pressed={folder?.id===f.id} onClick={()=>{setCategory('folder:'+f.id);setPicked(null);setSelection([]);}}><FolderOpen size={14}/>{f.name}</button>)}
  <button type="button" disabled={!model.folderData} onClick={()=>setAction({type:'create'})}><FolderPlus size={14}/><Translation id="pdf.newFolder"/></button>
  {(tab==='types'?types:[]).map(type=><button type="button" key={type} aria-pressed={category===type} onClick={()=>{setCategory(type);setPicked(null);setSelection([]);}}>{localizeUi(type)}</button>)}
@@ -62,7 +63,7 @@ export default function EtudePicker({model,mobile}) {
  {rating!==null&&<h3 className="etudePickerDifficultyHeading">{translateUi('etudes.difficultyStarsLabel',{value1:rating.toFixed(1)})}</h3>}
  <div className="etudePickerGrid">{items.map(e=><button key={e.key} type="button" className="etudePickerCard" aria-pressed={managing?selection.includes(e.key):picked===e.key} onClick={()=>managing?toggle(e.key):setPicked(e.key)}><span><small>{localizeUi(e.type)}</small><strong>{e.title}</strong>{!e.saved&&<DifficultyStars score={e.score}/>}</span>{(managing?selection.includes(e.key):picked===e.key)?<Check size={16}/>:model.favorites[e.key]?<Star size={15} fill="currentColor"/>:<ChevronDown size={15}/>}</button>)}</div>
  </section>)}{!visible.length&&<p className="etudePickerEmpty">{localizeUi(query?translateUi("etudes.noResultsFound"):category===ko["etudes.favorites"]?translateUi("etudes.tapTheStarBesideAScoreToAddItToFavorites"):translateUi("etudes.noSavedScores"))}</p>}</div>
- <footer><span>{chosen?.title??translateUi("etudes.chooseAScore")}</span><button type="button" disabled={managing||!chosen} onClick={()=>{chosen.pdf?model.selectPdf(chosen.pdf):chosen.saved?model.selectSaved(chosen.id):model.select(chosen.id);close();}}><Translation id="app.load" /></button></footer>
+ <footer>{model.importPdf&&<button type="button" className="etudePickerImport" disabled={model.importBusy} onClick={()=>{dialog.current?.close();close();model.importPdf();}}><FilePlus2 size={16}/><Translation id="score.importFile"/></button>}<span>{chosen?.title??translateUi("etudes.chooseAScore")}</span><button type="button" disabled={managing||!chosen} onClick={()=>{chosen.pdf?model.selectPdf(chosen.pdf):chosen.saved?model.selectSaved(chosen.id):model.select(chosen.id);close();}}><Translation id="app.load" /></button></footer>
  </dialog>}{action&&<PickerManageDialog key={action.type+(action.id??action.entry?.id??'')} action={action} folders={folders} onApply={applyAction} onClose={()=>setAction(null)}/>}</>;
 }
 

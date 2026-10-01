@@ -1,0 +1,404 @@
+/* Tablet owns geometry only. All colors, controls and sessions remain shared.
+   First layer gives these scoped important rules precedence over legacy themes. */
+@layer tablet-layout {
+  html[data-rifflab-device="tablet"] body #root .appRuntime [style*="display: none"],
+  html[data-rifflab-device="tablet"] body > [style*="display: none"],
+  html[data-rifflab-device="tablet"] .activityPortalSurface[hidden] { display: none !important; }
+  html[data-rifflab-device="tablet"] {
+    --tablet-gap: clamp(12px, 1.6vw, 22px);
+    --tablet-inset: clamp(12px, 2vw, 26px);
+    --tablet-content-height: calc(100dvh - var(--mobile-nav-clearance, 100px) - 2 * var(--tablet-inset) - env(safe-area-inset-top, 0px));
+  }
+  html[data-rifflab-device="tablet"] body #root,
+  .tabletLayout, .tabletLayout > .mobileLayoutWorkspace, .tabletLayout .mobileLayoutContent {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    margin: 0 !important;
+  }
+  html[data-rifflab-device="tablet"] body { margin: 0 !important; }
+  .tabletLayout main.app:not(.mobileNavigationSurface) {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: max(var(--tablet-inset), env(safe-area-inset-top, 0px)) max(var(--tablet-inset), env(safe-area-inset-right, 0px)) var(--mobile-nav-clearance, 100px) max(var(--tablet-inset), env(safe-area-inset-left, 0px)) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+    grid-auto-rows: max-content !important;
+    align-content: start !important;
+    gap: var(--tablet-gap) !important;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+  .tabletLayout main.app > :is(.standaloneMetronomePanel,.referenceTrainingPanel,.chordTransitionPanel,.miniChordMakerPanel,.fretboardViewerPanel,.audioStudioShell,.etudeStudio,.pdfStudio,.rhythmTrainer) {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+  .tabletLayout main.metronomeMode > .standaloneMetronomePanel {
+    display: grid !important;
+    min-height: var(--tablet-content-height) !important;
+    padding: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto minmax(260px, 1fr) auto auto auto !important;
+    gap: var(--tablet-gap) !important;
+    align-content: stretch !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .tabletLayout main.metronomeMode > .standaloneMetronomePanel.dockCollapsed {
+    grid-template-rows: auto auto minmax(260px, 1fr) auto auto auto !important;
+  }
+  .tabletLayout main.metronomeMode > .standaloneMetronomePanel > * { min-width: 0 !important; margin: 0 !important; }
+  .tabletLayout main.metronomeMode .metronomeDockHandle { min-height: 44px !important; }
+  .tabletLayout main.metronomeMode .grooveModeSelector { display: flex !important; min-height: 44px !important; gap: 12px !important; }
+  .tabletLayout main.metronomeMode .grooveModeSelector button { min-width: 44px !important; min-height: 44px !important; font-size: 15px !important; }
+  .tabletLayout main.metronomeMode .metronomeBeatMatrix--main,
+  .tabletLayout main.metronomeMode .grooveEditor {
+    height: 100% !important;
+    min-height: 260px !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    align-content: center !important;
+  }
+  .tabletLayout main.metronomeMode .grooveEditor { display: flex !important; flex-direction: column !important; }
+  .tabletLayout main.metronomeMode .grooveGrid { flex: 1; align-content: space-evenly !important; }
+  .tabletLayout main.metronomeMode .metronomeHeroCard--interactive { height: auto !important; min-height: 148px !important; max-height: none !important; }
+  .tabletLayout main.metronomeMode .metronomeHeroActionPanel button { min-height: 48px !important; }
+  .tabletLayout main.metronomeMode .metronomeBpmAdjustGroup button { min-width: 44px !important; min-height: 44px !important; }
+  .tabletLayout main.metronomeMode .metronomeOptions { width: 100% !important; gap: 12px !important; }
+  .tabletLayout main.metronomeMode .metronomeSelectButton { min-height: 48px !important; font-size: 16px !important; }
+  .tabletLayout main.metronomeMode .backingLoopPanel { align-self: stretch !important; }
+  .tabletLayout main.metronomeMode .metronomeBeatMatrix--main { --beat-dot-touch: 60px !important; --beat-dot-size: 52px !important; }
+  .tabletLayout .grooveGridViewport { flex: 1 !important; min-height: 0 !important; }
+  .tabletLayout .grooveGrid { min-width: calc(var(--groove-beats) * var(--groove-divisions) * 44px) !important; }
+  .tabletLayout .grooveTrackList { gap: 12px !important; }
+  .tabletLayout .grooveTrack, .tabletLayout .grooveTrackRail .grooveTrackName { box-sizing: border-box !important; height: 56px !important; min-height: 56px !important; }
+  .tabletLayout .grooveGridViewport { overflow-y: auto !important; }
+  .tabletLayout .grooveBeat button { height: 44px !important; min-height: 44px !important; }
+  .tabletLayout .grooveTrackRail { grid-auto-rows: 56px !important; }
+  .tabletLayout .grooveToolbar { flex-wrap: wrap !important; flex-shrink: 0 !important; }
+  .tabletLayout .grooveToolbar :is(select,button) { min-height: 44px !important; font-size: 13px !important; }
+  .tabletLayout main.metronomeMode .metronomeModeCircleBeat { transform: rotate(var(--beat-angle)) translate(clamp(82px,14vmin,150px)) rotate(calc(-1 * var(--beat-angle))) translate(-50%,-50%) !important; }
+
+  /* Scores keep their natural aspect ratio in a reader that owns remaining height. */
+  .tabletLayout .pdfStudio.pdfStudio--mobile {
+    height: var(--tablet-content-height) !important;
+    min-height: 420px !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  .tabletLayout .pdfStudio > :is(.libraryHeader,.scoreWorkspaceHeading) { flex-shrink: 0 !important; }
+  .tabletLayout .pdfStudio > div:has(> .etudeStudio) { display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+  .tabletLayout .etudeStudio--mobile { display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; height: 100% !important; padding: 0 !important; gap: 10px !important; }
+  .tabletLayout .etudeSongPicker { flex-shrink: 0 !important; }
+  .tabletLayout .etudePracticeLayout:not(.is-focus) { display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; height: auto !important; max-height: none !important; padding: 0 !important; }
+  .tabletLayout .etudePracticeToolbar { flex: 0 0 auto !important; padding: 8px 10px !important; gap: 6px !important; }
+  .tabletLayout .etudeViewTools { flex-wrap: wrap !important; gap: 8px !important; }
+  .tabletLayout .etudeViewTools { display: flex !important; }
+  .tabletLayout .etudeViewTools > * { flex: 0 0 auto !important; }
+  .tabletLayout .etudeViewTools > button { min-width: 44px !important; max-width: none !important; }
+  .tabletLayout .etudeViewTools > .etudeFocusBarCount { width: 100px !important; min-width: 80px !important; }
+  html[data-rifflab-device="tablet"] .etudeRemote--mobileBottom { --floating-safe-bottom: calc(var(--mobile-nav-clearance,100px) + 8px); bottom: auto !important; height: auto !important; width: 420px !important; max-width: calc(100dvw - 16px) !important; box-sizing: border-box; }
+  .tabletLayout .etudePracticeLayout:has(.etudeScoreViewport) { padding-bottom: 114px !important; }
+  .tabletLayout .etudeScoreViewport { flex: 1 !important; height: auto !important; min-height: 180px !important; max-height: none !important; overflow: auto !important; overscroll-behavior: contain; }
+  .tabletLayout .etudeSheet { min-height: 100% !important; box-sizing: border-box; }
+  .tabletLayout .etudePracticeLayout :is(.etudePracticeBottom,.etudePracticeTransport,.etudeBottomBar) { flex-shrink: 0 !important; }
+  .tabletLayout .pdfPractice { min-height: 0 !important; height: 100% !important; }
+  .tabletLayout .pdfViewport { min-height: 180px !important; max-height: none !important; flex: 1 !important; }
+  .tabletLayout :is(.etudeViewTools,.etudeSongPicker,.mobilePdfHud,.mobilePdfTransport,.libraryHeader) :is(button,select) { min-height: 44px !important; }
+
+  /* Rhythm cards use columns; notation and transport have independent height. */
+  .tabletLayout .rt-workspace.rt-tablet { width: 100% !important; height: var(--tablet-content-height) !important; min-height: 460px !important; max-height: none !important; }
+  .tabletLayout .rt-tablet .rt-library-list { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; grid-auto-rows: max-content !important; align-content: start !important; gap: 14px !important; padding: 16px !important; }
+  .tabletLayout .rt-tablet :is(.rt-header,.rt-meta,.rt-quick,.rt-tabs,.rt-library-filters,.rt-tools,.rt-library-summary) { flex-shrink: 0 !important; }
+  .tabletLayout .rt-tablet .rt-tools { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
+  .tabletLayout .rt-tablet .rt-quick { flex-wrap: wrap !important; padding: 8px 12px !important; gap: 8px !important; }
+  .tabletLayout .rt-tablet button { min-height: 44px !important; font-size: 14px !important; }
+  .tabletLayout .rt-tablet .rt-card strong { font-size: 16px !important; }
+  .tabletLayout .rt-tablet .rt-card small { font-size: 12px !important; }
+  .tabletLayout .rt-tablet select { min-height: 44px !important; font-size: 14px !important; }
+  .tabletLayout .rt-tablet .rt-measure:not(.rt-preview .rt-measure) { height: clamp(100px, 13dvh, 148px) !important; }
+  .tabletLayout .rt-tablet .rt-score-scroll { flex: 1 !important; min-height: 120px !important; }
+  .tabletLayout .rt-tablet[data-screen="edit"] > .rt-tools { margin-bottom: 0 !important; }
+
+  /* Full size game and tuner stages, without a scaled phone canvas. */
+  .tabletLayout main.app:is(.shooterMode,.tunerMode) { position: relative !important; inset: auto !important; overflow: hidden !important; }
+  .tabletLayout .shooterPanel { position: relative !important; inset: auto !important; width: 100% !important; height: var(--tablet-content-height) !important; min-height: 420px !important; margin: 0 !important; overflow: hidden !important; border-radius: 16px !important; }
+  .tabletLayout .mobileShooterTopHud { position: relative !important; height: 52px !important; min-height: 52px !important; z-index: 15; }
+  .tabletLayout .mobileShooterTopHud :is(button,select) { min-height: 44px !important; font-size: 13px !important; }
+  .tabletLayout .shooterArena { position: absolute !important; inset: 52px 0 0 !important; width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; aspect-ratio: auto !important; }
+  .tabletLayout .shooterArena .shooterLobbyActions button { min-height: 52px !important; min-width: 200px !important; }
+  .tabletLayout .tunerModeShell { position: relative !important; inset: auto !important; width: 100% !important; height: var(--tablet-content-height) !important; min-height: 420px !important; border-radius: 16px; overflow: hidden !important; }
+  .tabletLayout .tunerMobileControls { top: 16px !important; left: 20px !important; right: 20px !important; height: 56px !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 88px !important; gap: 10px !important; }
+  .tabletLayout .tunerMobileControls button { min-height: 56px !important; font-size: 16px !important; }
+  .tabletLayout .tunerMobileSelectButton strong { font-size: 16px !important; }
+  .tabletLayout .tunerMobileSelectButton svg { width: 18px !important; height: 18px !important; }
+  .tabletLayout .tunerMobileDropdown { top: calc(100% + 8px) !important; max-height: min(560px,calc(100dvh - 200px)) !important; overflow-y: auto !important; }
+  .tabletLayout .tunerMobileDropdown button strong { font-size: 16px !important; }
+  .tabletLayout .tunerMobileDropdown small { font-size: 12px !important; }
+  /* Portrait follows the center of the background; width alone must not enable columns. */
+  .tabletLayout .tunerModeBody--tablet {
+    box-sizing: border-box !important; height: 100% !important; min-height: 0 !important;
+    user-select: none; -webkit-user-select: none; touch-action: pan-y;
+    padding: 92px 24px 16px !important; gap: 12px !important;
+    grid-template-columns: minmax(0,1fr) !important; grid-template-rows: minmax(280px,.85fr) minmax(300px,1fr) !important;
+    grid-template-areas: "tuning" "head" !important;
+  }
+  .tabletLayout .tunerMicStartButton { min-height: 44px !important; min-width: 120px !important; font-size: 14px !important; }
+  .tabletLayout .tunerModeBody--tablet > .tunerTuningPanel { grid-area: tuning !important; min-height: 0 !important; height: 100% !important; grid-template-rows: 116px minmax(0,1fr) !important; gap: 8px !important; }
+  .tabletLayout .tunerReadoutCard { box-sizing: border-box !important; height: 116px !important; min-height: 0 !important; padding: 12px !important; }
+  .tabletLayout .tunerReadoutStat small { font-size: 14px !important; }
+  .tabletLayout .tunerReadoutStat strong { font-size: 38px !important; }
+  .tabletLayout .tunerReadoutStat--target strong { font-size: 46px !important; }
+  .tabletLayout .tunerReadoutStat b { font-size: 14px !important; }
+  .tabletLayout .tunerOceanGauge { min-height: 0 !important; height: 100% !important; }
+  .tabletLayout .tunerGaugeCenter { top: 8% !important; bottom: 96px !important; }
+  .tabletLayout .tunerPitchOrb { top: 36% !important; width: 64px !important; }
+  .tabletLayout .tunerPitchOrb strong { font-size: 25px !important; }
+  .tabletLayout .tunerPitchOrb small { font-size: 13px !important; }
+  .tabletLayout .tunerGaugeLabels { bottom: 122px !important; font-size: 14px !important; }
+  .tabletLayout .tunerCentScale { bottom: 84px !important; font-size: 12px !important; }
+  .tabletLayout .tunerGaugeGuidance { bottom: 4px !important; min-height: 72px !important; }
+  .tabletLayout .tunerGuidanceBadge { width: 220px !important; max-width: 80% !important; max-height: 88px !important; }
+  .tabletLayout .tunerGaugeGuidance strong { font-size: 16px !important; }
+  .tabletLayout .tunerCoarseHint { font-size: 13px !important; }
+  .tabletLayout .tunerModeBody--tablet > .tunerHeadstockPanel {
+    grid-area: head !important; box-sizing: border-box !important; min-height: 0 !important; height: 100% !important;
+    display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-end !important;
+    padding-top: 76px !important; container-type: size;
+  }
+  .tabletLayout .tunerModeBody--tablet .tunerHeadstockAsset {
+    flex: 0 0 auto !important; width: min(88cqw,66cqh,430px) !important; height: auto !important;
+    max-height: none !important; aspect-ratio: 2 / 3 !important; transform: none !important;
+  }
+  .tabletLayout .tunerHeadstockTarget small { font-size: 13px !important; }
+  .tabletLayout .tunerHeadstockTarget strong { font-size: 38px !important; }
+  .tabletLayout .tunerPegHotspot { width: 58px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; }
+  .tabletLayout .tunerPegLabel { width: 28px !important; height: 28px !important; min-width: 28px !important; font-size: 17px !important; }
+
+  /* The fretboard keeps its own ratio. Catalogs scroll inside the workspace. */
+  .tabletLayout .fretboardViewerPanel { min-height: var(--tablet-content-height) !important; padding: 12px !important; gap: var(--tablet-gap) !important; }
+  .tabletLayout .viewerControlPanel { min-width: 0 !important; }
+  .tabletLayout .chordCatalogPanel { min-height: 280px !important; max-height: 45dvh !important; overflow: auto !important; align-content: start !important; }
+  .tabletLayout .viewerControlPanel :is(button,select) { min-height: 44px !important; }
+  /* Large portrait tablets give the selected chord the reading space, while
+     the reference catalog keeps its own scroller. No whole-screen zoom. */
+  @media (min-width: 960px) and (orientation: portrait) {
+    .tabletLayout .fretboardViewerPanel--chord { grid-template-columns: minmax(0,1.6fr) minmax(300px,1fr) !important; }
+    .tabletLayout .fretboardViewerPanel--chord .viewerControlPanel { gap: 16px !important; }
+    .tabletLayout .fretboardViewerPanel--chord .viewerModeTabs { grid-template-columns: repeat(2,minmax(0,1fr)) !important; height: 64px !important; min-height: 64px !important; max-height: none !important; }
+    .tabletLayout .fretboardViewerPanel--chord .viewerModeTabs button { height: 56px !important; min-height: 56px !important; max-height: none !important; font-size: 16px !important; }
+    .tabletLayout .viewerMapCard--chord { gap: 12px !important; }
+    .tabletLayout .viewerChordIdentity strong { font-size: 38px !important; }
+    .tabletLayout .viewerChordIdentity span, .tabletLayout .viewerSwipeHint { font-size: 14px !important; }
+    .tabletLayout .viewerChordHeaderActions button { min-height: 48px !important; font-size: 14px !important; }
+    .tabletLayout .viewerMapCard--chord .viewerFretboardGestureSurface { container-type: inline-size; }
+    .tabletLayout .viewerMapCard--chord .viewerSharedFretboard {
+      --fretboard-board-top: 5.76cqw !important;
+      --fretboard-board-height: 37.2cqw !important;
+      --fretboard-label-left: 14cqw !important;
+    }
+    .tabletLayout .viewerMapCard--chord .fretboardComponentScroller { height: 45.84cqw !important; min-height: 207px !important; }
+    .tabletLayout .viewerMapCard--chord .fretboardNoteChip { width: 32px !important; height: 32px !important; min-height: 32px !important; font-size: 15px !important; }
+    .tabletLayout .viewerMapCard--chord :is(.fretboardFretNumbers span,.fretboardStringLabels span) { font-size: 13px !important; }
+    .tabletLayout .viewerControlPanel--chord .chordBuilderPanel { gap: 14px !important; padding: 12px !important; }
+    .tabletLayout .viewerControlPanel--chord .chordBuilderOptionSection { grid-template-columns: minmax(0,1fr) !important; gap: 8px !important; padding: 0 !important; }
+    .tabletLayout .viewerControlPanel--chord .chordBuilderOptionLabel { font-size: 14px !important; }
+    .tabletLayout .viewerControlPanel--chord .chordBuilderOptionSection button { min-height: 56px !important; font-size: 16px !important; }
+    .tabletLayout .viewerControlPanel--chord .chordBuilderOptionSection--tensions-2row > div { grid-template-columns: repeat(4,minmax(0,1fr)) !important; gap: 8px !important; }
+    .tabletLayout .chordCatalogPanel .viewerChordReferenceFooter strong { font-size: 16px !important; }
+  }
+  .tabletLayout :is(.viewerFretboard,.trainingSharedFretboard,.stageChordSharedFretboard) { width: 100% !important; max-width: none !important; }
+  .tabletLayout .tabletTheoryViewer { display: block !important; }
+  .tabletLayout .tabletTheoryViewer .desktopNoteScaleViewer { display: grid; gap: var(--tablet-gap); min-height: calc(var(--tablet-content-height) - 24px); }
+  .tabletLayout .desktopTheoryCard { display: grid; grid-template-columns: minmax(0,1fr); gap: 10px; align-content: center; min-width: 0; padding: 12px; border: 1px solid var(--theme-border-control,#cdbda6); border-radius: 14px; background: var(--theme-surface,rgba(255,255,255,.2)); }
+  .tabletLayout .desktopTheoryHeading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+  .tabletLayout .desktopTheoryHeading > span { font-size: 13px; opacity: .75; }
+  .tabletLayout .desktopTheoryHeading > strong { font-size: 20px; }
+  .tabletLayout .desktopTheoryNavigation .viewerModeTabs { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .tabletLayout .desktopTheoryControls .viewerNoteButtons { grid-template-columns: repeat(7,minmax(0,1fr)) !important; gap: 6px !important; }
+  .tabletLayout .desktopTheoryControls :is(button,select) { min-height: 44px !important; }
+  .tabletLayout .desktopTheoryControls .viewerSelectGrid { display: grid !important; grid-template-columns: repeat(4,minmax(0,1fr)) !important; gap: 8px !important; }
+  .tabletLayout .desktopTheoryBoard { min-width: 0; }
+  .tabletLayout .desktopTheoryBoard .viewerSharedFretboard { width: 100% !important; max-width: none !important; }
+
+  /* Learning and accompaniment: give the instrument/timeline the flexible row. */
+  .tabletLayout .referenceTrainingPanel { min-height: var(--tablet-content-height) !important; align-content: stretch !important; }
+  .tabletLayout .referenceTrainingMainRow { min-height: 100% !important; grid-template-rows: minmax(280px,1fr) auto !important; }
+  .tabletLayout :is(.firstPositionTrainingPanel,.scaleBlockTrainingPanel) .referenceTrainingMainRow { display: grid !important; height: calc(var(--tablet-content-height) - 24px) !important; min-height: 880px !important; grid-template-columns: minmax(0,1fr) !important; grid-template-rows: 140px auto minmax(320px,1fr) !important; gap: 16px !important; background: transparent !important; }
+  .tabletLayout .tabletPracticeGuide { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; align-content: center; padding: 16px; border: 1px solid var(--theme-border-control,#cdbda6); border-radius: 14px; }
+  .tabletLayout .tabletPracticeGuide > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .tabletLayout .tabletPracticeGuide span { font-size: 14px; opacity: .8; }
+  .tabletLayout .tabletPracticeGuide strong { font-size: 42px; }
+  .tabletLayout .tabletPracticeGuide p { grid-column: 1 / -1; margin: 4px 0 0; font-size: 14px; opacity: .8; }
+  .tabletLayout .referenceTrainingToolbar > .referenceStandaloneMetronomeDeck { display: grid !important; width: 100% !important; min-width: 0 !important; height: 100% !important; grid-template-columns: minmax(0,1fr) !important; grid-template-rows: minmax(64px,1fr) auto auto !important; gap: 12px !important; }
+  .tabletLayout .scaleBlockTrainingPanel .referenceStandaloneMetronomeDeck { grid-template-rows: minmax(64px,1fr) auto auto auto !important; }
+  .tabletLayout .referenceTrainingToolbar :is(.referenceBeatMetronomeStrip,.scaleTrainingBackingLoop,.standaloneMetronomeControl) { width: 100% !important; min-width: 0 !important; margin: 0 !important; box-sizing: border-box !important; }
+  .tabletLayout .referenceTrainingPanel :is(button,select) { min-height: 44px !important; font-size: 13px !important; }
+  .tabletLayout .referenceTrainingToolbar .referenceBeatMetronomeStrip { display: grid !important; align-content: center !important; min-height: 64px !important; }
+  .tabletLayout .referenceTrainingBoard { align-self: center !important; min-width: 0 !important; }
+  .tabletLayout .referenceTrainingToolbar { min-width: 0 !important; align-self: stretch !important; }
+  .tabletLayout :is(.firstPositionTrainingPanel,.scaleBlockTrainingPanel) .referenceTrainingToolbar { display: flex !important; flex-direction: column !important; padding: 0 !important; }
+  .tabletLayout .referenceTrainingToolbar > .referenceStandaloneMetronomeDeck { flex: 1 !important; }
+  .tabletLayout .chordTransitionPanel { min-height: var(--tablet-content-height) !important; align-content: stretch !important; }
+  .tabletLayout .miniChordMakerPanelCompact { height: var(--tablet-content-height) !important; min-height: var(--tablet-content-height) !important; overflow: auto !important; grid-template-rows: auto auto auto auto auto minmax(180px,1fr) auto auto !important; gap: 10px !important; padding: 12px !important; }
+  .tabletLayout .miniChordTimelinePanel { height: 100% !important; max-height: none !important; min-height: 180px !important; grid-template-rows: minmax(180px,1fr) !important; align-content: stretch !important; overflow: auto !important; }
+  .tabletLayout .miniChordTimelineFour { height: 100% !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; grid-auto-rows: minmax(128px,1fr) !important; }
+  .tabletLayout .miniChordTimelineFour .miniChordBar { box-sizing: border-box !important; height: 100% !important; min-height: 128px !important; padding-top: 44px !important; }
+  .tabletLayout .miniChordMarkHotspotEnding { top: 0 !important; left: 44px !important; right: 44px !important; height: 44px !important; min-height: 44px !important; border-bottom: 1px solid var(--theme-border-control,#cdbda6) !important; }
+  .tabletLayout :is(.miniChordMarkHotspotStart,.miniChordMarkHotspotEnd) { top: 0 !important; bottom: auto !important; height: 44px !important; min-height: 44px !important; width: 44px !important; min-width: 44px !important; max-width: 44px !important; border-bottom: 1px solid var(--theme-border-control,#cdbda6) !important; }
+  .tabletLayout .miniChordTimelineFour .miniChordSlot { height: 100% !important; min-height: 80px !important; }
+  .tabletLayout .miniChordTimelineFour .miniChordSlot strong { font-size: 18px !important; }
+  .tabletLayout .miniChordMakerPanelCompact > * { min-width: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+  .tabletLayout .miniChordMakerPanelCompact :is(button,select) { min-height: 44px !important; font-size: 13px !important; }
+  .tabletLayout .miniChordMakerPanelCompact :is(.miniChordQuickBar,.miniChordEditToolbar,.miniChordTransposeControlBar) button { min-height: 44px !important; }
+  .tabletLayout .audioStudio { width: 100% !important; min-height: var(--tablet-content-height) !important; max-width: none !important; padding: 16px !important; box-sizing: border-box; }
+  .tabletLayout .audioStudioLibrary { min-height: calc(var(--tablet-content-height) - 32px) !important; display: flex !important; flex-direction: column !important; }
+  .tabletLayout .audioStudioLibrary :is(.audioStudioTrackList,.audioStudioEmpty) { flex: 1 !important; }
+  .tabletLayout .audioStudioLibrary :is(.audioStudioMixList,.audioStudioLibraryEmpty) { flex: 1 !important; min-height: 240px !important; max-height: none !important; }
+  .tabletLayout .audioStudioSimpleEditor { display: flex !important; flex-direction: column !important; min-height: calc(var(--tablet-content-height) - 32px) !important; }
+  .tabletLayout .audioStudioSimpleTimeline { flex: 1 !important; min-height: 240px !important; }
+  .tabletLayout .audioStudioSimpleEmpty { min-height: 36dvh !important; }
+  .tabletLayout .audioStudioSimpleEditor > main { display: flex !important; flex-direction: column !important; flex: 1 !important; }
+  .tabletLayout .audioStudio button { min-height: 44px !important; }
+  .tabletLayout .theme-light .audioStudio {
+    --studio-bg: #faf7f0 !important; --studio-panel: #fffcf7 !important; --studio-panel-2: #f3eae0 !important; --studio-panel-3: #eaddcc !important;
+    --studio-line: #d5c2ab !important; --studio-line-soft: #e2d7c7 !important; --studio-text: #302b24 !important; --studio-muted: #716553 !important;
+    --studio-gold: #886437 !important; --studio-gold-strong: #886437 !important; color-scheme: light !important;
+  }
+  .tabletLayout .theme-light .audioStudioSimpleEditor {
+    --simple-bg: #faf7f0 !important; --simple-panel: #fffcf7 !important; --simple-panel-soft: #f3eae0 !important; --simple-line: #e2d7c7 !important; --simple-line-strong: #d5c2ab !important;
+    --simple-text: #302b24 !important; --simple-muted: #716553 !important; --simple-gold: #886437 !important; --simple-gold-soft: #eaddcc !important;
+  }
+  .tabletLayout .theme-light :is(.audioStudioSimpleTopbar,.audioStudioSimplePlayer,.audioStudioSimpleGuide,.audioStudioSimpleBack,.audioStudioSimpleAdd) { background: var(--studio-panel) !important; color: var(--studio-text) !important; }
+  .tabletLayout .theme-light :is(.audioStudioSimpleTimeline,.audioStudioSimpleEmpty,.audioStudioSimpleRuler,.audioStudioSimpleTrackHeader,.audioStudioSimplePlayerControls) { background: var(--studio-panel) !important; color: var(--studio-text) !important; border-color: var(--studio-line) !important; }
+  .tabletLayout .theme-light .audioStudioSimpleEmpty :is(strong,span) { color: var(--studio-muted) !important; }
+  .tabletLayout .theme-light :is(.audioStudioSimpleTrackActions button,.audioStudioSimplePlayerControls > button:not(.is-primary)) { background: #f3eae0 !important; color: #302b24 !important; }
+  .tabletLayout .theme-light .audioStudioSimpleClip > span { background: #eaddcc !important; color: #302b24 !important; }
+  .tabletLayout .audioStudioSimpleTrackActions button span { display: inline !important; font-size: 12px !important; }
+  .tabletLayout .audioStudioSimpleTrackName strong { font-size: 13px !important; }
+  .tabletLayout .audioStudioSimpleRuler { min-height: 36px !important; }
+  .tabletLayout .audioStudioSimpleRuler time { font-size: 11px !important; }
+  .tabletLayout .audioStudioLibraryHeader h1 { font-size: clamp(26px,3vw,38px) !important; }
+  .tabletLayout .audioStudioLibraryNotice { margin-top: 14px !important; }
+  .tabletLayout .shooterCenterStatus .shooterStartPanelButton { min-width: 190px !important; min-height: 52px !important; border-radius: 14px !important; border: 1px solid #b99349 !important; background: linear-gradient(#25251ee6,#0a1423e6) !important; }
+  .tabletLayout .mobileShooterPlayHelpHud { flex: 0 0 auto !important; width: auto !important; grid-template-columns: auto repeat(3,44px) 44px !important; }
+
+  html[data-rifflab-device="tablet"] dialog.etudeEditor {
+    box-sizing: border-box !important; inset: 12px !important; width: calc(100vw - 24px) !important; height: calc(100dvh - 24px) !important;
+    max-width: none !important; max-height: none !important; margin: 0 !important; border-radius: 16px !important;
+  }
+  html[data-rifflab-device="tablet"] .etudeEditor :is(.etudeMobileKeypad,.mobileScoreInput) button { min-height: 44px !important; }
+  html[data-rifflab-device="tablet"] :is(.audioStudioDialog,.audioStudioSimpleTrim) { max-width: calc(100vw - 32px) !important; max-height: calc(100dvh - 32px) !important; overflow: auto !important; }
+  html[data-rifflab-device="tablet"] .audioStudioDialog :is(button,input) { min-height: 44px !important; font-size: 13px !important; }
+  html[data-rifflab-device="tablet"] .miniChordFloatingChordPopover { width: min(520px,calc(100vw - 16px)) !important; max-width: calc(100vw - 16px) !important; max-height: min(var(--mini-chord-editor-max-height,640px),calc(100dvh - 32px)) !important; }
+  html[data-rifflab-device="tablet"] :is(.miniChordFloatingChordPopover,.barEndingPopover,.miniChordRhythmDialog) :is(button,select,input) { min-height: 44px !important; font-size: 13px !important; }
+  html[data-rifflab-device="tablet"] .miniChordFloatingChordPopover :is(label,.miniChordPickerGroupLabel) { font-size: 13px !important; }
+  html[data-rifflab-device="tablet"][data-theme="light"] .audioStudioOverlay {
+    --studio-text: #302b24 !important; --studio-muted: #716553 !important; --studio-line: #d5c2ab !important;
+    --simple-gold: #886437 !important; --simple-text: #302b24 !important; --simple-muted: #716553 !important;
+  }
+  html[data-rifflab-device="tablet"][data-theme="light"] .audioStudioDialog {
+    --simple-gold: #886437 !important; --simple-text: #302b24 !important; --simple-muted: #716553 !important;
+    background: #fffcf7 !important; color: #302b24 !important; border-color: #d5c2ab !important;
+  }
+  html[data-rifflab-device="tablet"][data-theme="light"] .audioStudioDialog :is(.audioStudioSimpleTrimWaveform,.audioStudioSimpleTrimTimes > span,.audioStudioSimpleTrimPreview,.audioStudioTrimStretch,input,button:not(.is-primary)) { background: #f3eae0 !important; color: #302b24 !important; border-color: #d5c2ab !important; }
+  html[data-rifflab-device="tablet"][data-theme="light"] .audioStudioDialog :is(h2,header span,time,label) { color: #716553 !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerModal { box-sizing: border-box !important; width: min(760px,calc(100vw - 32px)) !important; max-width: none !important; max-height: calc(100dvh - var(--mobile-nav-clearance,100px) - 32px) !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--arenaPreview { width: min(760px,calc(100vw - 32px)) !important; height: min(680px,calc(100dvh - var(--mobile-nav-clearance,100px) - 32px)) !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerModal { height: 100% !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinPickerBody { min-height: 0 !important; max-height: none !important; overflow: auto !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerGrid { grid-template-columns: repeat(4,minmax(0,1fr)) !important; gap: 12px !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerItem { min-height: 144px !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerModal :is(button,strong,small) { font-size: 13px !important; }
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerModal :is(.shooterSkinTabs,.shooterGuitarPickerHeader,.shooterGuitarGroupTabs,.shooterGuitarCategoryTabs--mobile) button { min-height: 44px !important; min-width: 44px !important; }
+
+  /* The menu shares the mobile right-side panel; only editors get tablet bounds. */
+  html[data-rifflab-device="tablet"] :is(.rt-dialog,.pdfDialog,.etudeDialog,.tunerSettingsSheet,.stage3StorageDialog) {
+    box-sizing: border-box !important; width: min(720px,calc(100vw - 32px)) !important; max-width: calc(100vw - 32px) !important;
+    max-height: calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) !important;
+    overflow: auto !important;
+  }
+  html[data-rifflab-device="tablet"] :is(.rt-dialog,.pdfDialog,.etudeDialog,.tunerSettingsSheet) :is(button,select,input:not([type="checkbox"]):not([type="radio"]):not([type="range"])) { min-height: 44px !important; font-size: 15px !important; }
+
+  @media (min-width: 960px) {
+    .tabletLayout :is(.firstPositionTrainingPanel,.scaleBlockTrainingPanel) .referenceTrainingMainRow { min-height: 580px !important; grid-template-columns: minmax(0,1.35fr) minmax(340px,.9fr) !important; grid-template-rows: 140px minmax(0,1fr) !important; }
+    .tabletLayout :is(.firstPositionTrainingPanel,.scaleBlockTrainingPanel) .tabletPracticeGuide { grid-column: 1; grid-row: 1; }
+    .tabletLayout :is(.firstPositionTrainingPanel,.scaleBlockTrainingPanel) .referenceTrainingBoard { grid-column: 1 !important; grid-row: 2 !important; }
+    .tabletLayout :is(.firstPositionTrainingPanel,.scaleBlockTrainingPanel) .referenceTrainingToolbar { grid-column: 2 !important; grid-row: 1 / 3 !important; }
+    .tabletLayout .miniChordMakerPanelCompact { grid-template-columns: minmax(0,1.45fr) minmax(330px,1fr) !important; grid-template-rows: auto auto auto auto auto minmax(180px,1fr) auto !important; }
+    .tabletLayout .miniChordHeader { grid-column: 1 / -1 !important; grid-row: 1 !important; }
+    .tabletLayout .miniChordQuickBar { grid-column: 1 !important; grid-row: 2 !important; }
+    .tabletLayout .miniChordMeasureStrip { grid-column: 1 !important; grid-row: 3 !important; }
+    .tabletLayout .miniChordEditToolbar { grid-column: 1 !important; grid-row: 4 !important; }
+    .tabletLayout .miniChordTransposeControlBar { grid-column: 1 !important; grid-row: 5 !important; }
+    .tabletLayout .miniChordTimelinePanel { grid-column: 1 !important; grid-row: 6 !important; }
+    .tabletLayout .miniChordInlinePagination { grid-column: 1 !important; grid-row: 7 !important; }
+    .tabletLayout .miniChordMetronomePanel { grid-column: 2 !important; grid-row: 2 / 4 !important; align-self: stretch !important; }
+    .tabletLayout .miniChordBackingPanel { grid-column: 2 !important; grid-row: 4 / 8 !important; align-self: stretch !important; }
+    .tabletLayout .desktopTheoryCard { grid-template-columns: 328px minmax(0,1fr); grid-template-rows: auto auto 1fr; align-items: center; }
+    .tabletLayout :is(.desktopTheoryNavigation,.desktopTheorySectionLabel) { grid-column: 1 / -1; grid-row: 1; }
+    .tabletLayout .desktopTheoryHeading { grid-column: 1; grid-row: 2; }
+    .tabletLayout .desktopTheoryControls { grid-column: 1; grid-row: 3; }
+    .tabletLayout .desktopTheoryControls .viewerNoteButtons { grid-template-columns: repeat(6,minmax(0,1fr)) !important; }
+    .tabletLayout .desktopTheoryControls .viewerSelectGrid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+    .tabletLayout .desktopTheoryBoard { grid-column: 2; grid-row: 2 / 4; }
+    .tabletLayout .fretboardViewerPanel--chord { align-items: start !important; }
+    .tabletLayout .fretboardViewerPanel--chord .chordCatalogPanel { height: calc(var(--tablet-content-height) - 24px) !important; max-height: none !important; }
+    .tabletLayout .fretboardViewerPanel--chord > .viewerControlPanel { max-height: calc(var(--tablet-content-height) - 24px) !important; overflow-y: auto !important; overscroll-behavior: contain; }
+    .tabletLayout .rt-tablet .rt-library-list { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+    .tabletLayout .referenceTrainingMainRow { grid-template-columns: minmax(0,1.3fr) minmax(320px,.9fr) !important; grid-template-rows: 1fr !important; gap: 20px !important; align-items: center !important; }
+    .tabletLayout .referenceTrainingToolbar { display: flex !important; flex-direction: column !important; justify-content: center !important; }
+  }
+  @media (min-width: 960px) and (orientation: landscape) {
+    .tabletLayout .fretboardViewerPanel--chord { grid-template-columns: minmax(0,1fr) minmax(0,1.1fr) !important; }
+  }
+  @media (min-width: 800px) and (orientation: landscape) {
+    .tabletLayout .tunerModeBody--tablet { grid-template-columns: minmax(0,1.2fr) minmax(260px,1fr) !important; grid-template-rows: minmax(0,1fr) !important; grid-template-areas: "tuning head" !important; gap: 24px !important; }
+  }
+  @media (max-width: 699px) {
+    .tabletLayout .desktopTheoryControls .viewerNoteButtons { grid-template-columns: repeat(4,minmax(0,1fr)) !important; }
+    .tabletLayout .desktopTheoryControls .viewerSelectGrid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+    html[data-rifflab-device="tablet"] .shooterGuitarPickerGrid { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+    .tabletLayout .rt-tablet .rt-library-list { grid-template-columns: minmax(0,1fr) !important; }
+    .tabletLayout main.metronomeMode :is(.metronomeBeatMatrix--main,.grooveEditor) { min-height: 220px !important; }
+    .tabletLayout .tunerMobileControls { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 64px !important; }
+    .tabletLayout .tunerMobileControls { left: 12px !important; right: 12px !important; gap: 6px !important; }
+    .tabletLayout .tunerModeBody--tablet { padding-right: 12px !important; padding-left: 12px !important; }
+    .tabletLayout .tunerReadoutStat small { font-size: 12px !important; }
+    .tabletLayout .tunerReadoutStat--target strong { font-size: 38px !important; }
+  }
+  @media (min-width: 960px) and (orientation: landscape) {
+    .tabletLayout main.metronomeMode > .standaloneMetronomePanel,
+    .tabletLayout main.metronomeMode > .standaloneMetronomePanel.dockCollapsed {
+      grid-template-columns: minmax(0, 1.35fr) minmax(340px, .9fr) !important;
+      grid-template-rows: auto auto minmax(180px, 1fr) auto auto !important;
+      grid-template-areas: "handle handle" "advanced advanced" "visual transport" "visual settings" "visual audio" !important;
+    }
+    .tabletLayout main.metronomeMode .metronomeDockHandle { grid-area: handle !important; }
+    .tabletLayout main.metronomeMode .metronomeAdvancedDock { grid-area: advanced !important; }
+    .tabletLayout main.metronomeMode .grooveModeSelector { grid-area: visual !important; align-self: start !important; position: relative !important; z-index: 4 !important; padding: 8px 12px !important; }
+    .tabletLayout main.metronomeMode :is(.metronomeBeatMatrix--main,.grooveEditor) { grid-area: visual !important; padding-top: 76px !important; }
+    .tabletLayout main.metronomeMode .metronomeHeroCard--interactive { grid-area: transport !important; height: 100% !important; align-self: stretch !important; align-content: center !important; }
+    .tabletLayout main.metronomeMode .standaloneMetronomeControl { grid-area: settings !important; }
+    .tabletLayout main.metronomeMode .backingLoopPanel { grid-area: audio !important; }
+  }
+  @media (min-width: 1100px) and (orientation: landscape) {
+    .tabletLayout main.metronomeMode > .standaloneMetronomePanel.hasGroove {
+      grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+      grid-template-rows: auto auto minmax(280px,1fr) auto !important;
+      grid-template-areas: "handle handle handle" "advanced advanced advanced" "visual visual visual" "transport settings audio" !important;
+    }
+    .tabletLayout main.metronomeMode .hasGroove .standaloneMetronomeControl { align-self: center !important; }
+    .tabletLayout main.metronomeMode .hasGroove .metronomeOptions { grid-template-columns: minmax(0,1fr) !important; }
+  }
+}

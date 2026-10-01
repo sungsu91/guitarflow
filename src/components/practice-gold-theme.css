@@ -1,0 +1,53 @@
+/* Shared gold-dark appearance; geometry remains in platform-owned layouts. */
+@layer practice-gold {
+ @media screen {
+  html body .app.theme-brand {--score-bg:var(--studio-canvas)!important;--score-surface:var(--studio-control)!important;--score-soft:var(--studio-selected)!important;--score-ink:var(--studio-text)!important;--score-muted:var(--studio-muted)!important;--score-line:var(--studio-border)!important;--score-accent:var(--studio-accent)!important;--score-on-accent:var(--studio-canvas)!important}
+  html body .app.theme-brand .pdfStudio {background:var(--score-bg)!important;color:var(--score-ink)!important}
+  html body .app.theme-brand .pdfStudio :is(.desktopPracticeRail,.etudePracticeToolbar,.pdfBarNav,.pdfSettings,.pdfViewTools,.pdfFullscreenControls) {background:var(--studio-surface)!important;color:var(--score-ink)!important;border-color:var(--score-line)!important}
+  html body .app.theme-brand .pdfStudio :is(.desktopPracticeRail,.etudePracticeToolbar,.pdfBarNav,.pdfSettings,.pdfViewTools,.pdfFullscreenControls) :is(button,select,input),
+  html body .app.theme-brand .pdfStudio .pdfLocateOverlay, html body .app.theme-brand .pdfStudio .etudeFavoriteToggle {background:var(--score-surface)!important;color:var(--score-ink)!important;-webkit-text-fill-color:currentColor!important;border-color:var(--score-line)!important;text-shadow:none!important;color-scheme:dark}
+  html body .app.theme-brand .pdfStudio :is(.desktopPracticeRail,.etudePracticeToolbar,.pdfBarNav) button:is([aria-pressed=true],[aria-expanded=true]) {background:var(--score-soft)!important;color:var(--score-accent)!important;border-color:var(--score-accent)!important}
+  html body .app.theme-brand .pdfStudio :is(.desktopPracticeRail,.pdfBarNav) button:disabled {opacity:.4!important}
+  html body .app.theme-brand .pdfStudio :is(.pdfScoreStage,.etudeScoreViewport) {background:var(--studio-control)!important;border-color:var(--score-line)!important}
+ }
+}
+/* Body portals need the same palette as the owning rhythm workspace. */
+@layer rhythm-gold {
+ @media screen {
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) {
+   --rt-bg:#171512!important;--rt-text:#f2e8d7!important;--rt-muted:#b3a48e!important;--rt-border:#5a4c38!important;--rt-paper:#211e19!important;--rt-ink:#f2e8d7!important;--rt-staff:#74644c!important;--rt-measure-number:#b3a48e!important;--rt-note-active:#e4bb6b!important;
+   background:var(--rt-bg)!important;color:var(--rt-text)!important;color-scheme:dark;accent-color:#cfad72;
+  }
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(.rt-header,.rt-library-rail,.rt-meta,.rt-quick,.rt-tools,footer,.rt-guide-controls) {background:#211e19!important;border-color:var(--rt-border)!important;color:var(--rt-text)!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(button,input,select,textarea) {background:#28241e!important;color:var(--rt-text)!important;border-color:var(--rt-border)!important;text-shadow:none!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(small,.rt-result-count,.rt-meta span,.rt-guide-legend) {color:var(--rt-muted)!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-card {background:linear-gradient(180deg,#28241e,#211e19)!important;border-color:var(--rt-border)!important;box-shadow:none!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(.rt-score-scroll,.rt-score,.rt-guide-score article) {background:var(--rt-paper)!important;color:var(--rt-ink)!important;border-color:var(--rt-border)!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-preview {background:transparent!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(.rt-card.selected,button.selected,button[aria-pressed=true],[role=tab][aria-selected=true]) {background:#3b3122!important;border-color:#cfad72!important;color:#f2e8d7!important;box-shadow:inset 3px 0 #cfad72!important}
+  /* Library notation shares its card surface, including the selected state. */
+  body:has(.app.theme-brand .rt-workspace) .rt-workspace .rt-card {
+   --rt-paper:#242019;
+   --rt-ink:#b8ad99;
+   --rt-staff:#625744;
+   --rt-measure-number:#958771;
+   background:var(--rt-paper)!important;
+  }
+  body:has(.app.theme-brand .rt-workspace) .rt-workspace .rt-card.selected {
+   --rt-paper:#30291e;
+   background:var(--rt-paper)!important;
+  }
+  body:has(.app.theme-brand .rt-workspace) .rt-workspace .rt-card .rt-preview,
+  body:has(.app.theme-brand .rt-workspace) .rt-workspace .rt-card .rt-preview .rt-measure {
+   background:transparent!important;
+  }
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-primary {background:#cfad72!important;color:#171512!important;border-color:#cfad72!important;box-shadow:none!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-pack-favorite {background:transparent!important;border:0!important;box-shadow:none!important;color:#b3a48e!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) .rt-pack-favorite[aria-pressed=true] {color:#e4bb6b!important}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) :is(button,input,select,textarea):focus-visible {outline:2px solid #cfad72!important;outline-offset:2px}
+  body:has(.app.theme-brand .rt-workspace) :is(.rt-workspace,.rt-dialog) * {scrollbar-color:#796747 #211e19}
+  /* Export preview keeps the exact white paper and black notation of the print. */
+  body:has(.app.theme-brand .rt-workspace) .rt-dialog .rt-print-page {--rt-paper:#fff!important;--rt-ink:#111!important;--rt-staff:#888!important;--rt-measure-number:#444!important;background:#fff!important;color:#111!important}
+  body:has(.app.theme-brand .rt-workspace) .rt-dialog .rt-print-page :is(.rt-score,.rt-measure) {background:#fff!important;color:#111!important}
+ }
+}

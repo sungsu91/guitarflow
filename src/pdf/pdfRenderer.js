@@ -7,7 +7,7 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {createPdfPageCache,pdfRasterKey} from './pdfPageCache.js';
 import {canvasSize} from './pdfModel.js';
 GlobalWorkerOptions.workerSrc=workerUrl;
-export const loadPdfTask = data => getDocument({data,cMapUrl:'/pdfjs/cmaps/',cMapPacked:true,standardFontDataUrl:'/pdfjs/standard_fonts/',wasmUrl:'/pdfjs/wasm/',isEvalSupported:false,enableXfa:false,canvasMaxAreaInBytes:24000000});
+export const loadPdfTask = (data,{analysis=false}={}) => getDocument({data,cMapUrl:'/pdfjs/cmaps/',cMapPacked:true,standardFontDataUrl:'/pdfjs/standard_fonts/',wasmUrl:'/pdfjs/wasm/',isEvalSupported:false,enableXfa:false,canvasMaxAreaInBytes:24000000,...(analysis?{isOffscreenCanvasSupported:false,isImageDecoderSupported:false}:{})});
 export const pdfPageCache=createPdfPageCache({load:async blob=>{
  const task=loadPdfTask(new Uint8Array(await blob.arrayBuffer()));
  try{return await task.promise;}catch(error){await task.destroy();throw error;}

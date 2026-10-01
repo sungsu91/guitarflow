@@ -4,7 +4,7 @@ import {t} from '../i18n/core.js';
 import {useLanguage} from '../i18n/react.jsx';
 import './scoreWorkspaceActions.css';
 
-export default function ScoreWorkspaceActions({mobile,inline=false,onCreate,onEdit,onImport,canEdit=true,importBusy=false}){
+export default function ScoreWorkspaceActions({mobile,inline=false,onCreate,onEdit,onImport,canEdit=true,importBusy=false,children}){
  useLanguage();
  const id=useId(),root=useRef(null),trigger=useRef(null),menu=useRef(null);
  const [open,setOpen]=useState(false),[position,setPosition]=useState(null);
@@ -17,13 +17,13 @@ export default function ScoreWorkspaceActions({mobile,inline=false,onCreate,onEd
   <button type="button" onClick={onCreate}><Plus size={16}/>{t('score.make')}</button>
   <button type="button" disabled={!canEdit} onClick={onEdit}><Pencil size={16}/>{t('common.edit')}</button>
   {onImport&&<button type="button" disabled={importBusy} onClick={onImport}><FilePlus2 size={16}/>{t('app.load')}</button>}
- </div>;
+ {children}</div>;
  return <div ref={root} onKeyDown={e=>{if(open)keys(e);}} className={'scoreWorkspaceActions '+(mobile?'scoreWorkspaceActions--mobile':'scoreWorkspaceActions--desktop')}>
  <button ref={trigger} className="scoreWorkspaceActionTrigger" type="button" aria-haspopup="menu" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>setOpen(v=>!v)} onKeyDown={e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();e.stopPropagation();setOpen(true);}}}>{t('score.actions')}<ChevronDown size={14}/></button>
- {open&&<div ref={menu} id={id} className="scoreWorkspaceActionMenu" role="menu" aria-label={t('score.actions')} style={position??{visibility:'hidden'}}>
+ {open&&<div ref={menu} id={id} className="scoreWorkspaceActionMenu" role="menu" aria-label={t('score.actions')} style={position??{visibility:'hidden'}} onClick={e=>{if(e.target.closest("button"))close();}}>
  <button type="button" role="menuitem" onClick={()=>run(onCreate)}><Plus size={17}/>{t('score.make')}</button>
  <button type="button" role="menuitem" disabled={!canEdit} onClick={()=>run(onEdit)}><Pencil size={17}/>{t('common.edit')}</button>
  {onImport&&<button type="button" role="menuitem" disabled={importBusy} onClick={()=>run(onImport)}><FilePlus2 size={17}/>{t('app.load')}</button>}
- </div>}
+ {children}</div>}
  </div>;
 }

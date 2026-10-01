@@ -29,7 +29,8 @@ export default function ShooterSettingsPopover({ anchor, mobile, label, classNam
       const topEdge = viewport?.offsetTop ?? 0;
       const rightEdge = leftEdge + (viewport?.width ?? window.innerWidth);
       const bottomEdge = topEdge + (viewport?.height ?? window.innerHeight);
-      const width = Math.min(panelWidth ?? (compact ? 148 : mobile ? 340 : 360), rightEdge - leftEdge - 16);
+      const layoutWidth = Number.parseFloat(getComputedStyle(node).getPropertyValue('--shooter-settings-width'));
+      const width = Math.min(layoutWidth || panelWidth || (compact ? 148 : mobile ? 340 : 360), rightEdge - leftEdge - 16);
       const left = Math.max(leftEdge, Math.min(rect.left, rightEdge - width - 8));
       const top = rect.bottom - 1;
       node.style.width = `${width}px`;

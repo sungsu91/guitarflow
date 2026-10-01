@@ -1,5 +1,5 @@
 import {limitGrooveRenderPeaks} from './grooveRenderLevel.js';
-import {normalizeGroovePattern, scheduleGrooveStep, createGrooveVoiceState} from '../metronome/groove.js';
+import {normalizeGroovePattern, scheduleGrooveStep, createGrooveVoiceState, getGrooveBarCount, getGrooveStepIndex} from '../metronome/groove.js';
 import {METRONOME_TONE_OPTIONS, TIME_SIGNATURE_OPTIONS} from '../metronome/options.js';
 import {getMetronomeSubdivisionOption} from '../metronome/subdivision.js';
 import {encodePcmWav} from '../audio/audioPostProcessing.js';
@@ -36,7 +36,9 @@ export function getGrooveBackingTiming(pack, bpm) {
   const tempo = Math.max(20, Math.min(300, Number(bpm) || Number(pack.bpm) || 80));
   const beats = TIME_SIGNATURE_OPTIONS.find(option => option.id === pack.timeSignature)?.beats ?? 4;
   const divisions = getMetronomeSubdivisionOption(pack.subdivision).clicksPerBeat;
-  return {bpm: tempo, steps: beats * divisions, stepSeconds: 60 / tempo / divisions, durationSeconds: beats * 60 / tempo * 8};
+  // Keep complete groove cycles at the audio loop seam, including 3-bar grooves.
+  const bars=Math.ceil(8/getGrooveBarCount(pack.pattern))*getGrooveBarCount(pack.pattern);
+  return {bpm: tempo, steps: beats * divisions, bars, stepSeconds: 60 / tempo / divisions, durationSeconds: beats * 60 / tempo * bars};
 }
 
 export async function renderGrooveBacking(pack, bpm) {
@@ -56,9 +58,9 @@ export async function renderGrooveBacking(pack, bpm) {
     buffers[tone] = await audio.decodeAudioData(await response.arrayBuffer());
   }));
   const voiceState = createGrooveVoiceState();
-  for (let step = 0; step < timing.steps * 16; step++) {
+  for (let step = 0; step < timing.steps * timing.bars * 2; step++) {
     scheduleGrooveStep({audio, output: audio.destination, buffers, pattern,
-      index: step % timing.steps, time: step * timing.stepSeconds, volume: 1,
+      index: getGrooveStepIndex(pattern,step,timing.steps), time: step * timing.stepSeconds, volume: 1,
       voiceState, track: () => {}});
   }
   const rendered = await audio.startRendering();

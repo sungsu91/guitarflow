@@ -33,10 +33,12 @@ export default function MetronomeSettingsPanel({ fields, renderOption }) {
       let bottomEdge = (view?.offsetTop || 0) + (view?.height || innerHeight) - Math.max(10,safe('bottom'));
       const nav = document.querySelector('.integratedBottomNav');
       if (nav?.getClientRects().length) { const nr = nav.getBoundingClientRect(); if (nr.height && nr.top > rect.bottom) bottomEdge = Math.min(bottomEdge, nr.top - 10); }
-      const width = Math.min(field.tone ? 360 : field.id === 'meter' ? 300 : 324, rightEdge - leftEdge);
+      const preferredWidth = parseFloat(style.getPropertyValue(field.tone ? '--rhythm-popup-tone-width' : '--rhythm-popup-width'))
+        || (field.tone ? 360 : field.id === 'meter' ? 300 : 324);
+      const width = Math.min(preferredWidth, rightEdge - leftEdge);
       const left = Math.max(leftEdge, Math.min(rect.left + rect.width / 2 - width / 2, rightEdge - width));
       const above = Math.max(0, rect.top - topEdge - 10), below = Math.max(0, bottomEdge - rect.bottom - 10);
-      const ideal = field.tone ? 256 : Math.ceil(field.options.length / 4) * 52 + 24;
+      const ideal = field.tone ? (parseFloat(style.getPropertyValue('--rhythm-popup-tone-height')) || 256) : Math.ceil(field.options.length / 4) * 52 + 24;
       const up = above >= ideal || above >= below;
       const height = Math.max(0, Math.min(ideal, up ? above : below));
       const colors = {};

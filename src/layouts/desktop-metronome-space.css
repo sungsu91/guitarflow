@@ -1,0 +1,43 @@
+@layer desktop-metronome-space {
+/* Fill the desktop workspace without altering mobile metronome geometry. */
+@media (min-width:1024px) {
+ html body .desktopLayout .desktopWorkspaceContent:has(>main.metronomeMode) {padding-right:14px!important}
+ html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode {width:100%!important;max-width:none!important;min-height:100dvh!important;padding:14px 0!important;box-sizing:border-box}
+ html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode > .standaloneMetronomePanel.standaloneMetronomePanel {
+  width:100%!important;max-width:none!important;min-height:calc(100dvh - 60px)!important;padding:0!important;box-sizing:border-box;
+  grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr)!important;
+  grid-template-rows:auto auto auto minmax(240px,1fr) auto auto!important;
+  --desktop-metronome-visual-height:clamp(240px,calc(100dvh - 460px),620px);
+ }
+ html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode > .standaloneMetronomePanel.dockCollapsed {grid-template-rows:auto auto minmax(240px,1fr) auto auto!important}
+ /* Groove controls use their content height, with no empty former header space. */
+ html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode > .standaloneMetronomePanel:has(> .grooveEditor) {min-height:0!important}
+ html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode > .standaloneMetronomePanel > .metronomeBeatMatrix--main {height:100%!important;min-height:240px!important;max-height:none!important}
+ html body .desktopLayout .standaloneMetronomePanel > .grooveEditor {height:100%!important;min-height:240px!important;box-sizing:border-box;display:flex!important;flex-direction:column!important}
+ html body .desktopLayout .standaloneMetronomePanel > .grooveEditor .grooveGrid {flex:1!important;align-content:space-evenly!important}
+ /* The mode row is the visual panel's header, not a separate floating strip. */
+ html body .desktopLayout main.metronomeMode > .standaloneMetronomePanel {
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+ }
+ html body .desktopLayout main.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector {
+  position:relative;
+  z-index:1;
+  box-sizing:border-box;
+  min-height:48px!important;
+  padding:9px 18px!important;
+  margin-bottom:-12px!important;
+  background:var(--studio-surface)!important;
+  border:1px solid var(--studio-border)!important;
+  border-bottom:0!important;
+  border-radius:12px 12px 0 0!important;
+ }
+ html body .desktopLayout main.metronomeMode > .standaloneMetronomePanel > :is(.grooveEditor,.metronomeBeatMatrix--main) {
+  border-top:0!important;
+  border-radius:0 0 12px 12px!important;
+  box-shadow:none!important;
+ }
+}
+
+}

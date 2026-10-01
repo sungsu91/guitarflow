@@ -31,13 +31,13 @@ test("desktop shell adds a dedicated sidebar while preserving shared App navigat
   assert.match(desktopCss, /width: min\(100%, 1180px\)/);
 });
 
-test("shooter uses the mobile-master HUD at mobile and desktop sizes", async () => {
+test("shooter keeps the shared touch HUD outside the dedicated desktop scene", async () => {
   const [appSource, appCss] = await Promise.all([
     readFile(appSourceUrl, "utf8"),
     readFile(appStyleUrl, "utf8"),
   ]);
 
-  assert.match(appSource, /\{!mapEditor\.enabled \? \(\s*<div\s+className="mobileShooterTopHud"/);
+  assert.match(appSource, /\{!mapEditor\.enabled && !desktopShooterScene \? \(\s*<div\s+className="mobileShooterTopHud"/);
   assert.ok(appSource.indexOf('className="mobileShooterTopHud"') < appSource.indexOf('className={`shooterArena'));
   assert.match(appSource, /className=\{`mobileShooterPlayHelpHud/);
   assert.match(appSource, /className=\{`mobileShooterPlayHelpOption/);

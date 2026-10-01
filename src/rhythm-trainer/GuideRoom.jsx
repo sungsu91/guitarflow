@@ -7,10 +7,9 @@ import {GUIDE_METERS,GUIDE_FAMILIES,meterInfo,guidePatterns,compileGuideBar,Guid
 import {clone} from './model.js';
 import {getSharedAudioContext,getAudioBusInput,AUDIO_BUS_IDS} from '../audio/audioBus.js';
 import {prepareBeatSounds} from './beatSounds.js';
-import {METRONOME_TONE_OPTIONS} from '../metronome/options.js';
+import {BEAT_SOUND_OPTIONS} from './beatSoundOptions.js';
 import './guideRoom.css';
 import {useLanguage} from '../i18n/react.jsx';
-import {localizeUi} from '../i18n/core.js';
 import {GUIDE_FAMILY_EN,guidePatternTitle} from './guideLabels.js';
 export default function GuideRoom({progressStyle,onProgressStyle,initialPack,initialTone,initialBpm,mobile,stemDirection,beatSound,onBeatSound,onClose}){
  const language=useLanguage();const t=(ko,en)=>language==='ko'?ko:en;
@@ -43,7 +42,7 @@ export default function GuideRoom({progressStyle,onProgressStyle,initialPack,ini
  <p className="rt-guide-explanation">{t("음표 아래 카운트에 맞춰 칩니다. ●는 치기, ×는 뮤트 타격, —는 앞 음 유지, ·는 쉼입니다.","Play on the count under each note. ● Play, × muted hit, — hold, · rest.")}</p>
  </div>
  <footer className="rt-guide-controls"><ProgressStyleSelect value={progressStyle} onChange={onProgressStyle}/><div><label className="rt-guide-tempo">{info.compound?t('점4분음표','Dotted quarter'):t('4분음표','Quarter')} = <input aria-label={t("가이드 BPM","Guide BPM")} type="number" min="30" max="240" value={bpm} onChange={e=>{stop();setBpm(Math.max(30,Math.min(240,Number(e.target.value)||30)));}}/> BPM</label><label>{t("치는 소리","Hit sound")}<select aria-label={t("가이드 치는 소리","Guide hit sound")} value={tone} onChange={e=>{stop();setTone(e.target.value);}}><option value="wood">{t("우드","Wood")}</option><option value="rim">{t("림","Rim")}</option><option value="clap">{t("손뼉","Clap")}</option></select></label></div>
- <label className="rt-guide-sound">{t("박자 소리","Beat sound")}<select aria-label={t("가이드 박자 소리","Guide beat sound")} value={beatSound} onChange={e=>{stop();onBeatSound(e.target.value);}}><option value="voice">{t("원·투·쓰리·포","One · two · three · four")}</option>{METRONOME_TONE_OPTIONS.map(o=><option value={o.id} key={o.id}>{localizeUi(o.label)}</option>)}</select></label>
+ <label className="rt-guide-sound">{t("박자 소리","Beat sound")}<select aria-label={t("가이드 박자 소리","Guide beat sound")} value={beatSound} onChange={e=>{stop();onBeatSound(e.target.value);}}>{BEAT_SOUND_OPTIONS.map(o=><option key={o.id} value={o.id}>{t(o.ko,o.en)}</option>)}</select></label>
  <button className="rt-primary" onClick={play}>{running?t('Ⅱ 듣기 멈춤','Ⅱ Stop listening'):t('▶ 패턴 반복 듣기','▶ Loop pattern')}</button>{error&&<p role="alert">{error}</p>}
  </footer></section>,document.body);
 }

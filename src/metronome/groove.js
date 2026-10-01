@@ -24,27 +24,71 @@ export const GROOVE_SAMPLE_GAIN = {
   cabasa:1.6, cowbell:.6, agogo:.45, triangle:.5,
   tick:.65, stick:1, congaSlap:.75, woodblock:1, clave:.45, snap:1, fingerTap:1.6,
 };
-export function createGrooveRow(tone='hihat') {
-  return {tone,steps:Array(72).fill(false),velocities:Array(72).fill(70),volume:.75,muted:false};
+// Reserve the full supported meter per bar so meter/subdivision changes never
+// reinterpret the next bar's notes as part of the first bar.
+export const GROOVE_BAR_STEPS = 72;
+export const MAX_GROOVE_BARS = 4;
+export function getGrooveBarCount(pattern) {
+  return Math.max(1,Math.min(MAX_GROOVE_BARS,Math.floor(Number(pattern?.barCount)||1)));
 }
-export function applyGrooveQuick(row, mode, index, beats, divisions, strength=70) {
+export function getGrooveStepIndex(pattern, index, stepsPerBar) {
+  const bar=Math.floor(index/stepsPerBar)%getGrooveBarCount(pattern);
+  return bar*GROOVE_BAR_STEPS+index%stepsPerBar;
+}
+export function createGrooveRow(tone='hihat', barCount=1) {
+  const length=GROOVE_BAR_STEPS*getGrooveBarCount({barCount});
+  return {tone,steps:Array(length).fill(false),velocities:Array(length).fill(70),volume:.75,muted:false};
+}
+export function resizeGroovePattern(pattern, count) {
+  const barCount=getGrooveBarCount({barCount:count});
+  return {...pattern,name:'custom',barCount,rows:pattern.rows.map(row=>{
+    // Shortening the loop retains hidden bars for a later expansion.
+    const length=Math.max(row.steps.length,barCount*GROOVE_BAR_STEPS);
+    const source=(getGrooveBarCount(pattern)-1)*GROOVE_BAR_STEPS;
+    return {...row,
+      steps:Array.from({length},(_,i)=>i<row.steps.length?Boolean(row.steps[i]):Boolean(row.steps[source+i%GROOVE_BAR_STEPS])),
+      velocities:Array.from({length},(_,i)=>i<row.steps.length?(row.velocities?.[i]??70):(row.velocities?.[source+i%GROOVE_BAR_STEPS]??70)),
+    };
+  })};
+}
+export function copyGrooveBar(pattern, from, to) {
+  if(from<0 || to<0 || from>=getGrooveBarCount(pattern) || to>=getGrooveBarCount(pattern) || from===to)return pattern;
+  return {...pattern,name:'custom',rows:pattern.rows.map(row=>{
+    const steps=[...row.steps],velocities=[...row.velocities];
+    for(let i=0;i<GROOVE_BAR_STEPS;i++) {
+      steps[to*GROOVE_BAR_STEPS+i]=Boolean(row.steps[from*GROOVE_BAR_STEPS+i]);
+      velocities[to*GROOVE_BAR_STEPS+i]=row.velocities[from*GROOVE_BAR_STEPS+i]??70;
+    }
+    return {...row,steps,velocities};
+  })};
+}
+export function clearGrooveBar(pattern, bar) {
+  return {...pattern,name:'custom',rows:pattern.rows.map(row=>({...row,
+    steps:row.steps.map((step,i)=>Math.floor(i/GROOVE_BAR_STEPS)===bar?false:step),
+  }))};
+}
+export function applyGrooveQuick(row, mode, index, beats, divisions, strength=70, bar=0) {
   const steps=[...row.steps];
-  const velocities=Array.from({length:72},(_,i)=>row.velocities?.[i]??70);
+  const velocities=Array.from({length:row.steps.length},(_,i)=>row.velocities?.[i]??70);
+  const offset=bar*GROOVE_BAR_STEPS;
   const enabled=!(steps[index] && velocities[index]===Number(strength));
-  for(let i=0;i<Math.min(72,beats*divisions);i++) {
-    if(mode==='bulk' || (mode==='partial' && i%divisions===index%divisions)) {
-      steps[i]=enabled;
-      velocities[i]=Number(strength);
+  for(let i=0;i<Math.min(GROOVE_BAR_STEPS,beats*divisions);i++) {
+    if(mode==='bulk' || (mode==='partial' && i%divisions===(index-offset)%divisions)) {
+      steps[offset+i]=enabled;
+      velocities[offset+i]=Number(strength);
     }
   }
   return {...row,steps,velocities};
 }
 export function normalizeGroovePattern(pattern, previous) {
-  const rows=(pattern?.rows || []).map((row,index)=>row===previous?.rows[index]?row:({...createGrooveRow(row.tone),...row,
-    steps:Array.from({length:72},(_,i)=>Boolean(row.steps?.[i])),
-    velocities:Array.from({length:72},(_,i)=>Math.max(1,Math.min(100,Number(row.velocities?.[i])||70))),
+  const barCount=getGrooveBarCount(pattern);
+  const capacity=Math.min(MAX_GROOVE_BARS,Math.max(barCount,...(pattern?.rows||[]).map(row=>Math.ceil((row.steps?.length||0)/GROOVE_BAR_STEPS))));
+  const length=capacity*GROOVE_BAR_STEPS;
+  const rows=(pattern?.rows || []).map((row,index)=>row===previous?.rows[index] && row.steps.length===length?row:({...createGrooveRow(row.tone,capacity),...row,
+    steps:Array.from({length},(_,i)=>Boolean(row.steps?.[i])),
+    velocities:Array.from({length},(_,i)=>Math.max(1,Math.min(100,Number(row.velocities?.[i])||70))),
     volume:Number.isFinite(row.volume)?Math.max(0,Math.min(1,row.volume)):.75,muted:Boolean(row.muted)}));
-  return {...pattern,rows:rows.length?rows:[createGrooveRow()]};
+  return {...pattern,barCount,rows:rows.length?rows:[createGrooveRow('hihat',barCount)]};
 }
 export function createGroovePattern(name = '8beat') {
   const hits = name === 'empty' ? [[], [], []] : [name === '16beat' ? Array.from({length:16}, (_, i) => i) : [0,2,4,6,8,10,12,14], [4,12], [0,8]];

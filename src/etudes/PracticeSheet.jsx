@@ -1,4 +1,5 @@
 import DesktopPracticeLayout from './DesktopPracticeLayout.jsx';
+import {useTabletLayout} from '../layouts/TabletLayout.jsx';
 import ScoreWorkspaceActions from './ScoreWorkspaceActions.jsx';
 import DifficultyStars from './DifficultyStars.jsx';
 import { etudeDifficulty } from './difficultyRatings.js';
@@ -16,7 +17,8 @@ import {scoreInstrument} from './scoreInstruments.js';
 import './etudes.css';
 import './practiceLayout.css';
 const Score=lazy(()=>import('./Score.jsx'));
-export default function PracticeSheet({model,mobile,heading,title,lessonTips,footer,desktopPicker,desktopStorage}) {
+export default function PracticeSheet({model,mobile,heading,title,lessonTips,footer,desktopPicker,desktopStorage,externalContent,externalTools}) {
+ const tablet=useTabletLayout();
   const language=useLanguage();
  const printLabel=mobile?(language==='ko'?'악보 PDF 미리보기':'Score PDF preview'):translateUi('etudes.saveScorePdfPrint');
  const [viewOpen,setViewOpen]=useState(false);
@@ -26,7 +28,7 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  const {tipsOpen:tips,setTipsOpen:setTips}=model;
  const {selected:etude,bpm,layout}=model;
  const difficulty=etudeDifficulty(etude);
- const focus=layout.focus,compact=model.compactTools,quickViews=layout.focus&&layout.viewport.landscape;
+ const focus=layout.focus,compact=model.compactTools,quickViews=tablet||(layout.focus&&layout.viewport.landscape);
  const scoreViewport=useRef(null);
  const [desktopZoom,setDesktopZoom]=useState('auto');
  const desktopSizing=useDesktopScoreSizing(scoreViewport,!mobile&&!focus,desktopZoom,etude?.id);
@@ -70,7 +72,7 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  const paginatedDesktop=!mobile&&!focus;
  const pageHeader=heading??<header className="etudeSheetHeader"><h2>{etude.english}</h2><DifficultyStars score={etude}/><div className="etudeSheetMeta"><span>{localizeUi(etude.instrument&&etude.instrument!=='guitar'&&scoreInstrument(etude.instrument).label+' · ')}{customTuning&&translateUi("etudes.tuningPracticeSheet")+etude.tuning.length+translateUi("etudes.1stStringPracticeSheet")+tuningLabel+' · '}{etude.keySignature}</span><span>♩ = {bpm}</span></div></header>;
  const notation=<Suspense fallback={<p className="etudeLoading"><Translation id="etudes.preparingTheScore" /></p>}><Score practiceRange={model.loopRange} onSelectBar={model.selectBar} selectedBar={model.followMode==='off'?null:model.startBar} etude={etude} mobile={mobile} bpm={bpm} view={model.notationView} playPosition={model.followMode==='off'?null:model.playPosition} followMode={model.followMode} responsive measuresPerRow={measuresPerRow} zoom={mobile||focus?model.zoom:1} focusLayout={focus} chordChartMode={mobile?"all":"halves"} paginatedDesktop={paginatedDesktop} pageHeader={pageHeader} pageFooter={footer}/></Suspense>;
- const paper=<div ref={scoreViewport} className="etudeScoreViewport" tabIndex={0} aria-label={translateUi("etudes.practiceScoreScrollArea")}>
+ const paper=externalContent??<div ref={scoreViewport} className="etudeScoreViewport" tabIndex={0} aria-label={translateUi("etudes.practiceScoreScrollArea")}>
  {paginatedDesktop?<div ref={desktopSizing.sheetRef} style={desktopSizing.sheetStyle} className="desktopScorePages">{notation}</div>:<article className="etudeSheet" aria-label={translateUi("etudes.practiceScore")}>{notation}{footer}</article>}
  </div>;
  if(!mobile&&!focus&&desktopPicker)return <div className="etudePracticeLayout etudePracticeLayout--desktop etudePracticeLayout--rail" data-practice-layout="desktop-rail">
@@ -80,9 +82,10 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
    {paper}
   </DesktopPracticeLayout>
  </div>;
- return <div className={'etudePracticeLayout'+(compact?' etudeCompactTools':'')+(focus?' is-focus':'')+(!mobile?' etudePracticeLayout--desktop':'')} data-practice-layout={focus?'landscape':'normal'} style={focus?{left:layout.viewport.left,top:layout.viewport.top,width:layout.viewport.width,height:layout.viewport.height}:undefined}>
+ return <div className={'etudePracticeLayout'+(externalContent?' etudePracticeLayout--pdf':'')+(compact?' etudeCompactTools':'')+(focus?' is-focus':'')+(!mobile?' etudePracticeLayout--desktop':'')} data-practice-layout={focus?'landscape':'normal'} style={focus?{left:layout.viewport.left,top:layout.viewport.top,width:layout.viewport.width,height:layout.viewport.height}:undefined}>
  <div className="etudePracticeToolbar" aria-label={translateUi("etudes.scoreToolbar")}>
  <div className="etudeViewTools" role="group" aria-label={translateUi("etudes.scoreView")}>
+ {externalContent?<>{focus&&<button type="button" className="etudeFocusBack" aria-label={translateUi("app.back")} onClick={layout.exit}><ChevronLeft/></button>}<button type="button" data-ui="metronome" aria-label={translateUi("menu.metronome")} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={model.toggleMetro}><Timer/></button><span className="etudeBackingToggleMount" ref={model.setBackingTarget}/>{externalTools}</>:<>
  {focus&&<button type="button" className="etudeFocusBack" aria-label={translateUi("app.back")} title={translateUi("app.back")} onClick={layout.exit}><ChevronLeft aria-hidden="true"/></button>}
  {quickViews&&<div className="etudeViewMenu" onKeyDown={e=>{if(e.key==='Escape')setNotationOpen(false);}}><button type="button" aria-label={translateUi("etudes.changeScoreDisplay")} aria-expanded={notationOpen} onClick={()=>{setNotationOpen(v=>!v);setViewOpen(false);}}><span>{localizeUi({tab:'TAB',both:ko["etudes.staffTab"],staff:ko["etudes.staff"]}[model.notationView])}</span><ChevronDown aria-hidden="true"/></button>{notationOpen&&<div className="etudeNotationChoices" role="group" aria-label={translateUi("etudes.scoreDisplay")}>{notationButtons}</div>}</div>}
  <>{quickViews?<select className="etudeFocusBarCount" aria-label={translateUi("etudes.barsPerLine")} value={measuresPerRow} onChange={e=>changeMeasuresPerRow(Number(e.target.value))}>{[0,1,2,3,4].map(n=><option key={n} value={n}>{n?<>{n}<Translation id="app.bar" /></>:translateUi("etudes.auto")}</option>)}</select>:<div className="etudeViewMenu"><button type="button" aria-expanded={viewOpen} aria-label={quickViews?translateUi("etudes.scoreViewSettings"):translateUi("etudes.changeScoreDisplay")} aria-controls="etude-notation-options" onClick={()=>{setViewOpen(v=>!v);setNotationOpen(false);}}>{quickViews?<Settings2 aria-hidden="true"/>:<><PanelsTopLeft aria-hidden="true"/><span>{localizeUi({both:ko["etudes.staffTabPracticeSheet"],staff:ko["etudes.staffOnly"],tab:ko["etudes.tabOnly"]}[model.notationView])}</span><ChevronDown aria-hidden="true"/></>}</button>
@@ -105,7 +108,7 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  {model.toggleFavorite&&<button type="button" className="etudeFavoriteToggle" aria-label={model.isFavorite?translateUi("etudes.removeFromFavorites"):translateUi("etudes.addToFavorites")} title={model.isFavorite?translateUi("etudes.removeFromFavorites"):translateUi("etudes.addToFavorites")} aria-pressed={model.isFavorite} onClick={model.toggleFavorite}><Star size={19} fill={model.isFavorite?'currentColor':'none'}/>{!mobile&&<span><Translation id="etudes.favorites" /></span>}</button>}
  {!mobile&&<button type="button" className="etudePrintScore" aria-label={printLabel} title={printLabel} onClick={printScore}><Printer aria-hidden="true"/><span><Translation id="etudes.savePdf" /></span></button>}
  {lessonTips&&<button type="button" className="etudeTipToggle" aria-expanded={tips} onClick={()=>{setTips(v=>!v);}}><Translation id="originalUi.tip" /></button>}
- {!focus&&<ScoreWorkspaceActions mobile={mobile} onCreate={model.createScore} onEdit={()=>model.editScore(etude)} onImport={model.importPdf} canEdit={model.canEdit!==false} importBusy={model.importBusy}/>} </div>{mobile&&!focus&&<div className="etudeMobileTitleRow"><div className="etudeMobileScoreTitle" title={compactTitle}><Translation id="etudes.title" />{compactTitle}</div><div className="etudeInlineBarCount" role="group" aria-label={translateUi("etudes.barsPerLine")}><span><Translation id="etudes.view" /></span>{[0,1,2,3,4].map(n=><button key={n} type="button" aria-label={n?translateUi("etudes.value1BarsPerLine", { value1: n }):translateUi("etudes.autoBarsPerLine")} aria-pressed={measuresPerRow===n} onClick={()=>changeMeasuresPerRow(n)}>{n||translateUi("etudes.auto")}</button>)}</div></div>}{mobile&&!focus&&difficulty!==null&&<div className="etudeCurrentDifficulty"><Translation id="etudes.difficulty"/><DifficultyStars score={etude}/></div>}<div className="etudeHudMetroMount etudeFloatingTheme" ref={model.setHudTarget}/></div>
+ {!focus&&<ScoreWorkspaceActions mobile={mobile} onCreate={model.createScore} onEdit={()=>model.editScore(etude)} onImport={model.importPdf} canEdit={model.canEdit!==false} importBusy={model.importBusy}/>} </>}</div>{mobile&&!focus&&!externalContent&&<div className="etudeMobileTitleRow"><div className="etudeMobileScoreTitle" title={compactTitle}><Translation id="etudes.title" />{compactTitle}</div><div className="etudeInlineBarCount" role="group" aria-label={translateUi("etudes.barsPerLine")}><span><Translation id="etudes.view" /></span>{[0,1,2,3,4].map(n=><button key={n} type="button" aria-label={n?translateUi("etudes.value1BarsPerLine", { value1: n }):translateUi("etudes.autoBarsPerLine")} aria-pressed={measuresPerRow===n} onClick={()=>changeMeasuresPerRow(n)}>{n||translateUi("etudes.auto")}</button>)}</div></div>}{mobile&&!focus&&!externalContent&&difficulty!==null&&<div className="etudeCurrentDifficulty"><Translation id="etudes.difficulty"/><DifficultyStars score={etude}/></div>}<div className="etudeHudMetroMount etudeFloatingTheme" ref={model.setHudTarget}/></div>
  {lessonTips&&tips&&<div className={focus?'etudeFocusTips':'etudeTopTips'}>{lessonTips}</div>}
  {printError&&<p role="alert">{printError}</p>}
  {paper}

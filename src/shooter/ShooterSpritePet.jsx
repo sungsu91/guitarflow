@@ -1,4 +1,5 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useTabletLayout } from "../layouts/TabletLayout.jsx";
 import { createPetAnimation, drawPetFrame, getPetReaction } from "./petAnimation.js";
 import { getPetLayoutKey } from "./petPreferences.js";
 import { usePetPreferences } from "./usePetPreferences.js";
@@ -103,9 +104,21 @@ function PetCanvas({ skin, active, playing, score, combo, hits, size, playbackSp
 
 function ShooterSpritePet({ skin, mobile, horizontal, ...props }) {
   const language = useLanguage();
+  const tablet = useTabletLayout();
   const [preferences, update] = usePetPreferences(skin.id);
   const rootRef = useRef(null), handleRef = useRef(null);
-  const size = mobile ? 64 : 80;
+  const [tabletSize, setTabletSize] = useState(112);
+  useLayoutEffect(() => {
+    if (!tablet || !rootRef.current) return undefined;
+    const root = rootRef.current;
+    const resize = () => setTabletSize(Math.round(Math.max(88, Math.min(144, root.clientWidth * 0.14, root.clientHeight * 0.14))));
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [tablet]);
+  // Canvas resolution, drag bounds and artwork use the same rendered size.
+  const size = tablet ? tabletSize : mobile ? 64 : 80;
   const layout = getPetLayoutKey(mobile, horizontal);
   const drag = usePetPlacement({ skinId: skin.id, rootRef, handleRef, size, mobile, horizontal,
     position: preferences.positions[layout],

@@ -160,17 +160,18 @@ html body .desktopLayout main.app.app.app.desktopRhythmWorkspace .rt-desktop {
 
   .rt-library-list > p { grid-column: 1 / -1; padding: 32px 12px; color: var(--rt-muted); font-size: 13px; line-height: 1.8; text-align: center; }
   .rt-pack-card-wrap { display: flex; min-width: 0; }
-  .rt-card { display: flex; flex-direction: column; align-items: stretch; min-height: 180px; height: 100%; gap: 5px; padding: 16px !important; white-space: normal; overflow-wrap: anywhere; }
+  .rt-card { display: flex; flex-direction: column; align-items: stretch; min-height: 128px; height: 100%; gap: 5px; padding: 16px !important; white-space: normal; overflow-wrap: anywhere; }
   .rt-card strong { margin: 2px 0; font-size: 13px; line-height: 1.55; }
-  .rt-card .rt-pack-objective { min-height: 32px; line-height: 1.5; }
   .rt-card .rt-preview { width: 100%; margin-top: auto; }
   .rt-card .rt-preview .rt-measure { height: 52px; }
-  .rt-card > small:last-child { margin-top: 3px; }
   .rt-card:hover { border-color: var(--rt-muted) !important; }
 
   /* Desktop practice retains the shared score and transport, with compact controls. */
   .rt-header { justify-content: flex-start; gap: 12px; padding: 10px 20px; min-height: 58px; flex-shrink: 0; }
   .rt-header-actions { margin-left: auto; }
+  .rt-header .rt-pack-heading { min-width: 0; font-size: 19px; line-height: 1.4; overflow-wrap: anywhere; }
+  .rt-header .rt-header-meter { flex-shrink: 0; color: var(--rt-muted); font-size: 11px; }
+  .rt-header > button,.rt-header-actions { flex-shrink: 0; }
   .rt-meta { padding: 18px 24px 8px; flex-shrink: 0; }
   .rt-meta > strong { font-size: 19px; }
   .rt-quick { padding: 4px 24px 14px; min-height: 46px; gap: 10px; justify-content: flex-start; flex-shrink: 0; }

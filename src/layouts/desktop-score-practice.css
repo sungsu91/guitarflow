@@ -1,27 +1,27 @@
 /* Only the active desktop practice reader owns the viewport. Mobile, the
    imported-PDF reader and other app routes retain their existing layout. */
-html[data-rifflab-layout="desktop"]:has(.desktopScoreWorkspace > .pdfStudio[data-library-view="lessons"]) {
+html[data-rifflab-layout="desktop"]:has(.desktopScoreWorkspace > .pdfStudio:is([data-library-view="lessons"],:has(.pdfPractice--desktop))) {
   overflow: clip;
   scrollbar-gutter: auto;
 }
 
-html[data-rifflab-layout="desktop"] body:has(.desktopScoreWorkspace > .pdfStudio[data-library-view="lessons"]) {
+html[data-rifflab-layout="desktop"] body:has(.desktopScoreWorkspace > .pdfStudio:is([data-library-view="lessons"],:has(.pdfPractice--desktop))) {
   overflow: clip;
 }
 
-html[data-rifflab-layout="desktop"] body:has(.desktopScoreWorkspace > .pdfStudio[data-library-view="lessons"]) #root {
+html[data-rifflab-layout="desktop"] body:has(.desktopScoreWorkspace > .pdfStudio:is([data-library-view="lessons"],:has(.pdfPractice--desktop))) #root {
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
 }
 
-html[data-rifflab-layout="desktop"] body #root .desktopWorkspaceContent:has(> .desktopScoreWorkspace > .pdfStudio[data-library-view="lessons"]) {
+html[data-rifflab-layout="desktop"] body #root .desktopWorkspaceContent:has(> .desktopScoreWorkspace > .pdfStudio:is([data-library-view="lessons"],:has(.pdfPractice--desktop))) {
   height: 100dvh;
   min-height: 0;
   padding-right: 12px;
 }
 
-html[data-rifflab-layout="desktop"] body #root main.app.app.app.desktopScoreWorkspace:has(> .pdfStudio[data-library-view="lessons"]) {
+html[data-rifflab-layout="desktop"] body #root main.app.app.app.desktopScoreWorkspace:has(> .pdfStudio:is([data-library-view="lessons"],:has(.pdfPractice--desktop))) {
   --desktop-practice-rail-width: 244px;
   display: flex !important;
   flex-direction: column;
@@ -385,3 +385,9 @@ html[data-rifflab-layout="desktop"] body #root main.app.app.app.desktopScoreWork
   color: #686868;
   font: 16px/20px Arial, sans-serif;
 }
+/* Imported PDFs use the same full-height desktop reader as saved scores. */
+html[data-rifflab-layout="desktop"] .desktopPracticeReader:has(.pdfPractice--desktop){height:100%;overflow:hidden}
+html[data-rifflab-layout="desktop"] .desktopPracticeReader .pdfPractice--desktop{display:flex!important;flex-direction:column;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;flex:1}
+html[data-rifflab-layout="desktop"] .desktopPracticeReader .pdfPracticeBody{display:flex!important;flex-direction:column;flex:1;min-height:0!important;overflow:hidden}
+html[data-rifflab-layout="desktop"] .desktopPracticeReader .pdfDocument{display:flex;flex-direction:column;flex:1;min-height:0!important;max-width:none!important;width:100%!important}
+html[data-rifflab-layout="desktop"] .desktopPracticeReader .pdfViewport{flex:1;height:100%!important;min-height:0!important;max-height:none!important;box-sizing:border-box}

@@ -1,4 +1,5 @@
 import { localizeUi } from "./../i18n/core.js";
+import {useTabletLayout} from '../layouts/TabletLayout.jsx';
 import "./audio-studio.css";
 import ko from "./../i18n/locales/ko.js";
 import { formatMessage } from "./../i18n/core.js";
@@ -1174,15 +1175,17 @@ function AudioStudioScreenRouter({ controller, mobile }) {
 }
 
 function AudioStudioLayout({ active, controller, mobile }) {
-  const focused = active && mobile && controller.screen !== AUDIO_STUDIO_SCREENS.LIBRARY;
+  const tablet = useTabletLayout();
+  const focused = active && mobile && !tablet && controller.screen !== AUDIO_STUDIO_SCREENS.LIBRARY;
   // Keep the editor/dialog tree mounted when the window crosses the breakpoint.
   // Platform layout is still selected by its own class and the mobile prop.
   return <section className={`audioStudio audioStudio--${mobile?'mobile':'desktop'}`} data-audio-studio-current-screen={controller.screen} data-audio-studio-focus={focused || undefined} data-audio-studio-layout={mobile?'mobile':'desktop'}><AudioStudioScreenRouter controller={controller} mobile={mobile} /></section>;
 }
 
 export default function AudioStudio({ active = true, mobile = false }) {
+  const tablet = useTabletLayout();
   const controller = useAudioStudio();
-  const focused = active && mobile && controller.screen !== AUDIO_STUDIO_SCREENS.LIBRARY;
+  const focused = active && mobile && !tablet && controller.screen !== AUDIO_STUDIO_SCREENS.LIBRARY;
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
     document.body.classList.toggle("audio-studio-focus-mode", focused);

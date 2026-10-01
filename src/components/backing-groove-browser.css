@@ -1,0 +1,125 @@
+/* The catalog shares the player controller, with its own responsive pane. */
+.backingLoopPlaylistDialog {
+  align-content: start;
+}
+
+.backingLoopPlaylistDialog .backingLoopPlaylistActions {
+  grid-template-columns: auto minmax(34px, 1fr);
+}
+
+.backingLoopPlaylistDialog--grooves {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.backingGrooveBrowser {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.backingGrooveBrowserTabs,
+.backingGrooveBrowserCategories {
+  display: flex;
+  flex-shrink: 0;
+  gap: 5px;
+}
+
+.backingGrooveBrowserTabs > button { flex: 1; }
+.backingGrooveBrowserCategories { flex-wrap: wrap; }
+
+html body .backingLoopPlaylistDialog .backingGrooveBrowser button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid rgba(160, 123, 67, .3);
+  border-radius: 7px;
+  background: rgba(160, 123, 67, .08);
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+html body .backingLoopPlaylistDialog .backingGrooveBrowser button[aria-pressed="true"] {
+  border-color: #b38a45;
+  background: rgba(185, 140, 62, .23);
+  color: inherit;
+  font-weight: 800;
+}
+
+html body .backingLoopPlaylistDialog .backingGrooveBrowser button:focus-visible {
+  outline: 2px solid #b38a45;
+  outline-offset: -2px;
+}
+
+.backingGrooveBrowserSearch {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid rgba(160, 123, 67, .3);
+  border-radius: 7px;
+}
+
+html body .backingLoopPlaylistDialog .backingGrooveBrowserSearch input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.backingGrooveBrowserHint { margin: 0; font-size: 11px; line-height: 1.5; opacity: .75; }
+
+.backingGrooveBrowserTracks {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.backingGrooveBrowserTrack {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+
+html body .backingLoopPlaylistDialog .backingGrooveBrowserSelect {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 8px;
+  min-height: 50px;
+  text-align: left;
+}
+
+.backingGrooveBrowserSelect > span { display: grid; min-width: 0; gap: 3px; }
+.backingGrooveBrowserSelect strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.backingGrooveBrowserSelect small { font-size: 10px; opacity: .7; }
+.backingGrooveBrowserSelect > svg { flex-shrink: 0; }
+.backingGrooveBrowserPlay { display: grid; place-items: center; flex: 0 0 44px; }
+.backingGrooveBrowserEmpty { padding: 24px 8px; text-align: center; font-size: 12px; }
+.backingGrooveBrowser button:disabled { opacity: .45; cursor: wait; }
+
+@media (max-width: 600px) {
+  .backingLoopPlaylistDialog--grooves .backingGrooveBrowser { gap: 7px; }
+  .backingLoopPlaylistDialog--grooves .backingGrooveBrowserTracks { max-height: 240px; }
+  html body .backingLoopPlaylistDialog .backingGrooveBrowserCategories button { min-height: 32px; padding: 4px 8px; font-size: 11px; }
+  html body .backingLoopPlaylistDialog .backingGrooveBrowserSelect { min-height: 46px; }
+}

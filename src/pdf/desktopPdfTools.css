@@ -1,0 +1,8 @@
+.desktopPdfTools{display:flex;flex-direction:column;gap:16px;min-width:0}
+.desktopPdfTools .desktopPdfToolSection{display:flex;flex-direction:column;gap:8px;min-width:0}
+.desktopPdfTools .desktopPdfToolSection+.desktopPdfToolSection{padding-top:12px;border-top:1px solid var(--score-line)}
+.desktopPdfTools h3{margin:0;font-size:11px;color:var(--score-muted);font-weight:600}
+.desktopPdfTools .desktopPdfToolRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.desktopPdfTools button{min-width:0;white-space:normal;line-height:1.4}
+.desktopPdfTools .pdfViewTools{width:100%;margin:0;padding:0}
+.desktopPdfTools .pdfViewTools select{width:100%}

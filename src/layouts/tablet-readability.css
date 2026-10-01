@@ -1,0 +1,172 @@
+/* Tablet type is independent of the phone's compact labels and desktop chrome.
+   This first layer takes precedence over legacy important component sizes. */
+@layer tablet-readability {
+  html[data-rifflab-device="tablet"] {
+    --tablet-type-body: 17px;
+    --tablet-type-label: 15px;
+    --tablet-type-caption: 14px;
+    --tablet-ink: #332824;
+    --tablet-muted: #66564a;
+  }
+  html[data-rifflab-device="tablet"][data-theme="classic-gold"] {
+    --tablet-ink: #f3e7ce;
+    --tablet-muted: #ccbea5;
+  }
+  html[data-rifflab-device="tablet"] .appRuntime { --mobile-nav-height: 88px !important; }
+  html[data-rifflab-device="tablet"] .integratedBottomNav > button {
+    font-size: 18px !important; line-height: 1.35 !important; font-weight: 650 !important; gap: 6px !important;
+  }
+  html[data-rifflab-device="tablet"] .integratedBottomNav > button svg { width: 30px !important; height: 30px !important; }
+  html[data-rifflab-device="tablet"] .integratedBottomNav { --bottom-nav-muted: var(--tablet-muted); }
+
+  /* Metronome: readable controls get space before the flexible beat display. */
+  .tabletLayout .metronomeDockHandle { min-height: 48px !important; font-size: 16px !important; }
+  .tabletLayout .metronomeDockHandle span { font-size: 16px !important; line-height: 1.4 !important; }
+  .tabletLayout .grooveModeSelector { flex-wrap: wrap; align-items: center !important; }
+  .tabletLayout .grooveModeSelector > span { font-size: 16px !important; font-weight: 650 !important; color: var(--tablet-muted) !important; }
+  .tabletLayout .grooveModeSelector button { min-width: 52px !important; min-height: 48px !important; font-size: 18px !important; }
+  .tabletLayout .metronomeHeroBpmValue strong { font-size: 68px !important; line-height: 1.05 !important; }
+  .tabletLayout main.metronomeMode .metronomeHeroBpmValue strong { font-size: 92px !important; }
+  .tabletLayout .metronomeHeroBpmValue > span { font-size: 16px !important; line-height: 1.4 !important; opacity: 1 !important; }
+  .tabletLayout .metronomeHeroCard--interactive {
+    display: grid !important; grid-template-columns: 64px minmax(0,1fr) 64px !important;
+    grid-template-rows: minmax(104px,1fr) auto !important; gap: 8px !important;
+    height: auto !important; min-height: 200px !important; padding: 12px !important; align-items: center !important;
+  }
+  .tabletLayout main.metronomeMode .metronomeHeroCard--interactive { min-height: 224px !important; padding: 14px 20px !important; }
+  .tabletLayout .metronomeHeroBpmValue {
+    position: static !important; inset: auto !important; transform: none !important; grid-column: 2 !important; grid-row: 1 !important;
+    display: flex !important; flex-direction: column-reverse !important; align-items: center !important; justify-content: center !important;
+    height: auto !important; min-height: 0 !important; gap: 4px !important; padding: 0 !important;
+  }
+  .tabletLayout .metronomeHeroBpmValue > :is(span,strong) { position: static !important; inset: auto !important; transform: none !important; margin: 0 !important; }
+  .tabletLayout .metronomeBpmAdjustGroup { position: static !important; inset: auto !important; grid-row: 1 !important; height: auto !important; width: auto !important; transform: none !important; }
+  .tabletLayout .metronomeBpmAdjustGroup--down { grid-column: 1 !important; }
+  .tabletLayout .metronomeBpmAdjustGroup--up { grid-column: 3 !important; }
+  .tabletLayout .metronomeHeroBpmButton { min-width: 48px !important; min-height: 48px !important; font-size: 28px !important; }
+  .tabletLayout .metronomeHeroBpmJumpButton { min-width: 48px !important; min-height: 44px !important; font-size: 17px !important; }
+  .tabletLayout .metronomeHeroActionPanel { position: static !important; inset: auto !important; grid-column: 1 / -1 !important; grid-row: 2 !important; min-height: 56px !important; height: auto !important; width: auto !important; justify-self: center !important; transform: none !important; gap: 12px !important; }
+  .tabletLayout .metronomeHeroActionPanel > button { min-height: 52px !important; padding: 8px 16px !important; }
+  .tabletLayout .metronomeHeroActionText { font-size: 18px !important; line-height: 1.3 !important; opacity: 1 !important; }
+  .tabletLayout .metronomeHeroActionIcon svg { width: 25px !important; height: 25px !important; }
+  .tabletLayout .countInToggleButton span { font-size: 14px !important; line-height: 1.4 !important; opacity: 1 !important; }
+  .tabletLayout .rhythmSettings { --rhythm-popup-tone-width: 520px; --rhythm-popup-width: 400px; --rhythm-popup-tone-height: 320px; gap: 10px 16px !important; padding: 8px !important; }
+  .tabletLayout .rhythmSetting { gap: 8px !important; }
+  .tabletLayout .rhythmSettingLabel { font-size: 15px !important; font-weight: 650 !important; color: var(--tablet-muted) !important; opacity: 1 !important; }
+  .tabletLayout .rhythmSettingTrigger { min-height: 52px !important; height: auto !important; padding: 10px 12px !important; font-size: 18px !important; line-height: 1.4 !important; }
+  .tabletLayout .rhythmSettingTrigger > span { font-size: inherit !important; opacity: 1 !important; }
+  .tabletLayout .metronomeSelectButton { min-height: 48px !important; padding: 8px 12px !important; }
+  .tabletLayout .metronomeSelectButton > b { font-size: 17px !important; line-height: 1.4 !important; }
+  .tabletLayout :is(.grooveToolbar,.grooveTrackName,.metronomeToggleRow,.metronomeBpmCombo) :is(button,select,span) { font-size: 16px !important; }
+  .tabletLayout .metronomeBpmLiveValue { font-size: 22px !important; }
+  .tabletLayout .metronomeTopLine { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; grid-template-rows: auto auto !important; height: auto !important; min-height: 0 !important; gap: 8px !important; }
+  .tabletLayout .metronomeTopLine .metronomeBpmInputShell { grid-column: 1 !important; grid-row: 1 !important; }
+  .tabletLayout .metronomeTopLine .metronomeBpmPresetSelect { grid-column: 2 !important; grid-row: 1 !important; }
+  .tabletLayout .metronomeTopLine > .metronomeToggleRow { grid-column: 1 / -1 !important; grid-row: 2 !important; height: auto !important; }
+  .tabletLayout .metronomeBpmInputShell:not(.metronomeBpmInputShell--liveSwipe) .metronomeBpmLiveValue { display: none !important; }
+  .tabletLayout .metronomeBpmInputShell:not(:has(.metronomeBpmStep--upTen)) { display: grid !important; grid-template-columns: minmax(50px,1fr) 88px !important; height: 52px !important; }
+  .tabletLayout .metronomeBpmInputShell:not(:has(.metronomeBpmStep--upTen)) .metronomeBpmSpinner { display: flex !important; position: static !important; width: 88px !important; height: 52px !important; }
+  .tabletLayout .metronomeBpmInputShell:not(:has(.metronomeBpmStep--upTen)) .metronomeBpmStep { width: 44px !important; min-width: 44px !important; height: 52px !important; font-size: 20px !important; }
+  .tabletLayout .metronomeBpmInputShell input { min-width: 0 !important; font-size: 22px !important; }
+  .tabletLayout .metronomeToggleRow { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
+  .tabletLayout .metronomeToggleRow button { flex: 1 0 112px !important; min-width: 112px !important; white-space: normal !important; padding: 8px !important; line-height: 1.4 !important; }
+
+  /* Shared audio player, including its floating dock in the learning rooms. */
+  .tabletLayout .backingLoopPanel--mobile { height: auto !important; min-height: 206px !important; grid-template-rows: minmax(128px,auto) 56px !important; gap: 8px !important; padding: 8px !important; }
+  .tabletLayout .backingLoopMiniPlayer { height: auto !important; min-height: 128px !important; grid-template-rows: auto 24px 48px !important; padding: 8px 12px !important; }
+  .tabletLayout .backingLoopTrackInfo { min-height: 40px !important; grid-template-columns: 32px minmax(0,1fr) auto !important; gap: 10px !important; }
+  .tabletLayout .backingLoopTrackBadge { width: 32px !important; height: 32px !important; }
+  .tabletLayout .backingLoopTrackText strong { font-size: 17px !important; line-height: 1.4 !important; }
+  .tabletLayout .backingLoopTrackText small { font-size: 14px !important; line-height: 1.4 !important; }
+  .tabletLayout .backingLoopTrackInfo time { font-size: 14px !important; line-height: 1.4 !important; }
+  .tabletLayout .backingLoopPlayerBar { min-height: 48px !important; gap: 14px !important; }
+  .tabletLayout :is(.backingLoopPlayerIconButton,.backingLoopPlayerPlayButton) { min-width: 44px !important; width: auto !important; min-height: 44px !important; height: 44px !important; }
+  .tabletLayout :is(.backingLoopPlayerIconButton,.backingLoopPlayerPlayButton) svg { width: 22px !important; height: 22px !important; }
+  .tabletLayout .backingLoopPlaylistToggleLabel { font-size: 14px !important; opacity: 1 !important; }
+  .tabletLayout .backingLoopMainControls { min-height: 56px !important; gap: 8px !important; }
+  .tabletLayout .backingLoopMainControls > button { min-height: 52px !important; gap: 6px !important; }
+  .tabletLayout .backingLoopMainControls > button span { font-size: 15px !important; line-height: 1.4 !important; opacity: 1 !important; }
+  .tabletLayout .backingLoopMainControls > button svg { width: 20px !important; height: 20px !important; }
+  .tabletLayout .backingDockPanel > header { font-size: 16px !important; }
+
+  /* Score chrome changes independently of notation, PDFs and canvas text. */
+  .tabletLayout :is(.etudeSelect > span,.etudeQuickPages > span,.etudeMobileScoreTitle,.etudeInlineBarCount > span,.etudeCurrentDifficulty,.etudeDifficultyValue,.practiceCurrentBar,.etudeRemoteBeats > span) { font-size: 15px !important; line-height: 1.5 !important; }
+  .tabletLayout :is(.libraryStorageCompact,.etudePickerTrigger,.etudeTipToggle,.scoreWorkspaceActionTrigger,.etudeViewTools select,.mobilePdfHud button,.mobilePdfTransport button) { font-size: 16px !important; line-height: 1.4 !important; min-height: 44px !important; }
+  .tabletLayout .etudePickerTrigger > span { font-size: 17px !important; }
+  .tabletLayout .etudeRemoteBpm small { font-size: 14px !important; }
+  .tabletLayout .etudeRemoteScoreSoundState { font-size: 12px !important; }
+  .tabletLayout .etudeViewTools > :is([data-ui="metronome"],.etudeBackingToggleMount,.etudePrintScore,.etudeFavoriteToggle) { flex-basis: 44px !important; width: 44px !important; min-width: 44px !important; max-width: 44px !important; }
+  .tabletLayout .etudeViewTools > .scoreWorkspaceActions { flex-basis: auto !important; }
+
+  .tabletLayout .rt-tablet :is(button,select,input) { font-size: 17px !important; line-height: 1.4 !important; }
+  .tabletLayout .rt-tablet .rt-card strong { font-size: 19px !important; line-height: 1.4 !important; }
+  .tabletLayout .rt-tablet .rt-card { min-width: 0 !important; white-space: normal !important; }
+  .tabletLayout .rt-tablet .rt-card strong { display: block !important; white-space: normal !important; overflow-wrap: anywhere; padding-right: 24px !important; }
+  .tabletLayout .rt-tablet :is(.rt-card small,.rt-result-count,.rt-library-filters label,.rt-meta,.rt-quick label,.rt-library-summary) { font-size: 15px !important; line-height: 1.5 !important; }
+  .tabletLayout .rt-tablet .rt-tools button { padding: 9px 12px !important; white-space: normal !important; }
+
+  /* Fretboard diagram labels stay smaller than controls so notes keep their spacing. */
+  .tabletLayout :is(.viewerModeTabs button,.viewerNoteButtons button,.viewerChordOptions button,.chordBuilderOptionButtons button,.viewerHeaderActions button) { font-size: 17px !important; line-height: 1.35 !important; }
+  .tabletLayout :is(.viewerSwipeGestureLabel,.chordBuilderOptionLabel,.viewerSwipeHint,.chordCatalogPanel > header span,.chordCatalogPanel > header p) { font-size: 14px !important; line-height: 1.45 !important; }
+  .tabletLayout .fretboardFretNumbers span { font-size: 14px !important; }
+  .tabletLayout .fretboardStringRow > span { font-size: 12px !important; line-height: 1.2 !important; }
+  .tabletLayout .fretboardNoteChip b { font-size: 14px !important; line-height: 1 !important; }
+  .tabletLayout .fretboardStringState { font-size: 11px !important; min-width: 22px !important; height: 22px !important; }
+  .tabletLayout .chordMiniCard > span { font-size: 16px !important; line-height: 1.4 !important; }
+  .tabletLayout :is(.referenceTrainingPanel,.chordTransitionPanel,.miniChordMakerPanelCompact) :is(button,select) { font-size: 16px !important; }
+  .tabletLayout :is(.trainingNoteGuideToggle span,.mobileScalePositionNavigation > span,.stage3EmptyFretboardPrompt span,.stage3MetronomeSoundToggle span,.chordTimelineLabels span,.chordNextCard > span,.chordNowCard > span) { font-size: 14px !important; line-height: 1.4 !important; opacity: 1 !important; }
+  .tabletLayout :is(.miniChordMeasureStrip > span,.miniChordTransposeScope,.miniChordTransposeKey > span,.miniChordExpertToggle > span,.miniChordPartMeter strong) { font-size: 14px !important; line-height: 1.4 !important; }
+  .tabletLayout .miniChordTransposeAmount { font-size: 18px !important; }
+  .tabletLayout .miniChordBarGhostNumber { width: auto !important; min-width: 18px !important; height: 18px !important; font-size: 12px !important; color: var(--tablet-muted) !important; }
+  .tabletLayout .miniChordTransposeControlBar { flex-wrap: wrap !important; height: auto !important; gap: 8px !important; }
+  .tabletLayout .miniChordQuickBar { display: grid !important; grid-template-columns: minmax(0,1fr) 140px 64px !important; }
+  .tabletLayout .miniChordBeatOptions button { padding-inline: 6px !important; font-size: 15px !important; white-space: normal !important; }
+  .tabletLayout .sharedAccompanimentMasterToggle { min-width: 52px !important; min-height: 44px !important; font-size: 15px !important; }
+  .tabletLayout .sharedAccompanimentSettingsButton { min-height: 44px !important; font-size: 15px !important; }
+
+  .tabletLayout .audioStudio :is(button,input,select) { font-size: 16px !important; line-height: 1.4 !important; }
+  .tabletLayout .audioStudio :is(p,label,small,.audioStudioLibraryHeader > span,.audioStudioSimpleNotice,.audioStudioSimpleGuide ol,.audioStudioSimpleGuide strong) { font-size: 15px !important; line-height: 1.6 !important; }
+  .tabletLayout .audioStudio :is(.audioStudioLibraryHeader,.audioStudioLibrarySectionHeader) button span { font-size: 16px !important; }
+  .tabletLayout .audioStudioSimpleTrackName strong { font-size: 16px !important; }
+  .tabletLayout .audioStudioSimpleTrackActions button span { font-size: 14px !important; }
+  .tabletLayout .audioStudioSimpleRuler time { font-size: 13px !important; }
+
+  /* Portals are outside TabletLayout, so they use the shared device marker. */
+  html[data-rifflab-device="tablet"] :is(.utilityMenuItem,.utilityMenuPanel button,.utilityMenuPanel label,.rhythmSettingsPopup button,.metronomeSelectPortal button,.backingLoopDialog button,.backingLoopDialog input,.rt-dialog button,.rt-dialog select,.etudeDialog button,.pdfDialog button,.miniChordFloatingChordPopover button) { font-size: 16px !important; line-height: 1.4 !important; min-height: 44px !important; }
+  html[data-rifflab-device="tablet"] :is(.utilityMenuItem strong,.utilityMenuItemLabel,.utilityMenuGroupTitle,.backingLoopDialogHeading strong,.rt-dialog h2,.pdfDialog h2,.etudeDialog h2) { font-size: 18px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] :is(.utilityMenuPanel small,.utilityMenuPanel p,.backingLoopDialog small,.backingLoopDialog p,.backingLoopDialog label,.rt-dialog small,.rt-dialog p,.pdfDialog p,.etudeDialog p,.miniChordFloatingChordPopover label,.miniChordPickerGroupLabel) { font-size: 14px !important; line-height: 1.55 !important; }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal :is(b,span,small) { font-size: 15px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] .rhythmSettingsChoose > span { font-size: 17px !important; white-space: normal !important; overflow-wrap: anywhere; overflow: visible !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] .rhythmSettingsChoices.tile-choices .rhythmSettingsChoose { font-size: 20px !important; }
+
+  /* Short stages retain readable type by spending less height on decoration. */
+  @media (max-height: 1100px) {
+    .tabletLayout main.metronomeMode .metronomeHeroCard--interactive { min-height: 188px !important; padding: 10px 16px !important; }
+    .tabletLayout main.metronomeMode .metronomeHeroBpmValue strong { font-size: 72px !important; }
+    .tabletLayout main.metronomeMode .rhythmSettings { gap: 8px 12px !important; padding: 6px !important; }
+    .tabletLayout main.metronomeMode .rhythmSettingTrigger { min-height: 44px !important; padding-block: 8px !important; }
+    .tabletLayout main.metronomeMode .backingLoopPanel--mobile { min-height: 186px !important; grid-template-rows: minmax(120px,auto) 48px !important; padding: 6px !important; gap: 6px !important; }
+    .tabletLayout main.metronomeMode .backingLoopMiniPlayer { min-height: 120px !important; grid-template-rows: auto 16px 44px !important; padding-block: 6px !important; }
+    .tabletLayout main.metronomeMode .backingLoopMainControls { min-height: 48px !important; }
+    .tabletLayout main.metronomeMode .backingLoopMainControls > button { min-height: 46px !important; }
+  }
+  @media (max-height: 1100px) and (orientation: portrait) {
+    .tabletLayout main.metronomeMode { --tablet-gap: 10px; }
+    .tabletLayout main.metronomeMode > .standaloneMetronomePanel { grid-template-rows: auto auto auto minmax(140px,1fr) auto auto auto !important; }
+    .tabletLayout main.metronomeMode > .standaloneMetronomePanel.dockCollapsed { grid-template-rows: auto auto minmax(140px,1fr) auto auto auto !important; }
+    .tabletLayout main.metronomeMode :is(.metronomeBeatMatrix--main,.grooveEditor) { min-height: 140px !important; }
+  }
+
+  @media (max-width: 699px) {
+    html[data-rifflab-device="tablet"] .integratedBottomNav > button { font-size: 16px !important; }
+    .tabletLayout .rhythmSetting { display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 4px !important; }
+    .tabletLayout .rhythmSettings { gap: 10px !important; }
+    .tabletLayout .rhythmSettingLabel { font-size: 14px !important; }
+    .tabletLayout .backingLoopTrackInfo { grid-template-columns: 28px minmax(0,1fr) !important; }
+    .tabletLayout .backingLoopTrackInfo time { grid-column: 2; font-size: 13px !important; }
+    .tabletLayout .backingLoopPlayerBar { gap: 6px !important; flex-wrap: wrap !important; }
+    .tabletLayout .backingLoopMiniPlayer { grid-template-rows: auto 24px auto !important; }
+    .tabletLayout .metronomeHeroActionPanel { gap: 6px !important; }
+    .tabletLayout .metronomeHeroActionPanel > button { padding-inline: 8px !important; }
+  }
+}

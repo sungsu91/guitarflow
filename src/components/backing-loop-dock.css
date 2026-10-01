@@ -28,3 +28,23 @@ html body .app .sharedBackingDock .backingDockPanelStop{display:flex;align-items
 html body .app .sharedBackingDock .backingLoopMainControls > button {
   min-height: 36px;
 }
+/* Larger desktop handles make folded tools discoverable. */
+html body .app .sharedBackingDock--desktop .backingDockEdge{width:52px;border-left:3px solid var(--theme-accent,#a67d40);box-shadow:-3px 3px 14px #0002}
+html body .app .sharedBackingDock--desktop .backingDockHandle{min-height:76px;gap:7px}
+html body .app .sharedBackingDock--desktop .backingDockHandle svg{width:21px;height:21px}
+html body .app .sharedBackingDock--desktop .backingDockStop{min-height:36px}
+.sharedBackingDock--desktop .backingDockPanel{transition:none!important;touch-action:none}
+
+/* The mobile fold control is outside the player's two content rows. */
+@layer rhythm-surfaces {
+ html body .app .sharedBackingDock--mobile .backingLoopPanel--mobile {
+  height:auto!important;grid-template-rows:auto auto!important;padding:28px 4px 6px!important;
+ }
+ html body .app .sharedBackingDock--mobile .backingLoopPanel--mobile>.backingPanelClose {
+  position:absolute!important;top:2px!important;right:4px!important;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  width:28px!important;min-width:28px!important;height:26px!important;min-height:26px!important;
+  padding:0!important;border:0!important;background:transparent!important;color:inherit!important;
+  font-size:24px;box-shadow:none!important;cursor:pointer;
+ }
+}

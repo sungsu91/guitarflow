@@ -1,4 +1,5 @@
 import FretboardViewerLayout from "./layouts/FretboardViewerLayout.jsx";
+import DesktopShooterMaps, {DesktopShooterMapGallery,useDesktopShooterMap} from './shooter/DesktopShooterMaps.jsx';
 import DesktopNoteScaleViewer from "./layouts/DesktopNoteScaleViewer.jsx";
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
 import DesktopHelpGuide from './navigation/DesktopHelpGuide.jsx';
@@ -27,7 +28,7 @@ import ShooterGameOver from './shooter/results/ShooterGameOver.jsx';
 import SiteShareButton from './navigation/SiteShareButton.jsx';
 import GroovePacks from './metronome/GroovePacks.jsx';
 import GrooveEditor, { MetronomeDockHandle } from './metronome/GrooveEditor.jsx';
-import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore } from './metronome/groove.js';
+import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore, getGrooveStepIndex } from './metronome/groove.js';
 import {TIME_SIGNATURE_OPTIONS,METRONOME_TONE_OPTIONS} from './metronome/options.js';
 import { mediaPermissionGuide } from "./audio/mediaPermissionGuide.js";
 import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/fixedAddVoicings.js";
@@ -156,6 +157,7 @@ import BottomNavigation from "./navigation/BottomNavigation.jsx";
 import MetronomeSettingsPanel from "./components/MetronomeSettingsPanel.jsx";
 import UtilityMenuSurface from "./navigation/UtilityMenuSurface.jsx";
 import { useDesktopLayout } from "./layouts/DesktopLayout.jsx";
+import { useTabletLayout } from './layouts/TabletLayout.jsx';
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 import { CHROMATIC_NOTES, NOTE_INDEX, SOLFEGE } from "./music/noteNotation.js";
 import { getChordToneDescriptors, getChordToneNames } from "./chords/chordTheory.js";
@@ -13513,6 +13515,7 @@ const HIT_WINDOW_MS = 150;
 const PERFECT_WINDOW_MS = 55;
 const HIT_LINE_PERCENT = 88;
 const SHOOTER_LIFE_LINE_PERCENT = 86;
+const DESKTOP_SHOOTER_LIFE_LINE_PERCENT = 88;
 const SHOOTER_TARGET_DESTROY_ANIMATION_MS = 260;
 const SHOOTER_PROJECTILE_MS = 640;
 const SHOOTER_PROJECTILE_CONTACT_HOLD_MS = 58;
@@ -16737,6 +16740,8 @@ function getJudgmentMode(modeId) {
 function App({ onReady }) {
   useLanguage();
   const isDesktopLayout = useDesktopLayout();
+  const isTabletLayout = useTabletLayout();
+  const [desktopMapId,setDesktopMapId]=useDesktopShooterMap();
   const initialRouteRef = useLazyRef(getInitialAppRoute);
   const initialStage3SettingsRef = useLazyRef(getStoredStage3Settings);
   const initialStage3QuickSlotsRef = useLazyRef(getStoredStage3QuickSlots);
@@ -16855,7 +16860,7 @@ function App({ onReady }) {
       if (event.key === 'Escape') {
         event.preventDefault();
         setShooterGuitarPickerOpen(false);
-      } else if (event.key === 'Tab') {
+      } else if (event.key === 'Tab' && !document.querySelector('.desktopSceneSkinDock')) {
         const controls = [...document.querySelectorAll('.shooterGuitarPickerModal button:not(:disabled), .shooterGuitarPickerModal input, .shooterGuitarPickerModal select')].filter(el => el.getClientRects().length);
         const next = event.shiftKey ? controls.at(-1) : controls[0];
         if (controls.length && ((!event.shiftKey && document.activeElement === controls.at(-1)) || (event.shiftKey && document.activeElement === controls[0]))) {
@@ -17342,6 +17347,7 @@ function App({ onReady }) {
     && viewportProfile.isLandscape;
   const shooterMobileViewportStyle = useShooterMobileViewport(
     (appMode === APP_MODES.SHOOTER || appMode === APP_MODES.TUNER)
+      && !isTabletLayout
       && isMobileLayout
       && !mobileLandscapeShooterActive,
   );
@@ -20779,7 +20785,7 @@ function App({ onReady }) {
         if (metronomeOnRef.current) scheduleGrooveStep({audio,
           output:getAudioBusInput(AUDIO_BUS_IDS.GROOVE, audio) || audio.destination,
           buffers:metronomeSampleBuffersRef.current, pattern:groovePatternRef.current,
-          index:index % ticksPerMeasure, time, volume:1,
+          index:getGrooveStepIndex(groovePatternRef.current,index,ticksPerMeasure), time, volume:1,
           track:trackScheduledMetronomeSource, voiceState:grooveVoiceStateRef.current});
       } else if (!coachMuted) playPatternTick(beatInBar, subdivisionIndex, time);
     });
@@ -23252,7 +23258,10 @@ function App({ onReady }) {
         && !target.slashPending
         && (
           gameTimeRef.current - target.bornAt >= target.duration
-          || getShooterTargetYAt(target, gameTimeRef.current) >= SHOOTER_LIFE_LINE_PERCENT
+          || getShooterTargetYAt(target, gameTimeRef.current) >= (
+            shooterArenaRef.current?.dataset.desktopScene === "true"
+              ? DESKTOP_SHOOTER_LIFE_LINE_PERCENT : SHOOTER_LIFE_LINE_PERCENT
+          )
         )
       ));
       const removedTargetIds = new Set([...defeatedExpiredTargets, ...missedTargets].map((target) => target.id));
@@ -24223,10 +24232,11 @@ function App({ onReady }) {
     setFeedback("Play");
   }, [ensureAudioReady, loadMetronomeSamples, setState, startBackingScheduler, startMetronomeAudioScheduler, warmCoreAudioEngine]);
 
-  const portraitOnlyModeActive = isPortraitOnlyMode(appMode, selectedCategoryId)
+  const portraitOnlyModeActive = !isTabletLayout && isPortraitOnlyMode(appMode, selectedCategoryId)
     && viewportProfile.isMobileSurface
     && !mobileLandscapeShooterSelected;
   const portraitOrientationGuardActive = !mobileLandscapeShooterSelected
+    && !isTabletLayout
     && shouldGuardPortraitOrientation(
       appMode,
       viewportProfile,
@@ -30299,13 +30309,15 @@ function App({ onReady }) {
 
   const appInteractionLocked = Boolean(themeTransition);
   const appContentInteractionLocked = appInteractionLocked;
+  const desktopShooterScene = isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive;
   const desktopSidebarActiveKey = getDesktopSidebarActiveKey(appMode, selectedCategoryId);
-  const landscapePlayFocus = isLandscapePlayFocusMode(
+  const landscapePlayFocus = !isTabletLayout && isLandscapePlayFocusMode(
     appMode,
     viewportProfile,
     selectedCategoryId,
   );
   const hideFretboardLandscapeNavigation = appMode === APP_MODES.FRETBOARD_VIEWER
+    && !isTabletLayout
     && viewportProfile.isLandscape
     && viewportProfile.isMobileSurface;
   const viewportClassName = getViewportProfileClassName(
@@ -30438,6 +30450,20 @@ function App({ onReady }) {
                 </div>
   );
 
+  const desktopGrooveToolbar = isDesktopLayout && metronomeDisplayMode === "groove";
+  const groovePacksTrigger = (<button type="button" className="groovePacksTrigger" onClick={() => setGroovePacksDialog("library")}><span className="groovePackFolder" aria-hidden="true">📁</span><Translation id="app.groovePacks" /></button>);
+  const metronomeModeControls = (
+    <div className="grooveModeSelector" role="group" aria-label={translateUi("app.metronomeMode")}>
+          {METRONOME_DISPLAY_MODES.map((item,i) => <button type="button" className="metronomeModeButton" key={item.id} aria-pressed={metronomeDisplayMode === item.id} onClick={() => {
+            if(item.id === "groove" && metronomeDisplayMode !== "groove") {
+              metronomeTimeSignatureRef.current = "4/4"; setMetronomeTimeSignature("4/4");
+              metronomeSubdivisionRef.current = "sixteenth"; setMetronomeSubdivision("sixteenth");
+            }
+            grooveModeRef.current = item.id;
+            setMetronomeDisplayMode(item.id);
+          }}><span className="metronomeModeNumber">{i+1}</span>{item.id === "groove" && <span className="metronomeModeName">{translateUi("app.groove")}</span>}</button>)}{metronomeDisplayMode === "groove" && !desktopGrooveToolbar && groovePacksTrigger}</div>
+  );
+
   const referenceLandscapeBeatStrip = (
     <div className="referenceBeatMetronomeStrip" aria-label={translateUi("app.beatDotMetronome")}>
       <BeatIndicator
@@ -30469,7 +30495,7 @@ function App({ onReady }) {
       translate="no"
     >
       <BackingLoopDock mobile={isMobileLayout} mode={appMode} />
-      {!isMobileLayout && appMode === APP_MODES.SHOOTER && !horizontalShooterActive && !shooterGuitarPickerOpen && !helpGuideOpen && !utilityMenuOpen && gameState === GAME_STATES.PLAYING ? (
+      {!desktopShooterScene && !isMobileLayout && appMode === APP_MODES.SHOOTER && !horizontalShooterActive && !shooterGuitarPickerOpen && !helpGuideOpen && !utilityMenuOpen && gameState === GAME_STATES.PLAYING ? (
         <button className="desktopShooterPauseControl" type="button" onClick={pauseGame}>
           <Pause size={17} aria-hidden="true" />
           {translateUi("app.pause")}
@@ -30479,7 +30505,7 @@ function App({ onReady }) {
       {appMode === APP_MODES.SHOOTER && !mapEditor.enabled ? (
         <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} onLayoutChange={setShooterRecordingLayout} gamePlaying={gameState === GAME_STATES.PLAYING} onReview={pauseGame} />
       ) : null}
-      {appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && !helpGuideOpen && !utilityMenuOpen && !appContentInteractionLocked && typeof document !== "undefined" ? createPortal(
+      {!desktopShooterScene && appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && !helpGuideOpen && !utilityMenuOpen && !appContentInteractionLocked && typeof document !== "undefined" ? createPortal(
         <ShooterPitchMonitor mobile={isMobileLayout} arenaRef={shooterArenaRef} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
         shooterRecordingActive && isMobileLayout ? (shooterArenaRef.current?.closest('.shooterPanel') ?? document.body) : document.body,
       ) : null}
@@ -30857,12 +30883,12 @@ function App({ onReady }) {
 
       {appMode !== APP_MODES.MENU
         && !(isDesktopLayout && [APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode))
-        && !([APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode) && isMobileLayout)
+        && !([APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode) && isMobileLayout && !isTabletLayout)
         && !shooterRecordingActive
         && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled)
         && !hideFretboardLandscapeNavigation
         && <MobileNavigationSurface
-          detached={isMobileLayout && !viewportProfile.isLandscape}
+          detached={isMobileLayout && (isTabletLayout || !viewportProfile.isLandscape)}
           theme={appTheme}
           viewportClassName={viewportClassName}
           locked={appContentInteractionLocked}
@@ -31888,8 +31914,8 @@ function App({ onReady }) {
                                     anchorRect: barRect ?? event.currentTarget.getBoundingClientRect(),
                                     bottomInset: viewport.bottomInset,
                                     gap: 8,
-                                    requestedHeight: MINI_CHORD_CHORD_POPOVER_SIZE.height,
-                                    requestedWidth: MINI_CHORD_CHORD_POPOVER_SIZE.width,
+                                    requestedHeight: isTabletLayout ? 640 : MINI_CHORD_CHORD_POPOVER_SIZE.height,
+                                    requestedWidth: isTabletLayout ? 520 : MINI_CHORD_CHORD_POPOVER_SIZE.width,
                                     viewportHeight: viewport.viewportHeight,
                                     viewportLeft: viewport.viewportLeft,
                                     viewportTop: viewport.viewportTop,
@@ -32613,7 +32639,7 @@ function App({ onReady }) {
                 onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
                 type="button"
               ><Translation id="app.chords" /></button>
-              {isDesktopLayout ? (
+              {isDesktopLayout || isTabletLayout ? (
                 <button
                   aria-pressed={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD}
                   className={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
@@ -32819,7 +32845,7 @@ function App({ onReady }) {
               ) : null}
             </div>
           }
-          explorer={isDesktopLayout ? (navigation) => (
+          explorer={isDesktopLayout || isTabletLayout ? (navigation) => (
             <DesktopNoteScaleViewer
               navigation={navigation}
               noteTitle={<FretboardNoteViewerTitle store={viewerNoteStore} />}
@@ -33210,14 +33236,7 @@ function App({ onReady }) {
           </div>
 
           )}
-          <div className="grooveModeSelector" aria-label={translateUi("app.metronomeMode")}><span><Translation id="app.metronomeMode" /></span>{METRONOME_DISPLAY_MODES.map((item,i) => <button type="button" key={item.id} aria-pressed={metronomeDisplayMode === item.id} onClick={() => {
-            if(item.id === "groove" && metronomeDisplayMode !== "groove") {
-              metronomeTimeSignatureRef.current = "4/4"; setMetronomeTimeSignature("4/4");
-              metronomeSubdivisionRef.current = "sixteenth"; setMetronomeSubdivision("sixteenth");
-            }
-            grooveModeRef.current = item.id;
-            setMetronomeDisplayMode(item.id);
-          }}>{i+1}{item.id === "groove" ? translateUi("app.groove") : ""}</button>)}{metronomeDisplayMode === "groove" && <button type="button" className="groovePacksTrigger" onClick={() => setGroovePacksDialog("library")}><span className="groovePackFolder" aria-hidden="true">📁</span><Translation id="app.groovePacks" /></button>}</div>
+          {!desktopGrooveToolbar && metronomeModeControls}
           {groovePacksDialog && <GroovePacks bpm={bpm} preparePreview={async () => {
             if (isStandaloneMetronomePlaying) stopMetronomePlayback();
             const ready = await ensureAudioReady();
@@ -33226,7 +33245,7 @@ function App({ onReady }) {
             await loadMetronomeSamples(audio);
             return {audio, buffers:metronomeSampleBuffersRef.current, output:getAudioBusInput(AUDIO_BUS_IDS.GROOVE,audio) || audio.destination, volume:1};
           }} mode={groovePacksDialog} onClose={() => setGroovePacksDialog(null)} mobile={isMobileLayout} pattern={groovePattern} timeSignature={metronomeTimeSignature} subdivision={metronomeSubdivision} onLoad={pack => {if(pack.applyBpm && pack.bpm) changeBpm(pack.bpm);changeGroovePattern(pack.pattern);metronomeTimeSignatureRef.current=pack.timeSignature;setMetronomeTimeSignature(pack.timeSignature);metronomeSubdivisionRef.current=pack.subdivision;setMetronomeSubdivision(pack.subdivision);}}/>}
-          {metronomeDisplayMode === "groove" ? <GrooveEditor onSave={openGrooveSave} store={grooveStore} onChange={changeGroovePattern} mobile={isMobileLayout} beats={getTimeSignatureOption(metronomeTimeSignature).beats} divisions={getSubdivisionOption(metronomeSubdivision).clicksPerBeat} clock={grooveClock} playing={isStandaloneMetronomePlaying}/> : <StandaloneMetronomeVisual
+          {metronomeDisplayMode === "groove" ? <GrooveEditor modeControls={desktopGrooveToolbar ? metronomeModeControls : null} packAction={desktopGrooveToolbar ? groovePacksTrigger : null} onSave={openGrooveSave} store={grooveStore} onChange={changeGroovePattern} mobile={isMobileLayout} beats={getTimeSignatureOption(metronomeTimeSignature).beats} divisions={getSubdivisionOption(metronomeSubdivision).clicksPerBeat} clock={grooveClock} playing={isStandaloneMetronomePlaying}/> : <StandaloneMetronomeVisual
             activeBeat={beat}
             barEnabled={metronomeBarEnabled}
             beatPattern={standaloneBeatPattern}
@@ -33345,6 +33364,7 @@ function App({ onReady }) {
           className={`shooterPanel ${horizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterPanel--mobileLandscape" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
           aria-label={mapEditor.enabled ? translateUi("app.mapStudio") : translateUi("menu.shooter")}
         >
+          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} lives={shooterLives} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
           <div className="modeHelper shooterHelper"><Translation id="app.buildFretboardRecognitionAndPickingAccuracyThroughRepetition" /></div>
           {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
             anchor={shooterDifficultyAnchor}
@@ -33499,7 +33519,7 @@ function App({ onReady }) {
           </div>
           </> : null}
 
-          {!mapEditor.enabled ? (
+          {!mapEditor.enabled && !desktopShooterScene ? (
             <div
               className="mobileShooterTopHud"
               onClick={(event) => event.stopPropagation()}
@@ -33601,6 +33621,7 @@ function App({ onReady }) {
           <div
             className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${horizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterArena--mobileLandscape" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER || utilityMenuOpen ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
             data-shooter-renderer={shooterRendererMode}
+            data-desktop-scene={desktopShooterScene || undefined}
             data-recording-layout={shooterRecordingLayout || undefined}
             data-note-vfx="neon"
             onClick={(event) => {
@@ -33613,7 +33634,8 @@ function App({ onReady }) {
             ref={shooterArenaRef}
             style={selectedMapStyle}
           >
-            <ShootingMapRenderer
+            {desktopShooterScene && <div className="dsPlayfieldGuide" aria-hidden="true" style={{height: `${DESKTOP_SHOOTER_LIFE_LINE_PERCENT}%`}}><span className="dsLifeLine" /></div>}
+            {(!isDesktopLayout || mapEditor.enabled || horizontalShooterActive) && <ShootingMapRenderer
               cameraBackground={shooterRecordingLayout === "full"}
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
@@ -33637,7 +33659,7 @@ function App({ onReady }) {
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="underlay"
-            />
+            />}
 
             {mobileLandscapeShooterSelected && !mobileLandscapeShooterActive ? (
               <section
@@ -33720,7 +33742,7 @@ function App({ onReady }) {
               </nav>
             ) : null}
 
-            {!mapEditor.enabled ? (
+            {!mapEditor.enabled && !desktopShooterScene ? (
               <>
                   <div className="mobileShooterTargetHud" aria-live="polite">
                     <span><Translation id="app.targetNote" /></span>
@@ -33792,12 +33814,12 @@ function App({ onReady }) {
               </div>
             ) : null}
 
-            {!isMobileLayout ? <div className="shooterBestHud" aria-label={translateUi("app.noteShooterBestScore")}>
+            {!isMobileLayout && !desktopShooterScene ? <div className="shooterBestHud" aria-label={translateUi("app.noteShooterBestScore")}>
               <span><Translation id="originalUi.bestScoreApp" />{shooterRecords.best.score.toLocaleString()}</span>
               <span><Translation id="originalUi.bestComboApp" />{shooterRecords.best.combo}</span>
             </div> : null}
 
-            {!isMobileLayout ? <div className="shooterGameHud" aria-label={translateUi("app.noteShooterStatus")}>
+            {!isMobileLayout && !desktopShooterScene ? <div className="shooterGameHud" aria-label={translateUi("app.noteShooterStatus")}>
               <div>
                 <span><Translation id="originalUi.level" /></span>
                 <strong>{localizeUi(shooterLevel.name)}</strong>
@@ -34135,7 +34157,7 @@ function App({ onReady }) {
                 ))}
               </div>
             ) : null}
-            <ShootingMapRenderer
+            {(!isDesktopLayout || mapEditor.enabled || horizontalShooterActive) && <ShootingMapRenderer
               cameraBackground={shooterRecordingLayout === "full"}
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
@@ -34157,7 +34179,7 @@ function App({ onReady }) {
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="overlay"
-            />
+            />}
             {!mapEditor.enabled ? <>
             {selectedPet.renderer === "atlas" ? (
               <ShooterSpritePet
@@ -34199,7 +34221,7 @@ function App({ onReady }) {
                 type="button"
               />
             ) : null}
-            {!horizontalShooterActive ? (
+            {!horizontalShooterActive && !desktopShooterScene ? (
               <div className="mobileShooterLives" aria-label={translateUi("app.livesLeftValue1", { value1: shooterLives })}>
                 <span><Translation id="originalUi.life" />{shooterLives}</span>
                 {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
@@ -34272,7 +34294,7 @@ function App({ onReady }) {
                       </span>
                       <Guitar className="shooterStartPanelGhostGuitar" size={82} strokeWidth={1.15} aria-hidden="true" />
                     </button>
-                    <button
+                    {!desktopShooterScene && <button
                       aria-label={translateUi("app.changeNoteShooterSkin")}
                       className="mobileShooterStartButton shooterStartPanelButton shooterStartPanelButton--secondary"
                       onClick={(event) => {
@@ -34292,8 +34314,8 @@ function App({ onReady }) {
                         <strong><Translation id="app.changeSkin" /></strong>
                       </span>
                       <Guitar className="shooterStartPanelGhostGuitar" size={86} strokeWidth={1.05} aria-hidden="true" />
-                    </button>
-                    {mapEditor.available ? (
+                    </button>}
+                    {mapEditor.available && !desktopShooterScene ? (
                       <button
                         aria-label={localizeUi(translateUi("app.editValue1Map", { value1: selectedMap.label }))}
                         className="mobileShooterStartButton shooterStartPanelButton shooterStartPanelButton--mapEdit"
@@ -34412,7 +34434,7 @@ function App({ onReady }) {
 
           {shooterGuitarPickerOpen && typeof document !== "undefined" ? createPortal(
             <div
-              className={`shooterGuitarPickerOverlay ${
+              className={`shooterGuitarPickerOverlay ${desktopShooterScene ? "desktopSceneSkinDock" : ""} ${
                 isMobileLayout
                   ? "shooterGuitarPickerOverlay--arenaPreview"
                   : "shooterGuitarPickerOverlay--desktopWindow"
@@ -34441,7 +34463,7 @@ function App({ onReady }) {
               }) => (
               <div
                 aria-label={translateUi("app.changeNoteShooterSkin")}
-                aria-modal="true"
+                aria-modal={desktopShooterScene ? undefined : "true"}
                 className={`shooterGuitarPickerModal shooterGuitarPickerModal--${shooterSkinTab}`}
                 data-pet-controls={import.meta.env.DEV && shooterSkinTab === "pet" && selectedPet.renderer === "atlas" ? "true" : undefined}
                 onClick={(event) => event.stopPropagation()}
@@ -34588,7 +34610,7 @@ function App({ onReady }) {
                         );
                       })}
                     </div>
-                  ) : shooterSkinTab === "map" ? (
+                  ) : shooterSkinTab === "map" && desktopShooterScene ? (<DesktopShooterMapGallery mapId={desktopMapId} onMap={setDesktopMapId}/>) : shooterSkinTab === "map" ? (
                     <div className="shooterSkinOptionStack" aria-label={translateUi("app.chooseGameMap")}>
                       <div className="shooterMapPickerGrid">
                         {shooterMapPickerOptions.map((map) => {
@@ -34814,7 +34836,7 @@ function App({ onReady }) {
               </ShooterSkinTabController>
               </div>
             </div>,
-            document.body,
+            desktopShooterScene ? (shooterArenaRef.current?.closest(".shooterPanel") ?? document.body) : document.body,
           ) : null}
 
         </section>
@@ -35402,6 +35424,15 @@ function App({ onReady }) {
           )}
 
           <div className="referenceTrainingMainRow">
+            {isTabletLayout && hasDirectionPractice ? (
+              <div className="tabletPracticeGuide">
+                <div><span>{localizeUi(referenceCurrentLabel)}</span><strong>{getReferenceStageValue(referenceDisplayPrompt)}</strong></div>
+                <div><span>{localizeUi(referenceNextLabel)}</span><strong>{getReferenceStageValue(referenceNextPrompt)}</strong></div>
+                <p>{gameState === GAME_STATES.PLAYING
+                  ? translateUi("app.findAndPlayTheHighlightedNoteOnTheFretboard")
+                  : translateUi("app.pressStartToPracticeFindingPositionsOnTheReferenceFretboard")}</p>
+              </div>
+            ) : null}
             <aside
               className={`referenceFretboard referenceTrainingBoard ${scalePositionNavigationEnabled ? "referenceTrainingBoard--scalePositions" : ""}`}
               aria-label={translateUi("originalUi.referenceFretboard")}

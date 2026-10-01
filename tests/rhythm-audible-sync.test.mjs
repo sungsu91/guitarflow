@@ -4,25 +4,23 @@ import {audibleContextTime,RhythmTransport} from '../src/rhythm-trainer/transpor
 import {GUIDE_METERS,guidePatterns,compileGuide,GuideTransport} from '../src/rhythm-trainer/guideModel.js';
 import {builtinPacks} from '../src/rhythm-trainer/packs.js';
 import {timeline,positionAt,createPattern} from '../src/rhythm-trainer/model.js';
-import {beatPositions,scoreCursorX,guideCursorX,subdivisionRegion} from '../src/rhythm-trainer/notationLayout.js';
+import {beatPositions,measureProgressX,scoreCursorX,guideCursorX,subdivisionRegion} from '../src/rhythm-trainer/notationLayout.js';
 import {secondsPerTick,timeSignature} from '../src/rhythm-trainer/meter.js';
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-7,`${actual} != ${expected}`);
 globalThis.cancelAnimationFrame=()=>{};
 
-test('guide notation keeps the same span when equal-duration notes are reordered',()=>{
- const notes=ticks=>ticks.map(ticks=>({ticks,rest:false}));
- const variants=[[6,3,3],[3,6,3],[3,3,6]].map(notes);
- const expected=beatPositions(variants[0],0,1,true,3);
- for(const beat of variants)assert.deepEqual(beatPositions(beat,0,1,true,3),expected);
- // A connected beat keeps those positions, translated by exactly one beat width.
- assert.deepEqual(beatPositions(variants[0],1,2,true,3),expected.map(x=>x+180));
- // The long first note must still take twice the time of a sixteenth note.
- close(guideCursorX(variants[0],3),(expected[0]+expected[1])/2);
- close(guideCursorX(variants[0],6),expected[1]);
- close(guideCursorX(variants[1],3),expected[1]);
- close(guideCursorX(variants[1],6),(expected[1]+expected[2])/2);
- close(guideCursorX(variants[2],6),expected[2]);
- close(guideCursorX(variants[2],9),(expected[2]+173)/2);
+test('guide counts stay equally spaced when held subdivisions move',()=>{
+ const variants=[[6,3,3],[3,6,3],[3,3,6]].map(ticks=>ticks.map(ticks=>({ticks,rest:false})));
+ for(const beat of variants){
+  const counts=[0,3,6,9].map(tick=>guideCursorX(beat,tick,3));
+  for(let i=1;i<counts.length;i++)close(counts[i]-counts[i-1],37);
+  const xs=beatPositions(beat,0,1,true,3);
+  let onset=0;
+  beat.forEach((note,i)=>{close(xs[i],counts[onset/3]);onset+=note.ticks;});
+  assert.deepEqual(beatPositions(beat,1,2,true,3),xs.map(x=>x+180));
+ }
+ const middle=beatPositions(variants[1],0,1,true,3);
+ close(middle[2]-middle[1],2*(middle[1]-middle[0]));
 });
 
 test('every guide onset reaches its engraved note; holds and subdivision highlights follow its duration',()=>{
@@ -99,4 +97,54 @@ test('startup waits for output; pause and tempo edits preserve heard position in
  engine.pause();close(engine.tick,12);close(frames.at(-1)[0],12);
  engine.configure({...engine.pattern,bpm:120});close(engine.tick,12);
  engine.start(false);close(engine.anchorTick,12);engine.stop();
+});
+
+test('beat sweep reaches every beat anchor continuously, independent of internal attacks',()=>{
+ const bars=[[[{ticks:12}],[{ticks:6},{ticks:6}],[{ticks:3},{ticks:6},{ticks:3}],[{ticks:12}]],[[{ticks:12,rest:true}],[{ticks:6,tie:true},{ticks:6}],[{ticks:12}],[{ticks:12,rest:true}]]];
+ for(const aligned of [false,true])for(const bar of bars){
+  const anchors=bar.map((beat,i)=>beatPositions(beat,i,4,aligned)[0]);
+  anchors.push(aligned?715.5:351);
+  for(let i=0;i<4;i++){
+   close(measureProgressX(bar,{tick:i*12},aligned),anchors[i]);
+   for(const f of [.1,.25,.5,.75,.99])close(measureProgressX(bar,{tick:(i+f)*12},aligned),anchors[i]+(anchors[i+1]-anchors[i])*f);
+   if(i)assert.ok(Math.abs(measureProgressX(bar,{tick:i*12-1e-6},aligned)-anchors[i])<.0001);
+  }
+  const changed=structuredClone(bar);changed[1]=[{ticks:9},{ticks:3}];
+  for(let tick=0;tick<=48;tick+=.25)close(measureProgressX(bar,{tick},aligned),measureProgressX(changed,{tick},aligned));
+ }
+});
+
+test('all pack beats and guide rows reach their engraved starts, including long scores',()=>{
+ const bars=builtinPacks('en').flatMap(p=>p.measures);
+ for(const meter of GUIDE_METERS)for(const pattern of guidePatterns(meter)){
+  const compiled=compileGuide(pattern,meter);
+  bars.push(compiled.groups.map(g=>g.notes));
+  for(let i=0;i<compiled.groups.length;i+=2)bars.push(compiled.groups.slice(i,i+2).map(g=>g.notes));
+ }
+ for(const aligned of [false,true])for(const bar of bars){
+  let at=0;const total=bar.flat().reduce((sum,n)=>sum+n.ticks,0);
+  for(let i=0;i<bar.length;i++){
+   for(const measure of [0,1,127])close(measureProgressX(bar,{measure,tick:measure*total+at},aligned),beatPositions(bar[i],i,bar.length,aligned)[0]);
+   at+=bar[i].reduce((sum,n)=>sum+n.ticks,0);
+  }
+ }
+});
+
+test('sweep resets on every bar and spoken count through repeats and loop boundaries',()=>{
+ for(const bpm of [60,180])for(const repeated of [false,true]){
+  const p={...createPattern(4),measures:Array.from({length:3},()=>Array.from({length:4},()=>[{ticks:12,rest:false}])),measureRepeats:[repeated,false,false],bpm,click:true,loop:true,countIn:false};
+  const ctx={currentTime:0},engine=new RhythmTransport(ctx,{},()=>{}),counts=[];
+  engine.configure(p);engine.anchorTime=0;engine.anchorTick=0;engine.next=0;engine.sound=()=>{};engine.beatSound=(at,index)=>counts.push({at,index});
+  const duration=engine.total*secondsPerTick(p);
+  for(let time=0;time<duration*2-.1;time+=.01){ctx.currentTime=time;engine.schedule();}
+  for(const {at,index} of counts){
+   const tick=at/secondsPerTick(p),pos=positionAt(p,tick);
+   const start=beatPositions(p.measures[pos.measure][index],index,4)[0];
+   close(measureProgressX(p.measures[pos.measure],pos),start);
+   const next=positionAt(p,tick+1);
+   assert.ok(measureProgressX(p.measures[next.measure],next)>start);
+  }
+  assert.equal(positionAt(p,48).measure,repeated?0:1);
+  assert.ok(counts.length>=engine.total/12*2);
+ }
 });

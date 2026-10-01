@@ -1,5 +1,39 @@
 /* Shared color contract for score-library chrome; layout remains platform-specific. */
 .app{--score-bg:#f3f1ed;--score-surface:#fff;--score-soft:#ece8e2;--score-ink:#242321;--score-muted:#69635d;--score-line:#ddd8d0;--score-accent:#49382c;--score-on-accent:#fff;--score-danger:#a63e36}
+/* Metronome's cream / rose-beige material. Shared colors only; each layout
+   retains its own geometry, and notation/print paper remains white. */
+.app.theme-light{
+ --score-bg:var(--studio-canvas,#f8f5ee);--score-surface:var(--studio-control,#fff9f4);
+ --score-soft:var(--studio-selected,#f3e3de);--score-ink:var(--studio-text,#332824);
+ --score-muted:var(--studio-muted,#62584c);--score-line:var(--studio-panel-border,#d4beb1);
+ --score-accent:var(--studio-accent,#896638);
+ --score-panel:linear-gradient(180deg,var(--studio-surface,#fcf8f0) 35%,var(--studio-warm,#f2e4dc));
+}
+@layer score-rose-surfaces {
+ @media screen {
+  html body #root .app.theme-light .pdfStudio{
+   --library-bg:var(--score-bg);--library-panel:var(--score-surface);--library-hover:var(--score-soft);
+   --library-text:var(--score-ink);--library-muted:var(--score-muted);--library-line:var(--score-line);--library-gold:var(--score-accent);
+   background:var(--score-bg)!important;
+  }
+  html body #root .app.theme-light .pdfStudio :is(.libraryStorageCard,.libraryFolderOpen,.etudeTips,.etudePrerequisite,.etudeLessonNav,.etudeTopTips){
+   background:var(--score-panel)!important;border-color:var(--score-line)!important;color:var(--score-ink)!important;
+  }
+  /* Desktop rail and mobile toolbar are intentionally separate UI targets. */
+  html[data-rifflab-layout="desktop"] body #root .app.theme-light .pdfStudio .desktopPracticeRail{
+   background:var(--score-panel)!important;border-color:var(--score-line)!important;color:var(--score-ink)!important;
+  }
+  html body #root .app.theme-light .pdfStudio .etudeStudio--mobile .etudePracticeToolbar{
+   background:var(--score-panel)!important;border-color:var(--score-line)!important;
+  }
+  html body #root .app.theme-light .pdfStudio :is(.desktopPracticeRail,.etudeQuickBrowse,.etudePracticeToolbar) :is(button,select,input){
+   background:var(--score-surface)!important;border-color:var(--score-line)!important;color:var(--score-ink)!important;
+  }
+  html body #root .app.theme-light .pdfStudio :is(.desktopPracticeRail,.etudePracticeToolbar) button:is([aria-pressed="true"],[aria-expanded="true"]){
+   background:var(--score-soft)!important;border-color:var(--score-accent)!important;color:var(--score-accent)!important;
+  }
+ }
+}
 .app.theme-brand{
  --score-bg:rgb(from var(--theme-surface) r g b / 1);
  --score-surface:color-mix(in srgb,var(--theme-surface) 92%,var(--theme-text));

@@ -62,3 +62,6 @@ html body main.app.app.app .etudeFloatingTheme button.etudeOptionalSoundToggle[a
 html body .app .etudeFloatingTheme label.etudeOptionalSoundToggle{display:flex;flex-direction:row;align-items:center;gap:8px;width:fit-content;cursor:pointer;font-size:12px}
 html body .app .etudeFloatingTheme .etudeOptionalSoundToggle input[type=checkbox]{appearance:auto;width:18px;height:18px;min-height:0;margin:0;padding:0;accent-color:#65513b;flex:none}
 .etudeOptionalSoundToggle:has(input:disabled){opacity:.5;cursor:default}
+html body .desktopLayout .etudeFloatingTheme .practiceEdgeTab{width:52px;min-height:82px;border-left:3px solid var(--theme-accent,#a67d40);box-shadow:-3px 3px 14px #0002;gap:7px}
+html body .desktopLayout .etudeFloatingTheme .practiceEdgeTab svg{width:21px;height:21px}
+.etudeFloatingMetro{transition:none!important}

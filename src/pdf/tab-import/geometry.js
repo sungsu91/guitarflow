@@ -18,30 +18,37 @@ export function binaryPage(rgba,width,height,threshold=C.inkThreshold){
   return pixels;
 }
 
-export function detectStaffs(pixels,width,height,config=C){
+export function detectStaffs(pixels,width,height,config=C,lineCount=6,spanPixels=pixels){
   const ys=[];
   for(let y=0;y<height;y++){let count=0;for(let x=0;x<width;x++)count+=pixels[y*width+x];if(count>width*config.minStaffWidth)ys.push(y);}
   const lines=runs(ys).map(group=>({y:median(group),thickness:group.length})),staffs=[];
-  for(let i=0;i<=lines.length-6;i++){
-    const six=lines.slice(i,i+6),gaps=six.slice(1).map((line,j)=>line.y-six[j].y),spacing=median(gaps);
+  for(let i=0;i<=lines.length-lineCount;i++){
+    const six=lines.slice(i,i+lineCount),gaps=six.slice(1).map((line,j)=>line.y-six[j].y),spacing=median(gaps);
     if(spacing<config.minSpacing||spacing>config.maxSpacing||gaps.some(g=>Math.abs(g-spacing)>spacing*config.spacingTolerance))continue;
     // A grid containing seven or more equally spaced lines is not a six-string TAB.
-    if(Math.abs((lines[i-1]?.y??-999)-six[0].y+spacing)<spacing*.15||Math.abs((lines[i+6]?.y??99999)-six[5].y-spacing)<spacing*.15)continue;
+    const adjacent=[lines[i-1],lines[i+lineCount]].filter((line,index)=>line&&Math.abs(index===0?line.y-six[0].y+spacing:line.y-six.at(-1).y-spacing)<spacing*.15);
+    if(!config.alignedStaffExtension&&adjacent.length)continue;
     const xs=[];
-    for(let x=0;x<width;x++)if(six.reduce((n,line)=>n+pixels[line.y*width+x],0)>=4)xs.push(x);
+    for(let x=0;x<width;x++)if(six.reduce((n,line)=>n+spanPixels[line.y*width+x],0)>=4)xs.push(x);
     const spans=runs(xs,Math.ceil(spacing*2)).sort((a,b)=>b.length-a.length),span=spans[0];
     if(!span||span.at(-1)-span[0]<Math.max(width*config.minStaffWidth,spacing*28))continue;
-    staffs.push({id:staffs.length+1,lines:six.map(l=>l.y),thickness:Math.max(...six.map(l=>l.thickness)),spacing,x:span[0],y:six[0].y,width:span.at(-1)-span[0],height:six[5].y-six[0].y});i+=5;
+    // A nearby chord-diagram edge is not an extra staff line. Practice mode
+    // requires the apparent extension to span the same ruled staff horizontally.
+    if(config.alignedStaffExtension&&adjacent.some(line=>{
+      let support=0;for(let x=span[0];x<=span.at(-1);x++)support+=pixels[line.y*width+x];
+      return support/(span.at(-1)-span[0]+1)>.8;
+    }))continue;
+    staffs.push({id:staffs.length+1,lines:six.map(l=>l.y),thickness:Math.max(...six.map(l=>l.thickness)),spacing,x:span[0],y:six[0].y,width:span.at(-1)-span[0],height:six.at(-1).y-six[0].y});i+=lineCount-1;
   }
   return staffs;
 }
 
-export function detectBarlines(ink,width,staff){
-  const candidates=[],top=staff.lines[0],bottom=staff.lines[5];
+export function detectBarlines(ink,width,staff,{minCoverage=.97,minMeasureSpacing=3,allowExtensions=false}={}){
+  const candidates=[],top=staff.lines[0],bottom=staff.lines.at(-1);
   for(let x=Math.ceil(staff.x);x<=staff.x+staff.width;x++){
     let count=0;for(let y=top;y<=bottom;y++)count+=ink[y*width+x]??0;
     let extension=0;for(const [edge,sign] of [[bottom,1],[top,-1]])for(let k=2;k<staff.spacing*.75;k++){if(!ink[(edge+k*sign)*width+x])break;extension++;}
-    if(count/(bottom-top+1)>.97&&extension<staff.spacing*.25)candidates.push(x);
+    if(count/(bottom-top+1)>minCoverage&&(allowExtensions||extension<staff.spacing*.25))candidates.push(x);
   }
   // Double/repeat/final lines delimit one boundary, not a tiny extra bar.
   const fullColumns=new Set(candidates);
@@ -61,7 +68,7 @@ export function detectBarlines(ink,width,staff){
   const boundaries=[...bars];
   if(!boundaries.length||boundaries[0]-staff.x>staff.spacing)boundaries.unshift(staff.x);
   if(staff.x+staff.width-boundaries.at(-1)>staff.spacing)boundaries.push(staff.x+staff.width);
-  return {bars,measures:boundaries.slice(0,-1).flatMap((x,i)=>boundaries[i+1]-x>staff.spacing*3?[{x,y:top,width:boundaries[i+1]-x,height:bottom-top,boundariesKnown:bars.some(b=>Math.abs(b-x)<2)&&bars.some(b=>Math.abs(b-boundaries[i+1])<2)}]:[])};
+  return {bars,measures:boundaries.slice(0,-1).flatMap((x,i)=>boundaries[i+1]-x>staff.spacing*minMeasureSpacing?[{x,y:top,width:boundaries[i+1]-x,height:bottom-top,boundariesKnown:bars.some(b=>Math.abs(b-x)<2)&&bars.some(b=>Math.abs(b-boundaries[i+1])<2)}]:[])};
 }
 
 // Remove only long ruled strokes. Work on a copy so rhythm uses the original.

@@ -1,0 +1,17 @@
+/* Desktop-only presentation: the arena retains its existing collision coordinates. */
+@layer desktop-shooter-maps {
+ html body .desktopLayout .desktopWorkspaceContent:has(.desktopShooterMaps) {padding-right:12px!important}
+ html body .desktopLayout main.app.shooterMode:has(.desktopShooterMaps) {width:100%!important;max-width:none!important;padding:12px 0!important;min-height:100dvh!important;background:transparent!important}
+ html body .desktopLayout main.app.shooterMode .shooterPanel:has(>.desktopShooterMaps) {isolation:isolate;min-height:calc(100dvh - 24px)!important;border:0!important;border-radius:16px!important;background:#101727!important;overflow:hidden!important;box-shadow:none!important;display:block!important}
+ .desktopShooterMaps {display:contents}
+ .desktopShooterMapImage {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-1;pointer-events:none;user-select:none}
+ html body .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena {background:transparent!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;flex:none}
+ html body .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena::before,
+ html body .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena::after {content:none!important}
+ html body .desktopLayout .desktopShooterMapPicker {position:absolute;right:22px;top:22px;z-index:90;display:grid;gap:8px;width:clamp(150px,15vw,230px);padding:12px 14px;border-radius:12px;background:rgba(13,19,29,.78);color:#eee5d4;font-size:12px;text-align:left;backdrop-filter:blur(12px)}
+ html body .desktopLayout .desktopShooterMapPicker select {width:100%;min-height:38px;border:1px solid #ad956955;border-radius:7px;background:#1b2029!important;color:#eee5d4!important;padding:6px 8px;font:inherit;color-scheme:dark;cursor:pointer}
+ .desktopShooterMapPicker select:focus-visible {outline:2px solid #cfad72;outline-offset:3px}
+ .desktopShooterMapPicker > span {color:#ddd0b8!important}
+ .desktopShooterMapPicker small {color:#c8baa1;font-size:11px}
+ @media (max-width:1200px){html body .desktopLayout .desktopShooterMapPicker {right:10px;top:10px;width:150px;padding:8px}}
+}

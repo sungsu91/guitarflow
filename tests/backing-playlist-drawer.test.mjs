@@ -41,5 +41,5 @@ test("playlist drawer closes when its owner mode is deactivated", async () => {
   );
 
   assert.match(deactivateSource, /setDialog\(""\)/);
-  assert.match(deactivateSource, /setPlaylistLibraryPickerOpen\(false\)/);
+  assert.match(deactivateSource, /setPlaylistPanelView\("queue"\)/);
 });

@@ -1,6 +1,6 @@
 import ko from "../i18n/locales/ko.js";
 import {useEffect, useRef, useState} from 'react';
-import {scheduleGrooveStep, createGrooveVoiceState} from './groove.js';
+import {scheduleGrooveStep, createGrooveVoiceState, getGrooveBarCount, getGrooveStepIndex} from './groove.js';
 import {TIME_SIGNATURE_OPTIONS} from './options.js';
 import {getMetronomeSubdivisionOption} from './subdivision.js';
 import {createAudioTransportCursor,collectAudioTransportSteps,METRONOME_LOOKAHEAD_SECONDS,AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS} from '../audio/transportClock.js';
@@ -41,7 +41,7 @@ export function useGroovePreview(prepare, bpm, onError) {
       const divisions=getMetronomeSubdivisionOption(pack.subdivision).clicksPerBeat;
       const seconds=60/Math.max(20,Number(bpm)||80)/divisions;
       // Modulo keeps origin nonnegative even after a long paused audition.
-      const position=offset%(beats*divisions*seconds);
+      const position=offset%(beats*divisions*seconds*getGrooveBarCount(pack.pattern));
       const origin=audio.currentTime+.04-position;
       Object.assign(s,{audio,origin,running:true,offset:position});
       let cursor=createAudioTransportCursor({originTime:origin,positionSeconds:position,stepSeconds:seconds});
@@ -49,7 +49,7 @@ export function useGroovePreview(prepare, bpm, onError) {
       function schedule() {
         if(token!==s.token)return;
         const batch=collectAudioTransportSteps(cursor,{currentTime:audio.currentTime,horizonSeconds:METRONOME_LOOKAHEAD_SECONDS});cursor=batch.cursor;
-        for(const {index,time} of batch.steps) scheduleGrooveStep({audio,buffers,output,volume,voiceState,pattern:pack.pattern,index:index%(beats*divisions),time,track:(source,gain)=>{
+        for(const {index,time} of batch.steps) scheduleGrooveStep({audio,buffers,output,volume,voiceState,pattern:pack.pattern,index:getGrooveStepIndex(pack.pattern,index,beats*divisions),time,track:(source,gain)=>{
           const voice={source,gain};s.voices.add(voice);
           source.onended=()=>{s.voices.delete(voice);source.disconnect();gain.disconnect();};
         }});
