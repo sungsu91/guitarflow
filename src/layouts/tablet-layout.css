@@ -7,6 +7,10 @@
   html[data-rifflab-device="tablet"] {
     --tablet-gap: clamp(12px, 1.6vw, 22px);
     --tablet-inset: clamp(12px, 2vw, 26px);
+  }
+  /* Resolve the workspace height where the navigation variables are defined,
+     so changing tablet chrome also reserves its actual height in every mode. */
+  html[data-rifflab-device="tablet"] .appRuntime {
     --tablet-content-height: calc(100dvh - var(--mobile-nav-clearance, 100px) - 2 * var(--tablet-inset) - env(safe-area-inset-top, 0px));
   }
   html[data-rifflab-device="tablet"] body #root,
@@ -85,6 +89,7 @@
   .tabletLayout .grooveTrackRail { grid-auto-rows: 56px !important; }
   .tabletLayout .grooveToolbar { flex-wrap: wrap !important; flex-shrink: 0 !important; }
   .tabletLayout .grooveToolbar :is(select,button) { min-height: 44px !important; font-size: 13px !important; }
+  .tabletLayout main.metronomeMode .grooveOverview .grooveBarCards { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
   .tabletLayout main.metronomeMode .metronomeModeCircleBeat { transform: rotate(var(--beat-angle)) translate(clamp(82px,14vmin,150px)) rotate(calc(-1 * var(--beat-angle))) translate(-50%,-50%) !important; }
 
   /* Scores keep their natural aspect ratio in a reader that owns remaining height. */

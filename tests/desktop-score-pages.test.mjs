@@ -21,3 +21,13 @@ test('engraving width scale determines page capacity, not the screen zoom',()=>{
   assert.equal(paginateScoreRows(rows,{scale:.5,height:1000,heading:100}).length,1);
   assert.equal(paginateScoreRows([]).length,0);
 });
+
+test('mobile paper holds multiple complete two-bar systems without gaps or duplicate rows',()=>{
+ const rows=Array.from({length:20},(_,row)=>({start:row*280,end:(row+1)*280}));
+ for(const width of [258,328,378]){
+  const pages=paginateScoreRows(rows,{scale:(width-22)/600,height:width*297/210-20-36,heading:0});
+  assert(pages.length>1);
+  assert(pages.every(page=>page.last>page.first));
+  assert.deepEqual(pages.flatMap(page=>Array.from({length:page.last-page.first+1},(_,i)=>page.first+i)),rows.map((_,i)=>i));
+ }
+});

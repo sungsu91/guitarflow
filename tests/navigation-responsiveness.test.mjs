@@ -80,7 +80,7 @@ test("heavy fretboard catalog fills inside the real page after its primary frame
 });
 
 test("re-entry state stays retained without introducing a transition page", () => {
-  assert.match(appSource, /<Activity mode=\{getModeActivityState\(appMode, APP_MODES\.TUNER\)\}>/);
+  assert.match(appSource, /<PreparedMode mode="tuner" activity=\{getModeActivityState\(appMode, APP_MODES\.TUNER\)\}>/);
   assert.match(appSource, /active=\{appMode === APP_MODES\.TUNER\}/);
   assert.doesNotMatch(appSource, /function ShooterLaunchOverlay/);
   assert.match(appSource, /preloadShooterMapImages\(entryAssets\?\.mapSkin\)/);

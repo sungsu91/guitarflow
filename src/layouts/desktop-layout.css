@@ -2445,7 +2445,7 @@
     ) {
     width: 100%;
     max-width: 1660px;
-    padding: clamp(16px, 1.8vh, 24px) clamp(14px, 1.6vw, 28px) clamp(20px, 2.5vh, 32px);
+    padding: 8px clamp(14px, 1.6vw, 28px) clamp(20px, 2.5vh, 32px);
     --desktop-stage3-control-width: clamp(400px, 31vw, 470px);
     --desktop-stage3-gap: clamp(14px, 1.1vw, 19px);
     --desktop-stage3-height: clamp(650px, calc(100dvh - 20px), 800px);
@@ -2463,7 +2463,8 @@
     height: var(--desktop-stage3-height);
     min-height: 650px;
     margin: 0 !important;
-    padding: clamp(12px, 1.05vw, 17px) !important;
+    /* Move top whitespace below the workspace without shrinking its panels. */
+    padding: 0 clamp(12px, 1.05vw, 17px) calc(2 * clamp(12px, 1.05vw, 17px)) !important;
     border: 1px solid var(--riff-shell-border) !important;
     border-radius: clamp(20px, 1.55vw, 26px) !important;
     background: var(--riff-surface-shell) !important;
@@ -2494,7 +2495,7 @@
     grid-template-rows: minmax(0, 1fr) clamp(114px, 12vh, 128px);
     align-content: stretch;
     gap: clamp(12px, 1.15vh, 16px);
-    padding: clamp(10px, 0.85vw, 14px);
+    padding: 0 clamp(10px, 0.85vw, 14px) calc(2 * clamp(10px, 0.85vw, 14px));
     border: 1px solid var(--riff-border-soft);
     border-radius: clamp(16px, 1.25vw, 20px);
     background: var(--riff-surface-panel);
@@ -2538,7 +2539,7 @@
     position: relative;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: 22px clamp(96px, 11vh, 112px) minmax(0, 1fr) !important;
+    grid-template-rows: 22px auto minmax(0, 1fr) !important;
     align-content: stretch;
     gap: clamp(9px, 0.9vh, 13px) !important;
     box-sizing: border-box;
@@ -2607,16 +2608,19 @@
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3ProgressionHeader .currentProgressionReadout {
     --desktop-stage3-progression-gap: clamp(16px, 1.8vw, 32px);
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: var(--desktop-stage3-progression-gap) !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-auto-rows: 86px;
+    align-content: start;
+    gap: 10px var(--desktop-stage3-progression-gap) !important;
     width: 100%;
     max-width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: 184px;
     margin: 0 !important;
-    padding: 1px 1px 4px !important;
-    overflow-x: auto;
-    overflow-y: hidden;
+    padding: 1px !important;
+    overflow-x: hidden;
+    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--riff-border-selected) transparent;
   }
@@ -2624,9 +2628,6 @@
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure {
     position: relative;
-    flex: 0 0 calc(
-      (100% - var(--desktop-stage3-progression-gap) - var(--desktop-stage3-progression-gap) - var(--desktop-stage3-progression-gap)) / 4
-    ) !important;
     align-items: stretch !important;
     min-height: 84px !important;
     padding: 0 !important;

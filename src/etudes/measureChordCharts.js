@@ -1,5 +1,6 @@
 import {drawChordDiagram} from './chordStudy.js';
-import {t} from '../i18n/core.js';
+import {ticksOf} from './scoreModel.js';
+import {measureMeters,meterTicks} from './scoreMeters.js';
 
 // These are accompaniment references for the six harmony/solo studies, not
 // constraints on their melodic TAB. Compositions use their authored voicings.
@@ -25,48 +26,67 @@ export function measureChordCharts(score){
  });
 }
 
-// Choose the grip that occupies most of each half of the bar. Passing tones
-// and late offbeat changes remain in the music, without multiplying diagrams.
-export function summarizeMeasureChordCharts(charts,meter=[4,4]){
+// Each half gets one authored grip, ranked by exact string/fret matches in
+// the written notes. Duration breaks ties (and handles accompaniment references).
+// Short passing changes remain in the music, without multiplying diagrams.
+export function summarizeMeasureChordCharts(charts,meter=[4,4],events=[]){
  if(charts.length<2)return charts;
- const capacity=meter[0]*1920/meter[1],half=capacity/2;
- const choose=(start,end)=>charts.reduce((best,chart)=>{
-  const overlap=Math.max(0,Math.min(end,chart.endTick??capacity)-Math.max(start,chart.startTick??0));
-  return overlap>(best?.overlap??0)?{chart,overlap}:best;
- },null)?.chart;
+ const capacity=meterTicks(meter),half=capacity/2;
+ let elapsed=0;
+ const notes=events.flatMap(event=>{
+  const start=event.onset??elapsed,end=start+ticksOf(event);elapsed=end;
+  if(event.rest||event.blank||event.dead)return [];
+  return (event.notes??event.tones??[event]).filter(n=>!n.dead&&Number.isInteger(n.fret)&&Number.isInteger(n.string))
+   .map(n=>({...n,start,end}));
+ });
+ const choose=(start,end)=>{
+  const candidates=new Map();
+  for(const chart of charts){
+   const overlap=Math.max(0,Math.min(end,chart.endTick??capacity)-Math.max(start,chart.startTick??0));
+   if(!overlap)continue;
+   const key=JSON.stringify([chart.name,chart.frets]),previous=candidates.get(key);
+   if(previous){previous.overlap+=overlap;continue;}
+   const matches=notes.reduce((total,n)=>total+(chart.frets[chart.frets.length-n.string]===n.fret
+    ?Math.max(0,Math.min(end,n.end)-Math.max(start,n.start)):0),0);
+   candidates.set(key,{chart,overlap,matches});
+  }
+  return [...candidates.values()].reduce((best,candidate)=>!best||candidate.matches>best.matches||
+   (candidate.matches===best.matches&&candidate.overlap>best.overlap)?candidate:best,null)?.chart;
+ };
  const first=choose(0,half),second=choose(half,capacity);
  const same=first&&second&&first.name===second.name&&JSON.stringify(first.frets)===JSON.stringify(second.frets);
  if(same)return [first];
- return [first&&{...first,halfLabel:'app.firstBeat'},second&&{...second,halfLabel:'app.secondBeat'}].filter(Boolean);
+ return [first,second].filter(Boolean);
 }
 
-export function chordChartLayout(charts,width,compact=false){
- const columns=compact?Math.max(1,charts.length):Math.max(1,Math.min(charts.length||1,Math.floor((width-20)/108)));
- return {columns,height:charts.length?Math.ceil(charts.length/columns)*108:0};
+// Readers, editor previews and print use the same selection. Keep the source
+// voicings and all note/playback events intact.
+export function displayMeasureChordCharts(score){
+ const meters=measureMeters(score);
+ return measureChordCharts(score).map((charts,i)=>summarizeMeasureChordCharts(charts,meters[i],score.measures[i]));
 }
 
-export function drawMeasureChordCharts(svg,charts,{x,width,bar,meter=[4,4],compact=false}){
+export function chordChartLayout(charts){
+ return {columns:Math.max(1,Math.min(2,charts.length)),height:charts.length?108:0};
+}
+
+export function drawMeasureChordCharts(svg,charts,{x,width,bar}){
  const ns='http://www.w3.org/2000/svg',panel=document.createElementNS(ns,'g');
  panel.dataset.measureChordCharts=String(bar);panel.dataset.annotationBar=String(bar);
  // The panel is positioned after notation is drawn. An inner group owns the
  // engraving offset so editable annotation offsets cannot detach the diagrams.
  panel.dataset.scoreAnnotation='chord';
  const inner=document.createElementNS(ns,'g');panel.append(inner);svg.append(panel);
- const {columns}=chordChartLayout(charts,width,compact),cellWidth=(width-20)/columns;
+ const {columns}=chordChartLayout(charts),cellWidth=(width-20)/columns;
  charts.forEach((chart,i)=>{
   const slot=document.createElementNS(ns,'g');inner.append(slot);
-  slot.setAttribute('transform',`translate(${x+10+(i%columns)*cellWidth} ${Math.floor(i/columns)*108}) scale(.82)`);
+  slot.setAttribute('transform',`translate(${x+10+i*cellWidth} 0) scale(.82)`);
   const positive=chart.frets.filter(f=>f>0),start=Math.max(0,...positive)<=4?1:Math.min(...positive);
   // An open bass does not force a 14-fret-wide box for a high-position Am.
   const shape={...chart,fretWindow:chart.fretWindow??{start:Number.isFinite(start)?start:1,end:Number.isFinite(start)?Math.max(start+3,...positive):4}};
   const diagram=drawChordDiagram(slot,shape,chart.name,-14,0,{width:72});
   diagram.dataset.chordName=chart.name;diagram.dataset.startTick=String(chart.startTick??0);
   diagram.dataset.endTick=String(chart.endTick??0);diagram.dataset.frets=JSON.stringify(chart.frets);
-  if(charts.length>1){
-   const label=document.createElementNS(ns,'text');label.textContent=compact?t(chart.halfLabel):t('app.beatValue1',{value1:1+(chart.startTick??0)/(1920/meter[1])});
-   label.setAttribute('x','56');label.setAttribute('y','-8');label.setAttribute('text-anchor','middle');
-   label.style.cssText='font:400 12px Arial;fill:#555;stroke:none';diagram.append(label);
-  }
  });
  return panel;
 }

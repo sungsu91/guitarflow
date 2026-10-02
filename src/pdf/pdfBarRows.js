@@ -30,6 +30,18 @@ export function pdfBarRows(barMap=[]){
  }
  return rows;
 }
+// Display grouping is independent of editable regions: automatic detection can
+// store five or more single-measure regions on the same printed system.
+export function pdfSystemStartNumbers(rows=[]){
+ const systems=[];
+ for(const row of [...rows].sort((a,b)=>a.page-b.page||a.y-b.y||a.x-b.x)){
+  const system=systems.find(s=>s.page===row.page&&
+   Math.min(s.y+s.height,row.y+row.height)-Math.max(s.y,row.y)>=Math.min(s.height,row.height)*.6);
+  if(!system)systems.push({...row,first:row});
+  else if(row.x<system.first.x)system.first=row;
+ }
+ return new Set(systems.map(s=>s.first.number));
+}
 export function removePdfRow(barMap,number){
  const row=pdfBarRows(barMap).find(r=>r.bars.some(b=>b.number===number));if(!row)return {barMap,removed:[]};
  const removed=row.bars.map(b=>b.number);return {barMap:barMap.filter(b=>!removed.includes(b.number)),removed};

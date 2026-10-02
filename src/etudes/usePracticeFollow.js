@@ -26,13 +26,15 @@ export default function usePracticeFollow(root,mode,playing,revision){
   const s=state.current,bar=svg.querySelector('[data-playback-bar="'+current.bar+'"]'),row=Number(bar?.dataset.row);if(!row)return;
   const rect=scroller.getBoundingClientRect(),v=window.visualViewport;
   let top=Math.max(rect.top,v?.offsetTop??0),bottom=Math.min(rect.bottom,(v?.offsetTop??0)+(v?.height??innerHeight));
+  const pageNav=scroller.querySelector('.mobileScorePageNav')?.getBoundingClientRect();
+  if(pageNav)top=Math.max(top,pageNav.bottom+8);
   // Floating tools are real occlusion, not usable score space. Prefer the larger
   // unobstructed interval if a musician has dragged the widget over the score.
   const widget=document.querySelector('.etudeSessionWidget')?.getBoundingClientRect();
   if(widget&&widget.right>rect.left&&widget.left<rect.right&&widget.bottom>top&&widget.top<bottom){if(widget.top-top>=bottom-widget.bottom)bottom=Math.max(top,widget.top-8);else top=Math.min(bottom,widget.bottom+8);}
   const height=Math.max(1,bottom-top-12),signature=[rect.width,rect.height,height,top-rect.top,svg.getAttribute('viewBox')].join(':');
   const backwards=s.bar!=null&&(current.bar<s.bar||current.visit<s.visit||current.cycle!==s.cycle||current.bar===s.bar&&current.event<s.event);
-  const paper=svg.closest('.desktopScorePage');
+  const paper=svg.closest('.desktopScorePage,.mobileScorePage');
   if(paper){
     const matrix=svg.getScreenCTM();if(!matrix)return;
     const page=paper.getBoundingClientRect();
@@ -78,5 +80,5 @@ export default function usePracticeFollow(root,mode,playing,revision){
   if(Math.abs(scroller.scrollTop-target)>2)scroller.scrollTo({top:Math.max(0,target),behavior:instant?'instant':'smooth'});
   Object.assign(s,{dirty:false,svg,row,bar:current.bar,signature});
  };
- return {follow,suspended:mode!=='off'&&suspended,resume};
+ return {follow,suspended:mode!=='off'&&suspended,resume,suspend:()=>{if(mode!=='off'&&playing)setSuspended(true);}};
 }

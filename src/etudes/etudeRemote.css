@@ -137,7 +137,45 @@ html body main.app .etudeFloatingTheme .etudeHudRemote .etudeRemoteBpm{width:66p
 .etudeFloatingMetro.etudeSessionWidget.etudeHudRemote .etudeBeat i{width:12px;height:12px}
 .etudeFloatingMetro.etudeSessionWidget.etudeHudRemote .etudeBeatRow{gap:5px;max-width:110px;flex-wrap:nowrap;overflow-x:auto;padding:4px}
 .etudeHudRemote .etudeRemoteBeats>span{font-size:10px}
+/* Phone landscape HUD: larger circles with space for their accent rings. */
+@media (orientation:landscape) {
+ html[data-rifflab-device="mobile"] .app.viewport-mobile-surface .etudeFloatingMetro.etudeSessionWidget.etudeHudRemote .etudeBeatRow {
+  display:flex;width:max-content;max-width:156px;box-sizing:border-box;gap:4px;
+ }
+ html[data-rifflab-device="mobile"] body #root .app.viewport-mobile-surface .etudeFloatingTheme .etudeHudRemote .etudeBeatRow .etudeBeat {
+  flex:0 0 34px;width:34px;min-width:34px;padding:5px;box-sizing:border-box;
+ }
+ /* Numbered beat buttons need room for the 4px accent ring outside the dot. */
+ html[data-rifflab-device="mobile"] body #root .app.viewport-mobile-surface .etudeFloatingTheme .etudeHudRemote .etudeBeatRow button.etudeBeat {
+  height:56px;min-height:56px;line-height:16px;gap:6px;padding:5px;overflow:visible;
+ }
+ html[data-rifflab-device="mobile"] .app.viewport-mobile-surface .etudeFloatingMetro.etudeSessionWidget.etudeHudRemote .etudeBeat i {
+  width:24px;height:24px;flex:none;
+ }
+}
 body:has(.etudeHudRemote) .etudeCompactTools.is-focus .etudeScoreViewport{padding-bottom:0;scroll-padding-bottom:0}
+@media (max-width:800px) and (orientation:landscape) {
+ html[data-rifflab-device="mobile"] .app.viewport-mobile-surface .etudePracticeLayout.is-focus:has(.etudeHudRemote)>.etudePracticeToolbar {
+  flex-wrap:wrap;
+ }
+ html[data-rifflab-device="mobile"] .app.viewport-mobile-surface .etudePracticeLayout.is-focus:has(.etudeHudRemote) .etudeViewTools {
+  flex:1 0 100%;width:100%;
+ }
+ html[data-rifflab-device="mobile"] .app.viewport-mobile-surface .etudeHudMetroMount {
+  margin-inline:auto;
+ }
+}
+@media (max-width:600px) and (orientation:landscape) {
+ html[data-rifflab-device="mobile"] body main.app.viewport-mobile-surface .etudeFloatingTheme .etudeHudRemote button {
+  width:40px;min-width:40px;
+ }
+ html[data-rifflab-device="mobile"] body main.app.viewport-mobile-surface .etudeFloatingTheme .etudeHudRemote .etudeRemoteBpm {
+  width:58px;
+ }
+ html[data-rifflab-device="mobile"] .app.viewport-mobile-surface .etudeHudRemote .etudeRemoteBeats {
+  gap:4px;
+ }
+}
 /* Two sources share selection logic; mobile keeps both selectors side by side. */
 .etudeSongPicker.etudeQuickBrowse .etudeQuickSelects{grid-template-columns:repeat(2,minmax(0,1fr))}
 html body main.app .etudeQuickBrowse .etudeQuickSelects .etudeSelect{flex-direction:column!important;align-items:stretch!important;gap:5px}
@@ -168,6 +206,9 @@ html body #root .app .etudeFloatingTheme .etudeBeatRow button.etudeBeat.is-downb
 
 /* Mobile transport stays at the visible bottom; desktop retains its drag handle. */
 .etudeRemote--mobileBottom .etudeRemoteBeats{grid-template-columns:minmax(0,1fr) auto auto;padding-right:28px}
+@media (orientation:portrait) {
+ html[data-rifflab-device="mobile"] .etudeFloatingMetro.etudeSessionWidget.etudeRemote--mobileBottom .etudeBeat i{width:24px;height:24px;flex-shrink:0}
+}
 html body main.app.app.app .etudeFloatingTheme .etudeRemote--mobileBottom .etudeRemoteBeats>button{position:absolute;top:2px;right:2px;width:32px;min-height:32px;height:32px;padding:6px}
 /* The last system needs enough scroll travel to reach the reading area above
    the mobile transport, even when the score viewport extends below the screen. */

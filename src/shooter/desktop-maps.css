@@ -5,6 +5,8 @@
  html body .desktopLayout main.app.shooterMode .shooterPanel:has(>.desktopShooterMaps) {isolation:isolate;min-height:calc(100dvh - 24px)!important;border:0!important;border-radius:16px!important;background:#101727!important;overflow:hidden!important;box-shadow:none!important;display:block!important}
  .desktopShooterMaps {display:contents}
  .desktopShooterMapImage {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-1;pointer-events:none;user-select:none}
+ .desktopShooterMapVideo {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-1;pointer-events:none;opacity:0;transition:opacity .35s ease}
+ .desktopShooterMapVideo[data-ready="true"] {opacity:1}
  html body .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena {background:transparent!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;flex:none}
  html body .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena::before,
  html body .desktopLayout .shooterPanel:has(>.desktopShooterMaps)>.shooterArena::after {content:none!important}

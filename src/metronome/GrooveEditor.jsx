@@ -124,23 +124,23 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
     </div></div>
   </div>;
 }
-function GrooveEditor({store,...options}) {
+function GrooveEditor({store,selectionStore,...options}) {
   useLanguage();
   const pattern=useSyncExternalStore(store.subscribe,store.getSnapshot,store.getSnapshot);
   const barCount=getGrooveBarCount(pattern);
-  const [selectedBar,setSelectedBar]=useState(0);
+  const selectedBar=useSyncExternalStore(selectionStore.subscribe,selectionStore.getSnapshot,selectionStore.getSnapshot);
   const playingBar=useGroovePlayingBar(options.clock,options.playing,options.beats,options.divisions,barCount);
   const barIndex=Math.min(playingBar>=0?playingBar:selectedBar,barCount-1);
   // Follow the same audio clock as the playhead, then retain the last bar on stop.
   useEffect(()=>{
-    setSelectedBar(value=>Math.min(playingBar>=0?playingBar:value,barCount-1));
-  },[playingBar,barCount]);
+    selectionStore.set(Math.min(playingBar>=0?playingBar:selectionStore.getSnapshot(),barCount-1));
+  },[playingBar,barCount,selectionStore]);
   const props={...options,pattern,store,barIndex,playingBar};
   const changeLength=(count,selectNew=false)=>{
     options.onChange(resizeGroovePattern(store.getSnapshot(),count));
-    setSelectedBar(selectNew?count-1:Math.min(barIndex,count-1));
+    if(selectNew || barIndex>=count)options.onSelectBar(count-1);
   };
-  const barProps={count:barCount,selected:barIndex,onLength:changeLength,onSelect:bar=>setSelectedBar(playingBar>=0?playingBar:bar),
+  const barProps={count:barCount,selected:barIndex,onLength:changeLength,onSelect:options.onSelectBar,
     onCopy:()=>options.onChange(copyGrooveBar(store.getSnapshot(),barIndex-1,barIndex))};
   const BarControls=options.mobile?MobileGrooveBarControls:DesktopGrooveBarControls;
   const Overview=options.mobile?MobileGrooveOverview:DesktopGrooveOverview;

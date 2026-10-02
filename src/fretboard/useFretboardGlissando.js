@@ -36,7 +36,9 @@ export default function useFretboardGlissando({enabled, notes, onPlay}) {
   if (!enabled) return {};
   return {
     onPointerDown(event) {
-      if (event.button !== 0 || event.isPrimary === false || event.pointerType === 'touch' || gesture.current) return;
+      if (event.button !== 0 || event.isPrimary === false || gesture.current) return;
+      // A finger starting on a note plays; empty board space keeps native panning.
+      if (event.pointerType === 'touch' && !event.target.closest('[data-note-pitch].is-interactive')) return;
       const surface = event.currentTarget, bounds = surface.getBoundingClientRect();
       const positions = new Map(notes.map(note => [`${note.stringNumber}:${note.fretNumber}`, note]));
       const targets = [...surface.querySelectorAll('[data-note-pitch].is-interactive')].flatMap(element => {
@@ -56,7 +58,7 @@ export default function useFretboardGlissando({enabled, notes, onPlay}) {
     },
     onPointerMove(event) {
       if (gesture.current?.pointerId !== event.pointerId) return;
-      if (!(event.buttons & 1)) { reset(); return; }
+      if (event.pointerType !== 'touch' && !(event.buttons & 1)) { reset(); return; }
       event.preventDefault();
       const samples = event.nativeEvent.getCoalescedEvents?.() ?? [];
       for (const sample of samples) traverse({x: sample.clientX, y: sample.clientY});

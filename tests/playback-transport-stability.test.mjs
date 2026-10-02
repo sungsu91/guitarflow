@@ -13,6 +13,17 @@ import {
 
 const BPMS = [58, 80, 120, 160];
 
+test("seeking after a tempo reduction preserves a negative virtual origin", () => {
+  const stepSeconds = getAudioTransportStepSeconds(80, 4);
+  const positionSeconds = 8 * 16 * stepSeconds;
+  const originTime = 10.06 - positionSeconds;
+  const cursor = createAudioTransportCursor({ originTime, positionSeconds, stepSeconds });
+  const batch = collectAudioTransportSteps(cursor, { currentTime: 10 });
+  assert.equal(cursor.originTime, originTime);
+  assert.equal(batch.steps[0].index, 8 * 16);
+  assert.ok(Math.abs(batch.steps[0].time - 10.06) < 1e-9);
+});
+
 test("58, 80, 120, and 160 BPM keep a drift-free 64-bar sixteenth-note grid", () => {
   const jitter = [0.011, 0.047, 0.029, 0.083, 0.018, 0.061, 0.026];
   for (const bpm of BPMS) {

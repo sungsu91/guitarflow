@@ -18,6 +18,14 @@ html body .app .sharedBackingDock .backingDockPanelStop{display:flex;align-items
 .sharedBackingDock .backingLoopMiniPlayer{width:100%;min-width:0;box-sizing:border-box}
 .sharedBackingDock .backingLoopPlayerBar{flex-wrap:wrap}
 .sharedBackingDock--mobile .backingDockPanel{width:calc(100% - 16px)}
+/* The phone score reader keeps most of the page visible beside its player. */
+@media (orientation:landscape) {
+ .app.viewport-mobile-surface .sharedBackingDock--mobile[data-mode="etudes"]:not(.sharedBackingDock--tabletScore) .backingDockPanel {
+  width:min(420px,calc(100dvw - 16px));
+  max-height:calc(100dvh - 120px);
+ }
+}
+.sharedBackingDock--mobile .backingDockPanel--touchDrag{touch-action:none;user-select:none;transition:none}
 .sharedBackingDock--desktop .backingDockPanel{width:min(420px,calc(100% - 24px));right:12px}
 .sharedBackingDock .backingLoopMainControls{margin-top:6px}
 .practiceBackingLauncher{display:flex;justify-content:flex-end;padding:6px 12px}

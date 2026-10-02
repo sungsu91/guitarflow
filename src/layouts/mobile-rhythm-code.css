@@ -1,0 +1,53 @@
+/* Phone portrait owns its guide geometry. Extra rows grow the page so the
+   fretboard, transport and accompaniment retain their existing dimensions. */
+@layer rhythm-surfaces {
+  html[data-rifflab-device="mobile"] body #root main.app.viewport-portrait
+    .chordTransitionChart .stage3ProgressionHeader {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rifflab-device="mobile"] body #root main.app.viewport-portrait
+    .stage3ProgressionHeader .currentProgressionReadout {
+    display: grid !important;
+    grid-template-columns: repeat(var(--stage3-progression-columns, 4), minmax(0, 1fr)) !important;
+    grid-auto-rows: 56px !important;
+    align-content: start !important;
+    gap: 6px !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 0 0 6px !important;
+    overflow: visible !important;
+  }
+
+  html[data-rifflab-device="mobile"] body #root main.app.viewport-portrait
+    .stage3ProgressionHeader .currentProgressionReadout > .rhythmChordMeasure {
+    align-items: stretch !important;
+    gap: 3px !important;
+    padding: 2px !important;
+    min-width: 0 !important;
+  }
+
+  html[data-rifflab-device="mobile"] body #root main.app.viewport-portrait
+    .stage3ProgressionHeader .rhythmChordMeasure > button {
+    height: 52px !important;
+    min-height: 52px !important;
+    min-width: 0 !important;
+    padding: 6px 2px !important;
+    gap: 4px !important;
+    border-radius: 8px !important;
+  }
+
+  html[data-rifflab-device="mobile"] body #root main.app.viewport-portrait
+    .stage3ProgressionHeader .rhythmChordMeasure > button > span {
+    min-height: 0 !important;
+    padding: 0 !important;
+    font-size: clamp(13px, 3.4vw, 15px) !important;
+    line-height: 1.2 !important;
+  }
+
+  html[data-rifflab-device="mobile"] body #root main.app.viewport-portrait
+    .stage3ProgressionHeader .rhythmChordMeasure > button > small {
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+}

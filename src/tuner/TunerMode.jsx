@@ -97,6 +97,15 @@ const TUNER_GUIDANCE_BADGES = Object.freeze({
   "very-high": "/assets/tuner/just-play-tuner-guidance-very-high.png",
   danger: "/assets/tuner/just-play-tuner-guidance-danger.png",
 });
+
+export function getTunerLaunchImageSources() {
+  return [
+    TUNER_BACKGROUNDS[0].src,
+    GUITAR_HEADSTOCK_DESIGNS[0].headstockSrc,
+    TUNER_SWIMMER_SPRITE_SRC,
+    TUNER_GUIDANCE_BADGES.waiting,
+  ];
+}
 const TUNER_VISUAL_OPTIONS = Object.freeze({
   showWaveTrace: false,
   showSwimmer: false,

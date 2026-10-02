@@ -3,7 +3,7 @@ import PdfViewToolbar from './PdfViewToolbar.jsx';
 import './desktopPdfTools.css';
 
 // Desktop presentation only; PDF state/actions stay in PdfPractice.
-export default function DesktopPdfTools({zoom,setZoom,previewRoot,page,pageCount,onPage,editing,onEdit,original,onOriginal,onFullscreen,onAnalyse,onReset,hasBars,busy,hasDraft,onCreate,onImport,importBusy,onSave}){
+export default function DesktopPdfTools({zoom,setZoom,previewRoot,page,pageCount,onPage,editing,onEdit,original,onOriginal,onFullscreen,onAnalyse,onReset,hasBars,busy,hasDraft,onCreate,onImport,importBusy,onSave,saving}){
  const lang=useLanguage(),t=(ko,en)=>lang==='ko'?ko:en;
  return <div className="desktopPdfTools">
   <div className="desktopPdfToolSection">
@@ -19,7 +19,7 @@ export default function DesktopPdfTools({zoom,setZoom,previewRoot,page,pageCount
   </div>
   <div className="desktopPdfToolSection">
    <h3>{t('파일','File')}</h3>
-   <button type="button" onClick={onSave}><Translation id="pdf.exportPracticeFile"/></button>
+   <button type="button" disabled={saving} aria-busy={saving} onClick={onSave}><Translation id={saving?'pdf.savingPdf':'pdf.savePdf'}/></button>
    <div className="desktopPdfToolRow"><button type="button" onClick={onCreate}><Translation id="score.make"/></button><button type="button" disabled={importBusy} onClick={onImport}><Translation id="app.load"/></button></div>
   </div>
  </div>;

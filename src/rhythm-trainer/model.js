@@ -1,5 +1,6 @@
 import {validateBeat,units,tuplet,tupletGroups,writtenTicks,canSustain} from './rhythmMath.js';
 import {TIME_SIGNATURES,meterInfo,beatTicks} from './meter.js';
+import {expandEditorBeat,sustainedNotation} from './editorNotes.js';
 export const STORAGE_KEY = 'rifflab-rhythm-trainer-v1';
 export const note = (ticks, rest = false) => ({ ticks, rest });
 export const clone = value => JSON.parse(JSON.stringify(value));
@@ -53,7 +54,20 @@ export function validPattern(p) {
 // Editing either side of a tie must never leave a tie to a rest or outside the piece.
 export function repairTies(pattern) {
   const p=clone(pattern);const beats=p.measures.flat();
-  beats.forEach((b,i)=>b.forEach((n,j)=>{if(n.tie&&(!canSustain(n)||j!==b.length-1||!canSustain(beats[i+1]?.[0])))delete n.tie;}));return p;
+  beats.forEach((b,i)=>b.forEach((n,j)=>{if(n.tie&&(!canSustain(n)||j!==b.length-1||!canSustain(beats[i+1]?.[0])))delete n.tie;}));
+  for(const measure of p.measures){const {heads}=sustainedNotation(measure);measure.forEach((beat,bi)=>beat.forEach((n,ni)=>{if(n.sustainTicks&&(ni!==0||!heads.has(bi)))delete n.sustainTicks;}));}
+  return p;
+}
+export function replaceEditorBeat(pattern,measure,beat,value,{target='score',tieNext=false}={}) {
+ const cells=expandEditorBeat(value,pattern);
+ const row=target==='core'?(pattern.core??pattern.measures[0]):pattern.measures[measure];
+ if(!cells||!row||beat<0||beat+cells.length>row.length)return null;
+ const p=clone(pattern),next=clone(row);
+ // The draft's old tie is controlled by the explicit checkbox.
+ if(cells.length===1){cells[0].forEach(n=>delete n.tie);const following=target==='core'?row[beat+1]:pattern.measures.flat()[measure*pattern.meter+beat+1];if(tieNext&&canSustain(cells[0].at(-1))&&canSustain(following?.[0]))cells[0].at(-1).tie=true;}
+ next.splice(beat,cells.length,...cells);
+ if(target==='core'){p.core=repairTies({measures:[next]}).measures[0];return p;}
+ p.measures[measure]=next;return repairTies(p);
 }
 export function replacePatternBeat(pattern,measure,beat,value) {
   const p=clone(pattern);p.measures[measure][beat]=clone(value);return repairTies(p);
@@ -185,7 +199,8 @@ export function readStore(storage) {try { const s=JSON.parse(storage.getItem(STO
 export const EDITOR_PRESET_GROUPS = PRESET_GROUPS.map(group=>group[0]==='triplet'?['triplet','연음','Tuplets']:group);
 export function editorPresets(group,meter=4) {
  const compound=meterInfo(meter).compound;
- const presets=beatPresets(meter).map(p=>p.beat.every(n=>n.rest)?{...p,group:'rests'}:p);
+ const presets=beatPresets(meter).map(p=>p.beat.every(n=>n.rest)?{...p,group:'rests'}:['sixteenths','compound-six'].includes(p.id)?{...p,group:'basic'}:p);
+ presets.unshift(...[[48,'whole','온음표','Whole note'],[24,'half','2분음표','Half note']].map(([ticks,id,ko,en])=>({id,group:'basic',ko,en,beat:[note(ticks)]})));
  if(!compound)presets.push({id:'eighth-short-triplet',group:'triplet',ko:'8분 + 짧은 셋잇단',en:'Eighth + short triplet',beat:[note(6),...tuplet(3,[],true)]});
  for(const count of [5,6,7])presets.push({id:'tuplet-'+count,group:'triplet',ko:count+'연음',en:count+'-tuplet',beat:beatTuplet(count,meter)});
  return presets.filter(p=>p.group===group);
@@ -194,5 +209,6 @@ export function matchesBeatPreset(beat,preset) {
  return beat.length===preset.length&&beat.every((n,i)=>Math.abs(n.ticks-preset[i].ticks)<1e-8&&n.rest===preset[i].rest&&!!n.muted===!!preset[i].muted&&writtenTicks(n)===writtenTicks(preset[i])&&(n.tuplet?.count??(n.ticks===4?3:0))===(preset[i].tuplet?.count??(preset[i].ticks===4?3:0)));
 }
 export function editorPresetForBeat(beat,meter=4) {
+ if([24,48].includes(beat[0]?.sustainTicks))return editorPresets('basic',meter).find(p=>p.beat[0].ticks===beat[0].sustainTicks);
  return EDITOR_PRESET_GROUPS.flatMap(([group])=>editorPresets(group,meter)).find(p=>matchesBeatPreset(beat,p.beat));
 }

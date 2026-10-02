@@ -6,6 +6,8 @@ import { syncDocumentLanguage } from './i18n/core.js';
 import { createRoot } from "react-dom/client";
 import SplashIntro from "./launch/SplashIntro.jsx";
 import { createAppLaunchController } from "./launch/appLaunch.js";
+import { prepareInitialSurface } from "./launch/prepareInitialSurface.js";
+import { observeAppResume } from "./launch/appResume.js";
 import "./launch/splash-intro.css";
 import { keepScreenAwake } from "./ui/screenWakeLock.js";
 
@@ -13,10 +15,21 @@ const launchController = createAppLaunchController();
 syncDocumentLanguage();
 const DeferredAppRuntime = React.lazy(() => import("./AppRuntime.jsx"));
 
+let preparingInitialSurface = false;
+function prepareRuntimeForLaunch(modePreparation) {
+  if (preparingInitialSurface) return;
+  preparingInitialSurface = true;
+  void Promise.resolve(modePreparation).catch(() => undefined)
+    .then(() => prepareInitialSurface({ root: document.querySelector('.appRuntime') })).then(
+    () => launchController.markReady('initial-surface-ready'),
+    () => launchController.markReady('initial-surface-preparation-skipped'),
+  );
+}
+
 const AppRuntime = React.memo(function AppRuntime() {
   return (
     <React.Suspense fallback={null}>
-      <DeferredAppRuntime onReady={launchController.markReady} />
+      <DeferredAppRuntime onReady={prepareRuntimeForLaunch} />
     </React.Suspense>
   );
 });
@@ -51,7 +64,20 @@ class AppLoadBoundary extends React.Component {
 function Root() {
   React.useEffect(() => keepScreenAwake(), []);
   const [launching, setLaunching] = React.useState(true);
-  const finishLaunch = React.useCallback(() => setLaunching(false), []);
+  const [launchSession, setLaunchSession] = React.useState(() => ({ id: 0, readyPromise: launchController.readyPromise }));
+  const launchingRef = React.useRef(true);
+  const finishLaunch = React.useCallback(() => {
+    launchingRef.current = false;
+    setLaunching(false);
+  }, []);
+
+  React.useEffect(() => observeAppResume({ onResume() {
+    if (launchingRef.current || document.documentElement.classList.contains('app-is-theme-loading')) return;
+    launchingRef.current = true;
+    setLaunching(true);
+    const readyPromise = prepareInitialSurface({ root: document.querySelector('.appRuntime') });
+    setLaunchSession(current => ({ id: current.id + 1, readyPromise }));
+  } }), []);
 
   React.useLayoutEffect(() => {
     document.documentElement.classList.toggle("app-is-launching", launching);
@@ -71,8 +97,9 @@ function Root() {
       </div>
       {launching ? (
         <SplashIntro
+          key={launchSession.id}
           onComplete={finishLaunch}
-          readyPromise={launchController.readyPromise}
+          readyPromise={launchSession.readyPromise}
         />
       ) : null}
     </>

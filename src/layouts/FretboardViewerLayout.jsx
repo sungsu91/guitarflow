@@ -17,6 +17,18 @@ export default function FretboardViewerLayout({
   if (tablet && mode !== 'chord') {
     return <section className={`${className} tabletTheoryViewer`} aria-label={label}>{explorer(tabs)}</section>;
   }
+  if (tablet) {
+    return (
+      <section className={`${className} tabletChordViewer`} aria-label={label}>
+        <div {...controlPanelProps} className={`${controlPanelProps.className} tabletChordWorkbench`}>
+          {tabs}
+          {board}
+          {controls}
+        </div>
+        {catalog}
+      </section>
+    );
+  }
   if (!desktop) {
     return (
       <section className={className} aria-label={label}>

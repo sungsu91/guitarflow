@@ -1,9 +1,12 @@
 import ko from "../i18n/locales/ko.js";
-import {createGroovePattern} from './groove.js';
+import {createGroovePattern,getGrooveBarCount} from './groove.js';
 import {RECOMMENDED_GROOVE_PACKS} from './recommendedGrooves.js';
 
 export const STORAGE_KEY = 'rifflab.metronome.groove-packs.v1';
 const listeners = new Set();
+export function getGroovePackScope(pack) {
+  return pack?.scope==='arrangement'||getGrooveBarCount(pack?.pattern)>1?'arrangement':'bar';
+}
 export function savePacks(packs) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(packs));
   listeners.forEach(listener => listener());

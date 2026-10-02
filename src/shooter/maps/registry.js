@@ -11,9 +11,11 @@ import { PSEUDO3D_TEST_MAP_SKIN } from "./skins/pseudo3dTest.js";
 import { RIVER_MAP_SKIN } from "./skins/river.js";
 import { THREE_D_LAB_MAP_SKIN } from "./skins/threeDLab.js";
 import { MOONLIT_ROOFTOP_MAP_SKIN } from "./skins/moonlitRooftop.js";
+import { STORM_CLOISTER_MAP_SKIN } from "./skins/stormCloister.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   MOONLIT_ROOFTOP_MAP_SKIN,
+  STORM_CLOISTER_MAP_SKIN,
   GACHA_ARCADE_MAP_SKIN,
   ...SCENIC_MAP_SKINS,
   RIVER_MAP_SKIN,

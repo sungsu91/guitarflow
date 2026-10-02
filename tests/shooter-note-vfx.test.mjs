@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 import {execFileSync} from 'node:child_process';
 import {isNoteVfxPreviewRequested} from '../src/shooter/noteVfx/noteVfx.js';
+import {MOONLIT_ROOFTOP_MOTION, SCENIC_MAP_MOTION} from '../src/shooter/mapMotionAssets.js';
 
 test('moonlit map preview remains development-only; monster visuals are unconditional',()=>{
  for(const dev of [false,undefined,null]) assert.equal(isNoteVfxPreviewRequested(dev,'?shooterNoteVfx=1'),false);
@@ -27,6 +28,18 @@ test('pitch judgment, projectile scoring and collision geometry remain identical
  const manifestPaths=['public/assets/shooter/instruments/fretiva_pink_instrument_skin_pack_v1/skin_manifest.json','public/assets/pets/fretiva_pet_sprite_pack_v1/pets.manifest.json','src/shooter/pets.manifest.json','src/shooter/instruments/fretivaPinkInstrumentSkinPackV1.manifest.json'];
  const newMapPaths = ['src/shooter/maps/registry.js', 'src/shooter/maps/skins/moonlitRooftop.js', 'public/assets/maps/moonlit-rooftop/moonlit-rooftop.png'];
  newMapPaths.push('src/shooter/maps/MapSkinRenderer.jsx', 'src/shooter/maps/map-skins.css', 'src/shooter/maps/skins/scenicMaps.js', ...['underwater-blue','aurora-glacier','above-the-clouds','milky-way-desert','firefly-forest'].map(id => `public/assets/maps/${id}/background.png`));
+ // Desktop scenery and shared ambient-video presentation do not change gameplay.
+ newMapPaths.push(
+  'src/shooter/DesktopShooterMaps.jsx', 'src/shooter/desktop-maps.css',
+  'src/shooter/desktop-scene.css', 'src/shooter/desktop-skin-hologram.css',
+  'src/shooter/MapVideoBackdrop.jsx', 'src/shooter/ambientVideoPlayback.js',
+  'src/shooter/mapMotionAssets.js', 'src/shooter/maps/MobileVideoMapRenderer.jsx',
+  'src/shooter/maps/mobile-video-map.css', 'src/shooter/maps/skins/stormCloister.js',
+  'public/assets/maps/storm-cloister/storm-cloister-poster.jpg',
+  ...['01-moonlit-rooftop','02-cloud-sanctuary','03-aurora-lake','04-sunset-coast','05-desert-observatory','06-underwater-blue','07-firefly-forest'].map(id => `public/assets/shooter/desktop-maps/${id}.png`),
+  ...[MOONLIT_ROOFTOP_MOTION, ...Object.values(SCENIC_MAP_MOTION)].flatMap(motion =>
+   Object.values(motion).map(({posterSrc}) => `public${posterSrc}`)),
+ );
  const progressionPaths=['src/shooter/progressionSettings.js','src/shooter/ProgressSettings.jsx','src/shooter/progress-settings.css','src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx'];
  // Score playback is independent of shooter judgment and collision audio.
  const scoreAudioPaths=['src/audio/scoreInstrument.js','src/audio/scoreDrums.js','src/audio/scoreExpressions.js','src/audio/fretboardPreviewEngine.js','src/audio/viewerChordSamples.js','src/audio/guitarArticulation.js']; // Score articulation shipped in 1a0828e2; gameplay slices stay guarded.

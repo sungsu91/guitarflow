@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ETUDES} from '../src/etudes/catalog.js';
-import {measureChordCharts,summarizeMeasureChordCharts,chordChartLayout} from '../src/etudes/measureChordCharts.js';
+import {measureChordCharts,displayMeasureChordCharts,summarizeMeasureChordCharts,chordChartLayout} from '../src/etudes/measureChordCharts.js';
 import {nightBloomsAgain as night} from '../src/etudes/nightBloomsAgain.js';
 import {lightStays as light} from '../src/etudes/lightStays.js';
 
@@ -25,10 +25,9 @@ test('same-named positions remain distinct and genuine repeats merge only inside
  assert.deepEqual(measureChordCharts(night)[1].map(c=>[c.name,c.startTick]),[['C/E',0],['G',960]]);
 });
 
-test('compact chart layouts wrap dense changes and scale-only scores remain unchanged',()=>{
+test('dense changes reserve only one diagram row at every screen width',()=>{
  const charts=Array.from({length:5},()=>({name:'C'}));
- assert.deepEqual(chordChartLayout(charts,264),{columns:2,height:324});
- assert.deepEqual(chordChartLayout(charts,600),{columns:5,height:108});
+ for(const width of [128,180,264,600])assert.deepEqual(chordChartLayout(charts,width),{columns:2,height:108});
  assert.equal(chordChartLayout([],264).height,0);
  const score=ETUDES.find(e=>e.templateId==='triad-start');assert(measureChordCharts(score).every(c=>!c.length));
 });
@@ -39,13 +38,48 @@ test('user-authored single diagrams retain their editor visibility and range han
  assert(measureChordCharts(custom).every(c=>!c.length),'existing user charts use their original annotation renderer');
 });
 
-test('desktop charts summarize each half without changing authored chord events',()=>{
+test('charts summarize each half without changing authored chord events',()=>{
  const charts=[['C',0,480],['Dm',480,960],['Em',960,1440],['F',1440,1680],['G',1680,1920]]
   .map(([name,startTick,endTick])=>({name,startTick,endTick,frets:[null,3,2,0,1,0]}));
  const original=structuredClone(charts),summary=summarizeMeasureChordCharts(charts);
- assert.deepEqual(summary.map(c=>[c.name,c.halfLabel]),[['C','app.firstBeat'],['Em','app.secondBeat']]);
+ assert.deepEqual(summary.map(c=>c.name),['C','Em']);
+ assert(summary.every(c=>!Object.hasOwn(c,'halfLabel')));
  assert.deepEqual(chordChartLayout(summary,180,true),{columns:2,height:108});
  assert.deepEqual(charts,original);
+});
+
+test('representative grips favor the written string and fret over a longer mismatched grip',()=>{
+ const charts=[
+  {name:'C',frets:[null,3,2,0,1,0],startTick:0,endTick:720},
+  {name:'C',frets:[null,3,5,5,5,3],startTick:720,endTick:960},
+  {name:'G',frets:[3,2,0,0,0,3],startTick:960,endTick:1920},
+ ];
+ const events=[
+  {onset:0,duration:'2',tones:[{string:3,fret:5},{string:2,fret:5}]},
+  {onset:960,duration:'2',tones:[{string:6,fret:3},{string:1,fret:3}]},
+ ];
+ const before=structuredClone({charts,events});
+ const summary=summarizeMeasureChordCharts(charts,[4,4],events);
+ assert.deepEqual(summary.map(c=>c.frets),[charts[1].frets,charts[2].frets]);
+ assert.deepEqual({charts,events},before);
+});
+
+test('rests and dead notes do not choose a grip; repeated grip duration is combined',()=>{
+ const c={name:'C',frets:[null,3,2,0,1,0]},d={name:'D',frets:[null,null,0,2,3,2]};
+ const charts=[{...c,startTick:0,endTick:240},{...d,startTick:240,endTick:600},{...c,startTick:600,endTick:1920}];
+ const events=[{onset:0,duration:'1',rest:true,notes:[{string:1,fret:2}]},
+  {onset:0,duration:'1',tones:[{string:1,fret:2,dead:true}]}];
+ assert.deepEqual(summarizeMeasureChordCharts(charts,[4,4],events).map(c=>c.name),['C']);
+});
+
+test('the screenshot score and saved copies share at most two representative grips per bar',()=>{
+ const score=ETUDES.find(e=>e.templateId==='daylight-fingerstyle-sketch');
+ const source=measureChordCharts(score),before=JSON.stringify(score),display=displayMeasureChordCharts(score);
+ assert.equal(source[11].length,5);
+ assert.equal(display[11].length,2);
+ assert(display[11].every(c=>!Object.hasOwn(c,'halfLabel')));
+ assert.deepEqual(displayMeasureChordCharts({...score,document:{...score.document,kind:'user'}}),display);
+ assert.equal(JSON.stringify(score),before);
 });
 
 test('half-bar summary respects compound meters and preserves distinct voicings',()=>{
@@ -58,8 +92,9 @@ test('half-bar summary respects compound meters and preserves distinct voicings'
  assert.deepEqual(summarizeMeasureChordCharts([], [3,4]),[]);
  for(const score of ETUDES){
   const original=JSON.stringify(score);
+  const display=displayMeasureChordCharts(score);
   for(const [i,charts] of measureChordCharts(score).entries()){
-   const summary=summarizeMeasureChordCharts(charts,score.document?.measures[i]?.meter??score.meter);
+   const summary=display[i];
    assert(summary.length<=2,score.id);
    assert(summary.every(c=>charts.some(source=>source.name===c.name&&JSON.stringify(source.frets)===JSON.stringify(c.frets))));
   }

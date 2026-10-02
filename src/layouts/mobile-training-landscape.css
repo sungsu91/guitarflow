@@ -1,0 +1,110 @@
+/* Phone landscape owns this composition; rhythm state and popup controls stay shared.
+   Use the existing surface layer so legacy button skins cannot repaint beat hit areas. */
+@layer rhythm-surfaces {
+  html body #root .app.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) {
+    & .referenceStandaloneMetronomeControl {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+
+    /* The new settings grid occupies the whole panel, not one legacy grid cell. */
+    & .referenceStandaloneMetronomeControl > .metronomeOptions {
+      display: block !important;
+      flex: none !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: visible !important;
+    }
+
+    & .referenceStandaloneMetronomeControl .rhythmSettings {
+      grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) !important;
+      grid-template-rows: repeat(2, 40px) !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+    & .rhythmSetting { gap: 5px !important; }
+    & .rhythmSetting--meter { grid-area: 1 / 1 !important; }
+    & .rhythmSetting--subdivision { grid-area: 2 / 1 !important; }
+    & :is(.rhythmSetting--accent, .rhythmSetting--tone) { grid-area: 1 / 2 !important; }
+    & .rhythmSetting--weak { grid-area: 2 / 2 !important; }
+    & .rhythmSettingLabel { font-size: 11px !important; }
+    & .rhythmSettingTrigger {
+      width: 0 !important;
+      min-width: 0 !important;
+      height: 40px !important;
+      min-height: 40px !important;
+      padding: 5px 6px !important;
+      font-size: 12px !important;
+    }
+
+    & .referenceBeatMetronomeStrip .beatIndicator {
+      --landscape-dot-touch: 44px;
+      --landscape-dot-size: 32px;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      gap: 2px !important;
+    }
+    & .referenceBeatMetronomeStrip :is(.beatIndicator--beats-9, .beatIndicator--beats-12) {
+      --landscape-dot-touch: 26px;
+      --landscape-dot-size: 18px;
+    }
+    & .referenceBeatMetronomeStrip .beatIndicatorRow {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: 0 !important;
+      gap: clamp(6px, 1vw, 10px) !important;
+      transform: none !important;
+    }
+    & .referenceBeatMetronomeDot.beatDot {
+      grid-template-columns: minmax(0, 1fr) !important;
+      grid-template-rows: minmax(0, 1fr) !important;
+      flex: 0 1 var(--landscape-dot-touch) !important;
+      width: var(--landscape-dot-touch) !important;
+      min-width: 0 !important;
+      height: var(--landscape-dot-touch) !important;
+      min-height: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      border-radius: 50% !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    & .referenceBeatMetronomeDot .beatDot__glyph {
+      place-self: center !important;
+      width: min(var(--landscape-dot-size), calc(100% - 6px)) !important;
+      min-width: 0 !important;
+      height: auto !important;
+      min-height: 0 !important;
+      aspect-ratio: 1 !important;
+      border-radius: 50% !important;
+    }
+  }
+
+  /* Reserve real space for both settings rows before placing the backing player. */
+  html body #root .app.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .scaleBlockTrainingPanel .referenceStandaloneMetronomeDeck {
+    grid-template-rows: minmax(106px, 1fr) 106px 163px !important;
+    gap: 4px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+}

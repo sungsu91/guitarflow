@@ -1,5 +1,5 @@
 export const APP_LAUNCH_TIMINGS = Object.freeze({
-  minimumIntroMs: 0,
+  minimumIntroMs: 3000,
   readySettleMs: 0,
   fallbackMs: 12000,
   exitMs: 320,

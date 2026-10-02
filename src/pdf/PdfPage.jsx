@@ -12,7 +12,7 @@ import {pageCrop,projectRect,originalPoint} from './pdfAnnotations.js';
 import {memo,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {pdfPageCache,pdfDocumentKey,renderPdfPage,copyPdfCanvas} from './pdfRenderer.js';
 import {idleWork} from './pdfPageCache.js';
-import {pdfBarRows} from './pdfBarRows.js';
+import {pdfBarRows,pdfSystemStartNumbers} from './pdfBarRows.js';
 import {normalizedRect} from './pdfModel.js';
 export const pdfRenderStats={started:0,completed:0,cancelled:0,maxPixels:0};
 // Only this overlay moves per frame. PDF canvases are unchanged during playback.
@@ -39,6 +39,7 @@ export default memo(function PdfPage({detectionOverlay=null,detectionDebug=false
  const crop=useMemo(()=>pageCrop(pageEdit),[pageEdit?.crop,pageEdit?.margins,pageEdit?.cuts]);
  useScorePinch({enabled:mobile&&!embedded,viewport:viewportRef,content:paperRef,bounds:boundsRef,zoom:Number(zoom)||100,onZoom:onZoomChange,controller:embedded?null:zoomController});
  const rows=useMemo(()=>pdfBarRows(rowMap??barMap),[rowMap,barMap]);
+ const systemStartNumbers=useMemo(()=>pdfSystemStartNumbers(rows),[rows]);
  const project=rect=>projectRect(rect,crop);
  const resetPoints=()=>{anchor.current=null;press.current=null;setFirstPoint(null);setPreview(null);};
  useEffect(()=>{
@@ -166,7 +167,7 @@ export default memo(function PdfPage({detectionOverlay=null,detectionDebug=false
     {detectionDebug&&detectionOverlay.pages.find(p=>p.page===pageNumber)?.systems.map(system=>{const r=project(system);return <div key={system.system} className="pdfDetectedSystem" style={{left:`${r.x*100}%`,top:`${r.y*100}%`,width:`${r.width*100}%`,height:`${r.height*100}%`}}><small>S{system.system}</small>{system.barlines.map((x,i)=><i key={i} style={{left:`${(x-system.x)/system.width*100}%`}}/>)}</div>;})}
    </div>}
    {!busy&&!cropping&&rows.filter(r=>r.page===pageNumber).map(row=>{const r=project(row),active=row.bars.some(b=>b.number===activeBar),selected=row.bars.some(b=>b.number===selectedBar);return <button type="button" key={row.number} data-pdf-row={row.number} data-row-count={row.count} className={`pdfBarRow ${active?'is-active':''} ${active&&emphasize?'is-emphasized':''} ${selected&&editing?'is-selected':''}`} style={{left:`${r.x*100}%`,top:`${r.y*100}%`,width:`${r.width*100}%`,height:`${r.height*100}%`,pointerEvents:texting||inking?'none':undefined,touchAction:editing&&selected?'none':undefined}} aria-label={translateUi("pdf.selectLineBarsValue1Value2", { value1: row.number, value2: row.count })} onPointerDown={e=>startRowDrag(e,row,selected)} onPointerMove={moveRowDrag} onPointerUp={e=>finishRowDrag(e)} onPointerCancel={e=>finishRowDrag(e,true)} onClick={e=>{e.stopPropagation();resetPoints();onCancelRow?.();const p=point(e),bar=row.bars.find(b=>p.x>=b.x&&p.x<b.x+b.width)??row.bars.at(-1);onSelect(bar.number,editing?0:Math.max(0,Math.min(.999,(p.x-bar.x)/bar.width)));}}>
-    {r.x>.035&&<small className="pdfRowStartNumber" aria-hidden="true">{row.number}~{row.number+row.count-1}<Translation id="app.bar" /></small>}
+    {systemStartNumbers.has(row.number)&&<small className="pdfRowStartNumber pdfSystemStartNumber" data-pdf-measure-number={row.number} data-number-kind="start" style={r.x*size.width>=20?{left:-Math.min(30,r.x*size.width),top:0}:{top:Math.max(-15,-r.y*size.height)}} aria-hidden="true">{row.number}</small>}
     {editing&&selected&&<i data-row-resize className="pdfRowResize" aria-label={translateUi("pdf.resizeLineRegion")}/>}
     {editing&&selected&&['left','right'].map(edge=><i key={edge} data-row-edge={edge} className={`pdfRowEdge pdfRowEdge--${edge}`} title={translateUi("pdf.dragBarEdge")}/>)}
     {editing&&row.bars.slice(1).map((b,i)=><i key={b.number} data-bar-boundary={selected?i+1:undefined} className={`pdfRowGuide ${selected?'pdfBarBoundary':''}`} style={{left:`${(b.x-row.x)/row.width*100}%`}} title={translateUi("pdf.dragBarBoundary")} role={selected?'slider':undefined} tabIndex={selected?0:undefined} aria-label={translateUi("pdf.dragBarBoundary")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((b.x-row.x)/row.width*100)} onKeyDown={e=>{if(selected&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();e.stopPropagation();onUpdateBoundary?.(row.number,i+1,(b.x-row.x)/row.width+(e.key==='ArrowRight'?.01:-.01));}}} />)}
@@ -175,7 +176,9 @@ export default memo(function PdfPage({detectionOverlay=null,detectionDebug=false
 
     <button type="button" className="pdfBarDelete" aria-label={translateUi("pdf.deleteLineRegionFromBarValue1", { value1: selected.number })} onClick={e=>{e.stopPropagation();onRemove(selected.number);}}><Translation id="common.delete" /></button>
    </div>}
-   {!busy&&currentBar&&<div className="pdfCurrentMeasure" aria-hidden="true" style={{left:`${currentBar.x*100}%`,top:`${currentBar.y*100}%`,width:`${currentBar.width*100}%`,height:`${currentBar.height*100}%`}}/>}
+   {!busy&&currentBar&&<div className="pdfCurrentMeasure" aria-hidden="true" style={{left:`${currentBar.x*100}%`,top:`${currentBar.y*100}%`,width:`${currentBar.width*100}%`,height:`${currentBar.height*100}%`}}>
+    {!systemStartNumbers.has(activeBar)&&<small className="pdfRowStartNumber pdfSelectedBarNumber" data-pdf-measure-number={activeBar} data-number-kind="selected">{activeBar}</small>}
+   </div>}
    {!busy&&<BarPlayhead bars={barMap} pageNumber={pageNumber} crop={crop} playing={playing} getBarPosition={getBarPosition}/>}
    {!busy&&draftRow?.page===pageNumber&&<div className="pdfRowDraft pdfUnifiedRowDraft" style={{left:`${project(draftRow).x*100}%`,top:`${project(draftRow).y*100}%`,width:`${project(draftRow).width*100}%`,height:`${project(draftRow).height*100}%`}}/>}
    {!mobile&&!busy&&draftRow?.page===pageNumber&&<div className="pdfQuickCount" ref={pickerRef} role="group" aria-label={translateUi("app.chooseTheBarCount")} onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>

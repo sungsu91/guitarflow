@@ -426,7 +426,21 @@ export default defineConfig({
   // Scan the application entry only, not archived builds or browser test HTML.
   optimizeDeps: { entries: ["index.html"] },
   resolve: { dedupe: ["react", "react-dom"] },
-  server: { headers: securityHeaders() },
+  server: {
+    headers: securityHeaders(),
+    watch: {
+      // Local builds and browser evidence contain tens of thousands of files.
+      // They are not app inputs and must not trigger rescans or HTML reloads.
+      ignored: [
+        ...["work", "artifacts", "backup", "exports", "tmp", "output", "logs"].map(
+          (directory) => `${fileURLToPath(new URL(`./${directory}`, import.meta.url)).replaceAll("\\", "/")}/**`,
+        ),
+        "**/*.log",
+      ],
+    },
+    // Prepare both sides of the lazy entry before the first browser request.
+    warmup: { clientFiles: ["./src/main.jsx", "./src/AppRuntime.jsx"] },
+  },
   preview: { headers: securityHeaders() },
   css: { postcss: { plugins: [mobileSurfaceCss()] } },
   plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin()],

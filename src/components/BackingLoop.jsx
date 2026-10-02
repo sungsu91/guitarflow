@@ -11,6 +11,7 @@ import { BACKING_AUDIO_SOURCE_TYPES } from "../backing-loop/backingAudioSource";
 import { formatBackingLoopTime } from "../backing-loop/backingLoopUtils";
 import useBackingLoop from "../backing-loop/useBackingLoop";
 import './backing-loop-dock.css';
+import { useTabletLayout } from '../layouts/TabletLayout.jsx';
 
 const BackingLoopContext = createContext(null);
 // Vite does not emit a Refresh signature for the transport's plain .js hook.
@@ -44,13 +45,13 @@ export function BackingLoopDock({ mobile, mode }) {
   return controller ? <SharedBackingDock controller={controller} mobile={mobile} mode={mode} /> : null;
 }
 
-const BackingDockEdge = memo(function BackingDockEdge({ playing, paused, title, top, onToggle, onStop, onPointerDown, onPointerMove, onPointerUp, onKeyDown }) {
+const BackingDockEdge = memo(function BackingDockEdge({ playing, paused, title, top, onToggle, onStop, onPointerDown, onPointerMove, onPointerUp, onLostPointerCapture, onKeyDown }) {
   const language = useLanguage();
   const ko = language === 'ko';
   return <div className={`backingDockEdge ${playing ? 'is-playing' : paused ? 'is-paused' : 'is-idle'}`} style={{top}}>
     <button type="button" className="backingDockHandle" aria-label={ko ? `백킹 ${playing?'재생 중':paused?'일시정지':'정지'} · 패널 열기` : `Backing ${playing?'playing':paused?'paused':'stopped'} · Open panel`}
       aria-expanded={false} aria-controls="shared-backing-dock-panel" title={title} onClick={onToggle}
-      onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onKeyDown={onKeyDown}>
+      onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onLostPointerCapture={onLostPointerCapture} onKeyDown={onKeyDown}>
       <AudioLines size={15} aria-hidden="true"/><ChevronDown className="backingDockChevron" size={13} aria-hidden="true"/>
       <i aria-hidden="true"/>
     </button>
@@ -60,6 +61,9 @@ const BackingDockEdge = memo(function BackingDockEdge({ playing, paused, title, 
 
 function SharedBackingDock({ controller, mobile, mode }) {
   const language = useLanguage();
+  const tablet = useTabletLayout();
+  const tabletScore = tablet && mobile && mode === 'etudes';
+  const touchDragPanel = mobile && !tablet;
   const korean = language === 'ko';
   const {dock, setDockView, setDockTop} = controller;
   const open = dock.view === 'open';
@@ -71,7 +75,14 @@ function SharedBackingDock({ controller, mobile, mode }) {
   const panelHeight = useRef(250);
   const previousMode = useRef(mode);
   const clearance = Math.max(mobile ? 88 : 12, dock.clearance);
-  const clampTop = useCallback(value => Math.max(12, Math.min(window.innerHeight - clearance - panelHeight.current - 12, value)), [clearance]);
+  const clampTop = useCallback(value => {
+    // Phone landscape puts the score transport in the top toolbar.
+    const scoreToolbar = mobile && !tablet && mode === 'etudes'
+      ? document.querySelector('.etudePracticeLayout.is-focus > .etudePracticeToolbar') : null;
+    const minTop = scoreToolbar ? Math.max(12, scoreToolbar.getBoundingClientRect().bottom + 8) : 12;
+    const bottomInset = scoreToolbar ? 12 : clearance + 12;
+    return Math.max(minTop, Math.min(window.innerHeight - bottomInset - panelHeight.current, value));
+  }, [clearance, mobile, mode, tablet]);
   useEffect(() => {
     if (previousMode.current !== mode && open) setDockView('collapsed');
     previousMode.current = mode;
@@ -80,7 +91,11 @@ function SharedBackingDock({ controller, mobile, mode }) {
     if (dock.view === 'hidden') return;
     const resize = () => {
       if (panel.current) panelHeight.current = panel.current.getBoundingClientRect().height;
-      if(panel.current&&!mobile)setLeft(value=>value===null?null:Math.max(12,Math.min(window.innerWidth-panel.current.offsetWidth-12,value)));
+      if(panel.current&&!mobile){
+        // A queued state update may run after folding detaches the panel ref.
+        const maxLeft=window.innerWidth-panel.current.offsetWidth-12;
+        setLeft(value=>value===null?null:Math.max(12,Math.min(maxLeft,value)));
+      }
       setDockTop(clampTop(top));
     };
     resize();
@@ -88,7 +103,7 @@ function SharedBackingDock({ controller, mobile, mode }) {
     if (panel.current) observer.observe(panel.current);
     window.addEventListener('resize', resize);
     return () => { observer.disconnect(); window.removeEventListener('resize', resize); };
-  }, [dock.view, top, clampTop, setDockTop]);
+  }, [dock.view, top, clampTop, setDockTop, mobile]);
   useEffect(() => { if (open) panel.current?.querySelector('button')?.focus({preventScroll:true}); }, [open]);
   const toggle = useCallback(() => {
     if (dragged.current) { dragged.current = false; return; }
@@ -97,17 +112,23 @@ function SharedBackingDock({ controller, mobile, mode }) {
   const close = useCallback(() => { setDockView('collapsed'); controller.closeDialog(); }, [setDockView, controller.closeDialog]);
   const stop = useCallback(() => { controller.stopPlayback(); if (!open) setDockView('hidden'); }, [controller.stopPlayback, open, setDockView]);
   const pointerDown = useCallback(event => {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || event.isPrimary === false || drag.current) return;
     dragged.current = false;
     event.preventDefault();
+    if (event.pointerType === 'mouse') window.getSelection()?.removeAllRanges();
     const rect=panel.current?.getBoundingClientRect();
-    drag.current = { x:event.clientX, y: event.clientY, top, left:rect?.left??0 };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    // Capture on the tapped button so a stationary touch still activates it.
+    // Moving past the threshold suppresses that click at the panel boundary.
+    const button = event.target.closest('button,[role="button"]');
+    const capture = button && !button.disabled ? button : event.currentTarget;
+    capture.focus?.({preventScroll:true});
+    drag.current = { id:event.pointerId, capture, x:event.clientX, y:event.clientY, top, left:rect?.left??0 };
+    capture.setPointerCapture(event.pointerId);
   }, [top]);
   const pointerMove = useCallback(event => {
-    if (!drag.current) return;
+    if (!drag.current || drag.current.id !== event.pointerId) return;
     const g=drag.current,dy = event.clientY - g.y,dx=event.clientX-g.x;
-    if (Math.hypot(dx,dy) > 5) dragged.current = true;
+    if (Math.hypot(dx,dy) > 6) dragged.current = true;
     if (dragged.current) {
       g.nextTop=clampTop(g.top+dy);
       g.nextLeft=open&&!mobile?Math.max(12,Math.min(innerWidth-(panel.current?.offsetWidth??420)-12,g.left+dx)):null;
@@ -116,10 +137,12 @@ function SharedBackingDock({ controller, mobile, mode }) {
     }
   }, [clampTop, setDockTop,open,mobile]);
   const pointerUp = useCallback(event => {
-    if(drag.current?.nextTop!==undefined)setDockTop(drag.current.nextTop);
-    if(drag.current?.nextLeft!=null)setLeft(drag.current.nextLeft);
+    const gesture = drag.current;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    if(gesture.nextTop!==undefined)setDockTop(gesture.nextTop);
+    if(gesture.nextLeft!=null)setLeft(gesture.nextLeft);
     drag.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (gesture.capture.hasPointerCapture(event.pointerId)) gesture.capture.releasePointerCapture(event.pointerId);
   }, [setDockTop]);
   const keyDown = useCallback(event => {
     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
@@ -127,11 +150,25 @@ function SharedBackingDock({ controller, mobile, mode }) {
     setDockTop(clampTop(top + (event.key === 'ArrowUp' ? -24 : 24)));
   }, [clampTop, top, setDockTop]);
   if (dock.view === 'hidden') return null;
-  const moveHandle = {onPointerDown:pointerDown, onPointerMove:pointerMove, onPointerUp:pointerUp, onPointerCancel:pointerUp, onKeyDown:keyDown};
-  return <div className={`sharedBackingDock ${mobile?'sharedBackingDock--mobile':'sharedBackingDock--desktop'}`} data-ui="backing-loop" style={{'--dock-clearance':`${clearance}px`}}>
+  const moveHandle = {onPointerDown:pointerDown, onPointerMove:pointerMove, onPointerUp:pointerUp, onPointerCancel:pointerUp, onLostPointerCapture:pointerUp, onKeyDown:keyDown};
+  const panelDrag = touchDragPanel ? {
+    onPointerDownCapture:event => {
+      if (!drag.current) dragged.current = false;
+      // Seek/volume sliders and popovers keep their own native gestures.
+      if (!event.currentTarget.contains(event.target) || event.target.closest('input,select,textarea,[role="slider"],[role="dialog"],.backingLoopVolumePopover')) return;
+      pointerDown(event);
+    },
+    onPointerMove:pointerMove, onPointerUp:pointerUp, onPointerCancel:pointerUp, onLostPointerCapture:pointerUp,
+    onDragStart:event => event.preventDefault(),
+    onClickCapture:event => {
+      if (dragged.current && event.detail !== 0) { event.preventDefault(); event.stopPropagation(); }
+      dragged.current = false;
+    },
+  } : {};
+  return <div className={`sharedBackingDock ${mobile?'sharedBackingDock--mobile':'sharedBackingDock--desktop'}${tabletScore?' sharedBackingDock--tabletScore':''}`} data-ui="backing-loop" data-mode={mode} style={{'--dock-clearance':`${clearance}px`}}>
     {!open && <BackingDockEdge playing={controller.isPlaying} paused={controller.isPaused} title={controller.title} top={top} onToggle={toggle} onStop={stop} {...moveHandle}/>}
-    {open && <aside ref={panel} id="shared-backing-dock-panel" className="backingDockPanel" style={{top,...(!mobile&&left!==null?{left,right:'auto'}:{})}} aria-label={korean?'백킹루프':'Backing loop'} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
-      <BackingLoopDragContext.Provider value={moveHandle}>
+    {open && <aside {...panelDrag} ref={panel} id="shared-backing-dock-panel" className={`backingDockPanel${touchDragPanel?' backingDockPanel--touchDrag':''}`} style={{top,...(!mobile&&left!==null?{left,right:'auto'}:{})}} aria-label={korean?'백킹루프':'Backing loop'} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
+      <BackingLoopDragContext.Provider value={tabletScore?null:touchDragPanel?{onKeyDown:keyDown}:moveHandle}>
         <BackingLoopFoldContext.Provider value={close}>
           {mobile ? <MobileBackingLoop controller={controller}/> : <DesktopBackingLoop controller={controller} presentation="standalone"/>}
         </BackingLoopFoldContext.Provider>

@@ -1,9 +1,9 @@
 /* Desktop skins materialize in the landscape; shared picker behavior stays intact. */
 @layer desktop-scene {
  html body .desktopSceneSkinDock .shooterGuitarPickerModal {
-  position:relative!important;background:linear-gradient(90deg,rgba(5,19,33,.7),rgba(8,25,42,.36) 78%,transparent)!important;
-  border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;
-  padding:20px 14px!important;animation:dsHologramMaterialize .48s ease-out both;
+  position:relative!important;background:linear-gradient(135deg,rgba(8,22,37,.88),rgba(13,30,48,.76))!important;
+  border:1px solid #b9eee83d!important;border-radius:12px!important;box-shadow:0 10px 30px #06111d33!important;backdrop-filter:none!important;
+  padding:16px!important;box-sizing:border-box!important;animation:dsHologramMaterialize .48s ease-out both;
  }
  html body .desktopSceneSkinDock .shooterGuitarPickerModal::before {
   content:"";position:absolute;inset:0;pointer-events:none;
@@ -16,6 +16,9 @@
  }
  html body .desktopSceneSkinDock .shooterGuitarPickerHeader {border:0!important;background:transparent!important;padding-bottom:14px!important;letter-spacing:2px}
  html body .desktopSceneSkinDock .shooterSkinTabs {gap:4px!important;padding-bottom:12px!important;border-bottom:1px solid #c7eee52b!important;background:transparent!important}
+ html body .desktopSceneSkinDock :is(.shooterGuitarPickerHeader,.shooterSkinTabs,.shooterPetControls) {width:100%!important;min-width:0!important;box-sizing:border-box!important}
+ html body .desktopSceneSkinDock .shooterSkinTabs {grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ html body .desktopSceneSkinDock .shooterSkinTabs>button {min-width:0!important;min-height:30px!important;padding:5px 2px!important;font-size:11px!important}
  html body .desktopSceneSkinDock button {background-color:rgba(18,44,59,.22)!important;border-color:#c7eee524!important;border-radius:3px!important;color:#e5f3ed!important;text-shadow:0 1px 5px #06111d!important;transition:background-color .2s,border-color .2s,box-shadow .2s}
  html body .desktopSceneSkinDock button:hover {background-color:#8ed9df20!important;border-color:#c0f5ef77!important}
  html body .desktopSceneSkinDock button:is(.selected,[aria-pressed="true"]) {background:#93dfd51c!important;border-color:#b7f0e7aa!important;box-shadow:inset 0 -2px #b7f0e7,0 0 14px #91dfd319!important}
@@ -26,6 +29,35 @@
  html body .desktopSceneSkinDock :is(.shooterSkinPickerBodyFrame,.shooterSkinPickerBody) {scrollbar-color:#afdcd55c transparent!important;scrollbar-width:thin}
  html body .desktopSceneSkinDock ::-webkit-scrollbar {width:4px!important;background:transparent!important}
  html body .desktopSceneSkinDock ::-webkit-scrollbar-thumb {background:#afdcd55c!important;border-radius:4px!important}
+ /* Desktop catalogs share one vertical scroller; mobile keeps its horizontal set picker. */
+ html body .desktopSceneSkinDock :is(.shooterEffectSetScroller,.shooterEffectStandaloneScroller) {
+  width:100%!important;min-width:0!important;margin:0!important;padding:0!important;
+  overflow:visible!important;scroll-snap-type:none!important;touch-action:pan-y!important;
+ }
+ html body .desktopSceneSkinDock :is(.shooterEffectSetTrack,.shooterEffectStandaloneTrack) {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-flow:row!important;
+  grid-auto-columns:auto!important;gap:8px!important;width:100%!important;min-width:0!important;padding:0!important;
+ }
+ html body .desktopSceneSkinDock :is(.shooterEffectSetColumn,.shooterEffectStandaloneTrack>*) {min-width:0!important;width:100%!important;box-sizing:border-box!important}
+ html body .desktopSceneSkinDock .shooterEffectSetLabel {color:#c5ddd8!important}
+ html body .desktopSceneSkinDock .shooterEffectSetCard--aura {min-height:114px!important}
+ html body .desktopSceneSkinDock .shooterEffectSetCard--floor {min-height:88px!important}
+ html body .desktopSceneSkinDock .shooterSkinSectionHeader {flex-wrap:wrap!important;gap:4px 8px!important;color:#d8e9e4!important}
+ html body .desktopSceneSkinDock .shooterSkinSectionHeader>span {color:#d8e9e4!important}
+ html body .desktopSceneSkinDock .shooterSkinSectionHeader em {color:#b6cdc9!important;background:#b9eee812!important}
+ html body .desktopSceneSkinDock .shooterEffectSetPicker .shooterSkinOptionCard--effect strong {
+  min-height:26px!important;font-size:10px!important;line-height:1.3!important;white-space:normal!important;overflow-wrap:anywhere;
+ }
+ html body .desktopSceneSkinDock .shooterEffectStandaloneTrack>.shooterGuitarCabinetPickerItem--standalone {
+  grid-template-columns:minmax(0,1fr)!important;grid-template-rows:74px auto!important;justify-items:center!important;gap:4px!important;
+ }
+ html body .desktopSceneSkinDock .shooterEffectStandaloneTrack .shooterGuitarCabinetPickerItem--standalone strong {white-space:normal!important;font-size:10px!important;line-height:1.3!important;text-align:center}
+ /* The scene stays dark in both app themes so controls retain readable contrast. */
+ html body .desktopSceneSkinDock .shooterPetControls--desktop {background:#10283ed9!important;border-color:#b9eee83d!important;color:#e5f3ed!important;border-radius:8px;gap:10px;padding:10px}
+ html body .desktopSceneSkinDock .shooterPetControls--desktop span {color:#e5f3ed!important;text-shadow:none!important}
+ html body .desktopSceneSkinDock .shooterPetDirectionControl {flex-wrap:wrap;row-gap:6px}
+ html body .desktopSceneSkinDock .shooterPetDirectionControl button {min-height:28px!important;padding:4px 7px!important;font-size:11px!important;background:#284458!important;color:#e5f3ed!important;text-shadow:none!important}
+ html body .desktopSceneSkinDock .shooterPetDirectionControl button[aria-pressed="true"] {background:#b7e1d6!important;border-color:#b7e1d6!important;color:#102b35!important;box-shadow:none!important}
  @keyframes dsHologramMaterialize {from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0)}}
  @keyframes dsHologramScan {0%{top:0;opacity:0}20%{opacity:.8}100%{top:100%;opacity:0}}
  @keyframes dsHologramItem {from{opacity:0;filter:blur(3px);transform:translateY(5px)}to{opacity:1;filter:blur(0);transform:none}}

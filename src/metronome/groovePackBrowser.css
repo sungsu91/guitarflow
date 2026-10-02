@@ -44,3 +44,7 @@ html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDial
 html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDialog.groovePackBrowser .groovePackPreview{width:30px!important;height:46px!important;min-height:46px!important;}
 html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDialog.groovePackBrowser .groovePackMore{width:22px!important;height:46px!important;min-height:46px!important;}
 html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDialog.groovePackBrowser .groovePackActions,html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDialog.groovePackBrowser .groovePackRename{grid-column:1 / -1;min-width:0;flex-wrap:wrap;}
+.groovePackScopeTabs {display:flex;gap:6px;padding:0 16px 8px;flex:none}
+html body .app .groovePackDialog .groovePackScopeTabs button {flex:1;min-height:32px;padding:4px 8px;border:1px solid #d9cfc3;border-radius:5px;background:#f8f6f2;color:#594638;font-size:12px}
+html body .app .groovePackDialog .groovePackScopeTabs button[aria-pressed=true] {background:#ece6de;border-color:#a68a66;font-weight:700}
+.groovePackLoadTarget {display:block;margin-top:4px;font-size:11px;line-height:1.4;color:#817267}

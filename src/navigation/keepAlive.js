@@ -34,8 +34,8 @@ export function getModeActivityState(activeMode, mode) {
   return activeMode === mode ? "visible" : "hidden";
 }
 
-export function getCachedModeElement(activeMode, elementCache, mode, createElement) {
-  if (activeMode !== mode) return elementCache.get(mode) ?? null;
+export function getCachedModeElement(activeMode, elementCache, mode, createElement, prepare = false) {
+  if (activeMode !== mode && (!prepare || elementCache.has(mode))) return elementCache.get(mode) ?? null;
   const nextElement = createElement();
   elementCache.set(mode, nextElement);
   return nextElement;

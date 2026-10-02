@@ -63,11 +63,11 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /--desktop-stage3-control-width: clamp\(400px, 31vw, 470px\)/);
   assert.match(styles, /> \.chordTransitionPanel \{[\s\S]*grid-template-columns: minmax\(0, 1fr\) var\(--desktop-stage3-control-width\)/);
   assert.match(styles, /> \.chordTransitionPanel > \.stage3DesktopPrimaryColumn \{[\s\S]*--desktop-stage3-work-width: 100%[\s\S]*--desktop-stage3-progression-width: 96%[\s\S]*grid-template-rows: minmax\(0, 1fr\) clamp\(114px, 12vh, 128px\)[\s\S]*background: var\(--riff-surface-panel\)/);
-  assert.match(styles, /\.stage3DesktopPrimaryColumn \.chordTransitionChart \{[\s\S]*grid-template-rows: 22px clamp\(96px, 11vh, 112px\) minmax\(0, 1fr\)[\s\S]*background: transparent !important/);
+  assert.match(styles, /\.stage3DesktopPrimaryColumn \.chordTransitionChart \{[\s\S]*grid-template-rows: 22px auto minmax\(0, 1fr\)[\s\S]*background: transparent !important/);
   assert.match(styles, /\.stage3DesktopProgressionHeading \{[\s\S]*grid-row: 1[\s\S]*width: var\(--desktop-stage3-progression-width\)/);
   assert.match(styles, /\.stage3ProgressionHeader \{[\s\S]*grid-row: 2[\s\S]*width: var\(--desktop-stage3-progression-width\) !important[\s\S]*border: 0 !important[\s\S]*background: transparent !important/);
   assert.match(styles, /\.stage3ProgressionHeader \.currentProgressionReadout \{[\s\S]*--desktop-stage3-progression-gap: clamp\(16px, 1\.8vw, 32px\)/);
-  assert.match(styles, /\.stage3ProgressionHeader \.rhythmChordMeasure \{[\s\S]*var\(--desktop-stage3-progression-gap\)[\s\S]*min-height: 84px !important[\s\S]*background: var\(--riff-control-rest\) !important/);
+  assert.match(styles, /\.stage3ProgressionHeader \.rhythmChordMeasure \{[\s\S]*min-height: 84px !important[\s\S]*background: var\(--riff-control-rest\) !important/);
   assert.match(styles, /\.stage3EmptyProgressionReadout \{[\s\S]*grid-row: 2[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important[\s\S]*width: var\(--desktop-stage3-progression-width\) !important/);
   assert.match(styles, /\.stageChordSharedFretboard \{[\s\S]*grid-row: 3[\s\S]*align-self: stretch[\s\S]*width: var\(--desktop-stage3-work-width\) !important[\s\S]*max-width: none !important/);
   assert.match(styles, /\.stage3ProgressHud \{[\s\S]*grid-template-rows: minmax\(94px, 1fr\) !important[\s\S]*border: 1px solid var\(--riff-border-soft\) !important[\s\S]*background: var\(--riff-surface-panel-raised\) !important/);

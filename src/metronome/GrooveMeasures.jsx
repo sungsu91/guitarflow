@@ -10,10 +10,12 @@ export function useGroovePlayingBar(clock, playing, beats, divisions, barCount) 
     setBar(-1);
     if(!playing)return;
     const update=()=>{
-      const {audio,origin,stepSeconds,running}=clock();
+      const {audio,origin,stepSeconds,running,seek}=clock();
       const elapsed=audio?audio.currentTime-origin:-1;
-      const next=running && audio?.state==='running' && elapsed>=0 && stepSeconds>0
-        ?Math.floor(elapsed/(stepSeconds*beats*divisions))%barCount:-1;
+      const next=running && audio?.state==='running' && stepSeconds>0
+        ?seek && audio.currentTime<seek.startAt?Math.min(seek.bar,barCount-1)
+          :elapsed>=0?Math.floor(elapsed/(stepSeconds*beats*divisions))%barCount:-1
+        :-1;
       if(next!==last){last=next;setBar(next);}
       frame=requestAnimationFrame(update);
     };

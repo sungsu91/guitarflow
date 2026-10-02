@@ -1791,14 +1791,14 @@ export default function useBackingLoop(ownerMode = "") {
     if (options.autoplay !== false) setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
   }, [dialog, loadRecording, selectedPlaylistItemId]);
 
-  const selectGroovePack = useCallback((itemId, { autoplay = false } = {}) => {
+  const applyGroovePack = useCallback((itemId) => {
     if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
     if (!listGrooveBackingSources().some(item => item.id === itemId)) return;
     // Keep catalog references in the shared queue; saved lists and packs are unchanged.
     const nextState = commitPlaylistState(state => addBackingPlaylistItems(state, state.currentQueue.id, [itemId]));
     setSelectedQueueItemIds([itemId]);
     showCurrentPlaylist();
-    return playPlaylistItem(itemId, { autoplay, playlistId: nextState.currentQueue.id });
+    return playPlaylistItem(itemId, { autoplay: false, playlistId: nextState.currentQueue.id });
   }, [commitPlaylistState, playPlaylistItem, showCurrentPlaylist]);
 
   const playSelectedQueueItems = useCallback(() => {
@@ -2262,7 +2262,7 @@ export default function useBackingLoop(ownerMode = "") {
     saveCurrentPlaylist,
     showCurrentPlaylist,
     showGroovePacks,
-    selectGroovePack,
+    applyGroovePack,
     showSavedPlaylist,
     showPlaylistView,
     selectAllQueueItems,

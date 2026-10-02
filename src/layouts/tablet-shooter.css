@@ -35,20 +35,22 @@
   }
   .tabletLayout .mobileShooterPlayHelpMessageBar p { font-size: 16px !important; line-height: 1.35 !important; color: #f5dfaf !important; }
 
-  /* A short score strip leaves both sides of the play field open. */
+  /* Keep secondary stats quiet along the right edge, clear of the play field. */
   .tabletLayout .mobileShooterScoreHud {
-    inset: 16px 16px auto !important; width: auto !important;
-    display: grid !important; grid-template-columns: repeat(4,minmax(0,1fr)) !important; gap: 0 !important;
-    padding: 10px 0 !important; border: 1px solid #eac37b59 !important; border-radius: 14px !important;
-    background: #08151fd9 !important; box-shadow: 0 4px 16px #0003 !important;
+    inset: 20px 18px auto auto !important; width: clamp(104px,12cqw,132px) !important;
+    display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 14px !important;
+    padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+    background: transparent !important; box-shadow: none !important;
+    opacity: 0.64 !important; pointer-events: none !important;
+    text-shadow: 0 1px 3px #000b !important;
   }
   .tabletLayout .mobileShooterScoreHud > div {
-    display: grid !important; place-items: center !important; gap: 4px !important;
-    padding: 0 8px !important; margin: 0 !important; border: 0 !important; text-align: center !important;
+    display: grid !important; place-items: center end !important; gap: 4px !important;
+    min-height: 0 !important; padding: 0 !important; margin: 0 !important; border: 0 !important; text-align: right !important;
   }
-  .tabletLayout .mobileShooterScoreHud > div + div { border-left: 1px solid #eac37b40 !important; }
-  .tabletLayout .mobileShooterScoreHud > div > span { font-size: 15px !important; line-height: 1.3 !important; color: #f5dfaf !important; }
-  .tabletLayout .mobileShooterScoreHud > div > strong { font-size: 30px !important; line-height: 1.15 !important; }
+  .tabletLayout .mobileShooterScoreHud > div > span { font-size: 14px !important; line-height: 1.3 !important; color: #e0d6c1 !important; }
+  .tabletLayout .mobileShooterScoreHud > div > strong { font-size: 26px !important; line-height: 1.15 !important; color: #f1eadc !important; }
+  .tabletLayout .mobileShooterScoreHud > .mobileShooterBestScore > strong { color: #e7cb92 !important; }
   .tabletLayout .mobileShooterTargetHud { top: 112px !important; width: 180px !important; padding: 8px !important; }
   .tabletLayout .mobileShooterTargetHud > span { font-size: 16px !important; line-height: 1.4 !important; }
   .tabletLayout .mobileShooterTargetHud > strong { font-size: 34px !important; line-height: 1.2 !important; }
@@ -91,8 +93,31 @@
   .tabletLayout .mobileShooterLives { right: 16px !important; bottom: 14px !important; min-height: 48px !important; padding: 8px 14px !important; gap: 8px !important; background: #08151fe6 !important; }
   .tabletLayout .mobileShooterLives > span { font-size: 16px !important; line-height: 1.3 !important; color: #f5dfaf !important; }
   .tabletLayout .mobileShooterLives i { font-size: 28px !important; line-height: 1 !important; }
-  .tabletLayout .shooterPausePanel { width: min(380px,calc(100vw - 64px)) !important; }
-  .tabletLayout .shooterPausePanelButton { min-height: 64px !important; }
+  /* Enlarge only the vector artwork; target positions and collision bounds stay shared. */
+  .tabletLayout .shooterArena :is(.shooterEnemy[data-monster-skin="neon"],.noteVfxBurst) > .noteVfxArt {
+    width: clamp(156px,18cqw,192px) !important; height: clamp(156px,18cqw,192px) !important;
+    inset: auto !important; left: 50% !important; top: 50% !important;
+    transform: translate(-50%,-50%) !important;
+  }
+  /* The former 328px shell clipped its 380px child and fixed 52px button rows. */
+  .tabletLayout .shooterCenterStatus.shooterCenterStatus--pauseMenu {
+    z-index: 100 !important;
+    width: min(440px,calc(100% - 32px)) !important; max-width: none !important;
+    height: auto !important; max-height: calc(100% - 32px) !important; min-height: 0 !important;
+    top: 50% !important; left: 50% !important; transform: translate(-50%,-50%) !important;
+    box-sizing: border-box !important; padding: 16px !important; overflow: auto !important;
+  }
+  .tabletLayout .shooterPausePanel {
+    width: 100% !important; max-width: 100% !important; height: auto !important;
+    grid-template-rows: minmax(56px,auto) repeat(2,minmax(76px,auto)) !important;
+    gap: 12px !important; box-sizing: border-box !important;
+  }
+  .tabletLayout .shooterPausePanelHeader strong { font-size: 24px !important; line-height: 1.3 !important; }
+  .tabletLayout .shooterPausePanelHeader small { font-size: 13px !important; line-height: 1.3 !important; }
+  .tabletLayout .shooterPausePanelButton {
+    width: 100% !important; height: auto !important; min-height: 76px !important;
+    padding: 10px 14px !important; box-sizing: border-box !important;
+  }
   .tabletLayout .shooterPausePanelLabel strong { font-size: 22px !important; line-height: 1.4 !important; }
   .tabletLayout .shooterPausePanelLabel small { font-size: 15px !important; line-height: 1.4 !important; }
   .tabletLayout .shooterResultHost { width: min(420px,calc(100% - 32px)) !important; }
@@ -120,10 +145,9 @@
     html[data-rifflab-device="tablet"] { --tablet-shooter-hud-height: 192px; }
     .tabletLayout .mobileShooterPrimaryHudRow { grid-template-columns: minmax(112px,1fr) 76px 100px 80px !important; grid-template-rows: 64px 64px !important; height: 136px !important; }
     .tabletLayout .mobileShooterPlayHelpHud { grid-column: 1 / -1 !important; grid-row: 2 !important; }
-    .tabletLayout .mobileShooterScoreHud { inset: 12px 12px auto !important; }
-    .tabletLayout .mobileShooterScoreHud > div { padding-inline: 4px !important; }
-    .tabletLayout .mobileShooterScoreHud > div > span { font-size: 14px !important; white-space: normal !important; }
-    .tabletLayout .mobileShooterScoreHud > div > strong { font-size: 24px !important; }
+    .tabletLayout .mobileShooterScoreHud { inset: 16px 12px auto auto !important; width: 96px !important; gap: 12px !important; }
+    .tabletLayout .mobileShooterScoreHud > div > span { font-size: 13px !important; white-space: normal !important; }
+    .tabletLayout .mobileShooterScoreHud > div > strong { font-size: 22px !important; }
     .tabletLayout .mobileShooterTargetHud { top: 104px !important; width: 128px !important; }
     .tabletLayout .mobileShooterTargetHud > strong { font-size: 30px !important; }
     .tabletLayout .guitarPlayer { --tablet-effect-scale: 1.25; }

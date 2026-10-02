@@ -452,9 +452,8 @@ function Fretboard({
   const activateNote = (event, note) => {
     if (!onNotePress || !note) return;
     event.stopPropagation();
-    // Mouse/pen notes already sounded on pointerdown; keyboard and touch keep
-    // their normal activation path without a duplicate note on release.
-    if (glissandoEnabled && event.type === 'click' && event.detail > 0 && event.nativeEvent.pointerType !== 'touch') return;
+    // Pointer notes already sounded on press; keyboard activation remains separate.
+    if (glissandoEnabled && event.type === 'click' && event.detail > 0) return;
     soundNote(event.currentTarget, note);
   };
   const handleNoteKeyDown = (event, note) => {

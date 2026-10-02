@@ -1,17 +1,19 @@
-/* Opt-in desktop listening UI. The chip itself never moves or grows. */
-html[data-rifflab-layout="desktop"] .fretboardViewerPanel .fretboardComponent--glissando {
+/* Note listening on every layout. The chip itself never moves or grows. */
+.fretboardViewerPanel .fretboardComponent--glissando {
   touch-action: pan-x pan-y;
   user-select: none;
 }
-html[data-rifflab-layout="desktop"] .fretboardComponent--glissando [data-note-pitch].is-interactive::after {
+.fretboardViewerPanel .fretboardComponent--glissando [data-note-pitch].is-interactive::after {
   inset: -3px;
 }
 /* Generic button :active transforms must not replace fretboard positioning. */
-html[data-rifflab-layout="desktop"] .fretboardComponent--glissando .fretboardNoteChip.is-interactive {
+.fretboardViewerPanel .fretboardComponent--glissando .fretboardNoteChip.is-interactive {
+  touch-action: none !important;
   transform: translate(-50%, -50%) !important;
   transition: opacity 100ms, box-shadow 100ms !important;
 }
-html[data-rifflab-layout="desktop"] .fretboardComponent--glissando .fretboardStringState.noteOpen.is-interactive {
+.fretboardViewerPanel .fretboardComponent--glissando .fretboardStringState.noteOpen.is-interactive {
+  touch-action: none !important;
   transform: translate(-50%, -50%) !important;
   transition: opacity 100ms, box-shadow 100ms !important;
 }

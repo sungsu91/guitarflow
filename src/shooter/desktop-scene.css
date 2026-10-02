@@ -23,19 +23,19 @@
  .dsBest {font-size:38px!important;line-height:1.2;color:var(--ds-ink)!important}
  .dsSession dl {margin:0;padding:16px 0;border-block:1px solid #dac29944}
  .dsSession dl div {display:flex;justify-content:space-between;align-items:center;margin:10px 0}
- .dsSession dt {font-size:12px}.dsSession dd {margin:0;font-size:23px;color:var(--ds-ink)!important}.dsSession .dsHearts {color:#ef8590!important;letter-spacing:5px}
+ .dsSession dt {font-size:12px}.dsSession dd {margin:0;font-size:23px;color:var(--ds-ink)!important}
  .dsSession h2 {margin:4px 0;font-size:14px;color:var(--ds-gold)!important}
  .dsSession label {display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--ds-muted)!important}
  .desktopLayout .dsSession select {width:120px;min-width:0;min-height:34px;background:#111b2bcc!important;color:#eee3cf!important;border:1px solid #dac29944!important;border-radius:6px;padding:4px;font-size:11px;color-scheme:dark}
  .dsSession button {text-align:left}.dsSession button span {float:right}
  .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCountInOverlay {background:transparent!important;backdrop-filter:none!important;box-shadow:none!important}
- .desktopLayout .shooterPanel:has(>.desktopShooterMaps) :is(.mobileShooterLives,.shooterStartPanelButton--secondary,.shooterStartPanelButton--mapEdit) {display:none!important}
  /* A non-modal skin editor belongs inside the scene, not over app navigation. */
  html body .desktopSceneSkinDock {position:absolute!important;inset:110px auto 22px 24px!important;width:clamp(270px,25vw,400px)!important;height:auto!important;max-height:none!important;display:block!important;background:transparent!important;backdrop-filter:none!important;padding:0!important;z-index:110!important;transform:none!important;pointer-events:none!important}
  html body .desktopSceneSkinDock .shooterSkinConfigurator {position:static!important;inset:auto!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;transform:none!important;padding:0!important;pointer-events:auto!important}
  html body .desktopSceneSkinDock .shooterGuitarPickerModal {position:static!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;margin:0!important;padding:16px!important;background:rgba(12,21,35,.93)!important;color:#eee3cf!important;border:1px solid #dac29944!important;border-radius:14px!important;box-shadow:0 12px 35px #0003!important;backdrop-filter:blur(16px)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
  html body .desktopSceneSkinDock :is(h2,strong,small,label) {color:#eee3cf!important;text-shadow:none!important}
- html body .desktopSceneSkinDock :is(.shooterSkinPickerBodyFrame,.shooterSkinPickerBody) {min-height:0!important;flex:1!important;overflow-y:auto!important;max-height:none!important}
+ html body .desktopSceneSkinDock .shooterSkinPickerBodyFrame {min-width:0!important;min-height:0!important;flex:1 1 0!important;overflow:hidden!important;max-height:none!important}
+ html body .desktopSceneSkinDock .shooterSkinPickerBody {min-width:0!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;max-height:100%!important;scrollbar-gutter:stable;overscroll-behavior:contain;touch-action:pan-y!important}
  html body .desktopSceneSkinDock :is(.shooterGuitarPickerGrid,.shooterMapPickerGrid) {grid-template-columns:repeat(2,minmax(0,1fr))!important}
  html body .desktopSceneSkinDock button {color:#eee3cf!important;background-color:#243144!important;border-color:#b69a6555!important;text-shadow:none!important}
  .desktopMapGallery {display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -68,8 +68,24 @@
  .dsLifeLine {position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#edc49b88 20%,#edc49b88 80%,transparent);box-shadow:0 0 9px #eeb58b44}
  .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCenterStatus--startMenu {left:50%!important;top:59%!important;width:min(280px,85%)!important;max-width:85%!important;transform:translateX(-50%)!important;overflow:visible!important}
  .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanel {display:flex!important;flex-direction:column!important;width:100%!important;min-height:0!important;overflow:visible!important}
- .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanelButton--primary {width:100%!important;height:auto!important;min-height:48px!important;padding:12px 24px!important;overflow:visible!important;display:flex!important;align-items:center!important;justify-content:center!important}
- .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanelLabel {position:relative!important;inset:auto!important;transform:none!important;white-space:normal!important;line-height:1.4!important}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanel {gap:8px!important}
+ html body .desktopLayout .shooterArena .dsStartActionButton {
+  display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;
+  width:100%!important;min-width:0!important;min-height:40px!important;padding:8px 20px!important;
+  border:1px solid #dac29955!important;border-radius:7px!important;background:#10172766!important;
+  color:var(--ds-ink)!important;font:inherit;font-size:14px!important;font-weight:650!important;line-height:1.4!important;
+  box-shadow:none!important;text-shadow:0 1px 6px #0008!important;cursor:pointer;
+ }
+ html body .desktopLayout .shooterArena .dsStartActionButton:is(:hover,[aria-expanded="true"]) {background:#22354bc9!important;border-color:#d7b875aa!important}
+ html body .desktopLayout .shooterArena .dsStartActionButton:focus-visible {outline:2px solid #d7b875;outline-offset:3px}
+ .desktopLayout .dsArenaLives {
+  position:absolute;right:5%;bottom:18px;z-index:6;display:flex;flex-direction:column;align-items:center;gap:2px;
+  width:100px;max-width:28%;pointer-events:none;text-shadow:0 2px 8px #06111dcc;
+ }
+ .desktopLayout .dsArenaLives>span {color:#eedec2!important;font-size:9px!important;font-weight:700;letter-spacing:2px;line-height:1.4}
+ .desktopLayout .dsArenaLives .dsHearts {display:flex;justify-content:center;gap:6px;width:100%;line-height:1.2}
+ .desktopLayout .dsArenaLives i {color:#eedec23d!important;font-style:normal;font-size:26px!important}
+ .desktopLayout .dsArenaLives i.active {color:#ff8d9f!important;filter:drop-shadow(0 0 5px #f47e9555)}
 }
 @layer desktop-scene {
  .dsRecordingEntry {display:flex;pointer-events:auto}

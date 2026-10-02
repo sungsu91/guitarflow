@@ -1,0 +1,4 @@
+.practiceCountInControl{display:flex;align-items:center;gap:8px;min-height:36px;margin:0;font-size:13px;cursor:pointer}
+.practiceCountInControl input[type=checkbox]{width:16px!important;height:16px!important;min-height:16px!important;min-width:16px!important;margin:0!important;padding:0!important;accent-color:var(--theme-accent,#65513b);flex:none}
+.practiceCountInControl span{white-space:nowrap}
+.practiceCountInStatus{font-size:11px;white-space:nowrap;color:var(--theme-accent,#65513b)}

@@ -1,0 +1,68 @@
+/* One overlay spans each complete measure, including every chord and rest.
+   Desktop, tablet and mobile keep their own measure layouts. */
+.stage3ProgressionHeader {
+  --chord-sweep-fill: rgba(207, 173, 114, .24);
+  --chord-sweep-edge: #c9aa75;
+  --chord-sweep-glow: rgba(207, 173, 114, .20);
+}
+main.app.theme-light .stage3ProgressionHeader {
+  --chord-sweep-fill: rgba(222, 139, 163, .24);
+  --chord-sweep-edge: #bd788e;
+  --chord-sweep-glow: rgba(189, 120, 142, .16);
+}
+html body #root main.app .stage3ProgressionHeader .currentProgressionReadout .rhythmChordMeasure[data-measure-start] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+@layer rhythm-surfaces {
+  html body #root main.app .stage3ProgressionHeader .currentProgressionReadout .rhythmChordMeasure[data-measure-start] {
+    background: var(--studio-control) !important;
+    box-shadow: none !important;
+    border-color: var(--studio-border) !important;
+  }
+  html body #root main.app .stage3ProgressionHeader .currentProgressionReadout .rhythmChordMeasure[data-sweep-active] {
+    box-shadow: inset 0 0 0 1px var(--chord-sweep-edge) !important;
+    border-color: var(--chord-sweep-edge) !important;
+  }
+  /* Individual chord buttons still seek playback, but share the measure's fill. */
+  html body #root main.app .stage3ProgressionHeader .currentProgressionReadout .rhythmChordMeasure[data-measure-start] > button {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+}
+.stage3ChordSweep {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+}
+[data-sweep-active] > .stage3ChordSweep { opacity: 1; }
+.stage3ChordSweepFill {
+  position: absolute;
+  inset: 0;
+  background: var(--chord-sweep-fill);
+  transform: scaleX(calc(1 - var(--chord-sweep-progress, 0)));
+  transform-origin: right center;
+}
+.stage3ChordSweepLine {
+  position: absolute;
+  inset: 0;
+  transform: translateX(calc(var(--chord-sweep-progress, 0) * 100%));
+}
+.stage3ChordSweepLine::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--chord-sweep-edge);
+  box-shadow: 0 0 4px var(--chord-sweep-glow);
+}
+[data-sweep-state="idle"] .stage3ChordSweepLine { opacity: 0; }
+/* The mobile header uses compact chord chips rather than desktop measure cards. */
+.viewport-mobile-surface .stage3ChordSweepLine::before { width: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .stage3ChordSweepLine::before { box-shadow: none; }
+}

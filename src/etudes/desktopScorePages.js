@@ -23,9 +23,11 @@ export function paginateScoreRows(rows,{scale=1,height=DESKTOP_SCORE_PAGE_HEIGHT
 // Read geometry in the isolated engraving tree before changing any nodes.
 // Page SVGs keep their original coordinates so playback and bar selection
 // share the same model as the continuous mobile reader.
-export function createDesktopScorePages(source) {
+function createScorePages(source,{mobile=false,pageWidth=DESKTOP_SCORE_WIDTH}={}) {
   const doc=source.ownerDocument,box=source.viewBox.baseVal;
   const width=box.width,bottom=box.y+box.height;
+  const padding=mobile?10:DESKTOP_SCORE_PADDING;
+  const contentWidth=pageWidth-(padding+1)*2;
   const groups=new Map(),barRows=new Map();
   for(const bar of source.querySelectorAll('[data-playback-bar]')){
     const row=Number(bar.dataset.row);
@@ -59,28 +61,34 @@ export function createDesktopScorePages(source) {
   });
   const rows=systems.map((system,i)=>({...system,start:starts[i],end:starts[i+1]??bottom}));
   if(!rows.length)rows.push({row:1,start:box.y,end:bottom});
-  const pages=paginateScoreRows(rows,{scale:DESKTOP_SCORE_CONTENT_WIDTH/width});
+  const pages=paginateScoreRows(rows,{scale:contentWidth/width,height:pageWidth*297/210-padding*2-FOOTER_HEIGHT,heading:mobile?0:HEADER_HEIGHT});
   const fragment=doc.createDocumentFragment();
   for(const [index,page] of pages.entries()){
-    const paper=doc.createElement('article');paper.className='etudeSheet desktopScorePage';paper.dataset.scorePage=String(index+1);
+    const paper=doc.createElement('article');paper.className=`etudeSheet ${mobile?'mobileScorePage':'desktopScorePage'}`;paper.dataset.scorePage=String(index+1);
+    if(mobile)Object.assign(paper.style,{width:`${pageWidth}px`,minHeight:`${pageWidth*297/210}px`});
     paper.setAttribute('aria-label',`${index+1} / ${pages.length}`);
-    if(index===0){const header=doc.createElement('div');header.className='desktopScorePageHeader';paper.append(header);}
+    if(!mobile&&index===0){const header=doc.createElement('div');header.className='desktopScorePageHeader';paper.append(header);}
     const svg=source.cloneNode(false);svg.dataset.scorePage=String(index+1);
     svg.setAttribute('viewBox',`0 ${page.start} ${width} ${page.end-page.start}`);
     svg.setAttribute('height',String(page.end-page.start));
     Object.assign(svg.style,{width:`${width*page.scale}px`,height:`${(page.end-page.start)*page.scale}px`,maxWidth:'none',aspectRatio:'auto',overflow:'hidden',margin:'0 auto'});
     const rowIds=new Set(rows.slice(page.first,page.last+1).map(r=>r.row));
+    const bars=[...barRows].filter(([,row])=>rowIds.has(row)).map(([bar])=>Number(bar));
+    paper.dataset.firstBar=String(Math.min(...bars));paper.dataset.lastBar=String(Math.max(...bars));
     for(const entry of entries){
       if(entry.row!=null?!rowIds.has(entry.row):entry.ink&&(entry.bottom<=page.start||entry.top>=page.end))continue;
       svg.append(entry.node.cloneNode(true));
     }
     paper.append(svg);
-    if(index===pages.length-1){const footer=doc.createElement('div');footer.className='desktopScorePageExtra';paper.append(footer);}
-    const number=doc.createElement('footer');number.className='desktopScorePageNumber';number.textContent=`${index+1} / ${pages.length}`;paper.append(number);
+    if(!mobile&&index===pages.length-1){const footer=doc.createElement('div');footer.className='desktopScorePageExtra';paper.append(footer);}
+    const number=doc.createElement('footer');number.className=mobile?'mobileScorePageNumber':'desktopScorePageNumber';number.textContent=`${index+1} / ${pages.length}`;paper.append(number);
     fragment.append(paper);
   }
   return fragment;
 }
+
+export const createDesktopScorePages=source=>createScorePages(source);
+export const createMobileScorePages=(source,width)=>createScorePages(source,{mobile:true,pageWidth:width});
 
 // Global :has() rules made each VexFlow getBBox() flush the entire app.
 // A contained shadow tree limits those measurements to the engraving itself.

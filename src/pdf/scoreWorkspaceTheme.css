@@ -69,6 +69,17 @@ html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio .etudePractice
 html body main.app.theme-brand .pdfStudio :is(button,select,input,summary):focus-visible{outline-color:var(--score-accent)!important}
 html body main.app.theme-brand .pdfStudio button:disabled{opacity:.5!important}
 .app.theme-brand :is(.scoreSaveDialog,.pdfDialog){color-scheme:dark;background:var(--score-surface);color:var(--score-ink);border-color:var(--score-line)}
+/* Analysis status and folded tools use the same dark surfaces as the score HUD. */
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio .pdfAutoMeasures{
+ background:var(--score-bg)!important;color:var(--score-ink)!important;
+ border-bottom:1px solid var(--score-line);
+}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio .pdfAutoMeasures small{color:var(--score-muted)!important}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio .pdfAutoMeasures button,
+html body main.app.theme-brand.theme-brand.theme-brand .etudeFloatingTheme .practiceEdgeTab{
+ background:var(--score-surface)!important;background-image:none!important;color:var(--score-ink)!important;
+ -webkit-text-fill-color:currentColor!important;border-color:var(--score-line)!important;text-shadow:none!important;box-shadow:none!important;
+}
 /* Printed notation is deliberately an opaque paper surface with dark glyphs. */
 .app.theme-brand .editorDesign .etudePaperHeading{background:#fff;color:#242321}
 .app.theme-brand .editorDesign .etudePaperHeading p{color:#69635d}

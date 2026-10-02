@@ -202,8 +202,9 @@ test("rhythm progression clicks seek the prepared backing clock without rebuildi
   assert.match(frameSource, /gameTimeRef\.current = startBeat \* currentBeatMs/);
   assert.match(
     desktopCss,
-    /\.stage3ProgressionHeader \.rhythmChordMeasure \{[\s\S]*?flex: 0 0 calc\([\s\S]*?var\(--desktop-stage3-progression-gap\)[\s\S]*?min-height: 84px !important;/,
+    /\.stage3ProgressionHeader \.currentProgressionReadout \{[^}]*display: grid !important;[^}]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important;[^}]*gap: 10px var\(--desktop-stage3-progression-gap\) !important;/,
   );
+  assert.match(desktopCss, /\.stage3ProgressionHeader \.rhythmChordMeasure \{[^}]*min-height: 84px !important;/);
 });
 
 test("saved rhythm progressions load into the editor directly from the storage dropdown", async () => {

@@ -110,3 +110,21 @@ html body .rt-guide.rt-workspace button[aria-pressed="true"] { background:#39654
 .rt-guide-mobile .rt-guide-counts small { font-size:9px; }
 .rt-guide-mobile .rt-guide-counts[data-dense] { font-size:10px; height:51px; }
 .rt-guide .rt-guide-counts[data-dense] b { font-size:14px; }
+
+/* Phone landscape shares guide state, with its own filter row and control rail. */
+html body .rt-guide.rt-guide-landscape { display:grid; grid-template-columns:minmax(0,1fr) 210px; grid-template-rows:auto minmax(0,1fr); }
+.rt-guide-landscape > header { grid-column:1/-1; }
+.rt-guide-landscape .rt-guide-body { min-width:0; padding:12px 14px; }
+.rt-guide-landscape .rt-guide-filters { display:flex; align-items:center; gap:24px; overflow-x:auto; }
+html body .rt-guide-landscape .rt-guide-filters > label { display:flex; flex:none; flex-wrap:nowrap; align-items:center; gap:9px; white-space:nowrap; font-size:12px; }
+.rt-guide-landscape .rt-guide-select { margin:6px 0; }
+.rt-guide-landscape > footer.rt-guide-controls { position:static; width:auto; min-width:0; min-height:0; display:flex; flex-direction:column; justify-content:space-between; gap:12px; overflow-y:auto; padding:14px; border-top:0; border-left:1px solid var(--rt-border); }
+.rt-guide-landscape .rt-guide-controls > div { display:contents; }
+.rt-guide-landscape .rt-guide-controls > label:first-child { margin:0; }
+.rt-guide-landscape .rt-guide-controls label { min-height:34px; }
+.rt-guide-landscape .rt-guide-controls > div > label { display:flex; align-items:center; gap:8px; }
+.rt-guide-landscape .rt-guide-sound { margin:0; gap:8px; }
+.rt-guide-landscape .rt-guide-controls > button { flex:none; min-height:44px; }
+@media (max-height:360px) {
+ .rt-guide-landscape > footer.rt-guide-controls { gap:6px; padding:10px 14px; }
+}

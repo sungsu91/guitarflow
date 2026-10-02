@@ -10,6 +10,7 @@ import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {printEditorScore} from './printScore.js';
 import {toScoreDocument} from './scoreDocument.js';
 import useScorePinch from './useScorePinch.js';
+import usePracticePageScroll from './usePracticePageScroll.js';
 import useDesktopScoreSizing from './useDesktopScoreSizing.js';
 import {lazy,Suspense,useEffect,useState,useRef} from 'react';
 import {ChevronDown,ChevronLeft,PanelsTopLeft,Timer,Settings2,Star,Printer,FileText} from 'lucide-react';
@@ -29,19 +30,24 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  const {selected:etude,bpm,layout}=model;
  const difficulty=etudeDifficulty(etude);
  const focus=layout.focus,compact=model.compactTools,quickViews=tablet||(layout.focus&&layout.viewport.landscape);
+ const fixedMetro=mobile&&focus&&layout.viewport.landscape;
  const scoreViewport=useRef(null);
+ const practiceLayout=useRef(null);
+ usePracticePageScroll(practiceLayout,mobile&&!focus,Boolean(externalContent));
  const [desktopZoom,setDesktopZoom]=useState('auto');
  const desktopSizing=useDesktopScoreSizing(scoreViewport,!mobile&&!focus,desktopZoom,etude?.id);
  useScorePinch(scoreViewport,focus,model.zoom,model.setZoom);
  // Show feedback without triggering the expensive parent update first.
  const pendingLayout=useRef(null);
+ const measuresPerRow=mobile?model.mobileMeasuresPerRow:model.measuresPerRow;
+ const setMeasuresPerRow=mobile?model.setMobileMeasuresPerRow:model.setMeasuresPerRow;
  useEffect(()=>()=>pendingLayout.current?.(),[]);
  const changeMeasuresPerRow=value=>{
   pendingLayout.current?.();
-  if(value===model.measuresPerRow)return;
+  if(value===measuresPerRow)return;
   // Desktop cached pages may finish without entering a loading state. Let the
   // renderer own feedback so an imperative busy flag cannot stay stuck on.
-  if(!mobile&&!focus){model.setMeasuresPerRow(value);return;}
+  if(!mobile&&!focus){setMeasuresPerRow(value);return;}
   const feedback=scoreViewport.current?.querySelector('.scoreRenderFeedback');
   const notation=scoreViewport.current?.querySelector('.etudeNotation');
   const wasHidden=feedback?.hidden,wasBusy=notation?.getAttribute('aria-busy');
@@ -51,7 +57,7 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
   const first=requestAnimationFrame(()=>{
    second=requestAnimationFrame(()=>{timer=setTimeout(()=>{
     pendingLayout.current=null;
-    model.setMeasuresPerRow(value);
+    setMeasuresPerRow(value);
    },0);});
   });
   pendingLayout.current=()=>{
@@ -61,7 +67,6 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
    pendingLayout.current=null;
   };
  };
- const measuresPerRow=model.measuresPerRow;
  const notationButtons=[['tab','TAB'],['both',ko["etudes.staffTab"]],['staff',ko["etudes.staff"]]].map(([v,label])=><button key={v} type="button" aria-pressed={model.notationView===v} onClick={()=>{model.setNotationView(v);setNotationOpen(false);}}>{localizeUi(label)}</button>);
  useEffect(()=>{if(!focus)return;const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=overflow;};},[focus]);
  if(!etude)return null;
@@ -71,9 +76,9 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  const tuningLabel=customTuning?[...etude.tuning].reverse().map(pitch=>['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'][pitch%12]+(Math.floor(pitch/12)-1)).join(' '):'';
  const paginatedDesktop=!mobile&&!focus;
  const pageHeader=heading??<header className="etudeSheetHeader"><h2>{etude.english}</h2><DifficultyStars score={etude}/><div className="etudeSheetMeta"><span>{localizeUi(etude.instrument&&etude.instrument!=='guitar'&&scoreInstrument(etude.instrument).label+' · ')}{customTuning&&translateUi("etudes.tuningPracticeSheet")+etude.tuning.length+translateUi("etudes.1stStringPracticeSheet")+tuningLabel+' · '}{etude.keySignature}</span><span>♩ = {bpm}</span></div></header>;
- const notation=<Suspense fallback={<p className="etudeLoading"><Translation id="etudes.preparingTheScore" /></p>}><Score practiceRange={model.loopRange} onSelectBar={model.selectBar} selectedBar={model.followMode==='off'?null:model.startBar} etude={etude} mobile={mobile} bpm={bpm} view={model.notationView} playPosition={model.followMode==='off'?null:model.playPosition} followMode={model.followMode} responsive measuresPerRow={measuresPerRow} zoom={mobile||focus?model.zoom:1} focusLayout={focus} chordChartMode={mobile?"all":"halves"} paginatedDesktop={paginatedDesktop} pageHeader={pageHeader} pageFooter={footer}/></Suspense>;
+ const notation=<Suspense fallback={<p className="etudeLoading"><Translation id="etudes.preparingTheScore" /></p>}><Score practiceRange={model.loopRange} onSelectBar={model.selectBar} selectedBar={model.followMode==='off'?null:model.startBar} etude={etude} mobile={mobile} bpm={bpm} view={model.notationView} playPosition={model.followMode==='off'?null:model.playPosition} followMode={model.followMode} responsive measuresPerRow={measuresPerRow} zoom={mobile||focus?model.zoom:1} focusLayout={focus} paginatedDesktop={paginatedDesktop} paginatedMobile={mobile&&!focus} pageHeader={pageHeader} pageFooter={footer}/></Suspense>;
  const paper=externalContent??<div ref={scoreViewport} className="etudeScoreViewport" tabIndex={0} aria-label={translateUi("etudes.practiceScoreScrollArea")}>
- {paginatedDesktop?<div ref={desktopSizing.sheetRef} style={desktopSizing.sheetStyle} className="desktopScorePages">{notation}</div>:<article className="etudeSheet" aria-label={translateUi("etudes.practiceScore")}>{notation}{footer}</article>}
+ {paginatedDesktop?<div ref={desktopSizing.sheetRef} style={desktopSizing.sheetStyle} className="desktopScorePages">{notation}</div>:<article className={'etudeSheet'+(mobile&&!focus?' mobileScorePages':'')} aria-label={translateUi("etudes.practiceScore")}>{notation}{footer}</article>}
  </div>;
  if(!mobile&&!focus&&desktopPicker)return <div className="etudePracticeLayout etudePracticeLayout--desktop etudePracticeLayout--rail" data-practice-layout="desktop-rail">
   <DesktopPracticeLayout model={model} picker={desktopPicker} storage={desktopStorage} zoom={desktopZoom} onZoom={setDesktopZoom} onRowCount={changeMeasuresPerRow} onPrint={printScore} printLabel={printLabel} tips={Boolean(lessonTips)}>
@@ -82,10 +87,10 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
    {paper}
   </DesktopPracticeLayout>
  </div>;
- return <div className={'etudePracticeLayout'+(externalContent?' etudePracticeLayout--pdf':'')+(compact?' etudeCompactTools':'')+(focus?' is-focus':'')+(!mobile?' etudePracticeLayout--desktop':'')} data-practice-layout={focus?'landscape':'normal'} style={focus?{left:layout.viewport.left,top:layout.viewport.top,width:layout.viewport.width,height:layout.viewport.height}:undefined}>
+ return <div ref={practiceLayout} className={'etudePracticeLayout'+(externalContent?' etudePracticeLayout--pdf':'')+(compact?' etudeCompactTools':'')+(focus?' is-focus':'')+(!mobile?' etudePracticeLayout--desktop':'')} data-practice-layout={focus?'landscape':'normal'} style={focus?{left:layout.viewport.left,top:layout.viewport.top,width:layout.viewport.width,height:layout.viewport.height}:undefined}>
  <div className="etudePracticeToolbar" aria-label={translateUi("etudes.scoreToolbar")}>
  <div className="etudeViewTools" role="group" aria-label={translateUi("etudes.scoreView")}>
- {externalContent?<>{focus&&<button type="button" className="etudeFocusBack" aria-label={translateUi("app.back")} onClick={layout.exit}><ChevronLeft/></button>}<button type="button" data-ui="metronome" aria-label={translateUi("menu.metronome")} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={model.toggleMetro}><Timer/></button><span className="etudeBackingToggleMount" ref={model.setBackingTarget}/>{externalTools}</>:<>
+ {externalContent?<>{focus&&<button type="button" className="etudeFocusBack" aria-label={translateUi("app.back")} onClick={layout.exit}><ChevronLeft/></button>}{!fixedMetro&&<button type="button" data-ui="metronome" aria-label={translateUi("menu.metronome")} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={model.toggleMetro}><Timer/></button>}<span className="etudeBackingToggleMount" ref={model.setBackingTarget}/>{externalTools}</>:<>
  {focus&&<button type="button" className="etudeFocusBack" aria-label={translateUi("app.back")} title={translateUi("app.back")} onClick={layout.exit}><ChevronLeft aria-hidden="true"/></button>}
  {quickViews&&<div className="etudeViewMenu" onKeyDown={e=>{if(e.key==='Escape')setNotationOpen(false);}}><button type="button" aria-label={translateUi("etudes.changeScoreDisplay")} aria-expanded={notationOpen} onClick={()=>{setNotationOpen(v=>!v);setViewOpen(false);}}><span>{localizeUi({tab:'TAB',both:ko["etudes.staffTab"],staff:ko["etudes.staff"]}[model.notationView])}</span><ChevronDown aria-hidden="true"/></button>{notationOpen&&<div className="etudeNotationChoices" role="group" aria-label={translateUi("etudes.scoreDisplay")}>{notationButtons}</div>}</div>}
  <>{quickViews?<select className="etudeFocusBarCount" aria-label={translateUi("etudes.barsPerLine")} value={measuresPerRow} onChange={e=>changeMeasuresPerRow(Number(e.target.value))}>{[0,1,2,3,4].map(n=><option key={n} value={n}>{n?<>{n}<Translation id="app.bar" /></>:translateUi("etudes.auto")}</option>)}</select>:<div className="etudeViewMenu"><button type="button" aria-expanded={viewOpen} aria-label={quickViews?translateUi("etudes.scoreViewSettings"):translateUi("etudes.changeScoreDisplay")} aria-controls="etude-notation-options" onClick={()=>{setViewOpen(v=>!v);setNotationOpen(false);}}>{quickViews?<Settings2 aria-hidden="true"/>:<><PanelsTopLeft aria-hidden="true"/><span>{localizeUi({both:ko["etudes.staffTabPracticeSheet"],staff:ko["etudes.staffOnly"],tab:ko["etudes.tabOnly"]}[model.notationView])}</span><ChevronDown aria-hidden="true"/></>}</button>
@@ -102,7 +107,7 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  <label className="etudeDesktopSizeControl"><span><Translation id="etudes.scoreZoom"/></span><select aria-label={translateUi('etudes.scoreZoom')} value={desktopZoom} onChange={e=>setDesktopZoom(e.target.value)}><option value="auto"><Translation id="etudes.autoFit"/></option><option value="width"><Translation id="components.fitWidth"/></option>{[.5,.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value*100}%</option>)}</select></label>
  <label className="etudeDesktopRowControl"><span><Translation id="etudes.barsPerLine"/></span><select aria-label={translateUi('etudes.barsPerLine')} value={measuresPerRow} onChange={e=>changeMeasuresPerRow(Number(e.target.value))}><option value={0}><Translation id="etudes.auto"/></option>{[1,2,3,4].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
  </>}
- <button type="button" data-ui="metronome" aria-label={translateUi("menu.metronome")} title={translateUi("menu.metronome")} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={()=>{setTips(false);model.toggleMetro();}}><Timer aria-hidden="true"/>{!mobile&&"BPM"}{model.playPosition?.playing&&<span aria-label={translateUi("etudes.practicePlaying")}> ·</span>}</button>
+ {!fixedMetro&&<button type="button" data-ui="metronome" aria-label={translateUi("menu.metronome")} title={translateUi("menu.metronome")} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={()=>{setTips(false);model.toggleMetro();}}><Timer aria-hidden="true"/>{!mobile&&"BPM"}{model.playPosition?.playing&&<span aria-label={translateUi("etudes.practicePlaying")}> ·</span>}</button>}
  <span className="etudeBackingToggleMount" ref={model.setBackingTarget}/>
  {mobile&&<button type="button" className="etudePrintScore" aria-label={printLabel} title={printLabel} onClick={printScore}><FileText size={18} aria-hidden="true"/></button>}
  {model.toggleFavorite&&<button type="button" className="etudeFavoriteToggle" aria-label={model.isFavorite?translateUi("etudes.removeFromFavorites"):translateUi("etudes.addToFavorites")} title={model.isFavorite?translateUi("etudes.removeFromFavorites"):translateUi("etudes.addToFavorites")} aria-pressed={model.isFavorite} onClick={model.toggleFavorite}><Star size={19} fill={model.isFavorite?'currentColor':'none'}/>{!mobile&&<span><Translation id="etudes.favorites" /></span>}</button>}

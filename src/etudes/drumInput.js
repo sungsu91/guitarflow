@@ -1,4 +1,5 @@
 import ko from "../i18n/locales/ko.js";
+import {validateInstrumentMidi} from './scoreInstruments.js';
 import {measureLayout} from './measureLayout.js';
 import {setDrumVoiceDuration,isLowerDrum,drumVoiceRhythm} from './drumVoices.js';
 import {newId} from './scoreModel.js';
@@ -13,6 +14,9 @@ export function advanceDrumWithHat(document,cursor,rhythm,midi){const next=advan
 
 // Explicit drum input applies the newly chosen duration, including occupied slots.
 export function enterDrumNotes(document,cursor,pitches,rhythm){
+ if(!pitches.length)throw Error(ko['etudes.checkTheMidiPitch']);
+ pitches.forEach(midi=>validateInstrumentMidi('drums',midi));
+ pitches=[...new Set(pitches)];
  if(rhythm.tupletMode==='active')return enterMidiNotes(document,cursor,pitches,rhythm);
  let next=document;
  if(pitches.some(isLowerDrum)){const onset=document.measures[cursor.bar].events[cursor.event].onset;next={...document,measures:document.measures.map((bar,b)=>b===cursor.bar?{...bar,events:bar.events.map(e=>e.lowerRest&&e.onset<=onset&&onset<e.onset+ticksOf(drumVoiceRhythm(e,true))?{...e,lowerRest:false}:e)}:bar)};}

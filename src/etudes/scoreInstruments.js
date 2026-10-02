@@ -2,7 +2,7 @@ import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 export const SCORE_INSTRUMENTS = Object.freeze({
   guitar: {label:'Guitar', tuning:[64,59,55,50,45,40], clef:'treble', octaveShift:1, staffBottom:30},
-  bass: {label:ko["tuner.bass"], tuning:[43,38,33,28], clef:'bass', octaveShift:1, staffBottom:18},
+  bass: {label:ko["tuner.bass"], tuning:[43,38,33,28], stringCounts:[4,5], minOpenMidi:21, clef:'bass', octaveShift:1, staffBottom:18},
   ukulele: {label:ko["tuner.ukulele"], tuning:[69,64,60,67], clef:'treble', octaveShift:0, staffBottom:30},
   piano: {label:ko["etudes.piano"], tuning:[], clef:'treble', octaveShift:0, staffBottom:30, kind:'keys', minMidi:0, maxMidi:127},
   drums: {label:ko["app.drums"], tuning:[], clef:'percussion', octaveShift:0, staffBottom:30, kind:'drums'},
@@ -25,6 +25,10 @@ export const canonicalInstrument = id => id==='keyboard'?'piano':id;
 // Compatibility changes only the instrument ID, preserving every saved field.
 export const normalizeInstrumentDocument = d => d?.instrument==='keyboard'?{...d,instrument:'piano'}:d;
 export const scoreInstrument = id => SCORE_INSTRUMENTS[canonicalInstrument(id)]??SCORE_INSTRUMENTS.guitar;
+export const scoreStringCount = score => score.tuning?.length??score.document?.tuning?.length??scoreInstrument(score.instrument).tuning.length;
+export const validStringCount = (instrument,count) => (scoreInstrument(instrument).stringCounts??[scoreInstrument(instrument).tuning.length]).includes(count);
+export const minOpenMidi = instrument => scoreInstrument(instrument).minOpenMidi??24;
+export const validScoreTuning = (instrument,tuning) => Array.isArray(tuning)&&validStringCount(instrument,tuning.length)&&tuning.every(n=>Number.isInteger(n)&&n>=minOpenMidi(instrument)&&n<=88);
 export const staffStepForPitch = (pitch,id) => {
   const profile=scoreInstrument(id);
   return (pitch.octave+profile.octaveShift)*7+'CDEFGAB'.indexOf(pitch.letter)-profile.staffBottom;

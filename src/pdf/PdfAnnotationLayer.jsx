@@ -24,6 +24,7 @@ export function PdfAnnotationToolbar({tool,choose,pen,setPen,undo,redo,canUndo,c
    {[["select",ko["pdf.moveSelect"],Hand],["pen",ko["pdf.pen"],PenLine],["text",ko["pdf.text"],Type],["crop",ko["pdf.cropMargins"],Crop],["cut",ko["pdf.cutGap"],Scissors],["bar",ko["pdf.setBars"],Columns4]].map(([key,label,Icon])=><button key={key} type="button" aria-label={localizeUi(label)} title={localizeUi(label)} aria-pressed={tool===key} onClick={()=>{if(key==='pen'&&tool==='pen'){setSettings(v=>!v);}else{choose(key);setSettings(key==='pen');}}}><Icon size={21}/></button>)}
    <button type="button" aria-label={translateUi("pdf.undoPdfEdit")} disabled={!canUndo} onClick={undo}><Undo2 size={21}/></button><button type="button" aria-label={translateUi("pdf.redoPdfEdit")} disabled={!canRedo} onClick={redo}><Redo2 size={21}/></button>
   </div>
+  <p className="pdfExportHint"><Translation id="pdf.savePdfHelp"/></p>
  </div>;
 }
 

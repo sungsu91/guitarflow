@@ -1,0 +1,126 @@
+/* The tablet score room reserves equal halves for its two practice panels. */
+@layer tablet-readability {
+  .tabletLayout {
+    --score-panel-inset: max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --score-panel-gap: 12px;
+    --score-panel-width: calc((100% - 2 * var(--score-panel-inset) - var(--score-panel-gap)) / 2);
+    --score-panel-height: 260px;
+    --score-tools-clearance: var(--score-panel-height);
+    --score-panel-bottom: calc(var(--mobile-nav-clearance, 164px) + 2px);
+  }
+  .tabletLayout:has(.etudePracticeLayout.is-focus) { --score-panel-bottom: 12px; }
+  .tabletLayout:has(.etudeRemote--tabletPanel, .sharedBackingDock--tabletScore > .backingDockPanel) .etudeStudio--mobile .etudeScoreViewport {
+    padding-bottom: calc(var(--score-tools-clearance) + 24px) !important;
+    scroll-padding-bottom: calc(var(--score-tools-clearance) + 24px) !important;
+  }
+
+  .tabletLayout :is(.etudeRemote--tabletPanel, .sharedBackingDock--tabletScore > .backingDockPanel) {
+    position: fixed !important;
+    top: auto !important;
+    bottom: var(--score-panel-bottom) !important;
+    width: var(--score-panel-width) !important;
+    max-width: none !important;
+    height: var(--score-panel-height) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - var(--score-panel-bottom) - 12px) !important;
+    box-sizing: border-box !important;
+  }
+  .tabletLayout .sharedBackingDock--tabletScore > .backingDockPanel {
+    left: var(--score-panel-inset) !important;
+    right: auto !important;
+    padding: 8px !important;
+  }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopPanel--mobile {
+    height: 100% !important;
+    min-height: 0 !important;
+    grid-template-rows: minmax(0, 1fr) 56px !important;
+  }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopMiniPlayer {
+    min-height: 0 !important;
+    grid-template-rows: minmax(40px, 1fr) 24px 56px !important;
+    padding-inline: 8px !important;
+  }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlayerBar {
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    min-height: 56px !important;
+    gap: 12px !important;
+  }
+  .tabletLayout .sharedBackingDock--tabletScore :is(.backingLoopPlayerTransport, .backingLoopPlayerModes, .backingLoopPlayerUtilities) { flex: 0 0 auto !important; gap: 4px !important; }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlayerIconButton { min-height: 48px !important; height: 48px !important; }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlayerPlayButton { width: 52px !important; min-width: 52px !important; height: 52px !important; min-height: 52px !important; }
+  .tabletLayout .sharedBackingDock--tabletScore :is(.backingLoopPlayerIconButton,.backingLoopPlayerPlayButton) > svg { width: 24px !important; height: 24px !important; }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlayerModes > button { width: 48px !important; min-width: 48px !important; }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlayerModes > button > svg { width: 28px !important; height: 28px !important; }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopRepeatState--one { width: 12px !important; height: 14px !important; font-size: 12px !important; line-height: 14px !important; }
+  .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlaylistToggle > svg { width: 14px !important; height: 14px !important; }
+
+  .tabletLayout .etudeRemote--tabletPanel {
+    left: auto !important;
+    right: var(--score-panel-inset) !important;
+    display: grid !important;
+    grid-template-rows: 64px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 28px 16px 16px !important;
+    cursor: default !important;
+  }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteBeats {
+    padding-right: 0 !important;
+    gap: 12px !important;
+    cursor: default !important;
+  }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteBeats > button {
+    top: 2px !important;
+    right: 4px !important;
+    width: 40px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+  .tabletLayout .etudeRemote--tabletPanel .etudeBeat { min-height: 48px !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudeBeat i { width: min(40px,100%) !important; height: auto !important; aspect-ratio: 1 !important; flex: none !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteControls {
+    grid-template-columns: minmax(88px, 1.5fr) repeat(5, minmax(44px, 1fr)) !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteControls > button { min-width: 0 !important; padding: 4px !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteControls > button:not(.etudePracticeStart) { min-height: 60px !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteBpm { flex-direction: column !important; gap: 6px !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteBpm strong { font-size: 44px !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteBpm small { font-size: 16px !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudePracticeStart { width: 60px !important; height: 60px !important; }
+  .tabletLayout .etudeRemote--tabletPanel .etudeRemoteControls svg { width: 26px !important; height: 26px !important; }
+
+  @media (min-width: 760px) and (max-width: 899px) {
+    .tabletLayout { --score-panel-height: 284px; }
+    .tabletLayout .etudeRemote--tabletPanel { padding-inline: 10px !important; }
+    .tabletLayout .etudeRemote--tabletPanel .etudeRemoteControls { grid-template-columns: minmax(64px, 1fr) repeat(5, 44px) !important; gap: 3px !important; }
+    .tabletLayout .etudeRemote--tabletPanel .etudeRemoteBpm strong { font-size: 38px !important; }
+    .tabletLayout .etudeRemote--tabletPanel .etudePracticeStart { width: 44px !important; height: 44px !important; min-height: 44px !important; }
+    .tabletLayout .sharedBackingDock--tabletScore .backingLoopTrackInfo { grid-template-columns: minmax(0, 1fr) auto !important; gap: 4px 8px !important; }
+    .tabletLayout .sharedBackingDock--tabletScore .backingLoopTrackBadge { grid-column: 2; grid-row: 1; justify-self: end; }
+    .tabletLayout .sharedBackingDock--tabletScore .backingLoopTrackText { grid-column: 1; grid-row: 1; }
+    .tabletLayout .sharedBackingDock--tabletScore .backingLoopTrackInfo time { grid-column: 1 / -1; grid-row: 2; }
+    .tabletLayout .sharedBackingDock--tabletScore :is(.backingLoopPlayerBar, .backingLoopPlayerTransport, .backingLoopPlayerModes, .backingLoopPlayerUtilities) { gap: 0 !important; }
+  }
+  /* Split view keeps full touch targets instead of squeezing two narrow halves. */
+  @media (max-width: 759px) {
+    .tabletLayout { --score-panel-width: calc(100% - 2 * var(--score-panel-inset)); --score-panel-height: 176px; }
+    .tabletLayout:has(.sharedBackingDock--tabletScore > .backingDockPanel) { --score-tools-clearance: 260px; }
+    .tabletLayout:has(.etudeRemote--tabletPanel):has(.sharedBackingDock--tabletScore > .backingDockPanel) { --score-tools-clearance: calc(260px + var(--score-panel-height) + var(--score-panel-gap)); }
+    .tabletLayout .etudeRemote--tabletPanel { grid-template-rows: 52px minmax(0, 1fr) !important; gap: 4px !important; padding: 24px 12px 10px !important; }
+    .tabletLayout .sharedBackingDock--tabletScore > .backingDockPanel { height: 260px !important; }
+    .tabletLayout:has(.etudeRemote--tabletPanel) .sharedBackingDock--tabletScore > .backingDockPanel {
+      bottom: calc(var(--score-panel-bottom) + var(--score-panel-height) + var(--score-panel-gap)) !important;
+      max-height: calc(100dvh - var(--score-panel-bottom) - var(--score-panel-height) - 24px) !important;
+    }
+    .tabletLayout .etudeRemote--tabletPanel .etudeRemoteControls { grid-template-columns: minmax(64px, 1fr) repeat(5, minmax(40px, 1fr)) !important; gap: 3px !important; }
+    .tabletLayout .etudeRemote--tabletPanel .etudePracticeStart { width: 48px !important; height: 52px !important; min-height: 52px !important; }
+  }
+  @media (min-width: 760px) and (max-width: 899px), (max-width: 430px) {
+    .tabletLayout .sharedBackingDock--tabletScore .backingLoopMiniPlayer { padding-inline: 4px !important; }
+    .tabletLayout .sharedBackingDock--tabletScore :is(.backingLoopPlayerBar,.backingLoopPlayerTransport,.backingLoopPlayerModes,.backingLoopPlayerUtilities) { gap: 0 !important; }
+    .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlayerModes > button { width: 44px !important; min-width: 44px !important; }
+    .tabletLayout .sharedBackingDock--tabletScore .backingLoopPlayerPlayButton { width: 48px !important; min-width: 48px !important; height: 48px !important; min-height: 48px !important; }
+  }
+}

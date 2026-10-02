@@ -21,7 +21,7 @@ import {measureMeters,meterTicks} from './scoreMeters.js';
 import usePlaybackFollow from './usePlaybackFollow.js';
 import {drawExtendedTechniques} from './drawExtendedTechniques.js';
 import {drawPalmMute} from './drawPalmMute.js';
-import {scoreInstrument,staffStepForPitch} from './scoreInstruments.js';
+import {scoreInstrument,staffStepForPitch,scoreStringCount} from './scoreInstruments.js';
 import {drawScoreNavigation,alignNavigationEndings,navigationBottom} from './drawScoreNavigation.js';
 import {NAV_COMMANDS} from './scoreNavigation.js';
 import {repeatMarks} from './scoreRepeats.js';
@@ -31,12 +31,13 @@ import {playheadX,rhythmAnchors} from './scorePlayhead.js';
 import {measureLayout} from './measureLayout.js';
 import {mobileScoreWidth} from './mobileScoreSizing.js';
 import {createPortal} from 'react-dom';
-import {createDesktopScorePages,DESKTOP_SCORE_CONTENT_WIDTH,withIsolatedScore} from './desktopScorePages.js';
+import {createDesktopScorePages,createMobileScorePages,DESKTOP_SCORE_CONTENT_WIDTH,withIsolatedScore} from './desktopScorePages.js';
+import MobileScorePageNav from './MobileScorePageNav.jsx';
 import { memo, useMemo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {isBlankEvent,tupletGroups,ticksOf} from './scoreModel.js';
 import {drawTabRhythm,drawTabRests,rhythmGroups} from './tabRhythm.js';
 import { drawChordDiagram, chordDiagramVisibility } from './chordStudy.js';
-import {measureChordCharts,summarizeMeasureChordCharts,chordChartLayout,drawMeasureChordCharts} from './measureChordCharts.js';
+import {displayMeasureChordCharts,chordChartLayout,drawMeasureChordCharts} from './measureChordCharts.js';
 import { Clef, Dot, Stem, Renderer, Stave, TabStave, StaveNote, TabNote, GhostNote, Tuplet, Voice, Formatter, Beam, Accidental, StaveConnector, Barline, TimeSignature, Curve, StaveLine, StaveTie } from 'vexflow';
 
 // Leave a little breathing room between vertically stacked fret numbers.
@@ -121,7 +122,7 @@ function prepareMeasure(measure, etude) {
     if(polyphonic)measure.forEach((n,i)=>{if(!n.rest&&!tabAnchors.has(n.onset))tabAnchors.set(n.onset,notes[i]);});
     const tabs = measure.map((n,i) => {
       if(n.rest) return new GhostNote({duration:n.duration+(n.dotted?'d':'')});
-      const note = new AlignedTabNote({ positions: tabPositions(n,scoreInstrument(etude.instrument).tuning.length), duration: n.duration+(n.dotted?'d':'') },tabAnchors.get(n.onset)??notes[i]);
+      const note = new AlignedTabNote({ positions: tabPositions(n,scoreStringCount(etude)), duration: n.duration+(n.dotted?'d':'') },tabAnchors.get(n.onset)??notes[i]);
       note.render_options.font = '18px Arial';
       note.tabRepeat=Boolean(repeatMask[i]);
       note.render_options.draw_dots = true;
@@ -174,11 +175,11 @@ function measureSpacing(measure, etude, view) {
 export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=0,independentRows=false,rhythmicSpacing=false,equalMeasures=false}={}) {
   if(!isFretted(etude.instrument))return keyboardSpacing(etude,{placements,width});
   const meters=measureMeters(etude);
-  const charts=measureChordCharts(etude);
+  const charts=displayMeasureChordCharts(etude);
   const rows=[];
   placements.forEach((placement,i)=>{
     const meter=meters[i],capacity=meterTicks(meter),meterChanged=i>0&&meter.join()!==meters[i-1].join();
-    const first=placement.column===1,stave=new Stave(0,0,1000),tab=new TabStave(0,0,1000,{num_lines:scoreInstrument(etude.instrument).tuning.length,spacing_between_lines_px:TAB_LINE_SPACING});
+    const first=placement.column===1,stave=new Stave(0,0,1000),tab=new TabStave(0,0,1000,{num_lines:scoreStringCount(etude),spacing_between_lines_px:TAB_LINE_SPACING});
     if(first){stave.addClef(scoreInstrument(etude.instrument).clef,'default',scoreInstrument(etude.instrument).octaveShift?'8vb':undefined).addKeySignature(etude.keySignature);}
     if(i+barOffset===0)addInstrumentTabClef(tab);
     if(i+barOffset===0||meterChanged){stave.addTimeSignature(meter.join('/'));if(view==='tab')addTabTimeSignature(tab,meter.join('/'));}
@@ -219,7 +220,8 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
      }
      // A sustained final chord can contain very little rhythmic ink. Its
      // diagram still needs a readable cell in multi-bar print/editor rows.
-     const chartWidth=charts[bar.index]?.length?128:0;
+     const chartCount=charts[bar.index]?.length??0;
+     const chartWidth=chartCount?20+108*chartCount:0;
      bar.scale=Math.max(bar.scale,(chartWidth-bar.prefix-bar.inset-bar.tail)/bar.capacity);
      bar.naturalWidth=Math.max(bar.intervals.reduce((sum,gap)=>sum+gap.width,0),Math.max(bar.navigationWidth,chartWidth)-bar.prefix-bar.inset-bar.tail);
      scale=Math.max(scale,bar.scale);
@@ -255,7 +257,7 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
   return {width:totalWidth,measures};
 }
 
-export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabShortStems=Boolean(etude.document?.viewSettings?.tabShortStems),tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, chordChartMode='all', desktopPage=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
+export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabShortStems=Boolean(etude.document?.viewSettings?.tabShortStems),tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, desktopPage=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
   if(mobile&&responsive&&!editor&&!measuresPerRow){
     const pairs=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),2,etude.document?.viewSettings?.systemBreaks??[]);
     const minimum=scoreSpacing(etude,{placements:pairs,view,width:0,barOffset,rhythmicSpacing}).width;
@@ -264,7 +266,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     measuresPerRow=minimum+12<=(editorWidth??0)?2:1;
   }
   if(!isFretted(etude.instrument))return drawKeyboardScore(element,etude,{mobile,editor,editorWidth,barOffset,systemStart,systemEnd,measuresPerRow});
-  const stringCount=scoreInstrument(etude.instrument).tuning.length;
+  const stringCount=scoreStringCount(etude);
   const numberOnly=etude.document?.viewSettings?.tabRhythm===false||(editor&&!tabRhythm);
   etude={...etude,tabRhythmVisible:!numberOnly,tabRhythmDots:tabRhythm};
   const polyphonic=etude.measures.some(bar=>bar.some(n=>n.voice==='melody'));
@@ -286,12 +288,11 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const width=engraving?engraving.cellWidth:spacing.width;
   const labelContext=document.createElement('canvas').getContext('2d');
   labelContext.font='bold 14px Arial';
-  const compactCharts=chordChartMode==='halves';
-  const charts=measureChordCharts(etude).map((charts,i)=>compactCharts?summarizeMeasureChordCharts(charts,measureMeters(etude)[i]):charts);
+  const charts=displayMeasureChordCharts(etude);
   const harmonyLines=etude.measures.map((_,i)=>harmonyLabelLines(etude.chordShapes?.[i]||charts[i]?.length?'':etude.harmony?.[i]||'',Math.max(24,(engraving??spacing.measures[i]).width-43),text=>labelContext.measureText(text).width));
   const annotationRoom=Math.max(engraving?.annotationRoom??0,Math.max(0,...harmonyLines.map(lines=>(lines.length-1)*18))+(repeatMarks(etude).some(m=>m.sectionLabel)?32:0));
   const chartRows=[];
-  placements.forEach((p,i)=>{chartRows[p.row-1]=Math.max(chartRows[p.row-1]??0,!charts[i]?.length&&etude.chordShapes?.[i]?120:chordChartLayout(charts[i]??[],(engraving??spacing.measures[i]).width,compactCharts).height,engraving?.chordChartHeight??0);});
+  placements.forEach((p,i)=>{chartRows[p.row-1]=Math.max(chartRows[p.row-1]??0,!charts[i]?.length&&etude.chordShapes?.[i]?120:chordChartLayout(charts[i]??[]).height,engraving?.chordChartHeight??0);});
   const visibleChords=etude.chordDiagramVisible??chordDiagramVisibility(etude.chordShapes,etude.harmony);
   const chordRowGap=!editor&&etude.harmony?.some(Boolean)?(compactTab?(mobile?16:compactDesktopRows?8:24):36):0;
   // User edits may add high notes. Reserve headroom for their ledger lines
@@ -339,7 +340,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     const stave = new Stave(x, y, w);
     const tab = new TabStave(x, y + (view==='tab'?0:84+footroom)+upperSpace, w,{num_lines:stringCount,spacing_between_lines_px:TAB_LINE_SPACING});
     if(charts[index]?.length){
-      drawMeasureChordCharts(element.querySelector('svg'),charts[index],{x,width:w,bar:index+barOffset,meter,compact:compactCharts});
+      drawMeasureChordCharts(element.querySelector('svg'),charts[index],{x,width:w,bar:index+barOffset});
     }else if(visibleChords[index]) {
       const shape=etude.chordShapes[index],bottomOffset=32+(shape.frets.length-1)*12+20;
       const top=(view==='tab'?tab:stave).getYForLine(0);
@@ -654,10 +655,11 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     for(const label of svg.querySelectorAll(`[data-annotation-bar="${item.index}"][data-score-annotation="harmony"],[data-annotation-bar="${item.index}"][data-score-annotation="chord"]`)){
       let b=label.getBBox();
       if(label.dataset.scoreAnnotation==='chord'){
-        // Desktop pages keep each diagram and its name above the entire bar's
-        // notation, including upper-voice stems that sit beside the diagram.
-        const bottom=desktopPage
-          ? navigationBottom(x,x+item.width,top-18,b.height,obstacles,{span:true})-10
+        // TAB diagrams follow the ink directly beneath them. Staff views also
+        // reserve the full bar's upper voices, ledger lines and curved ties.
+        const bottom=desktopPage&&view==='tab'
+          ? navigationBottom(b.x,b.x+b.width,top-2,b.height,obstacles)
+          : desktopPage?navigationBottom(x,x+item.width,top-18,b.height,obstacles,{span:true})-10
           : navigationBottom(b.x,b.x+b.width,top-8,b.height,obstacles);
         const dy=bottom-b.y-b.height;
         label.firstElementChild.setAttribute('transform',`translate(0 ${dy})`);
@@ -697,7 +699,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
 // unmounts the studio and stops audio; returning doesn't engrave it again.
 const scoreCache = new Map();
 function scoreCacheKey(etude,options) {
-  return `${etude.id}:${Boolean(options.mobile)}:${Boolean(options.enlarged)}:${Boolean(options.landscape)}:${options.view??"both"}:${options.editorWidth??""}:${Boolean(options.responsive)}:${options.measuresPerRow??0}:${Boolean(options.rhythmicSpacing)}:${options.chordChartMode??"all"}:${Boolean(options.desktopPage)}:${options.language??""}`;
+  return `${etude.id}:${Boolean(options.mobile)}:${Boolean(options.enlarged)}:${Boolean(options.landscape)}:${options.view??"both"}:${options.editorWidth??""}:${Boolean(options.responsive)}:${options.measuresPerRow??0}:${Boolean(options.rhythmicSpacing)}:${Boolean(options.desktopPage)}:${options.language??""}`;
 }
 export function renderCachedScore(element, etude, options = {}) {
   const key = scoreCacheKey(etude,options);
@@ -713,7 +715,7 @@ export function renderCachedScore(element, etude, options = {}) {
   return 'engraved';
 }
 
-function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false,chordChartMode='all',paginatedDesktop=false,pageHeader,pageFooter }) {
+function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false,paginatedDesktop=false,paginatedMobile=false,pageHeader,pageFooter }) {
   const language=useLanguage();
   const rhythmStates=useMemo(()=>rhythmTimeline(practiceRange?{...etude,practiceRange}:etude),[etude,practiceRange]);
   const ref = useRef(null);
@@ -752,7 +754,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   useEffect(() => {
     let firstFrame,secondFrame,timer;
     const renderZoom=focusLayout?1:zoom;
-    const options={ mobile, enlarged, landscape, view, responsive,chordChartMode,desktopPage:paginatedDesktop,language,rhythmicSpacing:followMode==='fingering',measuresPerRow,editorWidth:paginatedDesktop?DESKTOP_SCORE_CONTENT_WIDTH:responsive?Math.max(240,availableWidth/renderZoom):mobile&&!landscape&&!enlarged?600:undefined };
+    const options={ mobile, enlarged, landscape, view, responsive,desktopPage:paginatedDesktop,language,rhythmicSpacing:followMode==='fingering',measuresPerRow,editorWidth:paginatedDesktop?DESKTOP_SCORE_CONTENT_WIDTH:responsive?Math.max(240,availableWidth/renderZoom):mobile&&!landscape&&!enlarged?600:undefined };
     const render=()=>{
     try {
       if(paginatedDesktop){
@@ -762,8 +764,15 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
         });
         ref.current.replaceChildren(pages);
         setPageMounts({header:ref.current.querySelector('.desktopScorePageHeader'),footer:ref.current.querySelector('.desktopScorePageExtra')});
+      }else if(paginatedMobile){
+        const pageWidth=Math.max(240,availableWidth)*zoom;
+        const pages=withIsolatedScore(pageWidth,host=>{
+          renderCachedScore(host,etude,{...options,editorWidth:Math.max(218,availableWidth-22)});
+          return createMobileScorePages(host.querySelector('svg'),pageWidth);
+        });
+        ref.current.replaceChildren(pages);
       }else renderCachedScore(ref.current,etude,options);
-      if(responsive&&!paginatedDesktop){
+      if(responsive&&!paginatedDesktop&&!paginatedMobile){
         const svg=ref.current.querySelector('svg');
         // Keep the complete engraved system inside the landscape viewport,
         // even when dense notation requires a wider internal coordinate space.
@@ -785,7 +794,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
       firstFrame=requestAnimationFrame(()=>{secondFrame=requestAnimationFrame(()=>{timer=setTimeout(render,0);});});
     }
     return()=>{cancelAnimationFrame(firstFrame);cancelAnimationFrame(secondFrame);clearTimeout(timer);};
-  }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth,availableHeight, zoom, measuresPerRow,focusLayout,followMode,chordChartMode,language,paginatedDesktop]);
+  }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth,availableHeight, zoom, measuresPerRow,focusLayout,followMode,language,paginatedDesktop,paginatedMobile]);
   useEffect(() => {
     ref.current?.querySelectorAll('svg[data-notation-view]').forEach(svg=>svg.setAttribute('aria-label', localizeUi(`${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?ko["etudes.staff"]:view==='tab'?'TAB':ko["etudes.notationAndTab"]}`)));
   }, [renderRevision,etude, mobile, enlarged, landscape, bpm, view,language]);
@@ -825,7 +834,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
    const position=positionRef.current,highlightedBar=position?(position.getCurrentSlot?.()??position).bar:selectedBar;
    const nodes=[];for(const bar of root.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':formatMessage(ko["etudes.startAtBarValue"], { value1: index+1 }),'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>selectBarRef.current?.(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectBarRef.current?.(index);}};bar.ownerSVGElement.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
   },[renderRevision,etude,canSelectBar,selectedBar,hasPosition,mobile,enlarged,landscape,view,responsive,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
-  return <>{!paginatedDesktop&&etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{paginatedDesktop&&pageMounts?.header&&createPortal(<>{pageHeader}{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}</>,pageMounts.header)}{paginatedDesktop&&pageMounts?.footer&&pageFooter&&createPortal(pageFooter,pageMounts.footer)}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title={translateUi("etudes.goToPlayheadAndResumeAutoScroll")}><LocateFixed size={14} aria-hidden="true"/><span><Translation id="etudes.goToPlayhead" /></span></button>}{error && <p role="alert">{localizeUi(error)}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/><Translation id="etudes.preparingScore" /></span></div><div className={'etudeNotation'+(paginatedDesktop?' desktopScorePageGrid':'')} ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
+  return <>{paginatedMobile&&<MobileScorePageNav root={ref} revision={renderRevision} scoreId={etude.id} onNavigate={practiceFollow.suspend}/>} {!paginatedDesktop&&etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{paginatedDesktop&&pageMounts?.header&&createPortal(<>{pageHeader}{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}</>,pageMounts.header)}{paginatedDesktop&&pageMounts?.footer&&pageFooter&&createPortal(pageFooter,pageMounts.footer)}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title={translateUi("etudes.goToPlayheadAndResumeAutoScroll")}><LocateFixed size={14} aria-hidden="true"/><span><Translation id="etudes.goToPlayhead" /></span></button>}{error && <p role="alert">{localizeUi(error)}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/><Translation id="etudes.preparingScore" /></span></div><div className={'etudeNotation'+(paginatedDesktop?' desktopScorePageGrid':paginatedMobile?' mobileScorePageStack':'')} ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
 }
 export default memo(Score);
 

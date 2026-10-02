@@ -1,5 +1,5 @@
 import FretboardViewerLayout from "./layouts/FretboardViewerLayout.jsx";
-import DesktopShooterMaps, {DesktopShooterMapGallery,useDesktopShooterMap} from './shooter/DesktopShooterMaps.jsx';
+import DesktopShooterMaps, {DesktopShooterLives,DesktopShooterMapGallery,DesktopShooterSkinButton,DesktopShooterStartButton,useDesktopShooterMap} from './shooter/DesktopShooterMaps.jsx';
 import DesktopNoteScaleViewer from "./layouts/DesktopNoteScaleViewer.jsx";
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
 import DesktopHelpGuide from './navigation/DesktopHelpGuide.jsx';
@@ -28,7 +28,7 @@ import ShooterGameOver from './shooter/results/ShooterGameOver.jsx';
 import SiteShareButton from './navigation/SiteShareButton.jsx';
 import GroovePacks from './metronome/GroovePacks.jsx';
 import GrooveEditor, { MetronomeDockHandle } from './metronome/GrooveEditor.jsx';
-import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore, getGrooveStepIndex } from './metronome/groove.js';
+import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore, getGrooveStepIndex, getGrooveBarCount, applyGrooveBarPack } from './metronome/groove.js';
 import {TIME_SIGNATURE_OPTIONS,METRONOME_TONE_OPTIONS} from './metronome/options.js';
 import { mediaPermissionGuide } from "./audio/mediaPermissionGuide.js";
 import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/fixedAddVoicings.js";
@@ -110,8 +110,11 @@ import {
   normalizeTrackerTimerParts,
 } from "./metronome/runtime";
 const AudioStudio = lazy(() => import("./audio-studio/AudioStudio.jsx"));
-const RhythmTrainer = lazy(() => import("./rhythm-trainer/RhythmTrainer.jsx"));
-const EtudeStudio = lazy(() => import("./pdf/PdfStudio.jsx"));
+import PreparedMode from './launch/PreparedMode.jsx';
+import { INITIAL_PREPARED_MODES, loadRhythmTrainer, loadScoreStudio, prepareAppModes } from './launch/prepareAppModes.js';
+import { prepareInitialSurface } from './launch/prepareInitialSurface.js';
+const RhythmTrainer = lazy(loadRhythmTrainer);
+const EtudeStudio = lazy(loadScoreStudio);
 import GrooveVolumeControl from "./components/GrooveVolumeControl.jsx";
 import MetronomeVolumeControl from "./components/MetronomeVolumeControl.jsx";
 import {
@@ -120,7 +123,7 @@ import {
   subscribeMetronomeVolume,
 } from "./audio/metronomeVolumeStore.js";
 import { createMiniChordLoadLibrary } from "./mini-chord/loadLibrary.js";
-import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
+import TunerMode, { TUNER_BACKGROUND_COUNT, getTunerLaunchImageSources } from "./tuner/TunerMode";
 import {
   detectPitchAutocorrelation,
   detectPitchYinDetailed,
@@ -160,6 +163,7 @@ import { useDesktopLayout } from "./layouts/DesktopLayout.jsx";
 import { useTabletLayout } from './layouts/TabletLayout.jsx';
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 import { CHROMATIC_NOTES, NOTE_INDEX, SOLFEGE } from "./music/noteNotation.js";
+import useChordProgressSweep from "./rhythm/useChordProgressSweep.js";
 import { getChordToneDescriptors, getChordToneNames } from "./chords/chordTheory.js";
 import {
   createChordFretboardSnapshot,
@@ -3623,6 +3627,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
   showChordFingeringGuide,
 }) {
   useLanguage();
+  const tablet = useTabletLayout();
   const { gridRef, revealFocusedCard, visibleChordIds } = useChordCatalogWindow(group.chords);
   const dragStateRef = useRef(null);
   const suppressClickUntilRef = useRef(0);
@@ -3682,7 +3687,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
 
   return (
     <div className="chordCatalogRow">
-      <strong className="chordRootLabel">
+      <strong className={tablet ? "tabletChordRootLabel" : "chordRootLabel"}>
         {group.root}
       </strong>
       <div
@@ -5785,7 +5790,6 @@ const ThemeTransitionOverlay = memo(function ThemeTransitionOverlay({ onComplete
     <SplashIntro
       ariaLabel={translateUi("app.applyingValue1Theme", { value1: themeLabel })}
       fallbackMs={15000}
-      minimumIntroMs={0}
       onComplete={handleComplete}
       progress={transition.progress}
       readyPromise={transition.readyPromise}
@@ -16754,10 +16758,11 @@ function App({ onReady }) {
   useLayoutEffect(() => { midiInput.reset(); }, [appMode, inputSelection.shooterSource]);
   const [tunerBackgroundIndex, setTunerBackgroundIndex] = useState(0);
   const tunerHasEnteredRef = useRef(initialRouteRef.current.appMode === APP_MODES.TUNER);
-  const initialMountedAppModesRef = useRef(createMountedModeSet(initialRouteRef.current.appMode));
+  const initialMountedAppModesRef = useLazyRef(() => createMountedModeSet(initialRouteRef.current.appMode));
   const [mountedAppModes, setMountedAppModes] = useState(initialMountedAppModesRef.current);
   const mountedAppModesRef = useRef(initialMountedAppModesRef.current);
   const [fretboardCatalogReady, setFretboardCatalogReady] = useState(false);
+  const initialSurfaceReadyRef = useRef(false);
   const setAppMode = useCallback((nextMode) => {
     deactivateBackingLoopsExcept(nextMode);
     const nextMountedModes = registerMountedMode(mountedAppModesRef.current, nextMode);
@@ -16773,13 +16778,12 @@ function App({ onReady }) {
   );
   const appModeElementCacheRef = useRef(new Map());
   const renderAppMode = useCallback(
-    (mode, createElement) => getCachedModeElement(appMode, appModeElementCacheRef.current, mode, createElement),
+    (mode, createElement) => getCachedModeElement(appMode, appModeElementCacheRef.current, mode, createElement, INITIAL_PREPARED_MODES.includes(mode)),
     [appMode],
   );
   useEffect(() => {
     if (
       fretboardCatalogReady
-      || appMode !== APP_MODES.FRETBOARD_VIEWER
       || typeof window === "undefined"
     ) return undefined;
 
@@ -16823,7 +16827,15 @@ function App({ onReady }) {
   const [metronomeVisualLabMode, setMetronomeVisualLabMode] = useState("circle");
   const [metronomeDisplayMode, setMetronomeDisplayMode] = useState(getInitialMetronomeDisplayMode);
   const [groovePacksDialog, setGroovePacksDialog] = useState(null);
-  const openGrooveSave = useCallback(() => setGroovePacksDialog("save"), []);
+  const [grooveSelectionStore] = useState(() => createGrooveStore(0));
+  const groovePackTargetBarRef = useRef(0);
+  const groovePlaybackBarOffsetRef = useRef(0);
+  const grooveSeekRef = useRef(null);
+  const openGroovePacks = useCallback((mode) => {
+    groovePackTargetBarRef.current = grooveSelectionStore.getSnapshot();
+    setGroovePacksDialog(mode);
+  }, [grooveSelectionStore]);
+  const openGrooveSave = useCallback(() => openGroovePacks("save"), [openGroovePacks]);
   const [grooveStore] = useState(() => createGrooveStore(createGroovePattern()));
   const groovePattern = grooveStore.getSnapshot();
   const groovePatternRef = useRef(groovePattern);
@@ -20785,7 +20797,7 @@ function App({ onReady }) {
         if (metronomeOnRef.current) scheduleGrooveStep({audio,
           output:getAudioBusInput(AUDIO_BUS_IDS.GROOVE, audio) || audio.destination,
           buffers:metronomeSampleBuffersRef.current, pattern:groovePatternRef.current,
-          index:getGrooveStepIndex(groovePatternRef.current,index,ticksPerMeasure), time, volume:1,
+          index:getGrooveStepIndex(groovePatternRef.current,index+groovePlaybackBarOffsetRef.current*ticksPerMeasure,ticksPerMeasure), time, volume:1,
           track:trackScheduledMetronomeSource, voiceState:grooveVoiceStateRef.current});
       } else if (!coachMuted) playPatternTick(beatInBar, subdivisionIndex, time);
     });
@@ -20798,10 +20810,30 @@ function App({ onReady }) {
     groovePatternRef.current = normalized;
     grooveStore.set(normalized);
   }, [grooveStore]);
-  const grooveClock = useCallback(() => ({audio:audioRef.current,
-    origin:metronomeAudioOriginTimeRef.current,
-    stepSeconds:getAudioTransportStepSeconds(bpmRef.current, getSubdivisionOption(metronomeSubdivisionRef.current).clicksPerBeat),
-    running:metronomeAudioSchedulerRunningRef.current}), []);
+  const selectGrooveBar = useCallback((requestedBar) => {
+    const count=getGrooveBarCount(grooveStore.getSnapshot());
+    const bar=Math.max(0,Math.min(count-1,requestedBar));
+    grooveSelectionStore.set(bar);
+    const audio=audioRef.current;
+    if(countInActiveRef.current) {groovePlaybackBarOffsetRef.current=bar;return;}
+    if(!audio || !metronomeAudioSchedulerRunningRef.current) return;
+    const runtime=metronomeRuntimeRef.current;
+    groovePlaybackBarOffsetRef.current=(bar-runtime.completedBars%count+count)%count;
+    metronomeRuntimeRef.current={...runtime,measureProgress:0,tickKey:null};
+    cancelScheduledMetronomeTicks();
+    grooveVoiceStateRef.current=createGrooveVoiceState();
+    metronomeAudioCursorRef.current=createMetronomeAudioCursor(audio);
+    const startAt=metronomeAudioCursorRef.current.nextStepTime;
+    grooveSeekRef.current={bar,startAt};
+    metronomeLastAudioTimeRef.current=startAt;
+    runMetronomeAudioScheduler();
+  }, [grooveStore,grooveSelectionStore,cancelScheduledMetronomeTicks,createMetronomeAudioCursor,runMetronomeAudioScheduler]);
+  const grooveClock = useCallback(() => {
+    const stepSeconds=getAudioTransportStepSeconds(bpmRef.current,getSubdivisionOption(metronomeSubdivisionRef.current).clicksPerBeat);
+    const steps=getTimeSignatureOption(metronomeTimeSignatureRef.current).beats*getSubdivisionOption(metronomeSubdivisionRef.current).clicksPerBeat;
+    return {audio:audioRef.current,origin:metronomeAudioOriginTimeRef.current-groovePlaybackBarOffsetRef.current*steps*stepSeconds,
+      stepSeconds,running:metronomeAudioSchedulerRunningRef.current,seek:grooveSeekRef.current};
+  }, []);
   useEffect(() => {
     if (metronomeDisplayMode === "groove") {
       metronomeTimeSignatureRef.current = "4/4"; setMetronomeTimeSignature("4/4");
@@ -24113,7 +24145,7 @@ function App({ onReady }) {
       });
     if (grooveModeRef.current === "groove") {
       await readyPromise;
-      if (appModeRef.current !== APP_MODES.METRONOME || gameStateRef.current === GAME_STATES.PLAYING) return;
+      if (appModeRef.current !== APP_MODES.METRONOME || grooveModeRef.current !== "groove" || gameStateRef.current === GAME_STATES.PLAYING) return;
     }
     stopMic();
     appModeRef.current = APP_MODES.METRONOME;
@@ -24138,9 +24170,13 @@ function App({ onReady }) {
     setStage3MeasureProgress(0);
     setFeedback(metronomeCountInRef.current ? "Count In" : "Play");
     setState(GAME_STATES.PLAYING);
+    if (grooveModeRef.current === "groove") {
+      groovePlaybackBarOffsetRef.current=Math.min(grooveSelectionStore.getSnapshot(),getGrooveBarCount(grooveStore.getSnapshot())-1);
+      grooveSeekRef.current={bar:groovePlaybackBarOffsetRef.current,startAt:(audioRef.current?.currentTime||0)+AUDIO_TRANSPORT_START_LEAD_SECONDS};
+    }
     if (!metronomeCountInRef.current) startMetronomeAudioScheduler();
     lastFrameRef.current = performance.now();
-  }, [ensureAudioContext, ensureAudioReady, loadMetronomeSamples, metronomeMeasureCount, metronomeTrackerElapsedMs, setState, startMetronomeAudioScheduler, stopBackingScheduler, stopMetronomeAudioScheduler, stopMic]);
+  }, [ensureAudioContext, ensureAudioReady, loadMetronomeSamples, metronomeMeasureCount, metronomeTrackerElapsedMs, setState, startMetronomeAudioScheduler, stopBackingScheduler, stopMetronomeAudioScheduler, stopMic, grooveSelectionStore, grooveStore]);
 
   const resetMetronomePractice = useCallback(() => {
     if (appModeRef.current !== APP_MODES.METRONOME) return;
@@ -24180,6 +24216,18 @@ function App({ onReady }) {
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
   }, [cancelCountInVoice, setState, stopMetronomeAudioScheduler, syncMetronomeTrackerFromRuntime]);
+
+  const changeMetronomeDisplayMode = useCallback((nextMode) => {
+    const previousMode = grooveModeRef.current;
+    if (nextMode === previousMode) return;
+    if (previousMode === "groove") stopMetronomePlayback();
+    if (nextMode === "groove") {
+      metronomeTimeSignatureRef.current = "4/4"; setMetronomeTimeSignature("4/4");
+      metronomeSubdivisionRef.current = "sixteenth"; setMetronomeSubdivision("sixteenth");
+    }
+    grooveModeRef.current = nextMode;
+    setMetronomeDisplayMode(nextMode);
+  }, [stopMetronomePlayback]);
 
   const pauseGame = useCallback(() => {
     if (gameStateRef.current !== GAME_STATES.PLAYING) return;
@@ -24563,7 +24611,7 @@ function App({ onReady }) {
     setMetronomeWeakTone(normalized.weakTone);
     setMetronomeAccent(normalized.accent);
     setMetronomeRepeat(normalized.repeat);
-    setMetronomeDisplayMode(normalized.displayMode);
+    changeMetronomeDisplayMode(normalized.displayMode);
     setMetronomeCountInBars(normalized.countInBars);
     setMetronomeCountInVoiceMode(normalized.countInVoiceMode);
     setMetronomeCountIn(normalized.countInBars > 0);
@@ -24593,7 +24641,7 @@ function App({ onReady }) {
     setMetronomeBeatPattern(nextBeatPattern);
     setMetronomePresetSelectedId(normalized.id);
     setMetronomePresetName(normalized.name);
-  }, [changeBpm, metronomePresets]);
+  }, [changeBpm, changeMetronomeDisplayMode, metronomePresets]);
 
   const primeMetronomeAdvancedDraft = useCallback((panelId) => {
     if (panelId === "automator") {
@@ -25266,17 +25314,16 @@ function App({ onReady }) {
 
   const changeMetronomeDisplayModeBySwipe = useCallback((direction) => {
     if (!Number.isFinite(direction) || direction === 0) return;
-    setMetronomeDisplayMode((currentMode) => {
-      const currentIndex = METRONOME_DISPLAY_MODES.findIndex((option) => option.id === currentMode);
-      const safeIndex = currentIndex >= 0 ? currentIndex : 0;
-      const modeCount = METRONOME_DISPLAY_MODES.length;
-      const nextIndex = modeCount > 0 ? ((safeIndex + direction) % modeCount + modeCount) % modeCount : safeIndex;
-      const nextMode = METRONOME_DISPLAY_MODES[nextIndex]?.id ?? currentMode;
-      if (nextMode === currentMode) return currentMode;
-      metronomeModeSwipeChangedAtRef.current = performance.now();
-      return nextMode;
-    });
-  }, []);
+    const currentMode = grooveModeRef.current;
+    const currentIndex = METRONOME_DISPLAY_MODES.findIndex((option) => option.id === currentMode);
+    const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+    const modeCount = METRONOME_DISPLAY_MODES.length;
+    const nextIndex = modeCount > 0 ? ((safeIndex + direction) % modeCount + modeCount) % modeCount : safeIndex;
+    const nextMode = METRONOME_DISPLAY_MODES[nextIndex]?.id ?? currentMode;
+    if (nextMode === currentMode) return;
+    metronomeModeSwipeChangedAtRef.current = performance.now();
+    changeMetronomeDisplayMode(nextMode);
+  }, [changeMetronomeDisplayMode]);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
     if (!isMobileLayout && event.target?.closest?.("button.metronomeBeatButton")) return;
@@ -26437,6 +26484,7 @@ function App({ onReady }) {
     let timerId = null;
     let firstFrameId = null;
     let secondFrameId = null;
+    let cancelled = false;
 
     if (phase === "covering") {
       timerId = window.setTimeout(() => {
@@ -26459,12 +26507,11 @@ function App({ onReady }) {
         ));
       }, THEME_TRANSITION_TIMINGS.playMs);
     } else if (phase === "applying") {
-      firstFrameId = window.requestAnimationFrame(() => {
-        secondFrameId = window.requestAnimationFrame(() => {
-          setThemeTransition((current) => (
-            current?.token === token ? { ...current, phase: "settling", progress: 80 } : current
-          ));
-        });
+      void prepareInitialSurface({ root: document.querySelector('.appRuntime') }).then(() => {
+        if (cancelled) return;
+        setThemeTransition((current) => (
+          current?.token === token ? { ...current, phase: "settling", progress: 80 } : current
+        ));
       });
     } else if (phase === "settling") {
       timerId = window.setTimeout(() => {
@@ -26486,6 +26533,7 @@ function App({ onReady }) {
     }
 
     return () => {
+      cancelled = true;
       if (timerId !== null) window.clearTimeout(timerId);
       if (firstFrameId !== null) window.cancelAnimationFrame(firstFrameId);
       if (secondFrameId !== null) window.cancelAnimationFrame(secondFrameId);
@@ -29970,8 +30018,21 @@ function App({ onReady }) {
   ]);
 
   useEffect(() => {
-    onReady?.();
-  }, [onReady]);
+    if (initialSurfaceReadyRef.current) return;
+    if (!fretboardCatalogReady) return;
+    initialSurfaceReadyRef.current = true;
+    const preparation = prepareAppModes({
+      root: document.querySelector('.appRuntime'),
+      imageSources: getTunerLaunchImageSources(),
+      mountModes(modes) {
+        let next = mountedAppModesRef.current;
+        for (const mode of modes) next = registerMountedMode(next, mode);
+        mountedAppModesRef.current = next;
+        setMountedAppModes(next);
+      },
+    });
+    onReady?.(preparation);
+  }, [appMode, fretboardCatalogReady, onReady]);
 
   const sharedAccompanimentParts = [
     {
@@ -30112,6 +30173,26 @@ function App({ onReady }) {
   const isStage3Paused = appMode === APP_MODES.PRACTICE
     && selectedCategory.id === "rhythm"
     && gameState === GAME_STATES.PAUSED;
+  const stage3ProgressionSweepRef = useChordProgressSweep({
+    enabled: appMode === APP_MODES.PRACTICE && selectedCategory.id === "rhythm" && !stage3StorageOpen,
+    playing: isStage3Playing,
+    paused: isStage3Paused,
+    cycleBeats: chordTransitionBeatTimeline.cycleBeats,
+    selectionKey: chordTransitionBeatTimeline,
+    layoutKey: `${isMobileLayout}:${stage3StorageOpen}:${chordPracticeIndex}`,
+    readBeat: () => {
+      if (countInActiveRef.current) return null;
+      const session = backingPreparedSessionRef.current;
+      if (isStage3Paused && backingPausedOffsetSecondsRef.current != null && session?.beatSeconds > 0) {
+        return backingPausedOffsetSecondsRef.current / session.beatSeconds;
+      }
+      if (isStage3Playing && audioRef.current && backingSchedulerRunningRef.current && session?.events?.length && session.beatSeconds > 0) {
+        return Math.max(0, audioRef.current.currentTime - (backingDisplayStartTimeRef.current || backingCycleStartTimeRef.current)) / session.beatSeconds;
+      }
+      if (isStage3Playing || isStage3Paused) return gameTimeRef.current / getBeatMs(bpmRef.current);
+      return getRhythmChordStartBeat(chordTransitionBeatTimeline, chordPracticeIndex);
+    },
+  });
   const isStandaloneMetronomePlaying = appMode === APP_MODES.METRONOME
     && gameState === GAME_STATES.PLAYING;
 
@@ -30451,17 +30532,10 @@ function App({ onReady }) {
   );
 
   const desktopGrooveToolbar = isDesktopLayout && metronomeDisplayMode === "groove";
-  const groovePacksTrigger = (<button type="button" className="groovePacksTrigger" onClick={() => setGroovePacksDialog("library")}><span className="groovePackFolder" aria-hidden="true">📁</span><Translation id="app.groovePacks" /></button>);
+  const groovePacksTrigger = (<button type="button" className="groovePacksTrigger" onClick={() => openGroovePacks("library")}><span className="groovePackFolder" aria-hidden="true">📁</span><Translation id="app.groovePacks" /></button>);
   const metronomeModeControls = (
     <div className="grooveModeSelector" role="group" aria-label={translateUi("app.metronomeMode")}>
-          {METRONOME_DISPLAY_MODES.map((item,i) => <button type="button" className="metronomeModeButton" key={item.id} aria-pressed={metronomeDisplayMode === item.id} onClick={() => {
-            if(item.id === "groove" && metronomeDisplayMode !== "groove") {
-              metronomeTimeSignatureRef.current = "4/4"; setMetronomeTimeSignature("4/4");
-              metronomeSubdivisionRef.current = "sixteenth"; setMetronomeSubdivision("sixteenth");
-            }
-            grooveModeRef.current = item.id;
-            setMetronomeDisplayMode(item.id);
-          }}><span className="metronomeModeNumber">{i+1}</span>{item.id === "groove" && <span className="metronomeModeName">{translateUi("app.groove")}</span>}</button>)}{metronomeDisplayMode === "groove" && !desktopGrooveToolbar && groovePacksTrigger}</div>
+          {METRONOME_DISPLAY_MODES.map((item,i) => <button type="button" className="metronomeModeButton" key={item.id} aria-pressed={metronomeDisplayMode === item.id} onClick={() => changeMetronomeDisplayMode(item.id)}><span className="metronomeModeNumber">{i+1}</span>{item.id === "groove" && <span className="metronomeModeName">{translateUi("app.groove")}</span>}</button>)}{metronomeDisplayMode === "groove" && !desktopGrooveToolbar && groovePacksTrigger}</div>
   );
 
   const referenceLandscapeBeatStrip = (
@@ -30935,11 +31009,11 @@ function App({ onReady }) {
         </BottomNavigation>
       </section></MobileNavigationSurface>}
 
-      {isAppModeMounted(APP_MODES.RHYTHM_TRAINER) ? <Activity mode={getModeActivityState(appMode, APP_MODES.RHYTHM_TRAINER)}><Suspense fallback={<p>…</p>}><RhythmTrainer beatTone={metronomeTone} countVoiceMode={metronomeCountInVoiceMode} mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer}/></Suspense></Activity> : null}
-      {isAppModeMounted(APP_MODES.ETUDES) ? <Activity mode={getModeActivityState(appMode, APP_MODES.ETUDES)}><Suspense fallback={<p><Translation id="app.preparingScorePractice" /></p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense></Activity> : null}
+      {isAppModeMounted(APP_MODES.RHYTHM_TRAINER) ? <PreparedMode mode="rhythm-trainer" activity={getModeActivityState(appMode, APP_MODES.RHYTHM_TRAINER)}><RhythmTrainer beatTone={metronomeTone} countVoiceMode={metronomeCountInVoiceMode} mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer}/></PreparedMode> : null}
+      {isAppModeMounted(APP_MODES.ETUDES) ? <PreparedMode mode="etudes" activity={getModeActivityState(appMode, APP_MODES.ETUDES)}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></PreparedMode> : null}
 
       {isAppModeMounted(APP_MODES.TUNER) ? (
-        <Activity mode={getModeActivityState(appMode, APP_MODES.TUNER)}>
+        <PreparedMode mode="tuner" activity={getModeActivityState(appMode, APP_MODES.TUNER)}>
           {renderAppMode(APP_MODES.TUNER, () => (
             <TunerMode
               active={appMode === APP_MODES.TUNER}
@@ -30948,7 +31022,7 @@ function App({ onReady }) {
               onBackgroundChange={setTunerBackgroundIndex}
             />
           ))}
-        </Activity>
+        </PreparedMode>
       ) : null}
 
       {isAppModeMounted(APP_MODES.MENU) ? (
@@ -31064,7 +31138,7 @@ function App({ onReady }) {
       ) : null}
 
       {isAppModeMounted(APP_MODES.MINI_CHORD_MAKER) ? (
-        <Activity mode={getModeActivityState(appMode, APP_MODES.MINI_CHORD_MAKER)}>
+        <PreparedMode mode="mini-chord-maker" activity={getModeActivityState(appMode, APP_MODES.MINI_CHORD_MAKER)}>
         {renderAppMode(APP_MODES.MINI_CHORD_MAKER, () => (
         <section
           aria-busy={miniChordIsStarting}
@@ -32095,7 +32169,7 @@ function App({ onReady }) {
 
         </section>
         ))}
-        </Activity>
+        </PreparedMode>
       ) : null}
 
       {isAppModeMounted(APP_MODES.DESIGN_LAB) ? (
@@ -32618,7 +32692,7 @@ function App({ onReady }) {
       ) : null}
 
       {isAppModeMounted(APP_MODES.FRETBOARD_VIEWER) ? (
-        <Activity mode={getModeActivityState(appMode, APP_MODES.FRETBOARD_VIEWER)}>
+        <PreparedMode mode="fretboard-viewer" activity={getModeActivityState(appMode, APP_MODES.FRETBOARD_VIEWER)}>
         {renderAppMode(APP_MODES.FRETBOARD_VIEWER, () => (
         <FretboardViewerLayout
           desktop={isDesktopLayout}
@@ -32896,11 +32970,11 @@ function App({ onReady }) {
           ) : null}
         />
         ))}
-        </Activity>
+        </PreparedMode>
       ) : null}
 
       {isAppModeMounted(APP_MODES.METRONOME) ? (
-        <Activity mode={getModeActivityState(appMode, APP_MODES.METRONOME)}>
+        <PreparedMode mode="metronome" activity={getModeActivityState(appMode, APP_MODES.METRONOME)}>
         {renderAppMode(APP_MODES.METRONOME, () => (
         <section className={`standaloneMetronomePanel ${metronomeDisplayMode === "groove" ? "hasGroove" : ""} ${metronomeDockCollapsed ? "dockCollapsed" : ""}`} aria-label={translateUi("app.standaloneMetronome")}>
           <MetronomeDockHandle collapsed={metronomeDockCollapsed} onChange={setMetronomeDockCollapsed}/>
@@ -33244,8 +33318,24 @@ function App({ onReady }) {
             const audio = audioRef.current;
             await loadMetronomeSamples(audio);
             return {audio, buffers:metronomeSampleBuffersRef.current, output:getAudioBusInput(AUDIO_BUS_IDS.GROOVE,audio) || audio.destination, volume:1};
-          }} mode={groovePacksDialog} onClose={() => setGroovePacksDialog(null)} mobile={isMobileLayout} pattern={groovePattern} timeSignature={metronomeTimeSignature} subdivision={metronomeSubdivision} onLoad={pack => {if(pack.applyBpm && pack.bpm) changeBpm(pack.bpm);changeGroovePattern(pack.pattern);metronomeTimeSignatureRef.current=pack.timeSignature;setMetronomeTimeSignature(pack.timeSignature);metronomeSubdivisionRef.current=pack.subdivision;setMetronomeSubdivision(pack.subdivision);}}/>}
-          {metronomeDisplayMode === "groove" ? <GrooveEditor modeControls={desktopGrooveToolbar ? metronomeModeControls : null} packAction={desktopGrooveToolbar ? groovePacksTrigger : null} onSave={openGrooveSave} store={grooveStore} onChange={changeGroovePattern} mobile={isMobileLayout} beats={getTimeSignatureOption(metronomeTimeSignature).beats} divisions={getSubdivisionOption(metronomeSubdivision).clicksPerBeat} clock={grooveClock} playing={isStandaloneMetronomePlaying}/> : <StandaloneMetronomeVisual
+          }} mode={groovePacksDialog} onClose={() => setGroovePacksDialog(null)} mobile={isMobileLayout} pattern={groovePattern} targetBar={groovePackTargetBarRef.current} timeSignature={metronomeTimeSignature} subdivision={metronomeSubdivision} onLoad={(pack,action) => {
+            const target=groovePackTargetBarRef.current;
+            if(action.scope==="bar") {
+              if(action.saved) {
+                const current=grooveStore.getSnapshot();
+                const barPackIds=[...(current.barPackIds||[])];barPackIds[target]=pack.id;
+                changeGroovePattern({...current,barPackIds});
+              } else {changeGroovePattern(applyGrooveBarPack(grooveStore.getSnapshot(),pack,target));selectGrooveBar(target);}
+            } else {
+              changeGroovePattern(pack.pattern);
+              if(!action.saved) {
+                metronomeTimeSignatureRef.current=pack.timeSignature;setMetronomeTimeSignature(pack.timeSignature);
+                metronomeSubdivisionRef.current=pack.subdivision;setMetronomeSubdivision(pack.subdivision);
+                selectGrooveBar(0);
+              }
+            }
+          }}/>}
+          {metronomeDisplayMode === "groove" ? <GrooveEditor selectionStore={grooveSelectionStore} onSelectBar={selectGrooveBar} modeControls={desktopGrooveToolbar ? metronomeModeControls : null} packAction={desktopGrooveToolbar ? groovePacksTrigger : null} onSave={openGrooveSave} store={grooveStore} onChange={changeGroovePattern} mobile={isMobileLayout} beats={getTimeSignatureOption(metronomeTimeSignature).beats} divisions={getSubdivisionOption(metronomeSubdivision).clicksPerBeat} clock={grooveClock} playing={isStandaloneMetronomePlaying}/> : <StandaloneMetronomeVisual
             activeBeat={beat}
             barEnabled={metronomeBarEnabled}
             beatPattern={standaloneBeatPattern}
@@ -33354,7 +33444,7 @@ function App({ onReady }) {
 
         </section>
         ))}
-        </Activity>
+        </PreparedMode>
       ) : null}
 
       {isAppModeMounted(APP_MODES.SHOOTER) ? (
@@ -33364,7 +33454,7 @@ function App({ onReady }) {
           className={`shooterPanel ${horizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterPanel--mobileLandscape" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
           aria-label={mapEditor.enabled ? translateUi("app.mapStudio") : translateUi("menu.shooter")}
         >
-          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} lives={shooterLives} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
+          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
           <div className="modeHelper shooterHelper"><Translation id="app.buildFretboardRecognitionAndPickingAccuracyThroughRepetition" /></div>
           {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
             anchor={shooterDifficultyAnchor}
@@ -34221,7 +34311,10 @@ function App({ onReady }) {
                 type="button"
               />
             ) : null}
-            {!horizontalShooterActive && !desktopShooterScene ? (
+            {desktopShooterScene ? (
+              <DesktopShooterLives lives={shooterLives} maxLives={SHOOTER_MAX_LIVES}
+                label={translateUi("app.livesLeftValue1", { value1: shooterLives })} />
+            ) : !horizontalShooterActive ? (
               <div className="mobileShooterLives" aria-label={translateUi("app.livesLeftValue1", { value1: shooterLives })}>
                 <span><Translation id="originalUi.life" />{shooterLives}</span>
                 {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
@@ -34274,7 +34367,13 @@ function App({ onReady }) {
                     className={`shooterStartPanel ${mapEditor.available ? "shooterStartPanel--withMapEdit" : ""}`}
                     aria-label={translateUi("app.noteShooterStartMenu")}
                   >
-                    <button
+                    {desktopShooterScene ? <DesktopShooterStartButton
+                      label={translateUi("app.startNoteShooter")}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        startShooter();
+                      }}
+                    /> : <button
                       aria-label={translateUi("app.startNoteShooter")}
                       className="mobileShooterStartButton primary shooterStartPanelButton shooterStartPanelButton--primary"
                       onClick={(event) => {
@@ -34293,8 +34392,15 @@ function App({ onReady }) {
                         <strong><Translation id="app.start" /></strong>
                       </span>
                       <Guitar className="shooterStartPanelGhostGuitar" size={82} strokeWidth={1.15} aria-hidden="true" />
-                    </button>
-                    {!desktopShooterScene && <button
+                    </button>}
+                    {desktopShooterScene ? <DesktopShooterSkinButton
+                      open={shooterGuitarPickerOpen}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setShooterPickerInitialTab("guitar");
+                        setShooterGuitarPickerOpen(value => !value);
+                      }}
+                    /> : <button
                       aria-label={translateUi("app.changeNoteShooterSkin")}
                       className="mobileShooterStartButton shooterStartPanelButton shooterStartPanelButton--secondary"
                       onClick={(event) => {
@@ -34499,7 +34605,7 @@ function App({ onReady }) {
                   ))}
                 </div>
                 {import.meta.env.DEV && shooterSkinTab === "pet" && selectedPet.renderer === "atlas" ? (
-                  <ShooterPetControls skin={selectedPet} mobile={isMobileLayout} horizontal={horizontalShooterActive} />
+                  <ShooterPetControls skin={selectedPet} mobile={isMobileLayout} />
                 ) : null}
                 <div className={`shooterSkinPickerBodyFrame shooterSkinPickerBodyFrame--${shooterSkinTab} ${
                   isMobileLayout
@@ -34845,7 +34951,7 @@ function App({ onReady }) {
       ) : null}
 
       {isAppModeMounted(APP_MODES.PRACTICE) ? (
-        <Activity mode={getModeActivityState(appMode, APP_MODES.PRACTICE)}>
+        <PreparedMode mode="practice" activity={getModeActivityState(appMode, APP_MODES.PRACTICE)}>
       {renderAppMode(APP_MODES.PRACTICE, () => (
       selectedCategory.id === "rhythm" ? (
         <>
@@ -35131,7 +35237,12 @@ function App({ onReady }) {
                       </span>
                     ) : null}
                   </div> : null}
-                  <div className="currentProgressionReadout" aria-label={translateUi("app.currentChordProgression")}>
+                  <div
+                    ref={stage3ProgressionSweepRef}
+                    className="currentProgressionReadout"
+                    aria-label={translateUi("app.currentChordProgression")}
+                    style={{ "--stage3-progression-columns": Math.min(4, chordTransitionProgressionMeasures.length) }}
+                  >
                     {chordTransitionProgressionMeasures.map((measure) => {
                       const isCurrentMeasure = measure.items.some(({ endBeat, index, isAutoRest, startBeat }) => (
                         isAutoRest
@@ -35145,9 +35256,15 @@ function App({ onReady }) {
                           aria-current={!isMobileLayout && isCurrentMeasure ? "step" : undefined}
                           className={`rhythmChordMeasure${!isMobileLayout && isCurrentMeasure ? " active" : ""}`}
                           data-measure-number={measure.measureIndex + 1}
+                          data-measure-start={measure.measureIndex * chordTransitionBeatTimeline.beatsPerMeasure}
+                          data-measure-length={measure.beatLength}
                           data-measure-state={!isMobileLayout ? (isCurrentMeasure ? "current" : "upcoming") : undefined}
                           key={`practice-measure-${measure.measureIndex}`}
                         >
+                          <i className="stage3ChordSweep" aria-hidden="true">
+                            <i className="stage3ChordSweepFill" />
+                            <i className="stage3ChordSweepLine" />
+                          </i>
                           {measure.items.map(({ beatLength, chord, endBeat, index, isAutoRest, startBeat }) => {
                             const isCurrentChord = isAutoRest
                               ? chordPracticeIndex < 0
@@ -35167,6 +35284,8 @@ function App({ onReady }) {
                                 aria-current={isMobileLayout && isCurrentChord ? "step" : undefined}
                                 className={`${isMobileLayout && isCurrentChord ? "active " : ""}${isMobileLayout && isNextChord ? "stage3ProgressionNext " : ""}${isAutoRest ? "stage3AutomaticRestButton" : ""}`}
                                 data-progression-state={isMobileLayout ? (isCurrentChord ? "current" : isNextChord ? "next" : "upcoming") : undefined}
+                                data-chord-start={startBeat}
+                                data-chord-length={beatLength}
                                 key={isAutoRest
                                   ? `readonly-auto-rest-${startBeat}`
                                   : `readonly-${chord.id}-${chord.positionId}-${index}`}
@@ -36304,7 +36423,7 @@ function App({ onReady }) {
         </section>
       ) : null
       ))}
-        </Activity>
+        </PreparedMode>
       ) : null}
 
       {false && <section className="debugPanel">

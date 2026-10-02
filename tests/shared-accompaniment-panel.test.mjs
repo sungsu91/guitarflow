@@ -133,7 +133,8 @@ test("mobile, desktop, and etude metronomes share the persisted maximum-volume c
   assert.match(appSource, /const resetSoundSettings = useCallback[\s\S]*setMetronomeVolume\(1\)[\s\S]*resetBackingVolumeSettings\(\)/);
   assert.match(appSource, /utterance\.volume = Math\.max\(0, Math\.min\(1, metronomeVolumeRef\.current \?\? 1\)\)/);
   assert.match(etudeMetronomeSource, /const \{ volume \} = useMetronomeVolume\(\)/);
-  assert.match(etudeMetronomeSource, /smoothAudioParam\(s\.gain\.gain, audible \? volume : 0/);
+  assert.match(etudeMetronomeSource, /smoothAudioParam\(s\.gain\.gain, preparing\|\|audible \? volume : 0/);
+  assert.match(etudeMetronomeSource, /if\(preparing\)s\.gain\.gain\.setValueAtTime\(audible \? volume : 0,s\.origin\)/);
 });
 
 test("rhythm settings keep editing compact and expose part and full previews", () => {

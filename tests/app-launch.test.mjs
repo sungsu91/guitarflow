@@ -11,8 +11,8 @@ test("launch controller resolves readiness once without remounting app state", a
   assert.equal(controller.isReady, true);
 });
 
-test("ready apps have no mandatory intro or loop wait", () => {
-  assert.equal(APP_LAUNCH_TIMINGS.minimumIntroMs, 0);
+test("refresh keeps the requested three-second intro without waiting for a full motion loop", () => {
+  assert.equal(APP_LAUNCH_TIMINGS.minimumIntroMs, 3000);
   assert.equal(APP_LAUNCH_TIMINGS.readySettleMs, 0);
   assert.ok(APP_LAUNCH_TIMINGS.exitMs <= 400);
   assert.ok(APP_LAUNCH_TIMINGS.fallbackMs >= 10000);

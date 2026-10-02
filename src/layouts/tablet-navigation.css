@@ -1,0 +1,66 @@
+/* Shared mobile navigation, with tablet-only dimensions and touch targets. */
+@layer tablet-readability {
+  html[data-rifflab-device="tablet"] .appRuntime {
+    --mobile-nav-height: clamp(112px, 10.56dvh, 152px) !important;
+    --tablet-nav-icon: clamp(36px, 3.06dvh, 44px);
+  }
+  html[data-rifflab-device="tablet"] .integratedBottomNav { --bottom-nav-muted: var(--tablet-muted); }
+  html[data-rifflab-device="tablet"] .integratedBottomNav > button {
+    font-size: 24px !important; line-height: 1.35 !important; font-weight: 650 !important; gap: 10px !important;
+  }
+  html[data-rifflab-device="tablet"] .integratedBottomNav > button svg {
+    flex-basis: var(--tablet-nav-icon) !important; width: var(--tablet-nav-icon) !important; height: var(--tablet-nav-icon) !important;
+  }
+  html[data-rifflab-device="tablet"] .integratedBottomNav > button::before { top: 8px !important; width: 34px !important; height: 4px !important; }
+
+  html[data-rifflab-device="tablet"] #utility-menu-panel {
+    width: min(520px, max(440px, 52vw), calc(100dvw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))) !important;
+    height: min(1240px, calc(86dvh - max(12px, env(safe-area-inset-bottom, 0px)))) !important;
+    max-height: calc(100dvh - max(12px, env(safe-area-inset-top, 0px)) - max(12px, env(safe-area-inset-bottom, 0px))) !important;
+    border-radius: 24px !important;
+  }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuHeader { min-height: 88px !important; padding: 8px 16px 8px 24px !important; box-sizing: border-box; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuHeader strong { font-size: 28px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuHeader button { width: 56px !important; height: 56px !important; min-height: 56px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuHeader button svg { width: 28px !important; height: 28px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityCategoryTabs { padding-inline: 20px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityCategoryTabs button { min-height: 64px !important; font-size: 20px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel :is(.utilityMenuBody,.utilitySettingsBody) { padding: 8px 20px 20px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel :is(.utilityFeatureGroup h3,.utilitySettingsLabel) { font-size: 17px !important; line-height: 1.5 !important; margin: 20px 4px 8px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel :is(.utilityFeatureGroup .utilityMenuItem,.utilitySoundDetails > summary) {
+    grid-template-columns: 44px minmax(0,1fr) 20px !important; gap: 12px !important; min-height: 104px !important; padding: 16px 2px !important;
+  }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuIcon { width: 44px !important; height: 44px !important; min-width: 44px !important; font-size: 28px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuIcon svg { width: 28px !important; height: 28px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuText { gap: 5px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuText strong { font-size: 24px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuText small { font-size: 18px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuChevron svg { width: 20px !important; height: 20px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityFeatureGroup .utilityMenuText:has(.etudeProMark,.utilityMenuStatusBadge) { padding-right: 78px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityFeatureGroup .utilityMenuTitle > :is(.etudeProMark,.utilityMenuStatusBadge) { width: 68px !important; min-width: 68px !important; height: 30px !important; min-height: 30px !important; font-size: 14px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuFooter { padding: 8px 12px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuFooter :is(.utilityMenuItem,.utilityShareMenu > summary) { min-height: 96px !important; gap: 8px !important; font-size: 20px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuFooter .utilityMenuText strong { font-size: 20px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuFooter .utilityMenuIcon { width: 32px !important; height: 32px !important; min-width: 32px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuFooter .utilityShareMenu > summary svg { width: 28px !important; height: 28px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel :is(.utilityThemeHeader strong,.utilityThemeOptions strong,.utilitySettingsBody label) { font-size: 18px !important; }
+  html[data-rifflab-device="tablet"] #utility-menu-panel .utilityThemeOptions button { min-height: 60px !important; }
+
+  @media (max-width: 699px) {
+    html[data-rifflab-device="tablet"] .integratedBottomNav > button { font-size: 18px !important; }
+    html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuText strong { font-size: 21px !important; }
+    html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuText small { font-size: 16px !important; }
+  }
+  @media (max-width: 479px) {
+    html[data-rifflab-device="tablet"] .integratedBottomNav > button { font-size: 15px !important; }
+    html[data-rifflab-device="tablet"] #utility-menu-panel :is(.utilityMenuBody,.utilitySettingsBody) { padding-inline: 12px !important; }
+    html[data-rifflab-device="tablet"] #utility-menu-panel .utilityFeatureGroup .utilityMenuItem { grid-template-columns: 32px minmax(0,1fr) 16px !important; gap: 8px !important; }
+    html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuIcon { width: 32px !important; min-width: 32px !important; }
+    html[data-rifflab-device="tablet"] #utility-menu-panel .utilityMenuText strong { font-size: 19px !important; }
+  }
+  @media (max-height: 600px) {
+    html[data-rifflab-device="tablet"] .appRuntime { --mobile-nav-height: 88px !important; --tablet-nav-icon: 30px; }
+    html[data-rifflab-device="tablet"] .integratedBottomNav > button { font-size: 18px !important; gap: 6px !important; }
+    html[data-rifflab-device="tablet"] #utility-menu-panel { height: calc(100dvh - 24px) !important; }
+  }
+}

@@ -1,5 +1,6 @@
 import ko from "../../../i18n/locales/ko.js";
-// Original user-supplied artwork. Static backgrounds do not alter gameplay.
+import { SCENIC_MAP_MOTION } from '../../mapMotionAssets.js';
+// Original artwork with approved motion compositions, independent of gameplay.
 const definitions = [
   {
     "id": "underwater-blue",
@@ -30,13 +31,17 @@ const definitions = [
 
 export const SCENIC_MAP_SKINS = Object.freeze(definitions.map(({ id, nameKo, nameEn }) => {
   const src = `/assets/maps/${id}/background.png`;
+  const motion = SCENIC_MAP_MOTION[id]?.mobile;
+  const poster = motion?.posterSrc ?? src;
   return Object.freeze({
     id, kind: 'layered', label: nameKo, nameKo, nameEn,
+    ...(motion ? { renderer: 'ambient-video' } : {}),
     description: nameKo + ko["shooter.sceneryForNeonNotePractice"],
     mobileOnly: false, portraitOnly: true,
-    previewImage: src, pickerPreviewImage: src,
+    previewImage: poster, pickerPreviewImage: poster,
     referenceViewport: Object.freeze({ width: 853, height: 1844, deviceWidth: 390, deviceHeight: 844 }),
-    background: Object.freeze({ id: id + '-background', src, fit: 'cover', position: '50% 0%', locked: true,
+    background: Object.freeze({ id: id + '-background', src: poster, fit: 'cover', position: motion?.position ?? '50% 0%', locked: true,
+      ...(motion ? { fallbackSrc: src, videoSrc: motion.videoSrc } : {}),
       ...(id === 'above-the-clouds' ? { tint: 'rgba(8, 20, 58, 0.12)' } : {}),
     }),
     assetCatalog: Object.freeze([]), ambientEvents: Object.freeze([]),

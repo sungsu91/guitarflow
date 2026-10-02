@@ -25,7 +25,9 @@ export function createAudioTransportCursor({
   positionSeconds = 0,
   stepSeconds,
 } = {}) {
-  const safeOriginTime = finiteNonNegative(originTime);
+  // Seeking and slowing an active transport can put its virtual origin before
+  // AudioContext time zero. Preserve it so the next note still starts on time.
+  const safeOriginTime = Number.isFinite(Number(originTime)) ? Number(originTime) : 0;
   const safePositionSeconds = finiteNonNegative(positionSeconds);
   const safeStepSeconds = Math.max(EPSILON_SECONDS, Number(stepSeconds) || 0);
   const stepIndex = Math.max(

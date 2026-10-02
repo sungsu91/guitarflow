@@ -6,7 +6,7 @@ import {chordDiagramErrors} from './scoreChordDiagram.js';
 import {slidePairs} from './slidePairs.js';
 import {soundingMidi,maxFret,HARMONICS} from './scoreTuning.js';
 import {measureMeters,validScoreMeter} from './scoreMeters.js';
-import {SCORE_INSTRUMENTS,normalizeInstrumentDocument,scoreInstrument,isFretted,validateInstrumentMidi} from './scoreInstruments.js';
+import {SCORE_INSTRUMENTS,normalizeInstrumentDocument,scoreInstrument,isFretted,validateInstrumentMidi,validStringCount,validScoreTuning} from './scoreInstruments.js';
 import {repeatIssues} from './scoreRepeats.js';
 export const NATURAL_HARMONICS=HARMONICS;
 import {TUNING, NATURAL, MAJOR, MINOR, spellMidi} from './notationData.js';
@@ -23,7 +23,7 @@ export const blankEvent=(onset=0,duration='4')=>({id:newId('event'),onset,durati
 export const blankMeasure=(meter=[4,4])=>({id:newId('bar'),chord:null,harmony:null,events:Array.from({length:meter[0]},(_,i)=>blankEvent(i*1920/meter[1],String(meter[1])))});
 // Editable drafts may contain invalid values, but their container structure must
 // remain safe for the retained form controls. Preserve unreadable files verbatim.
-export const hasEditableShape=d=>Boolean(d&&typeof d.id==='string'&&['title','english','purpose'].every(k=>typeof d[k]==='string')&&Array.isArray(d.tuning)&&d.tuning.length===scoreInstrument(d.instrument).tuning.length&&Array.isArray(d.meter)&&d.meter.length===2&&Array.isArray(d.tips)&&Array.isArray(d.measures)&&d.measures.length&&d.measures.every(m=>m&&Array.isArray(m.events)&&m.events.length&&(!m.chord||(Array.isArray(m.chord.frets)&&Array.isArray(m.chord.fingers)))&&m.events.every(e=>e&&Array.isArray(e.notes)&&e.notes.every(n=>n&&typeof n==='object'))));
+export const hasEditableShape=d=>Boolean(d&&typeof d.id==='string'&&['title','english','purpose'].every(k=>typeof d[k]==='string')&&Array.isArray(d.tuning)&&validStringCount(d.instrument,d.tuning.length)&&Array.isArray(d.meter)&&d.meter.length===2&&Array.isArray(d.tips)&&Array.isArray(d.measures)&&d.measures.length&&d.measures.every(m=>m&&Array.isArray(m.events)&&m.events.length&&(!m.chord||(Array.isArray(m.chord.frets)&&Array.isArray(m.chord.fingers)))&&m.events.every(e=>e&&Array.isArray(e.notes)&&e.notes.every(n=>n&&typeof n==='object'))));
 export function upgradeDocument(input) {
  const d=normalizeInstrumentDocument(structuredClone(input));
  if(d.version===2)return d;
@@ -122,7 +122,7 @@ export function compileDocumentV2(d,base={}) {
  if(d?.capo!=null&&(!Number.isInteger(d.capo)||d.capo<0||d.capo>Math.min(12,maxFret(d))))errors.push(ko["etudes.checkTheCapoRange"]);
  if(d?.instrument!=null&&!Object.hasOwn(SCORE_INSTRUMENTS,d.instrument))errors.push(ko["etudes.thisInstrumentIsNotSupported"]);
  if(d?.format!=='fretiva.etude'||d.version!==2||!d.id)return {score:null,errors:[ko["etudes.checkTheScoreFormatAndId"]],issues};
- if(!Array.isArray(d.tuning)||d.tuning.length!==scoreInstrument(d.instrument).tuning.length||d.tuning.some(v=>!Number.isInteger(v)||v<24||v>88))errors.push(ko["etudes.checkTheStringCountAndEachStringSMidiPitchForThis"]);
+ if(!validScoreTuning(d.instrument,d.tuning))errors.push(ko["etudes.checkTheStringCountAndEachStringSMidiPitchForThis"]);
  if(!validScoreMeter(d.meter))errors.push(ko["etudes.supportedMeters234648"]);
  if(!Number.isInteger(d.bpm)||d.bpm<30||d.bpm>240)errors.push(ko["etudes.bpmMustBe30240"]);
  if(!['C','G','D','A','E','B','F','Bb','Eb','Ab','Db','Gb','Am','Em','Bm','F#m','C#m','G#m','Dm','Gm','Cm','Fm'].includes(d.keySignature))errors.push(ko["etudes.checkTheKeySignature"]);

@@ -29,7 +29,7 @@ export function usePetPlacement({ skinId, rootRef, handleRef, size, mobile, hori
   const place = () => {
     if (!rootRef.current || dragRef.current) return;
     const box = metrics();
-    const lives = rootRef.current.parentElement?.querySelector(".mobileShooterLives");
+    const lives = rootRef.current.parentElement?.querySelector(".mobileShooterLives, .dsArenaLives");
     const rect = lives?.getBoundingClientRect();
     const a = rect && box.point(rect.left, rect.top), b = rect && box.point(rect.right, rect.bottom);
     const hearts = rect?.width ? { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(a.x - b.x) } : null;
@@ -41,7 +41,7 @@ export function usePetPlacement({ skinId, rootRef, handleRef, size, mobile, hori
     place();
     const resize = new ResizeObserver(place);
     resize.observe(rootRef.current);
-    const lives = rootRef.current.parentElement?.querySelector(".mobileShooterLives");
+    const lives = rootRef.current.parentElement?.querySelector(".mobileShooterLives, .dsArenaLives");
     if (lives) resize.observe(lives);
     // Recording mode moves the heart HUD using a style variable without resizing it.
     const attributes = new MutationObserver(place);

@@ -173,3 +173,87 @@
     html body .tabletLayout .app.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector {margin:0!important}
   }
 }
+
+/* Phone mode tabs: a quiet segmented rail above a lightly tinted canvas.
+   Desktop and tablet retain their own button sizes and panel treatment. */
+@layer metronome-primary-tabs {
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode > .standaloneMetronomePanel {
+    --mode-canvas:#211e19;
+    --mode-edge:rgba(203,182,145,.16);
+    --mode-rail:rgba(226,211,185,.045);
+    --mode-rail-edge:rgba(226,211,185,.07);
+    --mode-active:#383127;
+    --mode-active-edge:rgba(205,179,136,.22);
+    --mode-ink:#eee3d2;
+    --mode-muted:#b4aa9b;
+    --mode-wash:rgba(205,173,114,.045);
+    --mode-highlight:rgba(255,255,255,.04);
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.theme-light.metronomeMode > .standaloneMetronomePanel {
+    --mode-canvas:#faf8f3;
+    --mode-edge:rgba(128,105,80,.16);
+    --mode-rail:rgba(128,105,80,.045);
+    --mode-rail-edge:rgba(128,105,80,.06);
+    --mode-active:#fffdf8;
+    --mode-active-edge:rgba(128,105,80,.16);
+    --mode-ink:#554535;
+    --mode-muted:#80766b;
+    --mode-wash:rgba(173,139,96,.055);
+    --mode-highlight:rgba(255,255,255,.8);
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector {
+    padding:9px 12px!important;
+    gap:4px!important;
+    border-color:var(--mode-edge)!important;
+    border-radius:16px 16px 0 0!important;
+    background:var(--mode-canvas)!important;
+    box-shadow:inset 0 1px 0 var(--mode-highlight)!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector::before {
+    content:"";
+    position:absolute;
+    left:8px;top:6px;
+    width:176px;height:50px;
+    box-sizing:border-box;
+    border:1px solid var(--mode-rail-edge);
+    border-radius:15px;
+    background:var(--mode-rail);
+    pointer-events:none;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode .grooveModeSelector > .metronomeModeButton {
+    position:relative;
+    width:44px!important;min-width:44px!important;
+    height:44px!important;min-height:44px!important;
+    padding:5px!important;gap:5px!important;
+    border:1px solid transparent!important;
+    border-radius:11px!important;
+    background:transparent!important;
+    color:var(--mode-muted)!important;
+    box-shadow:none!important;
+    transition:background-color .16s ease,color .16s ease,border-color .16s ease;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode .grooveModeSelector > .metronomeModeButton:has(.metronomeModeName) {
+    width:72px!important;min-width:72px!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode .grooveModeSelector > .metronomeModeButton[aria-pressed=true] {
+    border-color:var(--mode-active-edge)!important;
+    background:var(--mode-active)!important;
+    color:var(--mode-ink)!important;
+    box-shadow:0 1px 3px rgba(60,45,28,.06),inset 0 1px 0 var(--mode-highlight)!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode .metronomeModeNumber {
+    font-size:17px!important;font-weight:650!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode .metronomeModeName {
+    font-size:10px!important;font-weight:550!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode > .standaloneMetronomePanel > :is(.grooveEditor,.metronomeBeatMatrix--main) {
+    border-color:var(--mode-edge)!important;
+    border-radius:0 0 16px 16px!important;
+    background:radial-gradient(ellipse at 50% 15%,var(--mode-wash),transparent 72%),var(--mode-canvas)!important;
+    box-shadow:0 2px 6px rgba(60,45,28,.025)!important;
+  }
+  @media(prefers-reduced-motion:reduce) {
+    html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode .grooveModeSelector > .metronomeModeButton {transition:none}
+  }
+}

@@ -3,18 +3,20 @@ import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import './groovePackBrowser.css';
-import {getGrooveBarCount} from './groove.js';
+import {getGrooveBarCount,extractGrooveBar} from './groove.js';
 import {useGroovePreview} from './useGroovePreview.js';
 import {GROOVE_CATEGORIES} from './recommendedGrooves.js';
 import {useEffect, useRef, useState} from 'react';
-import {savePacks, subscribeGroovePacks, readPacks, defaults} from './groovePackLibrary.js';
+import {savePacks, subscribeGroovePacks, readPacks, defaults, getGroovePackScope} from './groovePackLibrary.js';
 
 
-export default function GroovePacks({mode, onClose, pattern, timeSignature, subdivision, onLoad, mobile, preparePreview, bpm}) {
+export default function GroovePacks({mode, onClose, pattern, targetBar=0, timeSignature, subdivision, onLoad, mobile, preparePreview, bpm}) {
   useLanguage();
   const dialog = useRef(null);
   const [packs,setPacks] = useState(readPacks);
   const [tab,setTab] = useState('recommended');
+  const [savedScope,setSavedScope] = useState('bar');
+  const [saveScope,setSaveScope] = useState('bar');
   const [query,setQuery] = useState('');
   const [category,setCategory] = useState(ko["app.all"]);
   const [sort,setSort] = useState(() => packs.some(p => Number.isFinite(p.order)) ? 'manual' : 'recent');
@@ -22,15 +24,18 @@ export default function GroovePacks({mode, onClose, pattern, timeSignature, subd
   const [menu,setMenu] = useState(null);
   const [renaming,setRenaming] = useState(null);
   const [renameTitle,setRenameTitle] = useState('');
-  const original = packs.find(p => p.id === pattern.savedPackId);
+  const bar=Math.min(targetBar,getGrooveBarCount(pattern)-1);
+  const originalId=saveScope==='arrangement'?pattern.savedPackId:pattern.barPackIds?.[bar]||(getGrooveBarCount(pattern)===1?pattern.savedPackId:null);
+  const original = packs.find(p => p.id === originalId && getGroovePackScope(p)===saveScope);
   const [title,setTitle] = useState(original?.title || '');
   const [saveAsNew,setSaveAsNew] = useState(!original);
   const [error,setError] = useState('');
+  useEffect(()=>{setTitle(original?.title||'');setSaveAsNew(!original);},[saveScope,original?.id]);
   const preview = useGroovePreview(preparePreview, bpm, setError);
   useEffect(() => { dialog.current?.showModal(); }, []);
   useEffect(() => subscribeGroovePacks(() => setPacks(readPacks())), []);
   const source = tab === 'recommended' ? defaults : [...packs].reverse().sort((a,b) => sort === 'name' ? a.title.localeCompare(b.title,'ko') : sort === 'manual' ? (a.order ?? packs.length-1-packs.indexOf(a))-(b.order ?? packs.length-1-packs.indexOf(b)) : 0);
-  const visible = source.filter(p => (tab!=='recommended' || category===ko["app.all"] || p.category===category) && p.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const visible = source.filter(p => (tab==='recommended' ? category===ko["app.all"] || p.category===category : getGroovePackScope(p)===savedScope) && p.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const choice = source.find(p => p.id === selected);
   const visibleIds=visible.map(p=>p.id).join('|');
   useEffect(()=>{if(preview.active && !visible.some(p=>p.id===preview.active))preview.stop();},[visibleIds,preview.active]);
@@ -44,7 +49,7 @@ export default function GroovePacks({mode, onClose, pattern, timeSignature, subd
     const copy=structuredClone(pack);
     copy.applyBpm=false;
     if(!pack.builtin) copy.pattern={...copy.pattern,savedPackId:pack.id};
-    onLoad(copy);onClose();
+    onLoad(copy,{scope:getGroovePackScope(copy),saved:false});onClose();
   }
   function movePack(id, delta) {
     const ordered=[...source];const from=ordered.findIndex(p=>p.id===id),to=from+delta;
@@ -61,10 +66,11 @@ export default function GroovePacks({mode, onClose, pattern, timeSignature, subd
     {mode === 'save' ? <form onSubmit={e => {
       e.preventDefault(); if(!title.trim()) return;
       const id=!saveAsNew && original ? original.id : crypto.randomUUID();
-      const pack = {...(!saveAsNew ? original : {}),id,title:title.trim(),pattern:{...structuredClone(pattern),savedPackId:id},timeSignature,subdivision,bpm,createdAt:Date.now()};
-      if(persist([...packs.filter(p=>p.id!==id),pack])) {onLoad(structuredClone(pack));onClose();}
-    }}>{original && <label><Translation id="metronome.saveMode" /><select aria-label={translateUi("metronome.saveMode")} value={saveAsNew?'new':'update'} onChange={e=>setSaveAsNew(e.target.value==='new')}><option value="update"><Translation id="metronome.updateExistingPack" /></option><option value="new"><Translation id="metronome.saveAsNewPack" /></option></select></label>}<label><Translation id="metronome.packName" /><input autoFocus value={title} maxLength={40} required placeholder={translateUi("metronome.eGFunkPractice01")} onChange={e=>setTitle(e.target.value)}/></label><p>{translateUi("metronome.grooveBarLength",{value1:getGrooveBarCount(pattern)})} · {pattern.rows.length}<Translation id="metronome.sounds" />{timeSignature}<Translation id="metronome.savesTheCurrentCheckedPattern" /></p><footer><button type="submit" disabled={!title.trim()}><Translation id="metronome.savePack" /></button></footer></form> : <>
+      const pack = {...(!saveAsNew ? original : {}),id,title:title.trim(),scope:saveScope,pattern:{...(saveScope==='bar'?extractGrooveBar(pattern,bar):structuredClone(pattern)),savedPackId:id},timeSignature,subdivision,bpm,createdAt:Date.now()};
+      if(persist([...packs.filter(p=>p.id!==id),pack])) {onLoad(structuredClone(pack),{scope:saveScope,saved:true});onClose();}
+    }}><label><Translation id="metronome.grooveSaveScope"/><select aria-label={translateUi("metronome.grooveSaveScope")} value={saveScope} onChange={e=>setSaveScope(e.target.value)}><option value="bar">{translateUi("metronome.saveSelectedGrooveBar",{value1:bar+1})}</option><option value="arrangement"><Translation id="metronome.saveGrooveArrangement"/></option></select></label>{original && <label><Translation id="metronome.saveMode" /><select aria-label={translateUi("metronome.saveMode")} value={saveAsNew?'new':'update'} onChange={e=>setSaveAsNew(e.target.value==='new')}><option value="update"><Translation id="metronome.updateExistingPack" /></option><option value="new"><Translation id="metronome.saveAsNewPack" /></option></select></label>}<label><Translation id="metronome.packName" /><input autoFocus value={title} maxLength={40} required placeholder={translateUi("metronome.eGFunkPractice01")} onChange={e=>setTitle(e.target.value)}/></label><p>{translateUi("metronome.grooveBarLength",{value1:saveScope==='bar'?1:getGrooveBarCount(pattern)})} · {pattern.rows.length}<Translation id="metronome.sounds" />{timeSignature}<Translation id="metronome.savesTheCurrentCheckedPattern" /></p><footer><button type="submit" disabled={!title.trim()}><Translation id="metronome.savePack" /></button></footer></form> : <>
       <div className="groovePackTabs" role="tablist" aria-label={translateUi("components.packType")}>{[['recommended',ko["components.recommended"]],['saved',ko["components.myPacks"]]].map(([id,label]) => <button type="button" role="tab" id={`groove-tab-${id}`} aria-controls="groove-pack-results" aria-selected={tab===id} tabIndex={tab===id?0:-1} key={id} onClick={()=>changeTab(id)} onKeyDown={e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const next=id==='saved'?'recommended':'saved';changeTab(next);document.getElementById(`groove-tab-${next}`)?.focus();}}}>{localizeUi(label)}</button>)}</div>
+      {tab==='saved' && <div className="groovePackScopeTabs" role="group" aria-label={translateUi("metronome.grooveSaveScope")}>{[['bar','metronome.grooveBarPacks'],['arrangement','metronome.grooveArrangements']].map(([scope,label])=><button type="button" key={scope} aria-pressed={savedScope===scope} onClick={()=>{preview.stop();setSavedScope(scope);setSelected(null);setMenu(null);}}><Translation id={label}/></button>)}</div>}
       <div className="groovePackSearch"><span className="grooveSearchIcon" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></svg></span><input type="search" aria-label={translateUi("metronome.searchPackNames")} placeholder={translateUi("components.searchPacks")} value={query} onChange={e=>setQuery(e.target.value)}/>{tab === 'saved' && <div className="groovePackManageBar"><select aria-label={translateUi("metronome.sortSavedPacks")} value={sort} onChange={e=>setSort(e.target.value)}><option value="recent"><Translation id="metronome.recentlySaved" /></option><option value="name"><Translation id="metronome.name" /></option><option value="manual"><Translation id="metronome.customOrder" /></option></select></div>}</div>
       {tab==='recommended' && <div className="groovePackCategories" aria-label={translateUi("components.packCategory")}>{GROOVE_CATEGORIES.map(c=><button type="button" key={c} aria-pressed={category===c} onClick={()=>setCategory(c)}>{localizeUi(c===ko["components.popBallad"]?translateUi("components.pop"):c===ko["components.funkDisco"]?translateUi("components.funk"):c)}</button>)}</div>}
       <div id="groove-pack-results" role="tabpanel" aria-labelledby={`groove-tab-${tab}`} className="groovePackResults">
@@ -77,7 +83,7 @@ export default function GroovePacks({mode, onClose, pattern, timeSignature, subd
         </div>)}</div>
         {!visible.length && <p className="groovePackEmpty">{query.trim()?translateUi("etudes.noResultsFound"): translateUi("metronome.noSavedPacksSaveOneFromTheEditor")}</p>}
       </div>
-      <footer className="groovePackLoad"><span><strong>{choice?.title || translateUi("metronome.chooseAPack")}</strong></span><button type="button" disabled={!choice} onClick={()=>loadPack(choice)}><Translation id="app.load" /></button></footer>
+      <footer className="groovePackLoad"><span><strong>{choice?.title || translateUi("metronome.chooseAPack")}</strong>{choice&&<small className="groovePackLoadTarget">{getGroovePackScope(choice)==='arrangement'?translateUi("metronome.loadGrooveArrangement"):translateUi("metronome.applySelectedGrooveBar",{value1:bar+1})}</small>}</span><button type="button" disabled={!choice} onClick={()=>loadPack(choice)}><Translation id="app.load" /></button></footer>
     </>}
     {error && <p role="alert">{localizeUi(error)}</p>}
   </dialog>;

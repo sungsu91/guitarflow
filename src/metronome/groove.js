@@ -10,7 +10,7 @@ export function createGrooveStore(initial) {
   return {
     getSnapshot:()=>snapshot,
     subscribe(listener){listeners.add(listener);return()=>listeners.delete(listener);},
-    set(next){snapshot=next;listeners.forEach(listener=>listener());},
+    set(next){if(Object.is(snapshot,next))return;snapshot=next;listeners.forEach(listener=>listener());},
   };
 }
 export const GROOVE_STRENGTHS = [[100,ko["metronome.strong"]],[70,ko["metronome.medium"]],[45,ko["metronome.soft"]],[25,ko["metronome.ghost"]]];
@@ -66,6 +66,35 @@ export function clearGrooveBar(pattern, bar) {
   return {...pattern,name:'custom',rows:pattern.rows.map(row=>({...row,
     steps:row.steps.map((step,i)=>Math.floor(i/GROOVE_BAR_STEPS)===bar?false:step),
   }))};
+}
+export function extractGrooveBar(pattern, bar) {
+  const normalized=normalizeGroovePattern(pattern);
+  const offset=Math.max(0,Math.min(getGrooveBarCount(normalized)-1,bar))*GROOVE_BAR_STEPS;
+  return {name:normalized.name,barCount:1,rows:normalized.rows.map(row=>({...row,
+    steps:row.steps.slice(offset,offset+GROOVE_BAR_STEPS),
+    velocities:row.velocities.slice(offset,offset+GROOVE_BAR_STEPS),
+  }))};
+}
+export function applyGrooveBarPack(pattern, pack, bar) {
+  const current=normalizeGroovePattern(pattern);
+  const source=extractGrooveBar(pack.pattern,0);
+  const target=Math.max(0,Math.min(getGrooveBarCount(current)-1,bar));
+  const offset=target*GROOVE_BAR_STEPS;
+  const rows=clearGrooveBar(current,target).rows.map(row=>({...row,velocities:[...row.velocities]}));
+  const capacity=Math.max(getGrooveBarCount(current),...rows.map(row=>row.steps.length/GROOVE_BAR_STEPS));
+  const used=new Set();
+  for(const incoming of source.rows) {
+    // A row's tone/mix applies to all bars. Reuse only matching rows so loading
+    // a different mix cannot change the sound of the other bars.
+    let index=rows.findIndex((row,i)=>!used.has(i)&&row.tone===incoming.tone&&row.volume===incoming.volume&&row.muted===incoming.muted);
+    if(index<0){index=rows.length;rows.push({...createGrooveRow(incoming.tone,capacity),volume:incoming.volume,muted:incoming.muted});}
+    used.add(index);
+    rows[index].steps.splice(offset,GROOVE_BAR_STEPS,...incoming.steps);
+    rows[index].velocities.splice(offset,GROOVE_BAR_STEPS,...incoming.velocities);
+  }
+  const barPackIds=[...(current.barPackIds||[])];
+  barPackIds[target]=pack.builtin?null:pack.id;
+  return {...current,name:'custom',rows,barPackIds};
 }
 export function applyGrooveQuick(row, mode, index, beats, divisions, strength=70, bar=0) {
   const steps=[...row.steps];

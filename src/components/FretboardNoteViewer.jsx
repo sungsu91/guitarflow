@@ -29,7 +29,7 @@ export const FretboardNoteViewerTitle = memo(function FretboardNoteViewerTitle({
 });
 
 export const FretboardNoteViewerBoard = memo(function FretboardNoteViewerBoard({
-  dragToPlay = false,
+  dragToPlay = true,
   fretRange,
   notes,
   onNotePress,

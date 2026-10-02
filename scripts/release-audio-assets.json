@@ -1,4 +1,17 @@
 [
+  "assets/maps/moonlit-rooftop/moonlit-rooftop-motion-v2.mp4",
+  "assets/maps/underwater-blue/underwater-blue-motion-v4.mp4",
+  "assets/maps/aurora-glacier/aurora-glacier-motion-v2.mp4",
+  "assets/maps/above-the-clouds/above-the-clouds-motion-v2.mp4",
+  "assets/maps/milky-way-desert/milky-way-desert-motion-v2.mp4",
+  "assets/maps/firefly-forest/firefly-forest-motion-v1.mp4",
+  "assets/shooter/desktop-maps/07-firefly-forest-motion-v1.mp4",
+  "assets/shooter/desktop-maps/05-desert-observatory-motion-v2.mp4",
+  "assets/shooter/desktop-maps/02-cloud-sanctuary-motion-v3.mp4",
+  "assets/shooter/desktop-maps/03-aurora-lake-motion-v2.mp4",
+  "assets/shooter/desktop-maps/06-underwater-blue-motion-v4.mp4",
+  "assets/maps/storm-cloister/storm-cloister-loop.mp4",
+  "assets/shooter/desktop-maps/02-cloud-sanctuary-loop.mp4",
   "sounds/agogobell.wav",
   "sounds/bass_a.wav",
   "sounds/bass_b.wav",
@@ -44,5 +57,6 @@
   "sounds/tom-low.wav",
   "sounds/tom-mid.wav",
   "sounds/trangle.wav",
-  "sounds/woodblock.wav"
+  "sounds/woodblock.wav",
+  "assets/shooter/desktop-maps/01-moonlit-rooftop-motion-v1.mp4"
 ]
