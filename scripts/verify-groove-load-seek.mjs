@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {extractGrooveBar} from '../src/metronome/groove.js';
 import {chromium} from 'file:///C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
 const base=process.env.GROOVE_TEST_URL||'http://127.0.0.1:5173';
 await fs.mkdir('work/groove-load-seek',{recursive:true});
@@ -44,11 +45,11 @@ try{for(const [width,height,touch] of [[1440,1000,false],[390,844,true],[1032,13
  await save('Before','arrangement');
  await cards.nth(2).click();await load('Loaded bar','bar');assert.equal(await cards.count(),4);assert.equal(await cards.nth(2).getAttribute('aria-pressed'),'true');
  const after=[];for(let i=0;i<4;i++){await cards.nth(i).click();after.push(await grid());if(i!==2)assert.deepEqual(after[i],before[i]);}
- assert.ok(after[2][0].every(x=>x.on==='false'));assert.equal(after[2][2][3].on,'true');assert.equal(after[2][2][3].strength,'strong');
+ assert.equal(after[2].length,1);assert.equal(after[2][0][3].on,'true');assert.equal(after[2][0][3].strength,'strong');
  await cards.nth(2).click();await save('Single saved','bar');await save('After','arrangement');
  const saved=await p.evaluate(()=>JSON.parse(localStorage.getItem('rifflab.metronome.groove-packs.v1')));
- assert.equal(saved.find(x=>x.title==='Single saved').pattern.barCount,1);assert.equal(saved.find(x=>x.title==='Single saved').pattern.rows[2].steps[3],true);
- assert.equal(saved.find(x=>x.title==='After').pattern.barCount,4);assert.equal(saved.find(x=>x.title==='Before').pattern.rows[0].steps[2*72+5],true);
+ assert.equal(saved.find(x=>x.title==='Single saved').pattern.barCount,1);assert.equal(saved.find(x=>x.title==='Single saved').pattern.rows[0].steps[3],true);
+ assert.equal(saved.find(x=>x.title==='After').pattern.barCount,4);assert.equal(extractGrooveBar(saved.find(x=>x.title==='Before').pattern,2).rows[0].steps[5],true);
  for(let i=0;i<3;i++)await p.locator('.grooveReduceBar').click();await load('After','arrangement');assert.equal(await cards.count(),4);
  for(let i=0;i<4;i++){await cards.nth(i).click();assert.deepEqual(await grid(),after[i]);}
  await load('Seek sequence','arrangement');

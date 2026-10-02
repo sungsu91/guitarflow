@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {t} from '../i18n/core.js';
-import {GROOVE_BAR_STEPS, MAX_GROOVE_BARS} from './groove.js';
+import {GROOVE_BAR_STEPS, MAX_GROOVE_BARS, getGrooveBarRows} from './groove.js';
 import './grooveMeasures.css';
 
 export function useGroovePlayingBar(clock, playing, beats, divisions, barCount) {
@@ -60,7 +60,7 @@ function BarCard({pattern,bar,selected,playingBar,stepsPerBar,onSelect}) {
   return <button type="button" className={`grooveBarCard ${playingBar===bar?'is-playing':''}`} aria-label={barLabel(bar)} aria-pressed={selected===bar} aria-current={playingBar===bar?'step':undefined} onClick={()=>onSelect(bar)}>
     <span className="grooveBarCardTitle"><b>{bar+1}</b><strong>{barLabel(bar)}</strong>{playingBar===bar && <em>{t('metronome.grooveBarPlaying')}</em>}</span>
     <span className="grooveBarMiniature" aria-hidden="true" style={{'--groove-preview-steps':stepsPerBar}}>
-      {pattern.rows.map((row,r)=><span className={`grooveMiniRow ${row.muted?'is-muted':''}`} key={r}>
+      {getGrooveBarRows(pattern,bar).map((row,r)=><span className={`grooveMiniRow ${row.muted?'is-muted':''}`} key={r}>
         {Array.from({length:stepsPerBar},(_,i)=>{
           const index=bar*GROOVE_BAR_STEPS+i;
           return <i key={i} className={row.steps[index]?'is-on':''}/>;

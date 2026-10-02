@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   GROOVE_BAR_STEPS, createGroovePattern, normalizeGroovePattern, resizeGroovePattern,
   copyGrooveBar, clearGrooveBar, applyGrooveQuick, getGrooveBarCount,
-  getGrooveStepIndex, scheduleGrooveStep, extractGrooveBar, applyGrooveBarPack,
+  getGrooveStepIndex, scheduleGrooveStep, extractGrooveBar, applyGrooveBarPack, replaceGrooveBar,
 } from '../src/metronome/groove.js';
 import {getGrooveBackingTiming} from '../src/backing-loop/grooveBackingSource.js';
 import {getGroovePackScope} from '../src/metronome/groovePackLibrary.js';
@@ -27,7 +27,7 @@ test('a bar pack replaces only the selected bar and preserves the arrangement an
   const shortened=resizeGroovePattern(current,2);
   const loaded=applyGrooveBarPack(shortened,{id:'bar-pack',pattern:incoming},1);
   assert.equal(loaded.barCount,2);
-  assert.deepEqual(resizeGroovePattern(loaded,4).rows[0].steps.slice(144),before.rows[0].steps.slice(144));
+  for(const bar of [2,3])assert.deepEqual(extractGrooveBar(resizeGroovePattern(loaded,4),bar).rows,extractGrooveBar(before,bar).rows);
 });
 
 test('importing different sounds and mixes never changes the other bars',()=>{
@@ -37,13 +37,12 @@ test('importing different sounds and mixes never changes the other bars',()=>{
   incoming.rows[1].tone='clap';
   const before=structuredClone(current);
   const result=applyGrooveBarPack(current,{id:'mix',pattern:incoming},2);
-  assert.equal(result.rows.length,5);
+  assert.equal(extractGrooveBar(result,2).rows.length,3);
   for(let row=0;row<3;row++)for(const bar of [0,1,3]){
     assert.deepEqual(extractGrooveBar(result,bar).rows[row],extractGrooveBar(before,bar).rows[row]);
   }
-  assert.equal(result.rows[3].volume,.2);
-  assert.equal(result.rows[4].tone,'clap');
-  assert.ok(result.rows.slice(3).every(row=>row.steps.every((on,i)=>!on||Math.floor(i/72)===2)));
+  assert.deepEqual(extractGrooveBar(result,2).rows,normalizeGroovePattern(incoming).rows);
+  assert.ok(result.rows.every(row=>row.steps.every((on,i)=>!on||Math.floor(i/72)===row.bar)));
 });
 
 test('bar saves contain the selected notes only; arrangement saves remain distinguishable',()=>{
@@ -87,12 +86,54 @@ test('editing, quick fill, copying and reset affect only the selected bar',()=>{
   for(const i of [73,77,81,85])assert.equal(edited.velocities[i],100);
   const updated={...pattern,rows:[edited,...pattern.rows.slice(1)]};
   const copied=copyGrooveBar(updated,1,2);
-  assert.deepEqual(copied.rows[0].steps.slice(144,216),edited.steps.slice(72,144));
-  assert.deepEqual(copied.rows[0].velocities.slice(144,216),edited.velocities.slice(72,144));
+  assert.deepEqual(extractGrooveBar(copied,2).rows,extractGrooveBar(updated,1).rows);
   const cleared=clearGrooveBar(copied,2);
   assert.ok(cleared.rows.every(row=>row.steps.slice(144,216).every(step=>!step)));
-  assert.deepEqual(cleared.rows[0].steps.slice(0,144),copied.rows[0].steps.slice(0,144));
-  assert.deepEqual(cleared.rows[0].steps.slice(216),copied.rows[0].steps.slice(216));
+  for(const bar of [0,1,3])assert.deepEqual(extractGrooveBar(cleared,bar).rows,extractGrooveBar(copied,bar).rows);
+});
+
+test('reloading a different pack replaces its rows instead of accumulating them',()=>{
+  const four=createGroovePattern('empty');four.rows=four.rows.slice(2);
+  for(const i of [0,4,8,12])four.rows[0].steps[i]=true;
+  const eight=createGroovePattern('8beat');eight.rows[0].volume=.3;eight.rows[1].tone='clap';
+  let pattern=applyGrooveBarPack(resizeGroovePattern(four,2),{id:'eight',pattern:eight},1);
+  for(let i=0;i<8;i++){
+    const incoming=i%2?four:eight;
+    pattern=applyGrooveBarPack(pattern,{id:'swap',pattern:incoming},1);
+    assert.deepEqual(extractGrooveBar(pattern,1).rows,normalizeGroovePattern(incoming).rows);
+    assert.deepEqual(extractGrooveBar(pattern,0).rows,normalizeGroovePattern(four).rows);
+    assert.equal(pattern.rows.length,four.rows.length+incoming.rows.length);
+  }
+});
+
+test('bar instruments, mute and row edits survive copy, save and resize independently',()=>{
+  const original=resizeGroovePattern(createGroovePattern(),2);
+  const edited=extractGrooveBar(original,1);
+  edited.rows[0]={...edited.rows[0],tone:'ride',volume:.2,muted:true};
+  edited.rows.pop();
+  let pattern=replaceGrooveBar(original,1,edited);
+  assert.deepEqual(extractGrooveBar(pattern,0).rows,extractGrooveBar(original,0).rows);
+  assert.deepEqual(extractGrooveBar(pattern,1).rows,edited.rows);
+  pattern=resizeGroovePattern(pattern,4);
+  for(const bar of [2,3])assert.deepEqual(extractGrooveBar(pattern,bar).rows,edited.rows);
+  const copied=copyGrooveBar(pattern,0,2);
+  assert.deepEqual(extractGrooveBar(copied,2).rows,extractGrooveBar(original,0).rows);
+  const restored=resizeGroovePattern(normalizeGroovePattern(JSON.parse(JSON.stringify(resizeGroovePattern(copied,1)))),4);
+  for(let bar=0;bar<4;bar++)assert.deepEqual(extractGrooveBar(restored,bar).rows,extractGrooveBar(copied,bar).rows);
+});
+
+test('a four-hit bar and an eight-hit bar play only their own sounds through the loop seam',()=>{
+  const four=createGroovePattern('empty');four.rows=four.rows.slice(2);
+  for(const i of [0,4,8,12])four.rows[0].steps[i]=true;
+  const eight=createGroovePattern('8beat');eight.rows=eight.rows.slice(0,1);
+  const pattern=applyGrooveBarPack(resizeGroovePattern(four,2),{id:'eight',pattern:eight},1);
+  const notes=[];
+  const audio={createGain:()=>({gain:{setValueAtTime(){},linearRampToValueAtTime(){}},connect(){},disconnect(){}}),
+    createBufferSource:()=>({connect(){},stop(){},start(time){notes.push({tone:this.buffer.tone,time});}})};
+  for(let step=0;step<48;step++)scheduleGrooveStep({audio,output:{},buffers:{kick:{tone:'kick'},hihat:{tone:'hihat'}},pattern,
+    index:getGrooveStepIndex(pattern,step,16),time:step*.125,volume:1,track(){}});
+  assert.deepEqual(notes.map(note=>note.tone),[...Array(4).fill('kick'),...Array(8).fill('hihat'),...Array(4).fill('kick')]);
+  assert.deepEqual(notes.map(note=>note.time),[0,.5,1,1.5,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5,5.5]);
 });
 
 test('shortening, saving, loading and expanding retain all edited bars',()=>{

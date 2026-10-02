@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {chromium} from 'file:///C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
 import fs from 'node:fs/promises';
+import {extractGrooveBar} from '../src/metronome/groove.js';
 const browser=await chromium.launch({headless:true,channel:'msedge'});
 const base=process.env.GROOVE_TEST_URL||'http://127.0.0.1:5173';
 const results=[];
@@ -30,7 +31,7 @@ for(const [width,theme] of [[1440,'light'],[390,'light'],[320,'light'],[768,'lig
  assert.equal(await step.getAttribute('aria-pressed'),'false');
  await editor.locator('.grooveSaveButton').click();await page.getByRole('combobox',{name:'저장 범위',exact:true}).selectOption('arrangement');await page.locator('.groovePackDialog form input').fill('Four-bar verification');await page.locator('.groovePackDialog button[type=submit]').click();
  const pack=await page.evaluate(()=>JSON.parse(localStorage.getItem('rifflab.metronome.groove-packs.v1'))[0]);
- assert.equal(pack.pattern.barCount,4);assert.equal(pack.pattern.rows[0].steps[73],true);assert.equal(pack.pattern.rows[0].steps[1],false);
+ assert.equal(pack.pattern.barCount,4);assert.equal(extractGrooveBar(pack.pattern,1).rows[0].steps[1],true);assert.equal(extractGrooveBar(pack.pattern,0).rows[0].steps[1],false);
  if(theme==='light') {
    for(let i=0;i<16;i++)await page.locator('.standaloneMetronomePanel .metronomeHeroBpmJumpButton--up:visible').click();
    await page.locator('.standaloneMetronomePanel .metronomeHeroPlayButton:visible').click();
@@ -45,7 +46,7 @@ for(const [width,theme] of [[1440,'light'],[390,'light'],[320,'light'],[768,'lig
        played.add(view.active);
        assert.equal(view.selected,view.active);assert.equal(view.current,view.active);
        assert.ok(view.grid.endsWith(`마디 ${view.active+1}`));
-       assert.equal(view.note,String(Boolean(pack.pattern.rows[0].steps[view.active*72+1])));
+       assert.equal(view.note,String(Boolean(extractGrooveBar(pack.pattern,view.active).rows[0].steps[1])));
      }
      await page.waitForTimeout(250);
    }
