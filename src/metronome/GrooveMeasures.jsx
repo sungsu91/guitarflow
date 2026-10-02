@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
-import {t} from '../i18n/core.js';
+import {t,localizeUi} from '../i18n/core.js';
 import {GROOVE_BAR_STEPS, MAX_GROOVE_BARS, getGrooveBarRows} from './groove.js';
+import {readPacks,subscribeGroovePacks} from './groovePackLibrary.js';
 import './grooveMeasures.css';
 
 export function useGroovePlayingBar(clock, playing, beats, divisions, barCount) {
@@ -56,9 +57,13 @@ export function MobileGrooveBarControls(props) {
   </div>;
 }
 
-function BarCard({pattern,bar,selected,playingBar,stepsPerBar,onSelect}) {
-  return <button type="button" className={`grooveBarCard ${playingBar===bar?'is-playing':''}`} aria-label={barLabel(bar)} aria-pressed={selected===bar} aria-current={playingBar===bar?'step':undefined} onClick={()=>onSelect(bar)}>
-    <span className="grooveBarCardTitle"><b>{bar+1}</b><strong>{barLabel(bar)}</strong>{playingBar===bar && <em>{t('metronome.grooveBarPlaying')}</em>}</span>
+function BarCard({pattern,bar,selected,playingBar,stepsPerBar,onSelect,packs,compact}) {
+  const saved=packs.find(pack=>pack.id===pattern.barPackIds?.[bar]);
+  const label=saved||pattern.barTitles?.[bar];
+  const title=label?.builtin?localizeUi(label.title):label?.title;
+  const description=title?`${barLabel(bar)} · ${title}`:barLabel(bar);
+  return <button type="button" className={`grooveBarCard ${playingBar===bar?'is-playing':''}`} aria-label={description} title={description} aria-pressed={selected===bar} aria-current={playingBar===bar?'step':undefined} onClick={()=>onSelect(bar)}>
+    <span className="grooveBarCardTitle">{!compact&&<b>{bar+1}</b>}<strong>{barLabel(bar)}</strong>{title&&<span className="grooveBarPackTitle">{title}</span>}{playingBar===bar && <em>{t('metronome.grooveBarPlaying')}</em>}</span>
     <span className="grooveBarMiniature" aria-hidden="true" style={{'--groove-preview-steps':stepsPerBar}}>
       {getGrooveBarRows(pattern,bar).map((row,r)=><span className={`grooveMiniRow ${row.muted?'is-muted':''}`} key={r}>
         {Array.from({length:stepsPerBar},(_,i)=>{
@@ -71,9 +76,11 @@ function BarCard({pattern,bar,selected,playingBar,stepsPerBar,onSelect}) {
 }
 
 function Overview({count,selected,playingBar,reserveSpace=false,...props}) {
+  const [packs,setPacks]=useState(readPacks);
+  useEffect(()=>subscribeGroovePacks(()=>setPacks(readPacks())),[]);
   return <div className="grooveBarCards" role="group" aria-label={t('metronome.selectGrooveBar')}>
       {Array.from({length:reserveSpace?MAX_GROOVE_BARS:count},(_,bar)=>bar<count
-        ?<BarCard {...props} key={bar} bar={bar} selected={selected} playingBar={playingBar}/>
+        ?<BarCard {...props} key={bar} bar={bar} selected={selected} playingBar={playingBar} packs={packs}/>
         :<span key={bar} className="grooveBarPlaceholder" aria-hidden="true"/>)}
     </div>;
 }
@@ -82,5 +89,5 @@ export function DesktopGrooveOverview(props) {
   return <div className="grooveOverview grooveOverview--desktop"><Overview {...props} reserveSpace/></div>;
 }
 export function MobileGrooveOverview(props) {
-  return <div className="grooveOverview grooveOverview--mobile"><Overview {...props}/></div>;
+  return <div className="grooveOverview grooveOverview--mobile"><Overview {...props} compact/></div>;
 }

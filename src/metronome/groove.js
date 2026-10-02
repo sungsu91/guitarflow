@@ -69,6 +69,8 @@ export function replaceGrooveBar(pattern, bar, replacement) {
 }
 export function resizeGroovePattern(pattern, count) {
   const barCount=getGrooveBarCount({barCount:count});
+  const barTitles=[...(pattern.barTitles||[])];
+  for(let bar=grooveCapacity(pattern);bar<barCount;bar++)barTitles[bar]=barTitles[getGrooveBarCount(pattern)-1]??null;
   if(pattern.rows.some(row=>row.bar!=null)) {
     const capacity=grooveCapacity(pattern);
     const nextCapacity=Math.max(capacity,barCount);
@@ -78,9 +80,9 @@ export function resizeGroovePattern(pattern, count) {
     }));
     const source=extractGrooveBar(pattern,getGrooveBarCount(pattern)-1);
     for(let bar=capacity;bar<barCount;bar++)rows.push(...placeGrooveBarRows(source.rows,bar,nextCapacity));
-    return {...pattern,name:'custom',barCount,rows};
+    return {...pattern,name:'custom',barCount,barTitles,rows};
   }
-  return {...pattern,name:'custom',barCount,rows:pattern.rows.map(row=>{
+  return {...pattern,name:'custom',barCount,barTitles,rows:pattern.rows.map(row=>{
     // Shortening the loop retains hidden bars for a later expansion.
     const length=Math.max(row.steps.length,barCount*GROOVE_BAR_STEPS);
     const source=(getGrooveBarCount(pattern)-1)*GROOVE_BAR_STEPS;
@@ -93,7 +95,8 @@ export function resizeGroovePattern(pattern, count) {
 export function copyGrooveBar(pattern, from, to) {
   if(from<0 || to<0 || from>=getGrooveBarCount(pattern) || to>=getGrooveBarCount(pattern) || from===to)return pattern;
   const barPackIds=[...(pattern.barPackIds||[])];barPackIds[to]=barPackIds[from]??null;
-  return {...replaceGrooveBar(pattern,to,extractGrooveBar(pattern,from)),barPackIds};
+  const barTitles=[...(pattern.barTitles||[])];barTitles[to]=barTitles[from]??null;
+  return {...replaceGrooveBar(pattern,to,extractGrooveBar(pattern,from)),barPackIds,barTitles};
 }
 export function clearGrooveBar(pattern, bar) {
   return {...pattern,name:'custom',rows:pattern.rows.map(row=>({...row,
@@ -104,7 +107,7 @@ export function extractGrooveBar(pattern, bar) {
   const normalized=normalizeGroovePattern(pattern);
   const target=Math.max(0,Math.min(getGrooveBarCount(normalized)-1,bar));
   const offset=target*GROOVE_BAR_STEPS;
-  return {name:normalized.name,barCount:1,rows:getGrooveBarRows(normalized,target).map(({bar:owner,...row})=>({...row,
+  return {name:normalized.name,barCount:1,barTitles:[normalized.barTitles?.[target]??null],rows:getGrooveBarRows(normalized,target).map(({bar:owner,...row})=>({...row,
     steps:row.steps.slice(offset,offset+GROOVE_BAR_STEPS),
     velocities:row.velocities.slice(offset,offset+GROOVE_BAR_STEPS),
   }))};
@@ -112,9 +115,14 @@ export function extractGrooveBar(pattern, bar) {
 export function applyGrooveBarPack(pattern, pack, bar) {
   const target=Math.max(0,Math.min(getGrooveBarCount(pattern)-1,bar));
   const current=replaceGrooveBar(pattern,target,pack.pattern);
-  const barPackIds=[...(current.barPackIds||[])];
-  barPackIds[target]=pack.builtin?null:pack.id;
-  return {...current,barPackIds};
+  return setGrooveBarPackInfo(current,pack,target);
+}
+export function setGrooveBarPackInfo(pattern, pack, bar) {
+  const barPackIds=[...(pattern.barPackIds||[])];
+  const barTitles=[...(pattern.barTitles||[])];
+  barPackIds[bar]=pack.builtin?null:pack.id;
+  barTitles[bar]=pack.title?{title:pack.title,builtin:Boolean(pack.builtin)}:null;
+  return {...pattern,barPackIds,barTitles};
 }
 export function applyGrooveQuick(row, mode, index, beats, divisions, strength=70, bar=0) {
   const steps=[...row.steps];
@@ -141,7 +149,8 @@ export function normalizeGroovePattern(pattern, previous) {
 }
 export function createGroovePattern(name = '8beat') {
   const hits = name === 'empty' ? [[], [], []] : [name === '16beat' ? Array.from({length:16}, (_, i) => i) : [0,2,4,6,8,10,12,14], [4,12], [0,8]];
-  return {name,rows:['hihat','snare','kick'].map((tone,r)=>({...createGrooveRow(tone),steps:Array.from({length:72},(_,i)=>hits[r].includes(i))}))};
+  const title=name==='8beat'?ko['metronome.8Beat']:name==='16beat'?ko['metronome.16Beat']:null;
+  return {name,barTitles:[title?{title,builtin:true}:null],rows:['hihat','snare','kick'].map((tone,r)=>({...createGrooveRow(tone),steps:Array.from({length:72},(_,i)=>hits[r].includes(i))}))};
 }
 export function createGrooveVoiceState() {return {openHats:new Set()};}
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));

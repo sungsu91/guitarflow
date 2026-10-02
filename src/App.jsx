@@ -28,7 +28,7 @@ import ShooterGameOver from './shooter/results/ShooterGameOver.jsx';
 import SiteShareButton from './navigation/SiteShareButton.jsx';
 import GroovePacks from './metronome/GroovePacks.jsx';
 import GrooveEditor, { MetronomeDockHandle } from './metronome/GrooveEditor.jsx';
-import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore, getGrooveStepIndex, getGrooveBarCount, applyGrooveBarPack } from './metronome/groove.js';
+import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore, getGrooveStepIndex, getGrooveBarCount, applyGrooveBarPack, setGrooveBarPackInfo } from './metronome/groove.js';
 import {TIME_SIGNATURE_OPTIONS,METRONOME_TONE_OPTIONS} from './metronome/options.js';
 import { mediaPermissionGuide } from "./audio/mediaPermissionGuide.js";
 import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/fixedAddVoicings.js";
@@ -33322,9 +33322,7 @@ function App({ onReady }) {
             const target=groovePackTargetBarRef.current;
             if(action.scope==="bar") {
               if(action.saved) {
-                const current=grooveStore.getSnapshot();
-                const barPackIds=[...(current.barPackIds||[])];barPackIds[target]=pack.id;
-                changeGroovePattern({...current,barPackIds});
+                changeGroovePattern(setGrooveBarPackInfo(grooveStore.getSnapshot(),pack,target));
               } else {changeGroovePattern(applyGrooveBarPack(grooveStore.getSnapshot(),pack,target));selectGrooveBar(target);}
             } else {
               changeGroovePattern(pack.pattern);
