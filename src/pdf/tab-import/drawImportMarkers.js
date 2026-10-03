@@ -3,6 +3,9 @@ export function drawImportMarkers(root,notes){
   if(!root)return ()=>{};
   notes.forEach((e,event)=>{
     if(e.pdfImport?.status!=='unresolved')return;
+    // A source-review flag is not a missing fret. Recognized rests have no
+    // string to fill; their rhythm can still be reviewed at the bar level.
+    if(e.rest&&!e.blank&&!e.pdfImport.pendingStrings?.length)return;
     if(e.notes?.length&&!e.pdfImport.pendingStrings?.length)return;
     const strings=e.pdfImport.pendingStrings?.length?e.pdfImport.pendingStrings:[1];
     for(const string of strings){

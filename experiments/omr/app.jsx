@@ -5,7 +5,7 @@ import React,{useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {loadPdfTask} from '../../src/pdf/pdfRenderer.js';
 import {fingerprintPdf,findPdf,savePdf,patchPdf,storageError} from '../../src/pdf/pdfLibrary.js';
-import {parseTromr,convertTromr} from '../../src/omr/tromrAdapter.js';
+import {parseTromr,convertTromr,recommendTromrPositions} from '../../src/omr/tromrAdapter.js';
 import {fingeringCandidates} from '../../src/etudes/scoreModel.js';
 import {saveLibraryDocument} from '../../src/etudes/scoreLibrary.js';
 import ScoreEditor from '../../src/etudes/ScoreEditor.jsx';
@@ -18,7 +18,7 @@ function App(){
  const [file,setFile]=useState(null),[record,setRecord]=useState(null),[result,setResult]=useState(null),[parsed,setParsed]=useState(null),[status,setStatus]=useState(''),[busy,setBusy]=useState(false),[confirmed,setConfirmed]=useState(false),[shift,setShift]=useState(''),[positions,setPositions]=useState({}),[bpm,setBpm]=useState(60),[editing,setEditing]=useState(null);
  const cancel=()=>{generation.current++;job.current?.terminate();job.current=null;setBusy(false);setStatus(ko["omrPrototype.analysisCanceledSavedOriginalsArePreserved"]);};
  async function run(){
-  const token=++generation.current;setBusy(true);setResult(null);setParsed(null);setPositions({});setStatus(ko["omrPrototype.preparingPage11"]);let task;
+  const token=++generation.current;setBusy(true);setResult(null);setParsed(null);setShift('');setPositions({});setStatus(ko["omrPrototype.preparingPage11"]);let task;
   try {
    if(!file||file.size>20*1024*1024)throw Error(ko["omrPrototype.thisPrototypeSupportsOnePdfPageUpTo20Mb"]);
    const fingerprint=await fingerprintPdf(file);task=loadPdfTask(new Uint8Array(await file.arrayBuffer()));const pdf=await task.promise;
@@ -58,7 +58,8 @@ function App(){
  <p role="status">{localizeUi(status)}</p><canvas ref={canvas} aria-label={translateUi("omrPrototype.originalPdfPreview")}/>
  {parsed&&<section><h2><Translation id="omrPrototype.reviewBeforeConversion" /></h2><p><Translation id="omrPrototype.confidenceScoresAndPerNoteSourceCoordinatesAreUnverifiedReviewEveryNote" /></p><pre>{result.text}</pre><p><Translation id="omrPrototype.recognition" />{(result.inferenceMs/1000).toFixed(2)}<Translation id="omrPrototype.sWasm" />{(result.heapBytes/1048576).toFixed(0)}MiB</p>
  {parsed.unsupported.length>0?<><h3><Translation id="omrPrototype.unsupportedMissingSymbolsConversionBlocked" /></h3><ul>{parsed.unsupported.map((u,i)=><li key={i}>{u.token}</li>)}</ul></>:<>
- <label><Translation id="omrPrototype.originalStaffOctave" /><select aria-label={translateUi("omrPrototype.originalOctave")} value={shift} onChange={e=>{setShift(e.target.value);setPositions({});}}><option value=""><Translation id="omrPrototype.chooseAnOption" /></option><option value="0"><Translation id="omrPrototype.writtenPitchSoundingPitch" /></option><option value="-12"><Translation id="omrPrototype.guitarNotationSoundsOneOctaveLower" /></option></select></label>
+ <label><Translation id="omrPrototype.originalStaffOctave" /><select aria-label={translateUi("omrPrototype.originalOctave")} value={shift} onChange={e=>{const value=e.target.value;setShift(value);setPositions(value===''?{}:recommendTromrPositions(parsed,{octaveShift:Number(value)}).positions);}}><option value=""><Translation id="omrPrototype.chooseAnOption" /></option><option value="0"><Translation id="omrPrototype.writtenPitchSoundingPitch" /></option><option value="-12"><Translation id="omrPrototype.guitarNotationSoundsOneOctaveLower" /></option></select></label>
+ <p><Translation id="omrPrototype.standardFingeringHint" /></p>
  <label><Translation id="omrPrototype.bpmNotRecognizedFromTheScore" /><input aria-label={translateUi("omrPrototype.testBpm")} type="number" min="30" max="240" value={bpm} onChange={e=>setBpm(e.target.value)}/></label>
  {notes.map((n,i)=><label key={n.index}><Translation id="omrPrototype.note" />{i+1} · {n.token}<select aria-label={formatMessage(ko["omrPrototype.noteValueFingering"], { value1: i+1 })} disabled={shift===''} value={positions[n.index]?`${positions[n.index].string}:${positions[n.index].fret}`:''} onChange={e=>{const [string,fret]=e.target.value.split(':').map(Number);setPositions(p=>({...p,[n.index]:e.target.value?{string,fret}:null}));}}><option value=""><Translation id="omrPrototype.chooseFingeringManually" /></option>{fingeringCandidates(n.midi+Number(shift)).map(c=><option key={c.string} value={`${c.string}:${c.fret}`}>{c.string}<Translation id="etudes.string" />{c.fret}<Translation id="app.fret" /></option>)}</select></label>)}
  <button disabled={shift===''||notes.some(n=>!positions[n.index])} onClick={edit}><Translation id="omrPrototype.reviewAndOpenExistingEditor" /></button></>}

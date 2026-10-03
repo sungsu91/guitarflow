@@ -2,6 +2,7 @@ import { readFile } from "./helpers/i18n-source.mjs";
 import assert from "node:assert/strict";
 
 import test from "node:test";
+import { SCALE_OPTIONS } from '../src/fretboard/scaleCatalog.js';
 
 const [appSource, polishCss] = await Promise.all([
   readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
@@ -9,14 +10,10 @@ const [appSource, polishCss] = await Promise.all([
 ]);
 
 test("scale training keeps five boxes and adds shared root positions to the existing picker", () => {
-  const trainingFamilySource = appSource.slice(
-    appSource.indexOf("const SCALE_TRAINING_FAMILIES ="),
-    appSource.indexOf("const PENTATONIC_BOX_PATTERNS ="),
-  );
-
-  assert.match(trainingFamilySource, /scale: SCALE_FAMILIES\.scale/);
-  assert.match(trainingFamilySource, /pentatonic: SCALE_FAMILIES\.pentatonic/);
-  assert.doesNotMatch(trainingFamilySource, /SCALE_LICK|릭|lick/);
+  assert.equal(SCALE_OPTIONS.length, 16);
+  assert.ok(SCALE_OPTIONS.every(option => !/lick/i.test(option.id)));
+  assert.match(appSource, /options=\{SCALE_OPTIONS\}/);
+  assert.doesNotMatch(appSource, /className="scaleTypeSelect"|setSelectedScaleType|setViewerScaleType/);
   assert.doesNotMatch(appSource, /SCALE_LICK_UI_ENABLED/);
   assert.match(
     appSource,
@@ -34,17 +31,16 @@ test("mobile scale picker removes visible field labels and enlarges dropdown tex
   assert.match(polishCss, /grid-template-rows: 34px !important/);
   assert.match(polishCss, /height: 44px !important;[\s\S]*?min-height: 44px !important;[\s\S]*?max-height: 44px !important;/);
   assert.match(polishCss, /\.scaleFamilySelect \{[\s\S]*?grid-column: 2 !important;[\s\S]*?grid-row: 1 !important;/);
-  assert.match(polishCss, /\.scaleTypeSelect \{[\s\S]*?grid-column: 3 !important;[\s\S]*?grid-row: 1 !important;/);
-  assert.match(polishCss, /\.scaleDetailSelect \{[\s\S]*?grid-column: 4 !important;[\s\S]*?grid-row: 1 !important;/);
+  assert.match(polishCss, /\.scaleDetailSelect \{[\s\S]*?grid-column: 3 !important;[\s\S]*?grid-row: 1 !important;/);
+  assert.match(polishCss, /grid-template-columns: 58px minmax\(0, 1fr\) 64px 48px !important/);
   assert.match(appSource, /showLabel = true/);
   assert.match(appSource, /label="키"[\s\S]*?showLabel=\{!isMobileLayout\}/);
   assert.match(appSource, /label="스케일"[\s\S]*?showLabel=\{!isMobileLayout\}/);
-  assert.match(appSource, /label="타입"[\s\S]*?showLabel=\{!isMobileLayout\}/);
   assert.match(appSource, /label=\{selectedScaleDetailLabel\}[\s\S]*?showLabel=\{!isMobileLayout\}/);
   assert.doesNotMatch(polishCss, /> \.metronomeSelectLabel \{/);
   assert.match(polishCss, /\.metronomeSelectButton\.metronomeSelectButton[\s\S]*?padding: 0 4px 0 6px !important;/);
   assert.match(polishCss, /font-size: 12px !important;[\s\S]*?font-weight: 950 !important;/);
-  assert.match(polishCss, /html body main\.app\.app\.app\s*> \.metronomeSelectPortal:is\(\.scaleKeySelect, \.scaleFamilySelect, \.scaleTypeSelect, \.scaleDetailSelect\)/);
+  assert.match(polishCss, /html body main\.app\.app\.app\s*> \.metronomeSelectPortal:is\(\.scaleKeySelect, \.scaleFamilySelect, \.scaleDetailSelect\)/);
   assert.match(polishCss, /> \.metronomeSelectMenu[\s\S]*?> \.metronomeSelectOption \{[\s\S]*?height: 32px !important;[\s\S]*?min-height: 32px !important;[\s\S]*?max-height: 32px !important;[\s\S]*?color: var\(--riff-text-strong\) !important;[\s\S]*?font-size: 18px !important;[\s\S]*?font-weight: 900 !important;/);
 });
 

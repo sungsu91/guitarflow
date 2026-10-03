@@ -1,6 +1,16 @@
 // Digital PDFs already contain exact characters. Keep their real positions;
 // never OCR a title/chord chart or infer a number from an entire page of text.
 import {isFretText,normalizeFretText} from './fretText.js';
+export function hasRotatedTabText(content,viewport){
+  const digits=content.items.filter(item=>/^[0-9Xx]{1,2}$/.test(item.str?.trim())&&item.transform);
+  if(digits.length<8)return false;
+  const [a,b,c,d]=viewport.transform;
+  const rotated=digits.filter(item=>{
+    const [x,y]=item.transform,dx=a*x+c*y,dy=b*x+d*y;
+    return dx<=0||Math.abs(dy)>Math.abs(dx)*.15;
+  });
+  return rotated.length/digits.length>=.8;
+}
 export function projectPdfText(content,viewport){
   const widths=new Map();
   for(const i of content.items)if(/^\d$/.test(i.str)&&i.height>0){const values=widths.get(i.fontName)??[];values.push(i.width/i.height);widths.set(i.fontName,values);}

@@ -28,7 +28,8 @@ import {repeatMarks} from './scoreRepeats.js';
 
 
 import {playheadX,rhythmAnchors} from './scorePlayhead.js';
-import {measureLayout} from './measureLayout.js';
+import {createScorePlayheadLayer,highlightScoreBar} from './scorePlayheadLayer.js';
+import {measureLayout,scoreLineSettings} from './measureLayout.js';
 import {mobileScoreWidth} from './mobileScoreSizing.js';
 import {createPortal} from 'react-dom';
 import {createDesktopScorePages,createMobileScorePages,DESKTOP_SCORE_CONTENT_WIDTH,withIsolatedScore} from './desktopScorePages.js';
@@ -115,7 +116,7 @@ class EditableTuplet extends Tuplet {
 function prepareMeasure(measure, etude) {
     const repeatMask=etude.tabRhythmVisible===false?[]:tabRepeatMask(measure);
     const polyphonic=measure.some(n=>n.voice==='melody');
-    const notes = measure.map(n => isBlankEvent(n)?new GhostNote({duration:n.duration+(n.dotted?'d':'')}):new StaveNote({ clef:scoreInstrument(etude.instrument).clef, keys: n.rest ? [scoreInstrument(etude.instrument).clef==='bass'?'d/3':polyphonic&&n.voice==='melody'?'d/5':'b/4'] : (n.tones ?? [n]).map(t=>t.pitch.key+((t.dead??n.dead)?'/x':'')), duration: n.duration+(n.dotted?'d':'')+(n.rest?'r':''), auto_stem: !polyphonic,...(polyphonic?{stem_direction:n.voice==='melody'?1:-1}:{}) }));
+    const notes = measure.map(n => isBlankEvent(n)?new GhostNote({duration:n.duration+(n.dotted?'d':'')}):new StaveNote({ clef:scoreInstrument(etude.instrument).clef, keys: n.rest ? [scoreInstrument(etude.instrument).clef==='bass'?'d/3':polyphonic&&n.voice==='melody'?'d/5':'b/4'] : n.rhythmSlash?['b/4']:(n.tones ?? [n]).map(t=>t.pitch.key+((t.dead??n.dead)?'/x':'')), duration: n.duration+(n.dotted?'d':'')+(n.rest?'r':n.rhythmSlash?'s':''), auto_stem: !polyphonic,...(polyphonic?{stem_direction:n.voice==='melody'?1:-1}:{}) }));
     // Whole-note heads are wider than eighth-note heads. Independent voices
     // at one onset still need one TAB column, including mixed one/two-digit frets.
     const tabAnchors=new Map();
@@ -139,7 +140,7 @@ function prepareMeasure(measure, etude) {
     const makeVoices=list=>groups.map(indices=>new Voice({num_beats:(etude.meter??[4,4])[0],beat_value:(etude.meter??[4,4])[1]}).setMode(Voice.Mode.SOFT).addTickables(indices.map(i=>list[i])));
     const voices=makeVoices(notes),tabVoices=makeVoices(tabs);
     // Accidental state is reset every bar, including naturals after blue notes.
-    Accidental.applyAccidentals(voices, etude.keySignature);
+    Accidental.applyAccidentals(measure.some(n=>n.rhythmSlash)?makeVoices(notes.map((note,i)=>measure[i].rhythmSlash?new GhostNote({duration:measure[i].duration}):note)):voices, etude.keySignature);
     let beams = groups.flatMap(indices=>Beam.generateBeams(indices.map(i=>notes[i]),{groups:Beam.getDefaultBeamGroups((etude.meter??[4,4]).join('/')),...(polyphonic?{stem_direction:measure[indices[0]].voice==='melody'?1:-1}:{})}));
     if(measure.some(n=>n.tuplet)){
       const automatic=rhythmGroups(measure,etude.meter,{automatic:true});
@@ -258,7 +259,7 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
 }
 
 export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabShortStems=Boolean(etude.document?.viewSettings?.tabShortStems),tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, rhythmicSpacing=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, desktopPage=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
-  if(mobile&&responsive&&!editor&&!measuresPerRow){
+  if(mobile&&responsive&&!editor&&!measuresPerRow&&!etude.document?.viewSettings?.measuresPerRow){
     const pairs=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),2,etude.document?.viewSettings?.systemBreaks??[]);
     const minimum=scoreSpacing(etude,{placements:pairs,view,width:0,barOffset,rhythmicSpacing}).width;
     // Fit the actual symbols at their normal size, with breathing room. Dense
@@ -281,8 +282,9 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   // Respect authored line breaks, then size vector engraving to its rhythmic
   // and symbol requirements. Unconfigured dense studies use one bar on mobile.
   const dense = etude.measures.some(measure => measure.length > 8);
-  const perRow = editor ? 1 : measuresPerRow ? measuresPerRow : responsive ? Math.max(1,Math.min(6,Math.floor((editorWidth??980)/(dense?340:260)))) : etude.document?.viewSettings?.measuresPerRow ?? (mobile && !landscape && (enlarged || dense) ? 1 : 2);
-  const placements=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),perRow,etude.document?.viewSettings?.systemBreaks??[]);
+  const fallback=responsive?Math.max(1,Math.min(6,Math.floor((editorWidth??980)/(dense?340:260)))):(mobile&&!landscape&&(enlarged||dense)?1:2);
+  const lines=scoreLineSettings(etude.document,measuresPerRow,fallback),perRow=editor?1:lines.perRow;
+  const placements=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),perRow,lines.breaks);
   const baseWidth=mobile&&landscape?(dense?1100:980):mobile?(enlarged?460:view==='both'?600:400):980;
   const spacing=engraving?null:scoreSpacing(etude,{placements,view,width:editorWidth??baseWidth,barOffset,rhythmicSpacing,equalMeasures:desktopPage});
   const width=engraving?engraving.cellWidth:spacing.width;
@@ -386,29 +388,33 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       }
     }
     if(etude.accompaniment && first&&!charts[index]?.length) context.setFont('Arial',13,'italic').fillText('let ring',x+150,(view==='tab'?tab:stave).getYForLine(0)-18-headroom);
-    // Keep the first number of each system inside the clef/key-signature area.
+    // Lift each system's first number above the bracket's curled top.
     // Other measure numbers sit directly above the barline that starts them.
     const measureNumberX = x;
     const measureNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     measureNumber.textContent = String(index + barOffset + 1);
     measureNumber.setAttribute('class', 'etudeMeasureNumber');
     measureNumber.setAttribute('x', String(measureNumberX));
-    measureNumber.setAttribute('y', String((view==='tab'?tab:stave).getYForLine(0) - 4));
+    measureNumber.setAttribute('y', String((view==='tab'?tab:stave).getYForLine(0) - (first?24:4)));
     measureNumber.style.cssText='font:400 10px Arial,sans-serif;fill:#999;stroke:none';
     measureNumber.setAttribute('text-anchor', 'middle');
     element.querySelector('svg').style.overflow='visible';
     element.querySelector('svg').append(measureNumber);
-    if((etude.harmony?.[index]||(editor&&etude.chordNameModes?.[index]))&&!etude.chordShapes?.[index]&&!charts[index]?.length) {
-      const group=context.openGroup('etudeHarmonyLabel');
-      group.dataset.scoreBar=String(index);group.dataset.scoreAnnotation='harmony';group.dataset.annotationBar=String(index+barOffset);
-      const top=(view==='tab'?tab:stave).getYForLine(0);
-      const label=etude.harmony?.[index]||ko["etudes.chordNames"],lines=etude.harmony?.[index]?harmonyLines[index]:[label];
-      group.dataset.harmonyText=label;
-      const text=document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.style.cssText='font:bold 14px Arial;fill:#111;stroke:none';
-      lines.forEach((line,i)=>{const span=document.createElementNS(text.namespaceURI,'tspan');span.setAttribute('x',String(x+35));span.setAttribute('y',String(top-24-(view==='tab'?0:headroom+upperSpace)-(lines.length-1-i)*18));span.textContent=line+(i<lines.length-1?' ':'');text.append(span);});
-      group.append(text);
-      context.closeGroup();
+    if((etude.harmony?.[index]||etude.harmonyChanges?.[index]?.length||(editor&&etude.chordNameModes?.[index]))&&!etude.chordShapes?.[index]&&!charts[index]?.length) {
+      const changes=etude.harmonyChanges?.[index]?.length?etude.harmonyChanges[index]:[{onset:0,name:etude.harmony?.[index]||ko["etudes.chordNames"]}];
+      for(const change of changes){
+       const group=context.openGroup('etudeHarmonyLabel');
+       group.dataset.scoreBar=String(index);group.dataset.scoreAnnotation='harmony';group.dataset.annotationBar=String(index+barOffset);group.dataset.harmonyOnset=String(change.onset);
+       const top=(view==='tab'?tab:stave).getYForLine(0),label=change.name;
+       const lines=changes.length===1?(etude.harmony?.[index]?harmonyLines[index]:[label]):[label];
+       group.dataset.harmonyText=label;
+       const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+       text.style.cssText='font:bold 14px Arial;fill:#111;stroke:none';
+       const at=measure.findIndex(e=>e.onset===change.onset);
+       const labelX=changes.length===1?x+35:start+geometry.inset+(geometry.positions?.[at]??change.onset*geometry.tickScale);
+       lines.forEach((line,i)=>{const span=document.createElementNS(text.namespaceURI,'tspan');span.setAttribute('x',String(labelX));span.setAttribute('y',String(top-24-(view==='tab'?0:headroom+upperSpace)-(lines.length-1-i)*18));span.textContent=line+(i<lines.length-1?' ':'');text.append(span);});
+       group.append(text);context.closeGroup();
+      }
     }
     if (first) {context.openGroup('fretiva-both-view');new StaveConnector(stave, tab).setType(StaveConnector.type.BRACKET).setContext(context).draw();context.closeGroup();}
     const {notes,tabs,tuplets,voices,tabVoices,beams}=prepareMeasure(measure,{...etude,meter});
@@ -434,7 +440,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       drawTabRests(element.querySelector('svg'),events,notes,voice==='melody'?tab.getYForLine(0)-40:voice==='accompaniment'?tab.getYForLine(stringCount-1)+32:tab.getYForLine((stringCount-1)/2)).dataset.scoreBar=index;
      }
     }
-    const beamGeometry=beams.map(beam=>({indices:beam.getNotes().map(note=>notes.indexOf(note)),xs:beam.getNotes().map(note=>note.getStemX()-Stem.WIDTH/2),levels:['4','8'].map(duration=>beam.getBeamLines(duration))}));
+    const beamGeometry=beams.map(beam=>({indices:beam.getNotes().map(note=>notes.indexOf(note)),xs:beam.getNotes().map(note=>note.getStemX()-Stem.WIDTH/2),levels:['4','8','16'].map(duration=>beam.getBeamLines(duration))}));
     if(tabRhythm){
      for(const voice of polyphonic?['melody','accompaniment']:[null]){
       const svg=element.querySelector('svg'),events=voice?measure.map(e=>e.voice===voice?e:{...e,rest:true,blank:true,notes:[]}):measure;
@@ -446,7 +452,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       node.dataset.rhythmEvents=index+':'+node.dataset.rhythmEvent;
       node.dataset.rhythmRole='note';
     });
-    for(const list of [notes,tabs])list.forEach((note,i)=>{const node=noteElement(note);if(node){node.dataset.scoreBar=index;node.dataset.scoreEvent=i;node.dataset.rhythmEvents=index+':'+i;node.dataset.rhythmRole='note';if(list===tabs&&!measure[i].rest)node.dataset.rhythmTouch='tab';}});
+    for(const list of [notes,tabs])list.forEach((note,i)=>{const node=noteElement(note);if(node){node.dataset.scoreBar=index;node.dataset.scoreEvent=i;node.dataset.rhythmEvents=index+':'+i;node.dataset.rhythmRole='note';if(list===notes&&measure[i].rhythmSlash)node.dataset.rhythmSlash='true';if(list===tabs&&!measure[i].rest)node.dataset.rhythmTouch='tab';}});
     measure.forEach((event,i)=>{
       const px=tabs[i].getAbsoluteX(),py=tabPickingPosition==='above'?tab.getYForLine(0)-(tabRhythm&&tabBeamPosition==='above'?((measure.some(e=>e.tuplet)?70:48)+2*(TAB_LINE_SPACING-13)):(measure.some(e=>e.palmMute)?36:14)):tab.getYForLine(stringCount-1)+(tabRhythm&&tabBeamPosition!=='above'?((measure.some(e=>e.tuplet)?72:56)+2*(TAB_LINE_SPACING-13)):25),svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
       const text=[event.pickStroke==='down'?'Π':event.pickStroke==='up'?'V':'',...(event.tones??[event]).map(n=>[!etude.chordShapes?.[index]&&n.finger?`L${n.finger}`:'',n.rightFinger??''].filter(Boolean).join('/'))].filter(Boolean).join(' ');
@@ -490,6 +496,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
         for (const pair of slidePairs(n, measure[i+1])) {
         const slidePair = {...tabPair, first_indices:[pair.first], last_indices:[pair.last]};
         for(const [mode,list] of [['tab',tabs],['staff',notes]]) {
+          if(mode==='staff'&&(n.rhythmSlash||measure[i+1].rhythmSlash))continue;
           const group=context.openGroup(`fretiva-${mode}-view`);
           const first=list[i],last=list[i+1];
           group.dataset.slideFrom=index+':'+i;group.dataset.slideTo=index+':'+(i+1);
@@ -561,7 +568,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
         // Paint the nearest owner last where a chord shares a ledger line;
         // note-head handles below retain priority over all ledger extensions.
         const heads=notes[i].noteHeads,ledgerHits=[];
-        if(!event.rest)for(const [j,tone] of (event.tones??[event]).entries()){
+        if(!event.rest&&!event.rhythmSlash)for(const [j,tone] of (event.tones??[event]).entries()){
           const head=heads[j],line=head.getLine(),direction=line>=6?1:-1;
           const cx=head.getAbsoluteX()+head.getWidth()/2,cy=head.getY();
           for(let ledger=direction===1?6:0;direction===1?ledger<=line:ledger>=line;ledger+=direction){
@@ -581,6 +588,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
           Object.entries(attributes).forEach(([k,v])=>ledgerHit.setAttribute(k,String(v)));svg.append(ledgerHit);
         }
         if(!event.rest)for(const [j,tone] of (event.tones??[event]).entries())for(const mode of ['tab','staff']){
+          if(mode==='staff'&&event.rhythmSlash&&j>0)continue;
           const handle=document.createElementNS(ns,'rect'),cx=mode==='tab'?px:heads[j].getAbsoluteX()+heads[j].getWidth()/2,cy=mode==='tab'?tab.getYForLine((tone.string??1)-1):notes[i].getYs()[j],hitHeight=mode==='tab'?Math.min(14,spacing):10;
           Object.entries({x:cx-10,y:cy-hitHeight/2,width:20,height:hitHeight,'data-event':i,'data-string':tone.string,'data-drag-tone':tone.string,'data-tone-id':tone.id,'data-mode':mode,'data-staff-bottom':stave.getYForLine(4),'data-midi':tone.midi,'data-cursor-x':cx-12,'data-cursor-y':cy-7,class:'etudeEditorHit etudeNoteHandle',fill:'transparent'}).forEach(([k,v])=>handle.setAttribute(k,String(v)));svg.append(handle);
         }
@@ -597,26 +605,27 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     }
     metrics.push(notes.map((n, i) => ({ noteX: n.getAbsoluteX(), tabX: tabs[i].getAbsoluteX(), end: x + w,
       noteCenterX:n.getCenterGlyphX(),tabCenterX:tabs[i].getCenterGlyphX(),
-      rest:measure[i].rest, blank:isBlankEvent(measure[i]), line: n.getKeyProps?.()[0]?.line??3, expectedLine: measure[i].rest ? (n.getKeyProps?.()[0]?.line??3) : (staffStepForPitch(measure[i].pitch,etude.instrument)+2)/2,
+      rest:measure[i].rest, blank:isBlankEvent(measure[i]), line: n.getKeyProps?.()[0]?.line??3, expectedLine: measure[i].rest||measure[i].rhythmSlash ? (n.getKeyProps?.()[0]?.line??3) : (staffStepForPitch(measure[i].pitch,etude.instrument)+2)/2,
       tones: measure[i].rest ? [] : (measure[i].tones ?? [measure[i]]).map((tone,j)=>({
-        line:n.getKeyProps()[j].line, expectedLine:(staffStepForPitch(tone.pitch,etude.instrument)+2)/2,
+        line:n.getKeyProps()[measure[i].rhythmSlash?0:j].line, expectedLine:measure[i].rhythmSlash?n.getKeyProps()[0].line:(staffStepForPitch(tone.pitch,etude.instrument)+2)/2,
         tab:tabs[i].getPositions()[j], expectedTab:{str:tone.string,fret:tone.fret},
       })),
       accidentals: n.getModifiers().filter(m => m.getCategory() === 'Accidental').map(m => m.type) })));
   });
   if(etude.incomingTie&&drawn[0]&&!drawn[0].event.rest){
     const b=drawn[0],indices=(b.event.tones??[b.event]).map((_,j)=>j);
-    context.openGroup('fretiva-staff-view');new StaveTie({last_note:b.note,first_indices:indices,last_indices:indices}).setContext(context).draw();context.closeGroup();
+    context.openGroup('fretiva-staff-view');new StaveTie({last_note:b.note,first_indices:b.event.rhythmSlash?[0]:indices,last_indices:b.event.rhythmSlash?[0]:indices}).setContext(context).draw();context.closeGroup();
     context.openGroup('fretiva-tab-view');new ReadableTabTie({last_note:b.tab,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();
   }
   for(let i=0;i<drawn.length;i++){
     const a=drawn[i];if(!a.event.tieTo||a.event.rest)continue;const b=drawn.find(n=>n.event.id===a.event.tieTo);
     const same=b?.event.id===a.event.tieTo&&!b.event.rest&&b.row===a.row;
     const indices=(a.event.tones??[a.event]).map((_,j)=>j);
+    const staffIndices=a.event.rhythmSlash||b?.event.rhythmSlash?[0]:indices;
     const tieGroup=context.openGroup('scoreTieConnection');tieGroup.dataset.rhythmEvents=a.key;
-    context.openGroup('fretiva-staff-view');new StaveTie({first_note:a.note,last_note:same?b.note:undefined,first_indices:indices,last_indices:indices}).setContext(context).draw();context.closeGroup();
+    context.openGroup('fretiva-staff-view');new StaveTie({first_note:a.note,last_note:same?b.note:undefined,first_indices:staffIndices,last_indices:staffIndices}).setContext(context).draw();context.closeGroup();
     context.openGroup('fretiva-tab-view');new ReadableTabTie({first_note:a.tab,last_note:same?b.tab:undefined,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();
-    if(b?.event.id===a.event.tieTo&&!same){context.openGroup('fretiva-staff-view');new StaveTie({last_note:b.note,first_indices:indices,last_indices:indices}).setContext(context).draw();context.closeGroup();context.openGroup('fretiva-tab-view');new ReadableTabTie({last_note:b.tab,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();}
+    if(b?.event.id===a.event.tieTo&&!same){context.openGroup('fretiva-staff-view');new StaveTie({last_note:b.note,first_indices:staffIndices,last_indices:staffIndices}).setContext(context).draw();context.closeGroup();context.openGroup('fretiva-tab-view');new ReadableTabTie({last_note:b.tab,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();}
     context.closeGroup();
   }
   const svg = element.querySelector('svg');
@@ -626,7 +635,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   // visible notation; blank slots and the hidden staff do not reserve space.
   for(const item of navigation){
     const {notes,tabs,measure,beams,tuplets,top,x,first,start,measureNumberX}=item;
-    const obstacles=[...(item.palmMuteObstacles??[]),{x:measureNumberX-8,y:top-24,width:16,height:14}];
+    const obstacles=[...(item.palmMuteObstacles??[]),{x:measureNumberX-8,y:top-(first?36:24),width:16,height:14}];
     if(view==='tab')for(const node of svg.querySelectorAll(`.etudeTabRhythm[data-score-bar="${item.index-barOffset}"]>*,.tabRests[data-score-bar="${item.index-barOffset}"]>*,.tabPickingLabel[data-rhythm-events^="${item.index-barOffset}:"],.vf-scoreTieConnection[data-rhythm-events^="${item.index-barOffset}:"] .vf-fretiva-tab-view path`)){
       const b=node.getBBox(),matrix=svg.getScreenCTM().inverse().multiply(node.getScreenCTM());
       const a=new DOMPoint(b.x,b.y).matrixTransform(matrix),z=new DOMPoint(b.x+b.width,b.y+b.height).matrixTransform(matrix);
@@ -721,22 +730,11 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   const ref = useRef(null);
   const positionRef=useRef(playPosition);positionRef.current=playPosition;
   const drawPositionRef=useRef(null);
+  const playheadLayerRef=useRef(null);
   const selectBarRef=useRef(onSelectBar);selectBarRef.current=onSelectBar;
   const hasPosition=Boolean(playPosition),isPlaying=Boolean(playPosition?.playing),canSelectBar=Boolean(onSelectBar);
   const [availableWidth,setAvailableWidth]=useState(paginatedDesktop?DESKTOP_SCORE_CONTENT_WIDTH:0);
   const [pageMounts,setPageMounts]=useState(null);
-  const [availableHeight,setAvailableHeight]=useState(0);
-  useLayoutEffect(()=>{
-    if(!responsive||!focusLayout||view!=='tab')return;
-    const viewport=ref.current.closest('.etudeScoreViewport');
-    if(!viewport)return;
-    const measure=()=>{
-      const sheetStyle=getComputedStyle(viewport.querySelector('.etudeSheet'));
-      setAvailableHeight(Math.max(0,viewport.clientHeight-parseFloat(sheetStyle.paddingTop)-parseFloat(sheetStyle.paddingBottom)-12));
-    };
-    measure();const observer=new ResizeObserver(measure);observer.observe(viewport);
-    return()=>observer.disconnect();
-  },[responsive,focusLayout,view]);
   useLayoutEffect(()=>{if(paginatedDesktop){setAvailableWidth(DESKTOP_SCORE_CONTENT_WIDTH);return;}if(!responsive)return;const viewport=ref.current.closest('.etudeScoreViewport');const target=mobile&&viewport?viewport:ref.current;const measure=()=>{const sheet=mobile&&viewport?getComputedStyle(viewport.querySelector('.etudeSheet')):null;const width=target.clientWidth-(sheet?(parseFloat(sheet.paddingLeft)||0)+(parseFloat(sheet.paddingRight)||0):0);setAvailableWidth(Math.max(0,Math.round(width)));};measure();const observer=new ResizeObserver(measure);observer.observe(target);return()=>observer.disconnect();},[responsive,mobile,paginatedDesktop]);
   const practiceFollow=usePracticeFollow(ref,followMode,Boolean(playPosition?.playing),[availableWidth,view,zoom,focusLayout,measuresPerRow].join(":"));
   const follow=usePlaybackFollow(ref,followPlayback&&Boolean(playPosition?.playing));
@@ -744,6 +742,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   const [error, setError] = useState('');
   const [rendering,setRendering]=useState(true);
   const [renderRevision,setRenderRevision]=useState(0);
+  const rhythmicSpacing=followMode==='fingering';
   const [landscape, setLandscape] = useState(() => window.matchMedia('(orientation: landscape)').matches);
   useLayoutEffect(() => {
     const query = window.matchMedia('(orientation: landscape)');
@@ -754,7 +753,8 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
   useEffect(() => {
     let firstFrame,secondFrame,timer;
     const renderZoom=focusLayout?1:zoom;
-    const options={ mobile, enlarged, landscape, view, responsive,desktopPage:paginatedDesktop,language,rhythmicSpacing:followMode==='fingering',measuresPerRow,editorWidth:paginatedDesktop?DESKTOP_SCORE_CONTENT_WIDTH:responsive?Math.max(240,availableWidth/renderZoom):mobile&&!landscape&&!enlarged?600:undefined };
+    const options={ mobile, enlarged, landscape, view, responsive,desktopPage:paginatedDesktop,language,rhythmicSpacing,measuresPerRow,editorWidth:paginatedDesktop?DESKTOP_SCORE_CONTENT_WIDTH:responsive?Math.max(240,availableWidth/renderZoom):mobile&&!landscape&&!enlarged?600:undefined };
+    const engravingOptions=paginatedMobile?{...options,editorWidth:Math.max(218,availableWidth-22)}:options;
     const render=()=>{
     try {
       if(paginatedDesktop){
@@ -767,7 +767,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
       }else if(paginatedMobile){
         const pageWidth=Math.max(240,availableWidth)*zoom;
         const pages=withIsolatedScore(pageWidth,host=>{
-          renderCachedScore(host,etude,{...options,editorWidth:Math.max(218,availableWidth-22)});
+          renderCachedScore(host,etude,engravingOptions);
           return createMobileScorePages(host.querySelector('svg'),pageWidth);
         });
         ref.current.replaceChildren(pages);
@@ -788,34 +788,31 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
     };
     // Cached pages can appear immediately. A cold engraving lets feedback paint
     // once, then measures notation without recalculating the rest of the app.
-    if(paginatedDesktop&&scoreCache.get(scoreCacheKey(etude,options))?.etude===etude)render();
+    if(scoreCache.get(scoreCacheKey(etude,engravingOptions))?.etude===etude)render();
     else {
       setRendering(true);
       firstFrame=requestAnimationFrame(()=>{secondFrame=requestAnimationFrame(()=>{timer=setTimeout(render,0);});});
     }
     return()=>{cancelAnimationFrame(firstFrame);cancelAnimationFrame(secondFrame);clearTimeout(timer);};
-  }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth,availableHeight, zoom, measuresPerRow,focusLayout,followMode,language,paginatedDesktop,paginatedMobile]);
+  }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth, zoom, measuresPerRow,focusLayout,rhythmicSpacing,language,paginatedDesktop,paginatedMobile]);
   useEffect(() => {
     ref.current?.querySelectorAll('svg[data-notation-view]').forEach(svg=>svg.setAttribute('aria-label', localizeUi(`${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?ko["etudes.staff"]:view==='tab'?'TAB':ko["etudes.notationAndTab"]}`)));
   }, [renderRevision,etude, mobile, enlarged, landscape, bpm, view,language]);
+  useLayoutEffect(()=>{
+    const layer=createScorePlayheadLayer(ref.current);playheadLayerRef.current=layer;
+    return()=>{layer.destroy();playheadLayerRef.current=null;};
+  },[renderRevision]);
   useEffect(()=>{
     const root=ref.current,svg=root?.querySelector('svg[data-notation-view]');if(!svg||!hasPosition)return;
-    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-    Object.entries({class:'savedScorePlayhead',stroke:'var(--riff-danger, #c85d54)','stroke-opacity':1,'stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none','aria-hidden':'true'}).forEach(([key,value])=>line.setAttribute(key,value));
-    const wash=line.cloneNode();wash.setAttribute('class','savedScorePlayheadWash');
     const progressEnabled=rhythmProgress&&followMode!=='off';
-    svg.append(wash,line);line.style.visibility=wash.style.visibility=progressEnabled?'visible':'hidden';
-    const highlight=rhythmHighlighter(root,rhythmStates);let frame,activeBar,points;
+    const layer=playheadLayerRef.current;
+    const highlight=rhythmHighlighter(root,rhythmStates);let frame,activeBar,points,line,wash;
     const draw=()=>{
       const position=positionRef.current;if(!position)return;
       const current=position.getCurrentSlot?.()??position;
       if(activeBar!==current.bar){const bar=root.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;
-        if(line.ownerSVGElement!==bar.ownerSVGElement)bar.ownerSVGElement.append(wash,line);
-        for(const selection of root.querySelectorAll('[data-start-bar]')){
-          const active=Number(selection.dataset.startBar)===current.bar&&progressEnabled;
-          selection.setAttribute('fill',active?'rgba(190,155,98,.12)':'transparent');
-          selection.setAttribute('stroke',active?'rgba(190,155,98,.3)':'none');
-        }
+        const pair=layer.activate(bar.ownerSVGElement,progressEnabled);if(!pair)return;({line,wash}=pair);
+        highlightScoreBar(root,progressEnabled?current.bar:null);
         points=rhythmAnchors(JSON.parse(bar.dataset.points));line.setAttribute('y1',bar.dataset.top);line.setAttribute('y2',bar.dataset.bottom);}
       const tick=position.getTimelineTick?position.getTimelineTick()-current.barStart:position.getBarTick?.()??points[current.event]?.tick??0;
       highlight.update(current.barStart+tick,progressEnabled);
@@ -826,14 +823,15 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
       const x=playheadX(points,tick);line.setAttribute('x1',x);line.setAttribute('x2',x);line.dataset.tick=String(tick);line.dataset.bar=String(current.bar);line.dataset.visit=String(current.visit??0);for(const attr of ['x1','x2','y1','y2'])wash.setAttribute(attr,line.getAttribute(attr));followRef.current(line,current);
       if(position.playing)frame=requestAnimationFrame(draw);
     };drawPositionRef.current=draw;draw();
-    return()=>{drawPositionRef.current=null;cancelAnimationFrame(frame);line.remove();wash.remove();highlight.clear();};
-  },[renderRevision,hasPosition,isPlaying,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode,rhythmProgress,rhythmStates]);
+    return()=>{drawPositionRef.current=null;cancelAnimationFrame(frame);layer.hide();highlight.clear();};
+  },[renderRevision,hasPosition,isPlaying,etude,mobile,enlarged,landscape,view,availableWidth,zoom,measuresPerRow,focusLayout,followMode,rhythmProgress,rhythmStates]);
   useEffect(()=>{if(!isPlaying)drawPositionRef.current?.();},[playPosition,isPlaying]);
+  useEffect(()=>{if(!hasPosition)highlightScoreBar(ref.current,selectedBar);},[renderRevision,hasPosition,selectedBar]);
   useEffect(()=>{
    const root=ref.current;if(!root?.querySelector('svg[data-notation-view]')||!canSelectBar)return;
    const position=positionRef.current,highlightedBar=position?(position.getCurrentSlot?.()??position).bar:selectedBar;
    const nodes=[];for(const bar of root.querySelectorAll('[data-playback-bar]')){const r=document.createElementNS('http://www.w3.org/2000/svg','rect'),index=Number(bar.dataset.playbackBar);for(const [k,v] of Object.entries({x:bar.dataset.left,y:bar.dataset.top,width:bar.dataset.width,height:Number(bar.dataset.bottom)-Number(bar.dataset.top),fill:index===highlightedBar?'rgba(190,155,98,.12)':'transparent',stroke:index===highlightedBar?'rgba(190,155,98,.3)':'none',rx:5,role:'button',tabindex:0,'aria-label':formatMessage(ko["etudes.startAtBarValue"], { value1: index+1 }),'data-start-bar':index}))r.setAttribute(k,v);r.style.cursor='pointer';r.onclick=()=>selectBarRef.current?.(index);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectBarRef.current?.(index);}};bar.ownerSVGElement.append(r);nodes.push(r);}return()=>nodes.forEach(n=>n.remove());
-  },[renderRevision,etude,canSelectBar,selectedBar,hasPosition,mobile,enlarged,landscape,view,responsive,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
+  },[renderRevision,etude,canSelectBar,selectedBar,mobile,enlarged,landscape,view,responsive,availableWidth,zoom,measuresPerRow,focusLayout,followMode]);
   return <>{paginatedMobile&&<MobileScorePageNav root={ref} revision={renderRevision} scoreId={etude.id} onNavigate={practiceFollow.suspend}/>} {!paginatedDesktop&&etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{paginatedDesktop&&pageMounts?.header&&createPortal(<>{pageHeader}{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}</>,pageMounts.header)}{paginatedDesktop&&pageMounts?.footer&&pageFooter&&createPortal(pageFooter,pageMounts.footer)}{followMode!=='off'&&playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume} title={translateUi("etudes.goToPlayheadAndResumeAutoScroll")}><LocateFixed size={14} aria-hidden="true"/><span><Translation id="etudes.goToPlayhead" /></span></button>}{error && <p role="alert">{localizeUi(error)}</p>}<div className="scoreRenderFeedback" role="status" aria-live="polite" hidden={!rendering}><span className="scoreRenderBadge"><span className="scoreRenderSpinner" aria-hidden="true"/><Translation id="etudes.preparingScore" /></span></div><div className={'etudeNotation'+(paginatedDesktop?' desktopScorePageGrid':paginatedMobile?' mobileScorePageStack':'')} ref={ref} aria-busy={rendering} style={rendering?{minHeight:160,pointerEvents:'none'}:undefined} /></>;
 }
 export default memo(Score);

@@ -1,11 +1,28 @@
 import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 import {createBlankDocument, newId, fingeringCandidates, compileDocumentV2} from '../etudes/scoreModel.js';
+import {assignTab} from '../etudes/scoreTuning.js';
 
 // Strict prototype boundary: unsupported tokens remain visible, never rounded,
 // discarded, guessed as rests, or silently coerced into the editor's rhythm model.
 const durations = {whole:'1', half:'2', quarter:'4', eighth:'8', sixteenth:'16'};
 const natural = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+// A practical default, not a claim of one universal fingering: prefer the first
+// position (open strings / frets 1-4), then minimize movement. Reuse the shared
+// tuning/reach constraints and leave impossible pitches for explicit review.
+export function recommendTromrPositions(parsed,{octaveShift}) {
+  if(parsed.unsupported.length)throw Error(ko['omr.conversionStoppedBecauseOfUnsupportedOrUnrecognizedSymbolsCheckTheRawOutput']);
+  if(![0,-12].includes(octaveShift))throw Error(ko['omr.chooseStandardNotationOrOctaveTransposingGuitarNotation']);
+  const document={...createBlankDocument(),autoTab:{mode:'range',min:0,max:4}},positions={},unplaced=[];
+  let previous=[];
+  for(const event of parsed.measures.flat()){
+    if(event.rest){previous=[];continue;}
+    const [note]=assignTab(document,[{midi:event.midi+octaveShift,locked:false}],previous);
+    if(note.unplaced){unplaced.push(event.index);previous=[];}
+    else {positions[event.index]={string:note.string,fret:note.fret};previous=[note];}
+  }
+  return {positions,unplaced};
+}
 export function parseTromr(text) {
   const result = {raw:text, measures:[], unsupported:[], meter:null, clef:null, key:null};
   let events=[];

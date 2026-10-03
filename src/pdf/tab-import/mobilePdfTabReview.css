@@ -1,0 +1,8 @@
+.mobilePdfTabReview{flex:none;margin:0 2px 5px;padding:5px 8px;border:1px solid #ddd8d0;border-radius:8px;background:#faf8f4;color:#594837;font-size:12px;max-height:28dvh;overflow:auto}
+.mobilePdfTabReview summary{cursor:pointer;min-height:28px;line-height:28px;font-weight:600}
+.mobilePdfTabReview p{margin:4px 0 8px}.mobilePdfTabReview>div{display:flex;gap:6px;flex-wrap:wrap}
+.mobilePdfTabReview button{min-height:40px;padding:6px 8px;flex:1}
+.mobileScoreWorkspace .mobilePdfTabStorageNotice{flex:none;max-height:22dvh;overflow:auto;margin:0 2px 6px;padding:8px;font-size:12px;border:1px solid #b78337;border-radius:8px;background:#fff4dd;color:#654818}
+.mobilePdfTabStorageNotice button{display:block;min-height:40px;margin-top:6px}
+.mobileStaffPitchRepair{flex:none;margin:0 2px 5px;padding:8px;border:1px solid #b78337;border-radius:8px;background:#fff4dd;color:#654818;font-size:12px;max-height:24dvh;overflow:auto}
+.mobileStaffPitchRepair p{margin:0 0 6px}.mobileStaffPitchRepair button{min-height:40px;width:100%}

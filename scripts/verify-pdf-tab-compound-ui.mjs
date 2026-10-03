@@ -16,8 +16,8 @@ await page.addInitScript(()=>{
 });
 try{
  await page.goto(`${process.env.PDF_TAB_APP_ORIGIN||'http://127.0.0.1:5174'}/#etudes`,{waitUntil:'networkidle'});await page.locator('.launchSplash').waitFor({state:'detached'});
- await page.getByRole('button',{name:'제작',exact:true}).click();await page.getByRole('button',{name:'PDF에서 TAB 초안 생성',exact:true}).click();
- await page.getByLabel('TAB 분석용 PDF 선택',{exact:true}).setInputFiles({name:`runtime-${crypto.randomUUID()}.pdf`,mimeType:'application/pdf',buffer:await readFile(inventory[8].path)});
+ await page.getByRole('button',{name:'제작',exact:true}).click();await page.getByRole('button',{name:'PDF·사진에서 TAB 초안 생성',exact:true}).click();
+ await page.getByLabel('TAB 분석용 PDF·사진 선택',{exact:true}).setInputFiles({name:`runtime-${crypto.randomUUID()}.pdf`,mimeType:'application/pdf',buffer:await readFile(inventory[8].path)});
  await page.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:120000});await page.getByRole('button',{name:'제작실에서 열기',exact:true}).click();await page.locator('.pdfTabReviewBar').waitFor();
  const stored=await page.evaluate(()=>Object.values(JSON.parse(localStorage.getItem('fretiva.etude.library.v2')).records).find(r=>r.document.pdfTabImport).document);
  assert.deepEqual(stored.meter,[12,8]);assert.equal(stored.measures.length,69);assert.equal(stored.pdfTabImport.pages.length,3);

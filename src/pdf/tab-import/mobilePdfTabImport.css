@@ -1,0 +1,16 @@
+.mobilePdfTabImport{box-sizing:border-box;position:fixed;inset:0;width:calc(100% - 24px);max-width:480px;max-height:calc(100dvh - 32px);margin:auto;padding:0;border:1px solid #ddd8d0;border-radius:16px;background:#f8f6f2;color:#302a24;overflow:auto;overscroll-behavior:contain;font:14px/1.6 Pretendard,'Noto Sans KR',Arial,sans-serif}
+.mobilePdfTabImport::backdrop{background:#16141180}
+.mobilePdfTabImport header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;border-bottom:1px solid #ddd8d0}
+.mobilePdfTabImport h2{font-size:18px;margin:0}.mobilePdfTabImport h3{font-size:16px;margin:12px 0 4px}
+.mobilePdfTabImport button{min-height:44px;padding:8px 12px;border:1px solid #d3c9bd;border-radius:8px;background:#fff;color:#302a24;font:inherit;cursor:pointer;touch-action:manipulation}
+.mobilePdfTabImport header button{width:44px;flex:none;font-size:24px;padding:0}
+.mobilePdfTabBody{padding:0 16px 12px}.mobilePdfTabBody p{margin:12px 0;overflow-wrap:anywhere}
+.mobilePdfTabFile{display:block;padding:14px;border:1px dashed #b3a18f;border-radius:10px;background:white;font-weight:600}
+.mobilePdfTabFile input{display:block;width:100%;min-width:0;max-width:100%;margin-top:10px;font:inherit}
+.mobilePdfTabImport progress{width:calc(100% - 48px);margin-right:8px;accent-color:#795e47}
+.mobilePdfTabImport dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0}
+.mobilePdfTabImport dl div{padding:8px;background:#eee8e0;border-radius:8px;text-align:center}.mobilePdfTabImport dt{font-size:12px}.mobilePdfTabImport dd{font-size:23px;font-weight:700;margin:0}
+.mobilePdfTabImport footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #ddd8d0;background:#f8f6f2}
+.mobilePdfTabImport footer button:last-child:not(:first-child){background:#49382c;color:#fff}.mobilePdfTabImport button:disabled{opacity:.6}
+.mobilePdfTabImport [role=alert]{color:#a1392c}
+.mobileTabPhotoAdd{margin-top:8px;padding:10px 14px;font-size:13px}.mobileTabPhotoAdd input{margin-top:6px}

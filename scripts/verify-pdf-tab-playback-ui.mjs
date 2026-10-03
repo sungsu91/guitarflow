@@ -13,7 +13,7 @@ try{for(const index of process.argv.slice(2).length?process.argv.slice(2).map(Nu
  const sample=()=>p.evaluate(async()=>{let peak=0;for(let i=0;i<30;i++){for(const a of window.__meters){const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);for(const v of data)peak=Math.max(peak,Math.abs(v));}await new Promise(r=>setTimeout(r,50));}return peak;});
  try{
   await p.goto(`${origin}/#etudes`,{waitUntil:'networkidle'});await p.locator('.launchSplash').waitFor({state:'detached',timeout:60000});await p.getByRole('button',{name:'제작',exact:true}).click();
-  await p.getByRole('button',{name:'PDF에서 TAB 초안 생성',exact:true}).click();assert.equal(await p.locator('.desktopPdfTabImport').getByRole('checkbox').count(),0);await p.getByLabel('TAB 분석용 PDF 선택',{exact:true}).setInputFiles(inventory[index].path);
+  await p.getByRole('button',{name:'PDF·사진에서 TAB 초안 생성',exact:true}).click();assert.equal(await p.locator('.desktopPdfTabImport').getByRole('checkbox').count(),0);await p.getByLabel('TAB 분석용 PDF·사진 선택',{exact:true}).setInputFiles(inventory[index].path);
   await p.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:300000});const importedFrets=Number(await p.locator('.desktopPdfTabImport dl > div').last().locator('dd').innerText());await p.getByRole('button',{name:'제작실에서 열기',exact:true}).click();await p.locator('.pdfTabReviewBar').waitFor();
   if(index===4){
    const strum=p.locator('[data-bar-index="36"]');await strum.scrollIntoViewIfNeeded();

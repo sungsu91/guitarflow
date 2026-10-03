@@ -14,6 +14,9 @@ function transferReading(target,source,label){
 // Only matching bars/strings/columns can corroborate a reading. Two conflicting
 // readings are never corroborated; an enlarged page must not drop known notes.
 export function combineZoomReadings(original,enlarged){
+  // Nothing from the original page can be lost when no staff was detected.
+  // Keep the enlarged coordinate system intact for the editor/source mapping.
+  if(!original.staffs.length&&enlarged.staffs.length)return {...enlarged,zoom:{attempted:true,selected:true,reason:'staff-recovered',confirmedBefore:0,confirmedAfter:summarizeAnalysis([enlarged]).confirmed}};
   const sameStaff=(a,b)=>{
     const tolerance=Math.min(a.spacing/original.height,b.spacing/enlarged.height)*.6;
     return Math.abs(a.y/original.height-b.y/enlarged.height)<tolerance&&Math.abs(a.x/original.width-b.x/enlarged.width)<tolerance;

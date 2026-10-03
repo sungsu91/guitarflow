@@ -2235,7 +2235,7 @@
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     .scaleBlockTrainingPanel .stage2HeaderScalePicker .referenceScalePicker {
     display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr) !important;
     align-items: end !important;
     gap: clamp(8px, 0.8vw, 12px) !important;
     width: 100% !important;

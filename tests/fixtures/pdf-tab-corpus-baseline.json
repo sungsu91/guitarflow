@@ -1,0 +1,476 @@
+{
+  "version": 1,
+  "description": "Measured pre-fix browser OCR on the independent ReportLab corpus. Counts only; original PDFs and diagnostic errors are local artifacts.",
+  "cases": [
+    {
+      "id": "helvetica-native",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 39,
+      "missing": 0,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 4,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-200dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 31,
+      "missing": 8,
+      "wrongCount": 6,
+      "exactRhythmBars": 2,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-110dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 34,
+      "missing": 5,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-75dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 11,
+      "missing": 28,
+      "wrongCount": 3,
+      "exactRhythmBars": 1,
+      "completeBars": 1,
+      "detectedBars": 2,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-blur",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 34,
+      "missing": 5,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-noise",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 33,
+      "missing": 6,
+      "wrongCount": 0,
+      "exactRhythmBars": 3,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 1
+    },
+    {
+      "id": "times-roman-native",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 39,
+      "missing": 0,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 4,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "times-roman-200dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 32,
+      "missing": 7,
+      "wrongCount": 2,
+      "exactRhythmBars": 4,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "times-roman-110dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 30,
+      "missing": 9,
+      "wrongCount": 4,
+      "exactRhythmBars": 4,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "times-roman-75dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 7,
+      "missing": 32,
+      "wrongCount": 0,
+      "exactRhythmBars": 2,
+      "completeBars": 0,
+      "detectedBars": 2,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "times-roman-blur",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 26,
+      "missing": 13,
+      "wrongCount": 4,
+      "exactRhythmBars": 4,
+      "completeBars": 0,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "times-roman-noise",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 30,
+      "missing": 9,
+      "wrongCount": 4,
+      "exactRhythmBars": 3,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 1
+    },
+    {
+      "id": "courier-native",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 32,
+      "missing": 7,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 2,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "courier-200dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 35,
+      "missing": 4,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "courier-110dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 32,
+      "missing": 7,
+      "wrongCount": 6,
+      "exactRhythmBars": 2,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "courier-75dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 14,
+      "missing": 25,
+      "wrongCount": 2,
+      "exactRhythmBars": 1,
+      "completeBars": 0,
+      "detectedBars": 2,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "courier-blur",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 34,
+      "missing": 5,
+      "wrongCount": 6,
+      "exactRhythmBars": 2,
+      "completeBars": 2,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "courier-noise",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 33,
+      "missing": 6,
+      "wrongCount": 6,
+      "exactRhythmBars": 2,
+      "completeBars": 2,
+      "detectedBars": 4,
+      "wrongDurationCount": 1
+    },
+    {
+      "id": "helvetica-bold-native",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 39,
+      "missing": 0,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 4,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-bold-200dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 31,
+      "missing": 8,
+      "wrongCount": 6,
+      "exactRhythmBars": 2,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-bold-110dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 31,
+      "missing": 8,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 0,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-bold-75dpi",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 10,
+      "missing": 29,
+      "wrongCount": 0,
+      "exactRhythmBars": 2,
+      "completeBars": 0,
+      "detectedBars": 2,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-bold-blur",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 30,
+      "missing": 9,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 0,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    },
+    {
+      "id": "helvetica-bold-noise",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 32,
+      "missing": 7,
+      "wrongCount": 0,
+      "exactRhythmBars": 3,
+      "completeBars": 0,
+      "detectedBars": 4,
+      "wrongDurationCount": 1
+    },
+    {
+      "id": "faint-rhythm",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 35,
+      "missing": 4,
+      "wrongCount": 0,
+      "exactRhythmBars": 1,
+      "completeBars": 0,
+      "detectedBars": 4,
+      "wrongDurationCount": 21
+    },
+    {
+      "id": "upward-holdout",
+      "expectedNotes": 39,
+      "expectedBars": 4,
+      "correct": 35,
+      "missing": 4,
+      "wrongCount": 0,
+      "exactRhythmBars": 4,
+      "completeBars": 1,
+      "detectedBars": 4,
+      "wrongDurationCount": 0
+    }
+  ],
+  "minimums": [
+    {
+      "id": "helvetica-native",
+      "correct": 39,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-200dpi",
+      "correct": 39,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-110dpi",
+      "correct": 38,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-75dpi",
+      "correct": 28,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-blur",
+      "correct": 37,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-noise",
+      "correct": 37,
+      "exactRhythmBars": 3,
+      "detectedBars": 4
+    },
+    {
+      "id": "times-roman-native",
+      "correct": 39,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "times-roman-200dpi",
+      "correct": 38,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "times-roman-110dpi",
+      "correct": 37,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "times-roman-75dpi",
+      "correct": 17,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "times-roman-blur",
+      "correct": 32,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "times-roman-noise",
+      "correct": 37,
+      "exactRhythmBars": 3,
+      "detectedBars": 4
+    },
+    {
+      "id": "courier-native",
+      "correct": 39,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "courier-200dpi",
+      "correct": 39,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "courier-110dpi",
+      "correct": 37,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "courier-75dpi",
+      "correct": 29,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "courier-blur",
+      "correct": 39,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "courier-noise",
+      "correct": 38,
+      "exactRhythmBars": 3,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-bold-native",
+      "correct": 39,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-bold-200dpi",
+      "correct": 36,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-bold-110dpi",
+      "correct": 31,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-bold-75dpi",
+      "correct": 25,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-bold-blur",
+      "correct": 30,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "helvetica-bold-noise",
+      "correct": 32,
+      "exactRhythmBars": 3,
+      "detectedBars": 4
+    },
+    {
+      "id": "faint-rhythm",
+      "correct": 36,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    },
+    {
+      "id": "upward-holdout",
+      "correct": 36,
+      "exactRhythmBars": 4,
+      "detectedBars": 4
+    }
+  ]
+}

@@ -5,3 +5,8 @@
 .pdfTabPageResults{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;padding:0}.pdfTabPageResults li{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #88705922}.pdfTabReviewBar label{display:flex;align-items:center;gap:6px}.pdfTabReviewBar select{font:inherit;padding:5px;border:1px solid #88705944;border-radius:5px;background:var(--panel,#faf8f5);color:inherit}
 .etudeEditor .pdfTabReviewBar label{flex-direction:row;white-space:nowrap}.etudeEditor .pdfTabReviewBar select{width:132px;min-width:132px;max-width:none}.pdfTabReviewBar small{margin-left:6px}
 .desktopPdfTabImport .pdfTabOpen:disabled{opacity:.65;cursor:wait}.pdfTabStorageNotice{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 16px;padding:10px 12px;border:1px solid #b78337;border-radius:8px;background:#fff4dd;color:#654818;font-size:13px}.pdfTabStorageNotice span{flex:1;min-width:220px}.pdfTabStorageNotice button{flex:none;padding:8px 12px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer}
+
+.pdfTabCoverageNotice{flex:0 0 100%;box-sizing:border-box;margin:8px 0;padding:8px 10px;border:1px solid #c39a5c;border-radius:8px;background:#fff4dd;color:#654818;font-size:12px;overflow-wrap:anywhere}
+.mobileScoreWorkspace>.pdfTabCoverageNotice{flex:none;max-height:15dvh;overflow:auto;margin:0 2px 4px}
+
+.desktopStaffPitchRepair{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 12px;border:1px solid #b78337;background:#fff4dd;color:#654818;font-size:13px}.desktopStaffPitchRepair button{min-height:36px}

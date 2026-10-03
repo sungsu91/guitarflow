@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {readBrowserScoreLibrary} from './read-browser-score-library.mjs';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE);
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+const out=process.env.STAFF_PHOTO_OUTPUT||'artifacts/staff-pitch-regression/real-photos',origin=process.env.PDF_TAB_APP_ORIGIN||'http://127.0.0.1:5174';await mkdir(out,{recursive:true});
+const page=await browser.newPage({viewport:{width:440,height:956}}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(30000);
+try{
+ await page.addInitScript(()=>{localStorage.setItem('language','ko');window.testWorkers=[];const OriginalWorker=window.Worker;window.Worker=class extends OriginalWorker{constructor(...args){super(...args);window.testWorkers.push(this);}terminate(){this.closed=true;super.terminate();}};});
+ await page.goto(`${origin}/#etudes`,{waitUntil:'networkidle'});await page.locator('.launchSplash').waitFor({state:'detached',timeout:60000});
+ await page.getByRole('button',{name:'악보 작업',exact:true}).click();await page.getByRole('menuitem',{name:/제작|만들기/}).click();
+ await page.getByRole('button',{name:'PDF 메뉴',exact:true}).click();await page.getByRole('menuitem',{name:'불러오기(전환)',exact:true}).click();
+ await page.getByLabel('PDF·사진 선택',{exact:true}).setInputFiles([2,1].map(n=>`C:/Users/User/Desktop/sheet music/풀잎사랑(코드)_페이지_${n}.jpg`));
+ const order=page.getByLabel('사진 페이지 순서',{exact:true});await order.waitFor();
+ assert.deepEqual(await order.locator('option').allTextContents(),['1. 풀잎사랑(코드)_페이지_1.jpg','2. 풀잎사랑(코드)_페이지_2.jpg']);
+ await page.getByRole('button',{name:'뒤로',exact:true}).click();assert.match((await order.locator('option').allTextContents())[0],/페이지_2/);await page.getByRole('button',{name:'앞으로',exact:true}).click();
+ await page.setViewportSize({width:1440,height:1000});await page.locator('.desktopPdfTabImport').waitFor();assert.equal(await order.locator('option').count(),2);await page.setViewportSize({width:440,height:956});await page.locator('.mobilePdfTabImport').waitFor();
+ await page.screenshot({path:`${out}/batch-preview.png`});
+ const start=Date.now();await page.getByRole('button',{name:'사진 전체 분석',exact:true}).click();
+ await page.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:300000});
+ assert.equal(await page.getByRole('button',{name:'사진 전체 분석',exact:true}).count(),0);
+ await page.screenshot({path:`${out}/batch-result.png`});
+ await page.getByRole('button',{name:'제작실에서 열기',exact:true}).click();await page.locator('.mobilePdfTabReview').waitFor({timeout:60000});
+ const document=Object.values((await readBrowserScoreLibrary(page)).records)[0].document;
+ await writeFile(`${out}/converted-document.json`,JSON.stringify(document,null,2));
+ const sourcePages=[...new Set(document.measures.map(m=>m.pdfImport.source.page))];assert.deepEqual(sourcePages,[1,2]);
+ assert.equal(document.pdfTabImport.imageSources.length,2);assert.equal(document.keySignature,'G');assert.equal(document.pdfTabImport.notation.systems.length,18);assert(document.measures.length>=75&&document.measures.length<=85);
+ assert(document.measures.every(m=>m.pdfImport.needsReview));assert(document.measures.some(m=>m.events.some(e=>e.dotted)));assert(document.measures.some(m=>m.events.some(e=>e.notes.length===2)));
+ assert.equal(document.pdfTabImport.notation.octaveShift,-12);assert.equal(document.measures[0].events[1].notes[0].fret,7);
+ const roundtrip=await page.evaluate(async document=>(await import('/src/etudes/scoreModel.js')).compileDocumentV2(document).score.measures[0][1].pitch.key,document);assert.equal(roundtrip,'b/5');
+ const valid=await page.evaluate(async document=>(await import('/src/etudes/scoreModel.js')).compileDocumentV2(document).errors,document);assert.deepEqual(valid,[]);
+ const live=await page.evaluate(()=>window.testWorkers.filter(w=>!w.closed).length);assert.equal(live,0);assert.deepEqual(errors,[]);
+ await page.screenshot({path:`${out}/batch-editor.png`});
+ const result={passed:true,seconds:(Date.now()-start)/1000,pages:sourcePages,measures:document.measures.length,notes:document.measures.flatMap(m=>m.events.flatMap(e=>e.notes)).length,systems:document.pdfTabImport.notation.systems.length,key:document.keySignature,octaveShift:document.pdfTabImport.notation.octaveShift,reviewRequired:true,liveWorkers:live,errors};
+ await writeFile(`${out}/ui-result.json`,JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+}catch(e){await page.screenshot({path:`out/staff-photo-error.png`}).catch(()=>{});throw e;}finally{await browser.close();}

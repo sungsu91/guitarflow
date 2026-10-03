@@ -61,7 +61,7 @@ export function attachChordDiagram(document,bar,shape,{autoFill=false}={}){
  const errors=chordDiagramErrors(shape,document.tuning.length,capacity,maxFret(document)-(document.capo??0));
  if(shape&&(!shape.name.trim()||shape.name.length>40||shape.frets.length!==document.tuning.length||!shape.frets.some(f=>Number.isInteger(f))))errors.push(ko["etudes.enterAChordNameAndAtLeastOneFingering"]);
  if(errors.length)throw Error(errors[0]);
- let next={...document,measures:document.measures.map((m,i)=>i===bar?{...m,chord:shape?structuredClone(shape):null,harmony:null,chordNameMode:undefined}:m)};
+ let next={...document,measures:document.measures.map((m,i)=>i===bar?{...m,chord:shape?structuredClone(shape):null,harmony:null,harmonyChanges:undefined,harmonyReview:undefined,chordNameMode:undefined}:m)};
  if(!shape||!autoFill)return next;
  const ranges=shape.ranges??[shape.range??{startTick:0,endTick:capacity}];
  const events=document.measures[bar].events;

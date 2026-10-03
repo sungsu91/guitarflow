@@ -45,3 +45,32 @@ html body #root .mobileLayoutShell main.app.app .mobileScalePositionNavigation b
 .mobileScalePositionNavigation button:disabled { opacity: 0.3; }
 .mobileScalePositionNavigation button:focus-visible { outline: 1px solid currentColor; outline-offset: -3px; }
 .mobileScalePositionCount { font-variant-numeric: tabular-nums; }
+
+/* Full scales keep readable fret spacing; the instrument pans inside its card. */
+html body #root .mobileLayoutShell .app.app .scaleAllPositionsFretboard.fretboardComponent {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  touch-action: pan-x pan-y !important;
+  overscroll-behavior-x: contain;
+  user-select: none;
+  -webkit-overflow-scrolling: touch;
+}
+html body #root .mobileLayoutShell .app.app .scaleAllPositionsFretboard.fretboardComponent .fretboardComponentScroller {
+  box-sizing: border-box;
+  width: calc(var(--fret-slot-count) * 46px + var(--fretboard-label-left) + var(--fretboard-label-right)) !important;
+  min-width: max(100%, calc(var(--fret-slot-count) * 46px + var(--fretboard-label-left) + var(--fretboard-label-right))) !important;
+  max-width: none !important;
+}
+html body #root .mobileLayoutShell .app.app .scaleAllPositionsFretboard.fretboardComponent :is(.fretboardGrid, .fretboardFretNumbers) {
+  grid-template-columns: repeat(var(--fret-slot-count), minmax(46px, 1fr)) !important;
+}
+.mobileLayoutShell .scaleAllPositionsHint {
+  align-self: start;
+  padding: 6px 0;
+  text-align: center;
+  color: var(--riff-text-muted);
+  font-size: 10px;
+}

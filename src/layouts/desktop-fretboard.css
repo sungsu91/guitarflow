@@ -289,7 +289,7 @@ html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app >
 
   .viewerSelectGrid {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.8fr) minmax(0, 1fr) !important;
     gap: 8px !important;
     height: 100%;
     padding: 0 !important;

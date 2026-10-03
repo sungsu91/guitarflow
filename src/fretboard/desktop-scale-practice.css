@@ -77,6 +77,33 @@ html body #root .desktopLayout main.app .desktopScalePositionNavigation button:d
 
 .desktopScalePositionCount { min-width: 96px; text-align: center; font-variant-numeric: tabular-nums; }
 
+html body #root .desktopLayout .app.app .scaleAllPositionsFretboard.fretboardComponent {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+  user-select: none;
+  cursor: grab;
+}
+html body #root .desktopLayout .app.app .scaleAllPositionsFretboard.fretboardComponent:active { cursor: grabbing; }
+html body #root .desktopLayout .app.app .scaleAllPositionsFretboard.fretboardComponent .fretboardComponentScroller {
+  box-sizing: border-box;
+  width: calc(var(--fret-slot-count) * 46px + var(--fretboard-label-left) + var(--fretboard-label-right)) !important;
+  min-width: max(100%, calc(var(--fret-slot-count) * 46px + var(--fretboard-label-left) + var(--fretboard-label-right))) !important;
+  max-width: none !important;
+}
+html body #root .desktopLayout .app.app .scaleAllPositionsFretboard.fretboardComponent :is(.fretboardGrid, .fretboardFretNumbers) {
+  grid-template-columns: repeat(var(--fret-slot-count), minmax(46px, 1fr)) !important;
+}
+.desktopLayout .scaleAllPositionsHint {
+  text-align: center;
+  color: var(--riff-text-muted);
+  font-size: 12px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html body #root .desktopLayout main.app .desktopScalePositionNavigation button {
     transition: none !important;

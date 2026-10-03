@@ -23,7 +23,7 @@ export function bindAnnotationEditing(svg,{offsets,onMove,onName,onChord,onNameE
   let gesture=null,suppress=false;
   const local=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());};
   const editName=()=>{
-   if(kind==='chord'){onChord?.();return;}if(kind!=='harmony'||node.querySelector('foreignObject'))return;if(onNameEdit){onNameEdit();return;}
+   if(kind==='chord'){onChord?.();return;}if(kind!=='harmony'||node.querySelector('foreignObject'))return;if(onNameEdit){onNameEdit(Number(node.dataset.harmonyOnset)||0);return;}
    const field=document.createElementNS(ns,'foreignObject');
    for(const [k,v] of Object.entries({x:box.x,y:box.y-3,width:Math.max(110,box.width+16),height:30}))field.setAttribute(k,v);
    const input=document.createElementNS('http://www.w3.org/1999/xhtml','input');

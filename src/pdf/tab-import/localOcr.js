@@ -1,4 +1,5 @@
-import {createWorker,PSM,OEM} from 'tesseract.js';
+import {PSM} from 'tesseract.js';
+import {createOcrWorker} from './ocrWorkerClient.js';
 import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {abortable} from './abortable.js';
 import {glyphFeature,corroboratePageGlyphs} from './glyphConsensus.js';
@@ -25,16 +26,10 @@ export function agreeReadings(reads){
 
 // Every asset is served locally. No PDF data or crop leaves the browser.
 export async function createLocalOcr(signal){
-  let worker,closed=false;
-  let rejectEngine;
-  const engineFailure=new Promise((_,reject)=>{rejectEngine=reject;});
-  const pending=createWorker('eng',OEM.LSTM_ONLY,{workerPath:'/tab-ocr/worker.min.js',corePath:'/tab-ocr/core',langPath:'/tab-ocr/lang',workerBlobURL:false,cacheMethod:'none',errorHandler:error=>rejectEngine(Error(String(error)))});
-  const loading=Promise.race([pending,engineFailure]);
-  const abort=()=>{if(worker&&!closed){closed=true;void worker.terminate();}};signal?.addEventListener('abort',abort,{once:true});
-  pending.then(w=>{if(signal?.aborted)void w.terminate();},()=>{});
-  try{worker=await abortable(loading,signal);signal?.throwIfAborted();await abortable(worker.setParameters({tessedit_char_whitelist:'0123456789Xx',user_defined_dpi:'300',classify_enable_learning:'0'}),signal);}
-  catch(error){worker?.terminate();signal?.removeEventListener('abort',abort);throw error;}
-  return {worker,close:async()=>{signal?.removeEventListener('abort',abort);if(!closed){closed=true;await worker.terminate();}}};
+  const worker=await createOcrWorker(signal);
+  try{await worker.setParameters({tessedit_char_whitelist:'0123456789Xx',user_defined_dpi:'300',classify_enable_learning:'0'});}
+  catch(error){await worker.terminate();throw error;}
+  return {worker,close:()=>worker.terminate()};
 }
 
 function reading(data){

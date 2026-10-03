@@ -10,8 +10,8 @@ try{
  await writeFile(`artifacts/pdf-tab-import/buttons-${mobile}.json`,JSON.stringify(await p.getByRole('button').allTextContents()));
  if(!mobile)await p.getByRole('button',{name:'제작',exact:true}).click();else {await p.getByRole('button',{name:'악보 작업',exact:true}).click();await p.getByRole('menuitem',{name:/제작|만들기/}).click();}
  await p.locator('.etudeEditor').waitFor();
- const entry=p.getByRole('button',{name:'PDF에서 TAB 초안 생성',exact:true});assert.equal(await entry.count(),mobile?0:1);
- if(!mobile){await entry.click();await p.getByRole('dialog',{name:'PDF에서 TAB 초안 생성',exact:true}).waitFor();await p.screenshot({path:'artifacts/pdf-tab-import/desktop-dialog.png'});await p.getByRole('button',{name:'취소',exact:true}).click();assert.equal(await p.locator('.desktopPdfTabImport').count(),0);}
+ const entry=p.getByRole('button',{name:'PDF·사진에서 TAB 초안 생성',exact:true});assert.equal(await entry.count(),mobile?0:1);
+ if(!mobile){await entry.click();await p.getByRole('dialog',{name:'PDF·사진에서 TAB 초안 생성',exact:true}).waitFor();await p.screenshot({path:'artifacts/pdf-tab-import/desktop-dialog.png'});await p.getByRole('button',{name:'취소',exact:true}).click();assert.equal(await p.locator('.desktopPdfTabImport').count(),0);}
  await p.screenshot({path:`artifacts/pdf-tab-import/${mobile?'mobile-390':'desktop-editor'}.png`});
  console.log({mobile,errors,buttons:await p.getByRole('button').count()});assert.deepEqual(errors,[]);await p.close();
  }

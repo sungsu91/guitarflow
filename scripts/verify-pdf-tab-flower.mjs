@@ -12,8 +12,8 @@ try{
  const surface=p.locator('[data-score-input]');await surface.focus();await surface.press('3');await save();
  const original=Object.values(await read())[0].document;
  await surface.focus();await surface.press('ArrowRight');await surface.press('5');
- await p.getByRole('button',{name:'PDF에서 TAB 초안 생성',exact:true}).click();await p.getByLabel('TAB 분석용 PDF 선택',{exact:true}).setInputFiles(file);await p.getByRole('button',{name:'분석 취소',exact:true}).click();assert.equal(await p.locator('.desktopPdfTabImport').count(),0);assert.deepEqual(Object.values(await read())[0].document,original);
- await p.getByRole('button',{name:'PDF에서 TAB 초안 생성',exact:true}).click();await p.getByLabel('TAB 분석용 PDF 선택',{exact:true}).setInputFiles(file);
+ await p.getByRole('button',{name:'PDF·사진에서 TAB 초안 생성',exact:true}).click();await p.getByLabel('TAB 분석용 PDF·사진 선택',{exact:true}).setInputFiles(file);await p.getByRole('button',{name:'분석 취소',exact:true}).click();assert.equal(await p.locator('.desktopPdfTabImport').count(),0);assert.deepEqual(Object.values(await read())[0].document,original);
+ await p.getByRole('button',{name:'PDF·사진에서 TAB 초안 생성',exact:true}).click();await p.getByLabel('TAB 분석용 PDF·사진 선택',{exact:true}).setInputFiles(file);
  await p.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:240000});
  await p.screenshot({path:'artifacts/pdf-tab-import/flower-summary.png'});
  const summaryText=await p.getByRole('region',{name:'TAB 분석 결과',exact:true}).innerText();

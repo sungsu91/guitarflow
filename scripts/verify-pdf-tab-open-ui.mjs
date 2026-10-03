@@ -19,7 +19,7 @@ try{for(const test of cases){
   await p.getByRole('button',{name:'제작',exact:true}).click();if(test.dirty)await p.locator('[data-score-input]').press('7');
   if(test.full)await p.evaluate(()=>{let size=0;for(let step=1024*1024;step>=128;step=Math.floor(step/2))while(true){try{localStorage.setItem('test-quota-filler','x'.repeat(size+step));size+=step;}catch{break;}}});
   if(test.denied)await p.evaluate(()=>{const original=Storage.prototype.setItem;window.__restoreStorage=()=>Storage.prototype.setItem=original;Storage.prototype.setItem=function(key,value){if(key==='fretiva.etude.library.v2')throw new DOMException('Storage access denied','SecurityError');return original.call(this,key,value);};});
-  await p.getByRole('button',{name:'PDF에서 TAB 초안 생성',exact:true}).click();await p.getByLabel('TAB 분석용 PDF 선택',{exact:true}).setInputFiles({name:'Flower Dance.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF post-analysis open test')});
+  await p.getByRole('button',{name:'PDF·사진에서 TAB 초안 생성',exact:true}).click();await p.getByLabel('TAB 분석용 PDF·사진 선택',{exact:true}).setInputFiles({name:'Flower Dance.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF post-analysis open test')});
   await p.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor();await p.getByRole('button',{name:'제작실에서 열기',exact:true}).click();
   if(test.invalid){await p.locator('.desktopPdfTabImport [role="alert"]').waitFor();assert.match(await p.locator('.desktopPdfTabImport [role="alert"]').innerText(),/1~512마디/);assert.equal(await p.locator('.pdfTabReviewBar').count(),0);assert.equal(await p.evaluate(()=>localStorage.getItem('fretiva.etude.library.v2')),oldLibrary);}
   else{

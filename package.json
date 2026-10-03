@@ -10,8 +10,8 @@
     "verify:scale-boxes": "node scripts/verify-scale-boxes.mjs",
     "verify:box-set": "node scripts/verify-box-set.mjs",
     "verify:lick-techniques": "node scripts/verify-lick-techniques.mjs",
-    "postinstall": "node scripts/sync-pdf-assets.mjs && node scripts/sync-tab-ocr-assets.mjs",
-    "prebuild": "node scripts/sync-tab-ocr-assets.mjs"
+    "postinstall": "node scripts/sync-pdf-assets.mjs && node scripts/sync-tab-ocr-assets.mjs && node scripts/sync-staff-omr-assets.mjs",
+    "prebuild": "node scripts/sync-tab-ocr-assets.mjs && node scripts/sync-staff-omr-assets.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "0.10.32",

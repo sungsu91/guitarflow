@@ -1,5 +1,5 @@
 import {useLayoutEffect,useRef,useState} from 'react';
-import {ChevronLeft,ChevronRight} from 'lucide-react';
+import {ArrowUpToLine,ChevronLeft,ChevronRight} from 'lucide-react';
 import {useLanguage} from '../i18n/react.jsx';
 import './mobileScorePages.css';
 
@@ -46,9 +46,17 @@ export default function MobileScorePageNav({root,revision,onNavigate,scoreId}) {
   return()=>{resize.disconnect();cancelAnimationFrame(frame);viewport.removeEventListener('scroll',schedule);stack.style.removeProperty('--mobile-score-tail');};
  },[root,revision,scoreId]);
  const move=delta=>{onNavigate?.();scrollToPage(current-1+delta);};
+ const first=()=>{
+  const viewport=root.current?.closest('.etudeScoreViewport');if(!viewport)return;
+  onNavigate?.();
+  viewport.dispatchEvent(new Event('practice-scroll-reset'));
+  viewport.scrollTo({top:0,left:0,behavior:'instant'});
+  const view=viewport.ownerDocument.defaultView;
+  view.scrollTo({top:0,behavior:view.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ };
  return <nav ref={nav} className="mobileScorePageNav" aria-label={label('악보 페이지 이동','Score page navigation')}>
   <button type="button" aria-label={label('이전 악보 페이지','Previous score page')} disabled={current<=1} onClick={()=>move(-1)}><ChevronLeft size={18}/></button>
-  <output aria-label={label('현재 악보 페이지','Current score page')}>{current} / {Math.max(1,count)}<small>{label('페이지','pages')}</small></output>
+  <div className="mobileScorePagePosition"><output aria-label={label('현재 악보 페이지','Current score page')}>{current} / {Math.max(1,count)}<small>{label('페이지','pages')}</small></output><button className="mobileScoreFirstPage" type="button" aria-label={label('페이지 처음으로','Back to first page')} title={label('페이지 처음으로','Back to first page')} disabled={!count} onClick={first}><ArrowUpToLine size={17} aria-hidden="true"/></button></div>
   <button type="button" aria-label={label('다음 악보 페이지','Next score page')} disabled={!count||current>=count} onClick={()=>move(1)}><ChevronRight size={18}/></button>
  </nav>;
 }

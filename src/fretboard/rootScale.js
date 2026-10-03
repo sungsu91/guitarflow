@@ -9,12 +9,12 @@ export function rootScaleOctaves(value) {
 // This also applies the G-to-B correction without a separate UI rule.
 export function buildRootScaleRoute(root, intervals) {
   const rootIndex = PITCH_CLASSES.indexOf(root);
-  if (rootIndex < 0 || ![5, 7].includes(intervals.length)) {
+  if (rootIndex < 0 || ![5, 6, 7].includes(intervals.length)) {
     throw new RangeError("Unsupported root scale");
   }
   const stringSteps = intervals.length === 7
     ? [0, 0, 1, 1, 1, 2, 2, 2]
-    : [0, 0, 1, 1, 2, 2];
+    : intervals.length === 6 ? [0, 0, 1, 1, 1, 2, 2] : [0, 0, 1, 1, 2, 2];
   const paths = [];
   for (const startString of [6, 5]) {
     for (const shift of [0, 12]) {

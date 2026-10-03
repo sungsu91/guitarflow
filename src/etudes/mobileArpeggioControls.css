@@ -1,0 +1,17 @@
+.etudeEditor--mobile .mobileArpeggioControls{display:grid;gap:7px;min-width:0}
+.etudeEditor--mobile .mobileArpeggioControls>strong{font-size:13px}
+.etudeEditor--mobile .arpeggioPatternChoice{display:grid;gap:3px;font-size:11px}
+.etudeEditor--mobile .arpeggioPatternChoice select{width:100%;min-width:0;min-height:36px;font-size:12px}
+.etudeEditor--mobile .mobileArpeggioFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.etudeEditor--mobile .mobileArpeggioFields label{display:grid;gap:3px;min-width:0;font-size:11px}
+.etudeEditor--mobile .mobileArpeggioFields select{width:100%;min-width:0;min-height:36px;font-size:12px}
+.etudeEditor--mobile .mobileArpeggioControls p{margin:0;font-size:11px;line-height:1.5;color:var(--ed-muted)}
+.etudeEditor--mobile .mobileArpeggioControls output{font-size:12px;color:var(--ed-ink)}
+.etudeEditor--mobile .pickingModeSwitch{display:flex;gap:6px}
+.etudeEditor--mobile .pickingModeSwitch button{flex:1;min-width:0}
+.etudeEditor--mobile .arpeggioChordPrompt{display:grid;gap:6px;padding:8px;border:1px solid var(--ed-line);border-radius:7px;background:var(--ed-bg)}
+.etudeEditor--mobile .arpeggioQuickChords{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.etudeEditor--mobile .arpeggioQuickChords button{padding:4px;min-width:0}
+.etudeEditor--mobile .mobileArpeggioFields select[aria-invalid=true]{border-color:var(--ed-active);outline:1px solid var(--ed-active)}
+
+.mobileArpeggioControls .arpeggioProgression{display:block;max-height:72px;overflow:auto;overflow-wrap:anywhere;padding:8px;background:var(--panel-bg,#f7f3ec);border-radius:6px;font-size:12px;line-height:1.6;}

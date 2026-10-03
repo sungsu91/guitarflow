@@ -23,8 +23,17 @@ export function detectStaffs(pixels,width,height,config=C,lineCount=6,spanPixels
   for(let y=0;y<height;y++){let count=0;for(let x=0;x<width;x++)count+=pixels[y*width+x];if(count>width*config.minStaffWidth)ys.push(y);}
   const lines=runs(ys).map(group=>({y:median(group),thickness:group.length})),staffs=[];
   for(let i=0;i<=lines.length-lineCount;i++){
-    const six=lines.slice(i,i+lineCount),gaps=six.slice(1).map((line,j)=>line.y-six[j].y),spacing=median(gaps);
-    if(spacing<config.minSpacing||spacing>config.maxSpacing||gaps.some(g=>Math.abs(g-spacing)>spacing*config.spacingTolerance))continue;
+    const six=lines.slice(i,i+lineCount),gaps=six.slice(1).map((line,j)=>line.y-six[j].y);
+    let spacing=median(gaps);
+    if(gaps.some(g=>Math.abs(g-spacing)>spacing*config.spacingTolerance)){
+      // Low-resolution scan quantization can bias the median toward the shorter
+      // gap (e.g. 30,30,34,30,33). Require BOTH uniform adjacent gaps and a
+      // uniformly spaced complete six-line grid before accepting its mean.
+      const mean=(six.at(-1).y-six[0].y)/(lineCount-1),tolerance=mean*config.spacingTolerance;
+      if(gaps.some(g=>Math.abs(g-mean)>tolerance)||six.some((line,j)=>Math.abs(line.y-six[0].y-j*mean)>tolerance))continue;
+      spacing=mean;
+    }
+    if(spacing<config.minSpacing||spacing>config.maxSpacing)continue;
     // A grid containing seven or more equally spaced lines is not a six-string TAB.
     const adjacent=[lines[i-1],lines[i+lineCount]].filter((line,index)=>line&&Math.abs(index===0?line.y-six[0].y+spacing:line.y-six.at(-1).y-spacing)<spacing*.15);
     if(!config.alignedStaffExtension&&adjacent.length)continue;
@@ -109,7 +118,10 @@ export function fretComponents(clean,width,height,staff){
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){const nx=px+dx,ny=py+dy,n=ny*width+nx;if(nx<staff.x||nx>staff.x+staff.width||ny<top||ny>bottom||visited[n]||!clean[n])continue;visited[n]=1;stack.push(n);}
     }
     const w=maxX-minX+1,h=maxY-minY+1,cy=(minY+maxY)/2,string=staff.lines.reduce((best,line,i)=>Math.abs(cy-line)<Math.abs(cy-staff.lines[best])?i:best,0)+1;
-    if(count<4||w>g*1.9||h<g*.45||h>g*1.05||w<g*.20||h/w>4)continue;
+    // Retain narrow serif digits until neighboring pieces have been grouped.
+    // Rejecting a thin leading 1 here turns a printed 10 into a confident 0.
+    // The later stroke-shape check still removes isolated stem fragments.
+    if(count<4||w>g*1.9||h<g*.45||h>g*1.05||w<g*.13||h/w>6)continue;
     parts.push({x:minX,y:minY,width:w,height:h,cx:(minX+maxX)/2,cy,string,stringDistance:Math.abs(cy-staff.lines[string-1])/g});
   }
   return parts.sort((a,b)=>a.string-b.string||a.x-b.x);
@@ -143,12 +155,34 @@ export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=i
         if([-1,0,1].some(dx=>ink[y*width+Math.round(x+dx)])){end=y;gap=0;}
         else if(++gap>2)break;
       }
+      // A faint but continuous beam can be absent from the dark mask. Use the
+      // normal ink mask only when there is NO dark side-stroke evidence here;
+      // otherwise keep the dark mask that separates blurred adjacent beams.
+      let darkSide=0;
+      for(let k=0;k<g*.9;k++)for(let dx=Math.ceil(g*.28);dx<g*1.1;dx++)for(const sign of [-1,1]){
+        const y=Math.round(end-direction*k),px=Math.round(x+sign*dx);
+        if(y>=0&&y<height&&px>=0&&px<width)darkSide+=beamInk[y*width+px];
+      }
+      const strokeInk=darkSide?beamInk:ink;
+      const beamLength=(y,sign)=>{
+        let length=0,bridged=false;
+        for(let dx=1;dx<g*2.8;dx++){
+          const px=Math.round(x+sign*dx),next=px+sign;
+          if(px<0||px>=width)break;
+          if(!strokeInk[y*width+px]){
+            // One pale scan speck may interrupt otherwise dark horizontal ink.
+            // Never bridge white space or the vertical gap between two beams.
+            if(bridged||!ink[y*width+px]||next<0||next>=width||!strokeInk[y*width+next])break;
+            bridged=true;
+          }
+          length++;
+        }
+        return length;
+      };
       for(let y=Math.floor(end-g*.9);y<=Math.ceil(end+g*.9);y++){
         // Picking marks beyond the stem end are not a second beam.
         if(y<0||y>=height||direction*(y-end)>1||Math.abs(y-edge)<g*.5)continue;
-        let left=0,right=0;
-        for(let dx=1;dx<g*2.8;dx++){if(!beamInk[y*width+Math.round(x-dx)])break;left++;}
-        for(let dx=1;dx<g*2.8;dx++){if(!beamInk[y*width+Math.round(x+dx)])break;right++;}
+        const left=beamLength(y,-1),right=beamLength(y,1);
         if(Math.max(left,right)>g*.85)beamYs.push(y);
         if(Math.max(left,right)>g*.4)shortBeamYs.push(y);
       }
@@ -160,6 +194,8 @@ export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=i
       if(count===0)for(let y=Math.round(end-g*.6);y<end+g*.6;y++)for(let dx=Math.ceil(g*.2);dx<g*.7;dx++)if(y>=0&&y<height&&direction*(y-end)<=1)sideInk+=beamInk[y*width+Math.round(x+dx)]??0;
       const flagRows=[];
       if(count===0)for(let y=Math.round(Math.min(end,end-direction*g*1.8));y<=Math.max(end,end-direction*g*1.8);y++){
+        // Detached pale flecks are not flags. The light-mask fallback above
+        // requires a continuous beam from the stem, unlike these side samples.
         let inkCount=0;for(let dx=Math.ceil(g*.28);dx<=g*.7;dx++)if(y>=0&&y<height)inkCount+=beamInk[y*width+Math.round(x+dx)]??0;
         if(inkCount>=2)flagRows.push(y);
       }
@@ -199,20 +235,32 @@ export function attachHalfNoteStubs(ink,width,height,staff,anchors){
   }
 }
 
+export function groupFretComponents(parts,staff,rhythm=[]){
+  const candidates=[],g=staff.spacing;
+  for(const part of parts){
+    const prior=candidates.at(-1),gap=prior?part.x-prior.x-prior.width:Infinity;
+    const center=prior?(prior.x+part.x+part.width)/2:0;
+    // Narrow digits have wider whitespace in proportional fonts. Accept this
+    // extra gap only when both pieces surround ONE printed rhythm stem. Nearby
+    // notes with separate stems must never be concatenated into a new fret.
+    const nearby=rhythm.filter(r=>prior&&r.x>=prior.cx-g*.25&&r.x<=part.cx+g*.25);
+    const sameStem=prior&&prior.width<g*.5&&part.width<g*.5&&part.x+part.width-prior.x<=g*1.35&&nearby.length===1&&Math.abs(nearby[0].x-center)<g*.22;
+    if(prior&&part.string===prior.string&&gap>=0&&(gap<g*.24||gap<g*.42&&sameStem)&&Math.abs(part.cy-prior.cy)<g*.18&&prior.parts===1){
+      const bottom=Math.max(prior.y+prior.height,part.y+part.height);
+      prior.width=part.x+part.width-prior.x;prior.y=Math.min(prior.y,part.y);prior.height=bottom-prior.y;prior.cx=prior.x+prior.width/2;prior.cy=prior.y+prior.height/2;prior.parts=2;
+    }else candidates.push({...part,parts:1});
+  }
+  return candidates;
+}
+
 export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C}){
   const ink=binaryPage(rgba,width,height),beamInk=binaryPage(rgba,width,height,config.beamThreshold??145),lines=binaryPage(rgba,width,height,config.lineThreshold),staffs=detectStaffs(lines,width,height,config),output=[];
   for(const staff of staffs){
     const {bars,measures}=detectBarlines(ink,width,staff),clean=removeStaffRules(ink,width,height,staff),parts=fretComponents(clean,width,height,staff);
     // At least two digit-sized objects on actual strings excludes empty graphics.
     if(parts.filter(p=>p.stringDistance<config.stringTolerance).length<2||!bars.length)continue;
-    let candidates=[];
-    for(const part of parts){
-      const prior=candidates.at(-1),gap=prior?part.x-prior.x-prior.width:Infinity;
-      if(prior&&part.string===prior.string&&gap>=0&&gap<staff.spacing*.24&&Math.abs(part.cy-prior.cy)<staff.spacing*.18&&prior.parts===1){
-        prior.width=part.x+part.width-prior.x;prior.y=Math.min(prior.y,part.y);prior.height=Math.max(prior.y+prior.height,part.y+part.height)-prior.y;prior.cx=prior.x+prior.width/2;prior.parts=2;
-      }else candidates.push({...part,parts:1});
-    }
     const textFrets=textFretsForStaff(glyphs,staff),rhythms=measures.map((m,i)=>({...m,index:i,rhythm:detectRhythm(ink,width,height,staff,m,textFrets.length?textFrets:parts.filter(p=>p.stringDistance<config.stringTolerance),beamInk)}));
+    let candidates=groupFretComponents(parts,staff,rhythms.flatMap(m=>m.rhythm));
     const nativeText=textFrets.length>=4&&Math.max(...textFrets.map(c=>c.cx))-Math.min(...textFrets.map(c=>c.cx))>staff.width*.3;
     if(nativeText)candidates=textFrets;
     else candidates=candidates.filter(c=>{

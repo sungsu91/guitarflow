@@ -1,5 +1,5 @@
 // Consume a vertical movement once, carrying only the unused distance from the
-// reader to the page. The opening controls still scroll away before the score.
+// reader to the page. Controls hide first going down and return first going up.
 export function scrollPracticePage(reader, layout, distance) {
  const view=reader.ownerDocument.defaultView;
  const scrollPage=delta=>{
@@ -12,6 +12,9 @@ export function scrollPracticePage(reader, layout, distance) {
   const inset=parseFloat(view.getComputedStyle(layout).scrollMarginTop)||8;
   const intro=Math.max(0,reader.getBoundingClientRect().top-inset);
   if(intro>2)remaining-=scrollPage(Math.min(remaining,intro));
+ }else if(remaining<0){
+  // Reveal the controls immediately, retaining the current place in the score.
+  remaining-=scrollPage(remaining);
  }
  const before=reader.scrollTop;
  const limit=Math.max(0,reader.scrollHeight-reader.clientHeight);
@@ -90,6 +93,7 @@ export function bindPracticeScrollChain(reader,layout) {
  // A new touch anywhere stops momentum, including on the surrounding page.
  view.addEventListener('touchstart',stop,{passive:true,capture:true});
  view.addEventListener('pagehide',cancel);
+ reader.addEventListener('practice-scroll-reset',cancel);
  return()=>{
   cancel();
   reader.removeEventListener('touchstart',start);
@@ -100,5 +104,6 @@ export function bindPracticeScrollChain(reader,layout) {
   reader.removeEventListener('click',click,true);
   view.removeEventListener('touchstart',stop,true);
   view.removeEventListener('pagehide',cancel);
+  reader.removeEventListener('practice-scroll-reset',cancel);
  };
 }

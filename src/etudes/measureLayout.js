@@ -1,6 +1,16 @@
+export const MAX_MEASURES_PER_ROW=12;
+export const MEASURE_ROW_OPTIONS=Object.freeze(Array.from({length:MAX_MEASURES_PER_ROW},(_,i)=>i+1));
+
+// A reader override reflows the page; Auto restores the document's authored
+// rows, including uneven systems copied from a PDF or photo.
+export function scoreLineSettings(document,override=0,fallback=1){
+ const saved=document?.viewSettings;
+ return {perRow:override||saved?.measuresPerRow||fallback,breaks:override?[]:saved?.systemBreaks??[]};
+}
+
 // Display placement only. Musical order, IDs, and timing are never changed.
 export function measureLayout(measures, perRow = 1, breaks = []) {
- const count=Math.max(1,Math.min(4,Number(perRow)||1)), forced=new Set(breaks), rows=[];
+ const count=Math.max(1,Math.min(MAX_MEASURES_PER_ROW,Math.floor(Number(perRow)||1))), forced=new Set(breaks), rows=[];
  for(const measure of measures){
   if(!rows.length||rows.at(-1).length===count||forced.has(measure.id))rows.push([]);
   rows.at(-1).push(measure.id);

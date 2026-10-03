@@ -25,5 +25,5 @@ export function slotAtTick(slots,tick) {
 export function seekTick(slots,position) {
   if(Number.isFinite(position.timelineTick))return Math.max(0,position.timelineTick);
   const inVisit=s=>s.bar===position.bar&&(position.visit==null||s.visit===position.visit);
-  return (slots.find(s=>inVisit(s)&&s.event===(position.event??0))??slots.find(s=>inVisit(s)&&s.event===-1)??slots[0])?.tick??0;
+  return (slots.find(s=>inVisit(s)&&s.event===(position.event??0))??slots.find(s=>inVisit(s)&&s.event===-1)??slots.find(inVisit)??slots[0])?.tick??0;
 }

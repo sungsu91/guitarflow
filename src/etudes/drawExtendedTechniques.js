@@ -4,7 +4,7 @@ export function drawExtendedTechniques(svg,events,notes,stave,{tab=true,bar=0,ri
  const obstacles=[];
  events.forEach((event,i)=>{
   if(event.rest)return;
-  const tones=event.tones??[event],note=notes[i],x=note.getStemX(),ys=note.getYs(),top=Math.min(...ys);
+  const tones=!tab&&event.rhythmSlash?[event.tones?.[0]??event]:event.tones??[event],note=notes[i],x=note.getStemX(),ys=note.getYs(),top=Math.min(...ys);
   const next=notes[i+1]?.getStemX()??right-6,end=Math.min(right-3,x+Math.max(12,Math.min(38,next-x-6)));
   const group=document.createElementNS(ns,'g');group.setAttribute('class',(tab?'fretiva-tab-view':'vf-fretiva-staff-view')+' scoreExtendedTechnique');group.dataset.rhythmEvents=bar+':'+i;svg.append(group);
   const path=(d,kind)=>{const p=document.createElementNS(ns,'path');Object.entries({d,class:kind,fill:'none',stroke:'#171717','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}).forEach(([k,v])=>p.setAttribute(k,v));group.append(p);};

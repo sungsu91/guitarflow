@@ -1,0 +1,6 @@
+.mobileScorePdfMenu{position:relative;flex:none}
+.mobileScorePdfMenu>button{white-space:nowrap;padding-inline:7px}
+.mobileScorePdfChoices{position:absolute;right:0;top:calc(100% + 6px);z-index:40;display:grid;gap:4px;width:184px;max-width:calc(100vw - 28px);padding:6px;border:1px solid #d6cdc2;border-radius:10px;background:#fffdfa;box-shadow:0 10px 30px #30251a33}
+@layer score-workspace{
+ .editorDesign .mobileScoreHeader .mobileScorePdfChoices button{justify-content:flex-start!important;width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;padding:10px 12px!important;font-size:13px!important;white-space:nowrap}
+}

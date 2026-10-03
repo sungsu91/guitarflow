@@ -1612,7 +1612,7 @@ html body main.app.theme-light.theme-light
     .stage2HeaderScalePicker
     .referenceScalePicker {
     display: grid !important;
-    grid-template-columns: 58px minmax(0, 1.3fr) minmax(0, 0.9fr) 64px 48px !important;
+    grid-template-columns: 58px minmax(0, 1fr) 64px 48px !important;
     grid-template-rows: 34px !important;
     gap: 4px !important;
     width: 100% !important;
@@ -1675,24 +1675,15 @@ html body main.app.theme-light.theme-light
     order: 2 !important;
   }
 
-  html body main.app.app.app
-    .scaleBlockTrainingPanel
-    .stage2HeaderScalePicker
-    .referenceScalePicker
-    .scaleTypeSelect {
-    grid-column: 3 !important;
-    grid-row: 1 !important;
-    order: 3 !important;
-  }
 
   html body main.app.app.app
     .scaleBlockTrainingPanel
     .stage2HeaderScalePicker
     .referenceScalePicker
     .scaleDetailSelect {
-    grid-column: 4 !important;
+    grid-column: 3 !important;
     grid-row: 1 !important;
-    order: 4 !important;
+    order: 3 !important;
   }
 
   html body main.app.app.app
@@ -1701,9 +1692,9 @@ html body main.app.theme-light.theme-light
     .stage2HeaderScalePicker
     .referenceScalePicker
     > .trainingNoteGuideToggle {
-    grid-column: 5 !important;
+    grid-column: 4 !important;
     grid-row: 1 !important;
-    order: 5 !important;
+    order: 4 !important;
     align-self: stretch !important;
     width: 100% !important;
     min-width: 0 !important;
@@ -1758,7 +1749,7 @@ html body main.app.theme-light.theme-light
     .scaleBlockTrainingPanel.referenceTrainingPanel
     .stage2HeaderScalePicker
     .referenceScalePicker
-    :is(.scaleKeySelect, .scaleFamilySelect, .scaleTypeSelect, .scaleDetailSelect)
+    :is(.scaleKeySelect, .scaleFamilySelect, .scaleDetailSelect)
     > button.metronomeSelectButton.metronomeSelectButton {
     padding: 0 4px 0 6px !important;
   }
@@ -1786,7 +1777,7 @@ html body main.app.theme-light.theme-light
     .scaleBlockTrainingPanel.referenceTrainingPanel
     .stage2HeaderScalePicker
     .referenceScalePicker
-    :is(.scaleKeySelect, .scaleFamilySelect, .scaleTypeSelect, .scaleDetailSelect)
+    :is(.scaleKeySelect, .scaleFamilySelect, .scaleDetailSelect)
     > button.metronomeSelectButton.metronomeSelectButton
     > b {
     font-size: 12px !important;
@@ -1823,7 +1814,7 @@ html body main.app.theme-light.theme-light
   }
 
   html body main.app.app.app
-    > .metronomeSelectPortal:is(.scaleKeySelect, .scaleFamilySelect, .scaleTypeSelect, .scaleDetailSelect)
+    > .metronomeSelectPortal:is(.scaleKeySelect, .scaleFamilySelect, .scaleDetailSelect)
     > .metronomeSelectMenu {
     padding: 3px !important;
     border: 1px solid var(--riff-border-panel) !important;
@@ -1833,7 +1824,7 @@ html body main.app.theme-light.theme-light
   }
 
   html body main.app.app.app
-    > .metronomeSelectPortal:is(.scaleKeySelect, .scaleFamilySelect, .scaleTypeSelect, .scaleDetailSelect)
+    > .metronomeSelectPortal:is(.scaleKeySelect, .scaleFamilySelect, .scaleDetailSelect)
     > .metronomeSelectMenu
     > .metronomeSelectOption {
     height: 32px !important;
@@ -1849,7 +1840,7 @@ html body main.app.theme-light.theme-light
   }
 
   html body main.app.app.app
-    > .metronomeSelectPortal:is(.scaleKeySelect, .scaleFamilySelect, .scaleTypeSelect, .scaleDetailSelect)
+    > .metronomeSelectPortal:is(.scaleKeySelect, .scaleFamilySelect, .scaleDetailSelect)
     > .metronomeSelectMenu
     > .metronomeSelectOption:is(.selected, [aria-selected="true"]) {
     background: var(--riff-control-selected) !important;

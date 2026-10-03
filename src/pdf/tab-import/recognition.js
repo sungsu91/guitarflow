@@ -9,7 +9,9 @@ export function classifyFret(candidate,slot,staff,config=C){
   else confidence.string=.99;
   if(!slot||Math.abs(candidate.cx-slot.x)>staff.spacing*config.slotTolerance)reasons.push('slot-mismatch');
   if(reading?.alternatives?.some(a=>isFretText(a.text)&&normalizeFretText(a.text)!==normalizeFretText(reading.text)&&normalizeFretText(a.text).length===candidate.parts&&a.confidence>reading.confidence-config.candidateMargin))reasons.push('ambiguous-digit');
-  if(reading?.text?.length===2&&(candidate.parts!==2||candidate.width<staff.spacing*.40||candidate.width>staff.spacing*1.35))reasons.push('ambiguous-double-digit');
+  // Exact native text already passed font-size/spacing checks in pdfText.
+  // Raster ink-width limits reject valid wide-font text such as Courier "24".
+  if(reading?.text?.length===2&&(candidate.parts!==2||!reading.method?.startsWith('pdf-text-on-tab-line')&&(candidate.width<staff.spacing*.40||candidate.width>staff.spacing*1.35)))reasons.push('ambiguous-double-digit');
   if(reading?.text?.length===1&&candidate.parts>1)reasons.push('overlapping-symbol');
   if(!reading?.agrees)reasons.push('ocr-disagreement');
   if(reading?.shapeRejected)reasons.push(reading.shapeRejected);
@@ -60,7 +62,9 @@ export function resolvePage(geometry,config=C){
 
 export function summarizeAnalysis(pages){
   const staffs=pages.flatMap(p=>p.staffs),measures=staffs.flatMap(s=>s.measures),slots=measures.flatMap(m=>m.slots);
-  return {pages:pages.length,staffs:staffs.length,measures:measures.length,
+  const barCountMismatches=pages.flatMap(p=>p.staffs.filter(s=>s.notation?.barCountRetry&&!s.notation.barCountRetry.accepted).map(s=>({page:p.page,staff:s.id,recognized:s.notation.barCountRetry.originalCount,detected:s.notation.barCountRetry.sourceCount})));
+  return {pages:pages.length,pagesWithoutTab:pages.filter(p=>!p.staffs.some(s=>s.measures.length)).map(p=>p.page),staffs:staffs.length,measures:measures.length,
+    ...(barCountMismatches.length?{barCountMismatches}:{}),
     confirmed:slots.reduce((n,s)=>n+s.notes.filter(n=>n.status==='confirmed').length,0),
     repeatedFrets:slots.reduce((n,s)=>n+s.notes.filter(n=>n.status==='confirmed'&&n.method==='tab-repeat-slash').length,0),
     unresolved:slots.filter(s=>s.status==='unresolved').length+measures.filter(m=>!m.slots.length).length,

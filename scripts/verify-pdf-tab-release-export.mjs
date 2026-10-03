@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {getDocument} from 'pdfjs-dist/legacy/build/pdf.mjs';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE);
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+const origin=process.env.PDF_TAB_APP_ORIGIN||'http://127.0.0.1:4174',out=`artifacts/pdf-tab-release/export-${process.env.EXPORT_LABEL||'chrome'}`;await mkdir(out,{recursive:true});
+const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(30000);
+await p.addInitScript(()=>{localStorage.setItem('language','ko');Object.defineProperty(navigator,'share',{value:undefined,configurable:true});});
+try{
+ await p.goto(`${origin}/#etudes`,{waitUntil:'networkidle'});await p.locator('.launchSplash').waitFor({state:'detached',timeout:60000});
+ await p.getByRole('button',{name:'악보 작업',exact:true}).click();await p.getByRole('menuitem',{name:/제작|만들기/}).click();
+ await p.getByRole('button',{name:'PDF 메뉴',exact:true}).click();await p.getByRole('menuitem',{name:'불러오기(전환)',exact:true}).click();
+ await p.getByLabel('PDF·사진 선택',{exact:true}).setInputFiles('artifacts/pdf-tab-corpus/helvetica-110dpi.pdf');
+ await p.getByRole('heading',{name:'TAB 분석 완료'}).waitFor({timeout:120000});await p.getByRole('button',{name:'제작실에서 열기',exact:true}).click();await p.locator('.mobilePdfTabReview').waitFor();
+ const initial=await p.evaluate(()=>JSON.parse(localStorage.getItem('fretiva.etude.library.v2')));assert.equal(Object.keys(initial.records).length,1);
+ await p.getByRole('button',{name:'PDF 메뉴',exact:true}).click();await p.getByRole('menuitem',{name:'PDF 저장',exact:true}).click();
+ const preview=p.locator('.print-preview-overlay');await preview.waitFor();await preview.locator('[data-print-page] svg').first().waitFor();
+ await preview.getByRole('button',{name:'PDF 저장',exact:true}).click();await preview.locator('.rt-pdf-filename input').fill('release:/test?');
+ await preview.getByRole('button',{name:'PDF 만들기',exact:true}).click();
+ await preview.getByRole('button',{name:'저장·공유',exact:true}).waitFor({timeout:120000});
+ await p.screenshot({path:`${out}/prepared.png`});
+ const downloading=p.waitForEvent('download');await preview.getByRole('button',{name:'저장·공유',exact:true}).click();const download=await downloading;
+ assert.equal(download.suggestedFilename(),'release__test_.pdf');await download.saveAs(`${out}/score.pdf`);
+ const pdf=await getDocument({data:new Uint8Array(await readFile(`${out}/score.pdf`))}).promise;
+ assert.equal(pdf.numPages,1);const page=await pdf.getPage(1),ops=await page.getOperatorList();assert(ops.fnArray.length>0);await pdf.destroy();
+ await preview.getByRole('button',{name:'닫기',exact:true}).click();await preview.waitFor({state:'detached'});
+ assert.deepEqual(await p.evaluate(()=>JSON.parse(localStorage.getItem('fretiva.etude.library.v2'))),initial,'PDF export preserves the source score');
+ assert.deepEqual(errors,[]);
+ const report={production:true,rasterImport:true,savedFrets:Object.values(initial.records)[0].document.measures.flatMap(m=>m.events.flatMap(e=>e.notes)).length,pdfPages:1,filename:download.suggestedFilename(),sourceUnchanged:true,errors};
+ await writeFile(`${out}/result.json`,JSON.stringify(report,null,2));console.log(JSON.stringify(report));
+}catch(error){await p.screenshot({path:`${out}/failure.png`});throw error;}finally{await browser.close();}

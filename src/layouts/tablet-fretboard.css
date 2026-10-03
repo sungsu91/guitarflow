@@ -1,4 +1,22 @@
 @layer tablet-layout {
+  /* Full scale positions pan at a fixed density instead of fitting 24 frets. */
+  html body #root .tabletLayout .scaleAllPositionsFretboard.fretboardComponent {
+    --tablet-note-size: 32px;
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    overflow-x: auto !important; overflow-y: hidden !important;
+    touch-action: pan-x pan-y !important; overscroll-behavior-x: contain;
+    user-select: none;
+  }
+  html body #root .tabletLayout .scaleAllPositionsFretboard.fretboardComponent .fretboardComponentScroller {
+    box-sizing: border-box;
+    width: calc(var(--fret-slot-count) * 48px + var(--fretboard-label-left) + var(--fretboard-label-right)) !important;
+    min-width: max(100%, calc(var(--fret-slot-count) * 48px + var(--fretboard-label-left) + var(--fretboard-label-right))) !important;
+    max-width: none !important;
+  }
+  html body #root .tabletLayout .scaleAllPositionsFretboard.fretboardComponent :is(.fretboardGrid, .fretboardFretNumbers) {
+    grid-template-columns: repeat(var(--fret-slot-count), minmax(48px, 1fr)) !important;
+  }
+  .tabletLayout .scaleAllPositionsHint { text-align: center; color: var(--riff-text-muted); font-size: 12px; }
   /* One upper workbench, one full-width catalog. The selected chord and
      catalog share their existing controls, diagrams and selection state. */
   .tabletLayout .fretboardViewerPanel.tabletChordViewer {
@@ -84,7 +102,7 @@
   .tabletLayout .tabletTheoryViewer .viewerNoteButtons {
     grid-column: 1 / -1 !important; grid-template-columns: repeat(7,minmax(0,1fr)) !important;
   }
-  .tabletLayout .tabletTheoryViewer .viewerSelectGrid { grid-template-columns: repeat(4,minmax(0,1fr)) !important; }
+  .tabletLayout .tabletTheoryViewer .viewerScaleSelectGrid { grid-template-columns: minmax(0,0.85fr) minmax(0,1.8fr) minmax(0,1fr) !important; }
   .tabletLayout .tabletTheoryViewer .viewerSharedFretboard {
     --fretboard-label-left: 76px !important;
     --fretboard-label-right: 14px !important;
@@ -114,7 +132,7 @@
     .tabletLayout .tabletTheoryViewer .viewerNoteButtons { grid-template-columns: repeat(13,minmax(0,1fr)) !important; }
   }
   @media (max-width: 599px) {
-    .tabletLayout .tabletTheoryViewer .viewerSelectGrid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+    .tabletLayout .tabletTheoryViewer .viewerScaleSelectGrid { grid-template-columns: minmax(0,0.85fr) minmax(0,1.8fr) minmax(0,1fr) !important; }
     .tabletLayout .tabletTheoryViewer .fretboardFretNumbers { font-size: 11px !important; }
   }
 

@@ -3324,7 +3324,7 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
     .stage2HeaderScalePicker > .referenceScalePicker.referenceScalePicker {
     display: grid !important;
     grid-template-columns:
-      minmax(64px, 0.9fr) minmax(92px, 1.25fr) minmax(68px, 0.86fr)
+      minmax(64px, 0.9fr) minmax(150px, 2.1fr)
       minmax(68px, 1fr) minmax(56px, 0.74fr) !important;
     grid-template-rows: 34px !important;
     align-items: stretch !important;
@@ -3364,25 +3364,19 @@ html body #root main.app.app.app.practiceMode.viewport-mobile-surface.landscapeP
     order: 2 !important;
   }
 
+
   html body #root main.app.app.app.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
     .scaleBlockTrainingPanel.referenceTrainingPanel
-    .referenceScalePicker .scaleTypeSelect {
+    .referenceScalePicker > .scaleBoxSelect {
     grid-column: 3 !important;
     order: 3 !important;
   }
 
   html body #root main.app.app.app.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
     .scaleBlockTrainingPanel.referenceTrainingPanel
-    .referenceScalePicker > .scaleBoxSelect {
+    .referenceScalePicker > .trainingNoteGuideToggle {
     grid-column: 4 !important;
     order: 4 !important;
-  }
-
-  html body #root main.app.app.app.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
-    .scaleBlockTrainingPanel.referenceTrainingPanel
-    .referenceScalePicker > .trainingNoteGuideToggle {
-    grid-column: 5 !important;
-    order: 5 !important;
   }
 
   html body #root main.app.app.app.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus

@@ -16,8 +16,8 @@ export function refreshAutomaticChordNames(document){
  const measures=document.measures.map(m=>{
   if(m.chordNameMode!=='auto')return m;
   const harmony=measureChordName(document,m);
-  if(m.harmony===harmony&&!m.chord)return m;
-  changed=true;return {...m,chord:null,harmony};
+  if(m.harmony===harmony&&!m.chord&&!m.harmonyChanges&&!m.harmonyReview)return m;
+  changed=true;return {...m,chord:null,harmony,harmonyChanges:undefined,harmonyReview:undefined};
  });
  return changed?{...document,measures}:document;
 }

@@ -1,3 +1,5 @@
+import { SCALE_OPTIONS, getScaleDefinition, getLegacyScaleDefinition, getScalePatterns } from './fretboard/scaleCatalog.js';
+import { SCALE_ALL_POSITIONS, SCALE_OVERVIEW_MAX_FRET, buildScaleOverviewPositions } from './fretboard/scaleOverview.js';
 import FretboardViewerLayout from "./layouts/FretboardViewerLayout.jsx";
 import DesktopShooterMaps, {DesktopShooterLives,DesktopShooterMapGallery,DesktopShooterSkinButton,DesktopShooterStartButton,useDesktopShooterMap} from './shooter/DesktopShooterMaps.jsx';
 import DesktopNoteScaleViewer from "./layouts/DesktopNoteScaleViewer.jsx";
@@ -620,22 +622,18 @@ const SCALE_ROOT_OPTIONS = CHROMATIC_NOTES.map((note) => ({
   id: note,
   label: note,
   solfege: SOLFEGE[note],
-})).filter((note) => !note.id.includes("#"));
+}));
 
 const SCALE_FAMILIES = {
   pentatonic: { id: "pentatonic", label: ko["app.pentatonics"] },
   scale: { id: "scale", label: ko["app.scales"] },
+  blues: { id: "blues", label: "Blues" },
 };
 const SCALE_LICK_GROUP_ID = "lick";
 
 const PENTATONIC_TYPES = {
-  major: { id: "major", label: ko["app.major"], intervals: [0, 2, 4, 7, 9], windowOffset: -3 },
-  minor: { id: "minor", label: ko["app.minor"], intervals: [0, 3, 5, 7, 10], windowOffset: 0 },
-};
-
-const DIATONIC_SCALE_TYPES = {
-  major: { id: "major", label: ko["app.major"], intervals: [0, 2, 4, 5, 7, 9, 11], windowOffset: 0 },
-  minor: { id: "minor", label: ko["app.minor"], intervals: [0, 2, 3, 5, 7, 8, 10], windowOffset: 0 },
+  major: { id: "major", label: ko["app.major"], intervals: getScaleDefinition("major-pentatonic").intervals, windowOffset: -3 },
+  minor: { id: "minor", label: ko["app.minor"], intervals: getScaleDefinition("minor-pentatonic").intervals, windowOffset: 0 },
 };
 
 const SCALE_BOX_OPTIONS = [1, 2, 3, 4, 5];
@@ -644,14 +642,16 @@ function getScalePositionOptions() {
     ...SCALE_BOX_OPTIONS.map((box) => ({ id: box, label: `BOX${box}` })),
     { id: "root-1", label: translateUi("app.rootScaleOneOctave") },
     { id: "root-2", label: translateUi("app.rootScaleTwoOctaves") },
+    { id: SCALE_ALL_POSITIONS, label: translateUi("app.all") },
   ];
 }
 
 function normalizeScalePosition(value) {
-  return rootScaleOctaves(value) ? value : Math.max(1, Math.min(5, Number(value) || 1));
+  return value === SCALE_ALL_POSITIONS || rootScaleOctaves(value) ? value : Math.max(1, Math.min(5, Number(value) || 1));
 }
 
 function getScalePositionTriggerLabel(value) {
+  if (value === SCALE_ALL_POSITIONS) return translateUi("app.all");
   const octaves = rootScaleOctaves(value);
   return octaves ? translateUi("app.rootScaleCompact", { value1: octaves }) : null;
 }
@@ -1019,125 +1019,6 @@ const SCALE_LICK_OPTIONS = SCALE_LICK_STYLES.flatMap((style) =>
     basisLabel: style.basisLabel,
   })),
 );
-const SCALE_TRAINING_FAMILIES = {
-  scale: SCALE_FAMILIES.scale,
-  pentatonic: SCALE_FAMILIES.pentatonic,
-};
-
-const PENTATONIC_BOX_PATTERNS = {
-  minor: [
-    {
-      box: 1,
-      startOffset: 0,
-      stringOffsets: { 6: [0, 3], 5: [0, 2], 4: [0, 2], 3: [0, 2], 2: [0, 3], 1: [0, 3] },
-    },
-    {
-      box: 2,
-      startOffset: 3,
-      stringOffsets: { 6: [0, 2], 5: [-1, 2], 4: [-1, 2], 3: [-1, 1], 2: [0, 2], 1: [0, 2] },
-    },
-    {
-      box: 3,
-      startOffset: 5,
-      stringOffsets: { 6: [0, 2], 5: [0, 2], 4: [0, 2], 3: [-1, 2], 2: [0, 3], 1: [0, 2] },
-    },
-    {
-      box: 4,
-      startOffset: 7,
-      stringOffsets: { 6: [0, 3], 5: [0, 3], 4: [0, 2], 3: [0, 2], 2: [1, 3], 1: [0, 3] },
-    },
-    {
-      box: 5,
-      startOffset: 10,
-      stringOffsets: { 6: [0, 2], 5: [0, 2], 4: [-1, 2], 3: [-1, 2], 2: [0, 2], 1: [0, 2] },
-    },
-  ],
-  major: [
-    {
-      box: 1,
-      startOffset: 0,
-      stringOffsets: { 6: [0, 2], 5: [-1, 2], 4: [-1, 2], 3: [-1, 1], 2: [0, 2], 1: [0, 2] },
-    },
-    {
-      box: 2,
-      startOffset: 2,
-      stringOffsets: { 6: [0, 2], 5: [0, 2], 4: [0, 2], 3: [-1, 2], 2: [0, 3], 1: [0, 2] },
-    },
-    {
-      box: 3,
-      startOffset: 4,
-      stringOffsets: { 6: [0, 3], 5: [0, 3], 4: [0, 2], 3: [0, 2], 2: [1, 3], 1: [0, 3] },
-    },
-    {
-      box: 4,
-      startOffset: 7,
-      stringOffsets: { 6: [0, 2], 5: [0, 2], 4: [-1, 2], 3: [-1, 2], 2: [0, 2], 1: [0, 2] },
-    },
-    {
-      box: 5,
-      startOffset: 9,
-      stringOffsets: { 6: [0, 3], 5: [0, 2], 4: [0, 2], 3: [0, 2], 2: [0, 3], 1: [0, 3] },
-    },
-  ],
-};
-
-const DIATONIC_BOX_PATTERNS = {
-  major: [
-    {
-      box: 1,
-      startOffset: 0,
-      stringOffsets: { 6: [0, 2, 4], 5: [0, 2, 4], 4: [1, 2, 4], 3: [1, 2, 4], 2: [2, 4, 5], 1: [2, 4, 5] },
-    },
-    {
-      box: 2,
-      startOffset: 2,
-      stringOffsets: { 6: [0, 2, 3], 5: [0, 2, 4], 4: [0, 2, 4], 3: [0, 2, 4], 2: [2, 3, 5], 1: [2, 3, 5] },
-    },
-    {
-      box: 3,
-      startOffset: 4,
-      stringOffsets: { 6: [0, 1, 3], 5: [0, 2, 3], 4: [0, 2, 3], 3: [0, 2, 4], 2: [1, 3, 5], 1: [1, 3, 5] },
-    },
-    {
-      box: 4,
-      startOffset: 7,
-      stringOffsets: { 6: [0, 2, 4], 5: [0, 2, 4], 4: [0, 2, 4], 3: [1, 2, 4], 2: [2, 3, 5], 1: [2, 4, 5] },
-    },
-    {
-      box: 5,
-      startOffset: 9,
-      stringOffsets: { 6: [0, 2, 3], 5: [0, 2, 3], 4: [0, 2, 4], 3: [0, 2, 4], 2: [1, 3, 5], 1: [2, 3, 5] },
-    },
-  ],
-  minor: [
-    {
-      box: 1,
-      startOffset: 0,
-      stringOffsets: { 6: [0, 2, 3], 5: [0, 2, 3], 4: [0, 2, 4], 3: [0, 2, 4], 2: [1, 3, 5], 1: [2, 3, 5] },
-    },
-    {
-      box: 2,
-      startOffset: 2,
-      stringOffsets: { 6: [0, 1, 3], 5: [0, 1, 3], 4: [0, 2, 3], 3: [0, 2, 3], 2: [1, 3, 5], 1: [1, 3, 5] },
-    },
-    {
-      box: 3,
-      startOffset: 3,
-      stringOffsets: { 6: [0, 2, 4], 5: [0, 2, 4], 4: [1, 2, 4], 3: [1, 2, 4], 2: [2, 4, 5], 1: [2, 4, 5] },
-    },
-    {
-      box: 4,
-      startOffset: 5,
-      stringOffsets: { 6: [0, 2, 3], 5: [0, 2, 4], 4: [0, 2, 4], 3: [0, 2, 4], 2: [2, 3, 5], 1: [2, 3, 5] },
-    },
-    {
-      box: 5,
-      startOffset: 7,
-      stringOffsets: { 6: [0, 1, 3], 5: [0, 2, 3], 4: [0, 2, 3], 3: [0, 2, 4], 2: [1, 3, 5], 1: [1, 3, 5] },
-    },
-  ],
-};
-
 const STANDARD_TUNING = [
   { stringNumber: 6, pitch: "E2" },
   { stringNumber: 5, pitch: "A2" },
@@ -1255,11 +1136,7 @@ function getPracticalPatternPlacement(root, pattern) {
 }
 
 function getScaleBlockPatterns(familyId, typeId) {
-  return (
-    familyId === SCALE_FAMILIES.scale.id
-      ? DIATONIC_BOX_PATTERNS[typeId] ?? DIATONIC_BOX_PATTERNS.minor
-      : PENTATONIC_BOX_PATTERNS[typeId] ?? PENTATONIC_BOX_PATTERNS.minor
-  );
+  return getScalePatterns(getLegacyScaleDefinition(familyId, typeId).id);
 }
 
 function compareScaleBoxDisplayPositions(a, b) {
@@ -1407,9 +1284,20 @@ export function buildScaleLickPractice(familyId = SCALE_LICK_STYLES[0].id, lickI
 }
 
 export function buildScaleBlockPractice(root = "C", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, boxNumber = 1) {
-  const family = SCALE_FAMILIES[familyId] ?? SCALE_FAMILIES.pentatonic;
-  const typeSource = family.id === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
-  const type = typeSource[typeId] ?? typeSource.minor;
+  const scale = getLegacyScaleDefinition(familyId, typeId);
+  const family = SCALE_FAMILIES[scale.familyId];
+  const type = { id: scale.typeId, label: scale.label, intervals: scale.intervals };
+  if (boxNumber === SCALE_ALL_POSITIONS) {
+    const notes = buildScaleOverviewPositions(root, scale.intervals)
+      .map(position => makeGuitarNote({ ...position, group: family.id }))
+      .sort((a, b) => a.frequency - b.frequency || b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
+    return {
+      root, scale, type, family, notes, allPositions: true, displayBox: SCALE_ALL_POSITIONS,
+      label: `${root} ${scale.label} · ${translateUi("app.all")}`,
+      sequence: [...new Map(notes.map(note => [note.pitch, note])).values()].map(note => note.pitch),
+      visibleFrets: Array.from({ length: SCALE_OVERVIEW_MAX_FRET + 1 }, (_, fret) => fret),
+    };
+  }
   const octaves = rootScaleOctaves(boxNumber);
   if (octaves) {
     const octaveSegments = buildRootScaleRoute(root, type.intervals)
@@ -1430,8 +1318,8 @@ export function buildScaleBlockPractice(root = "C", typeId = "minor", familyId =
     const maxFret = Math.max(...notes.map((note) => note.fretNumber));
     const positionLabel = translateUi(octaves === 1 ? "app.rootScaleOneOctave" : "app.rootScaleTwoOctaves");
     return {
-      root, type, family, notes, octaves, rootScaleSegments,
-      label: `${root} ${type.label} ${family.label} ${positionLabel}`,
+      root, scale, type, family, notes, octaves, rootScaleSegments,
+      label: `${root} ${scale.label} ${positionLabel}`,
       sequence,
       visibleFrets: Array.from({ length: maxFret - minFret + 1 }, (_, index) => minFret + index),
     };
@@ -1457,8 +1345,13 @@ export function buildScaleBlockPractice(root = "C", typeId = "minor", familyId =
     });
   }).sort((a, b) => a.frequency - b.frequency || b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
   const sequence = [...new Map(notes.map((note) => [note.pitch, note])).values()].map((note) => note.pitch);
-  const label = `${root} ${type.label} ${family.label} Box ${displayBox}`;
-  return { displayBox, label, notes, sequence, visibleFrets, root, type, family, pattern, placement, sourceBox };
+  const label = `${root} ${scale.label} Box ${displayBox}`;
+  return { displayBox, label, notes, sequence, visibleFrets, root, scale, type, family, pattern, placement, sourceBox };
+}
+
+export function buildNamedScalePractice(root, scaleId, position = 1) {
+  const scale = getScaleDefinition(scaleId);
+  return buildScaleBlockPractice(root, scale.typeId, scale.familyId, position);
 }
 
 const SCALE_BOX_SET_PATHS = {
@@ -1696,7 +1589,7 @@ export function buildScaleBoxSetPractice(root = "C", typeId = "minor", familyId 
   return {
     boxSet: true,
     displayBox: SCALE_BOX_SET_ID,
-    label: `${root} ${type.label} ${family.label} ${getScaleBoxSetDirectionLabel(direction)}`,
+    label: `${root} ${boxPractices[0].scale.label} ${getScaleBoxSetDirectionLabel(direction)}`,
     notes,
     sequence,
     visibleFrets,
@@ -16918,8 +16811,10 @@ function App({ onReady }) {
   const [pendingStageCardId, setPendingStageCardId] = useState(null);
   const [scaleDirection, setScaleDirection] = useState(SCALE_DIRECTIONS.LOOP);
   const [selectedScaleRoot, setSelectedScaleRoot] = useState("C");
-  const [selectedScaleFamily, setSelectedScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
-  const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.major.id);
+  const [selectedScaleId, setSelectedScaleId] = useState("major-pentatonic");
+  const selectedScaleDefinition = getScaleDefinition(selectedScaleId);
+  const selectedScaleFamily = selectedScaleDefinition.familyId;
+  const selectedScaleType = selectedScaleDefinition.typeId;
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
   const [selectedRootScaleSegment, setSelectedRootScaleSegment] = useState(0);
   const [selectedScaleLick, setSelectedScaleLick] = useState(SCALE_LICK_OPTIONS[0].id);
@@ -16927,8 +16822,7 @@ function App({ onReady }) {
   const [viewerSwipeFeedback, setViewerSwipeFeedback] = useState("");
   const [viewerChordSwipeFeedback, setViewerChordSwipeFeedback] = useState("");
   const [viewerScaleRoot, setViewerScaleRoot] = useState("C");
-  const [viewerScaleFamily, setViewerScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
-  const [viewerScaleType, setViewerScaleType] = useState(PENTATONIC_TYPES.major.id);
+  const [viewerScaleId, setViewerScaleId] = useState("major-pentatonic");
   const [viewerScaleBox, setViewerScaleBox] = useState(1);
   const [viewerChordBaseRoot, setViewerChordBaseRoot] = useState("C");
   const [viewerChordAccidental, setViewerChordAccidental] = useState("natural");
@@ -18517,8 +18411,6 @@ function App({ onReady }) {
   const safeSelectedScaleLick = selectedScaleLickOptions.some((lick) => lick.id === selectedScaleLick)
     ? selectedScaleLick
     : selectedScaleLickOptions[0]?.id ?? SCALE_LICK_OPTIONS[0].id;
-  const selectedScaleTypeOptions =
-    selectedScaleFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
   const selectedScalePattern = useMemo(
     () => buildScaleTrainingPractice(
       selectedScaleRoot,
@@ -18528,8 +18420,10 @@ function App({ onReady }) {
     ),
     [isSelectedScaleLick, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType],
   );
-  const scalePositionNavigationEnabled = appMode === APP_MODES.PRACTICE
+  const scalePracticePickerEnabled = appMode === APP_MODES.PRACTICE
     && selectedCategory.id === "scale-block" && !isSelectedScaleLick;
+  const scaleAllPositions = scalePracticePickerEnabled && selectedScaleBox === SCALE_ALL_POSITIONS;
+  const scalePositionNavigationEnabled = scalePracticePickerEnabled && !scaleAllPositions;
   const rootScaleSegmentPractice = scalePositionNavigationEnabled && Boolean(selectedScalePattern.rootScaleSegments?.length);
   const selectedPentatonic = useMemo(
     () => selectRootScalePractice(selectedScalePattern, rootScaleSegmentPractice ? selectedRootScaleSegment : null),
@@ -18542,23 +18436,21 @@ function App({ onReady }) {
     ? safeSelectedScaleLick
     : selectedScaleBox;
   const selectedScaleDetailLabel = ko["app.position"];
-  const scalePracticePositionTriggerLabel = rootScaleSegmentPractice
+  const scalePracticePositionTriggerLabel = scaleAllPositions ? translateUi("app.all") : rootScaleSegmentPractice
     ? translateUi("app.rootScaleOctaveLabel", { value1: rootScaleOctaves(selectedScaleDetailValue) })
     : scalePositionNavigationEnabled ? "BOX" : getScalePositionTriggerLabel(selectedScaleDetailValue);
   const scalePracticePositionOptions = [
     { id: "box", label: "BOX" },
-    ...getScalePositionOptions().filter(option => rootScaleOctaves(option.id)),
+    ...getScalePositionOptions().filter(option => rootScaleOctaves(option.id) || option.id === SCALE_ALL_POSITIONS),
   ];
-  const scalePracticePositionValue = rootScaleSegmentPractice ? selectedScaleDetailValue : "box";
-  const scalePracticePositionIndex = rootScaleSegmentPractice ? selectedPentatonic.activeRootScaleSegment : Number(selectedScaleBox) - 1;
+  const scalePracticePositionValue = scaleAllPositions || rootScaleSegmentPractice ? selectedScaleDetailValue : "box";
+  const scalePracticePositionIndex = scaleAllPositions ? 0 : rootScaleSegmentPractice ? selectedPentatonic.activeRootScaleSegment : Number(selectedScaleBox) - 1;
   const scalePracticePositionCount = rootScaleSegmentPractice ? selectedPentatonic.rootScaleSegments.length : 5;
   const selectedPentatonicRef = useRef(selectedPentatonic);
   selectedPentatonicRef.current = selectedPentatonic;
-  const viewerScaleTypeOptions =
-    viewerScaleFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
   const viewerScaleBlock = useMemo(
-    () => buildScaleBlockPractice(viewerScaleRoot, viewerScaleType, viewerScaleFamily, viewerScaleBox),
-    [viewerScaleBox, viewerScaleFamily, viewerScaleRoot, viewerScaleType],
+    () => buildNamedScalePractice(viewerScaleRoot, viewerScaleId, viewerScaleBox),
+    [viewerScaleBox, viewerScaleId, viewerScaleRoot],
   );
   const viewerSelectedChordName = getChordNameFromParts(
     viewerChordBaseRoot,
@@ -18784,7 +18676,7 @@ function App({ onReady }) {
     );
   }, [viewerFretboardRange]);
   const viewerShouldFitFretboard =
-    viewerMode === FRETBOARD_VIEWER_MODES.SCALE ||
+    (viewerMode === FRETBOARD_VIEWER_MODES.SCALE && !viewerScaleBlock.allPositions) ||
     viewerMode === FRETBOARD_VIEWER_MODES.CHORD;
   useEffect(() => {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return;
@@ -25752,7 +25644,7 @@ function App({ onReady }) {
     setSelectedRootScaleSegment(segmentIndex);
     const nextPentatonic = selectRootScalePractice(
       buildScaleTrainingPractice(root, typeId, familyId, detailValue),
-      scalePositionNavigationEnabled ? segmentIndex : null,
+      scalePracticePickerEnabled ? segmentIndex : null,
     );
     const safeCategory = {
       ...normalizePracticeCategory(selectedCategory),
@@ -25776,7 +25668,7 @@ function App({ onReady }) {
     setLaneFeedback([]);
     setFeedback("Ready");
     setReferenceStepTick(value => value + 1);
-  }, [getPracticeSequence, scalePositionNavigationEnabled, repeatPractice, safeSelectedScaleLick, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily]);
+  }, [getPracticeSequence, scalePracticePickerEnabled, repeatPractice, safeSelectedScaleLick, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily]);
 
   const changeRootScaleSegment = useCallback((index) => {
     resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, selectedScaleBox, index);
@@ -25787,29 +25679,11 @@ function App({ onReady }) {
     resetScalePracticePreview(root, selectedScaleType, selectedScaleFamily, isScaleLickFamilyId(selectedScaleFamily) ? safeSelectedScaleLick : selectedScaleBox);
   }, [resetScalePracticePreview, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleType]);
 
-  const changeScaleFamily = useCallback((familyId) => {
-    const nextFamily = SCALE_TRAINING_FAMILIES[familyId] ? familyId : SCALE_FAMILIES.pentatonic.id;
-    const nextTypeOptions = nextFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
-    const nextLickStyle = isScaleLickFamilyId(nextFamily) ? getScaleLickStyle(nextFamily) : null;
-    const nextType = nextLickStyle?.defaultType && nextTypeOptions[nextLickStyle.defaultType]
-      ? nextLickStyle.defaultType
-      : nextTypeOptions[selectedScaleType] ? selectedScaleType : nextTypeOptions.minor.id;
-    const nextLick = nextLickStyle ? getScaleLickOption(nextFamily, selectedScaleLick).id : selectedScaleLick;
-    setSelectedScaleFamily(nextFamily);
-    setSelectedScaleType(nextType);
-    if (nextLickStyle) setSelectedScaleLick(nextLick);
-    resetScalePracticePreview(
-      selectedScaleRoot,
-      nextType,
-      nextFamily,
-      nextLickStyle ? nextLick : selectedScaleBox,
-    );
-  }, [resetScalePracticePreview, selectedScaleBox, selectedScaleLick, selectedScaleRoot, selectedScaleType]);
-
-  const changeScaleType = useCallback((typeId) => {
-    setSelectedScaleType(typeId);
-    resetScalePracticePreview(selectedScaleRoot, typeId, selectedScaleFamily, isScaleLickFamilyId(selectedScaleFamily) ? safeSelectedScaleLick : selectedScaleBox);
-  }, [resetScalePracticePreview, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot]);
+  const changeScale = useCallback((scaleId) => {
+    const scale = getScaleDefinition(scaleId);
+    setSelectedScaleId(scale.id);
+    resetScalePracticePreview(selectedScaleRoot, scale.typeId, scale.familyId, selectedScaleBox);
+  }, [resetScalePracticePreview, selectedScaleBox, selectedScaleRoot]);
 
   const changeScaleBox = useCallback((boxValue) => {
     const nextBox = normalizeScalePosition(boxValue);
@@ -27592,12 +27466,10 @@ function App({ onReady }) {
   }, []);
   const scaleReferenceTitle = useMemo(() => {
     const root = SCALE_ROOT_OPTIONS.find((option) => option.id === selectedScaleRoot);
-    const type = selectedScaleTypeOptions[selectedScaleType] ?? selectedScaleTypeOptions.minor;
-    const family = SCALE_FAMILIES[selectedScaleFamily] ?? SCALE_FAMILIES.pentatonic;
     const rootLabel = `${root?.label ?? selectedScaleRoot}/${root?.solfege ?? SOLFEGE[selectedScaleRoot] ?? ""}`;
-    if (isSelectedScaleLick || rootScaleOctaves(selectedScaleBox)) return selectedPentatonic.label;
-    return `${rootLabel} ${type.label} ${family.label} BOX${selectedScaleBox}`;
-  }, [isSelectedScaleLick, selectedPentatonic.label, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
+    if (isSelectedScaleLick || selectedScaleBox === SCALE_ALL_POSITIONS || rootScaleOctaves(selectedScaleBox)) return selectedPentatonic.label;
+    return `${rootLabel} ${selectedScaleDefinition.label} BOX${selectedScaleBox}`;
+  }, [isSelectedScaleLick, selectedPentatonic.label, selectedScaleBox, selectedScaleRoot, selectedScaleDefinition]);
   const referenceCurrentLabel = selectedCategory.tutorial
     ? ko["app.currentExercise"]
     : selectedCategory.id === "scale-block"
@@ -30502,27 +30374,22 @@ function App({ onReady }) {
   );
 
   const viewerScaleControls = (
-                <div className="viewerSelectGrid">
+                <div className="viewerSelectGrid viewerScaleSelectGrid">
                   <MetronomeSelectControl
                     label={translateUi("app.key")}
                     onChange={setViewerScaleRoot}
                     options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
+                    triggerLabel={isMobileLayout ? viewerScaleRoot : null}
                     value={viewerScaleRoot}
                   />
                   <MetronomeSelectControl
-                    label={translateUi("app.typeApp")}
-                    onChange={setViewerScaleFamily}
-                    options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
-                    value={viewerScaleFamily}
+                    label={translateUi("app.scales")}
+                    onChange={setViewerScaleId}
+                    options={SCALE_OPTIONS}
+                    value={viewerScaleId}
                   />
                   <MetronomeSelectControl
-                    label={translateUi("app.type")}
-                    onChange={setViewerScaleType}
-                    options={Object.values(viewerScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
-                    value={viewerScaleType}
-                  />
-                  <MetronomeSelectControl
-                    label="Box"
+                    label={translateUi("app.position")}
                     onChange={(nextBox) => setViewerScaleBox(normalizeScalePosition(nextBox))}
                     options={getScalePositionOptions()}
                     triggerLabel={getScalePositionTriggerLabel(viewerScaleBox)}
@@ -32818,7 +32685,8 @@ function App({ onReady }) {
                   />
                 ) : (
                   <Fretboard
-                    className={`viewerSharedFretboard ${viewerShouldFitFretboard ? "fitRange" : ""}`}
+                    className={`viewerSharedFretboard ${viewerShouldFitFretboard ? "fitRange" : ""} ${viewerMode === FRETBOARD_VIEWER_MODES.SCALE && viewerScaleBlock.allPositions ? "scaleAllPositionsFretboard" : ""}`}
+                    panFrets={viewerMode === FRETBOARD_VIEWER_MODES.SCALE && viewerScaleBlock.allPositions}
                     barres={viewerChordBarres}
                     fretRange={viewerFretboardRange}
                     mode={viewerMode}
@@ -32928,7 +32796,8 @@ function App({ onReady }) {
               scaleTitle={viewerScaleBlock.label}
               scaleControls={viewerScaleControls}
               scaleBoard={<Fretboard
-                className="viewerSharedFretboard fitRange"
+                className={`viewerSharedFretboard ${viewerScaleBlock.allPositions ? "scaleAllPositionsFretboard" : "fitRange"}`}
+                panFrets={viewerScaleBlock.allPositions}
                 fretRange={viewerScaleFretboardRange}
                 mode={FRETBOARD_VIEWER_MODES.SCALE}
                 notes={viewerScaleBlock.notes.map(note => ({...note,isRoot:false}))}
@@ -35551,7 +35420,7 @@ function App({ onReady }) {
               </div>
             ) : null}
             <aside
-              className={`referenceFretboard referenceTrainingBoard ${scalePositionNavigationEnabled ? "referenceTrainingBoard--scalePositions" : ""}`}
+              className={`referenceFretboard referenceTrainingBoard ${scalePracticePickerEnabled ? "referenceTrainingBoard--scalePositions" : ""}`}
               aria-label={translateUi("originalUi.referenceFretboard")}
               {...scalePositionSwipe}
             >
@@ -35565,38 +35434,28 @@ function App({ onReady }) {
                         label={translateUi("app.key")}
                         onChange={changeScaleRoot}
                         options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
+                        triggerLabel={isMobileLayout ? selectedScaleRoot : null}
                         showLabel={!isMobileLayout}
                         value={selectedScaleRoot}
                       />
-                      <div className="scaleTypeGroup">
-                        <MetronomeSelectControl
+                      <MetronomeSelectControl
                           className="scaleFamilySelect"
                           label={translateUi("app.scales")}
                           dropdownDirection="down"
-                          onChange={changeScaleFamily}
-                          options={Object.values(SCALE_TRAINING_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
+                          onChange={changeScale}
+                          options={SCALE_OPTIONS}
                           showLabel={!isMobileLayout}
-                          value={selectedScaleFamily}
+                          value={selectedScaleId}
                         />
-                        <MetronomeSelectControl
-                          className="scaleTypeSelect"
-                          label={translateUi("app.type")}
-                          dropdownDirection="down"
-                          onChange={changeScaleType}
-                          options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
-                          showLabel={!isMobileLayout}
-                          value={selectedScaleType}
-                        />
-                      </div>
                       <MetronomeSelectControl
                         className={`scaleBoxSelect scaleDetailSelect ${isSelectedScaleLick ? "scaleLickSelect" : ""}`}
                         dropdownDirection="down"
                         label={localizeUi(selectedScaleDetailLabel)}
                         onChange={changeScaleDetail}
-                        options={scalePositionNavigationEnabled ? scalePracticePositionOptions : selectedScaleDetailOptions}
+                        options={scalePracticePickerEnabled ? scalePracticePositionOptions : selectedScaleDetailOptions}
                         triggerLabel={scalePracticePositionTriggerLabel}
                         showLabel={!isMobileLayout}
-                        value={scalePositionNavigationEnabled ? scalePracticePositionValue : selectedScaleDetailValue}
+                        value={scalePracticePickerEnabled ? scalePracticePositionValue : selectedScaleDetailValue}
                       />
                       {isMobileLayout && <TrainingNoteGuideToggle
                           enabled={trainingNoteGuideEnabled}
@@ -35633,7 +35492,8 @@ function App({ onReady }) {
                 </div>
               )}
               <Fretboard
-                className={`trainingSharedFretboard fitRange ${showLickTabFretboard ? "trainingLickTabFretboard" : ""}`}
+                className={`trainingSharedFretboard ${scaleAllPositions ? "scaleAllPositionsFretboard" : "fitRange"} ${showLickTabFretboard ? "trainingLickTabFretboard" : ""}`}
+                panFrets={scaleAllPositions}
                 fretRange={referenceBoardRange}
                 mode="training"
                 notes={referenceBoardNotes}
@@ -35645,6 +35505,7 @@ function App({ onReady }) {
                 showOnlySelected={false}
                 tabSteps={referenceLickTabSteps}
               />
+              {scaleAllPositions ? <span className="scaleAllPositionsHint"><Translation id="app.scaleAllPositionsHint" /></span> : null}
               {scalePositionNavigationEnabled ? (isMobileLayout ? (
                 <MobileScalePositionNavigation
                   index={scalePracticePositionIndex}
@@ -35879,22 +35740,13 @@ function App({ onReady }) {
                       options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
                       value={selectedScaleRoot}
                     />
-                    <div className="scaleTypeGroup">
-                      <MetronomeSelectControl
+                    <MetronomeSelectControl
                         className="scaleFamilySelect"
                         label={translateUi("app.scales")}
-                        onChange={changeScaleFamily}
-                        options={Object.values(SCALE_TRAINING_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
-                        value={selectedScaleFamily}
+                        onChange={changeScale}
+                        options={SCALE_OPTIONS}
+                        value={selectedScaleId}
                       />
-                      <MetronomeSelectControl
-                        className="scaleTypeSelect"
-                        label={translateUi("app.type")}
-                        onChange={changeScaleType}
-                        options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
-                        value={selectedScaleType}
-                      />
-                    </div>
                     <MetronomeSelectControl
                       className={`scaleBoxSelect scaleDetailSelect ${isSelectedScaleLick ? "scaleLickSelect" : ""}`}
                       label={localizeUi(selectedScaleDetailLabel)}

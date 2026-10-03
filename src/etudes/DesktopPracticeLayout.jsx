@@ -1,7 +1,9 @@
+import {MEASURE_ROW_OPTIONS} from './measureLayout.js';
 import {Timer,Star,Printer,BookOpen} from 'lucide-react';
 import {t} from '../i18n/core.js';
 import {useLanguage} from '../i18n/react.jsx';
 import ScoreWorkspaceActions from './ScoreWorkspaceActions.jsx';
+import PlaybackBarSelect from './PlaybackBarSelect.jsx';
 
 // Desktop owns its arrangement; the session and score renderer remain shared.
 export default function DesktopPracticeLayout({model,picker,storage,zoom,onZoom,onRowCount,onPrint,printLabel,tips,children}) {
@@ -14,8 +16,8 @@ export default function DesktopPracticeLayout({model,picker,storage,zoom,onZoom,
     <h2>{t('etudes.scoreView')}</h2>
     <label className="desktopPracticeField"><span>{t('etudes.scoreDisplay')}</span><select aria-label={t('etudes.changeScoreDisplay')} value={model.notationView} onChange={e=>model.setNotationView(e.target.value)}>{[['tab','etudes.tabOnly'],['both','etudes.staffTab'],['staff','etudes.staffOnly']].map(([value,label])=><option key={value} value={value}>{t(label)}</option>)}</select></label>
     <label className="desktopPracticeField etudeDesktopSizeControl"><span>{t('etudes.scoreZoom')}</span><select aria-label={t('etudes.scoreZoom')} value={zoom} onChange={e=>onZoom(e.target.value)}><option value="auto">{t('etudes.autoFit')}</option><option value="width">{t('components.fitWidth')}</option>{[.5,.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value*100}%</option>)}</select></label>
-    <label className="desktopPracticeField etudeDesktopRowControl"><span>{t('etudes.barsPerLine')}</span><select aria-label={t('etudes.barsPerLine')} value={model.measuresPerRow} onChange={e=>onRowCount(Number(e.target.value))}><option value={0}>{t('etudes.auto')}</option>{[1,2,3,4].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-    <label className="desktopPracticeField"><span>{t('etudes.practicePosition')}</span><select aria-label={t('etudes.scorePlaybackBar')} value={model.playPosition?.bar??0} onChange={e=>model.controller.current?.seek({bar:Number(e.target.value),event:0})}>{model.selected.measures.map((_,i)=><option key={i} value={i}>{i+1}{t('app.bar')}</option>)}</select></label>
+    <label className="desktopPracticeField etudeDesktopRowControl"><span>{t('etudes.barsPerLine')}</span><select aria-label={t('etudes.barsPerLine')} value={model.measuresPerRow} onChange={e=>onRowCount(Number(e.target.value))}><option value={0}>{t('etudes.auto')}</option>{MEASURE_ROW_OPTIONS.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+    <label className="desktopPracticeField"><span>{t('etudes.practicePosition')}</span><PlaybackBarSelect aria-label={t('etudes.scorePlaybackBar')} bar={model.playPosition?.bar??0} count={model.selected.measures.length} barLabel={t('app.bar')} onChange={bar=>model.controller.current?.seek({bar,event:0})}/></label>
    </section>}
    <section className="desktopPracticeGroup desktopPracticeButtons" aria-label={t('etudes.scoreToolbar')}>
     <button type="button" data-ui="metronome" aria-label={t('menu.metronome')} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={()=>{model.setTipsOpen(false);model.toggleMetro();}}><Timer size={17}/>{t('menu.metronome')}</button>

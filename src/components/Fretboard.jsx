@@ -5,6 +5,7 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import { memo, useEffect, useRef, useState } from "react";
 import useFretboardGlissando from '../fretboard/useFretboardGlissando.js';
+import useFretboardPan from '../fretboard/useFretboardPan.js';
 import {triggerNoteRipple} from '../fretboard/noteRipple.js';
 import '../fretboard/noteGlissando.css';
 import {
@@ -177,6 +178,7 @@ function getTabStepDisplay(step) {
 function Fretboard({
   animateFretWindow = false,
   dragToPlay = false,
+  panFrets = false,
   barres = [],
   className = "",
   editable = false,
@@ -229,6 +231,7 @@ function Fretboard({
     onNotePress(note);
   };
   const glissando = useFretboardGlissando({enabled: glissandoEnabled, notes: renderNotes, onPlay: soundNote});
+  const pan = useFretboardPan(panFrets && !editable && !glissandoEnabled);
   const ripple = glissandoEnabled ? <span className="fretboardNoteRipple" aria-hidden="true"><span className="fretboardNoteRippleRing"/><span className="fretboardNoteRippleDrops"/></span> : null;
 
   renderNotes.forEach((note) => {
@@ -520,6 +523,10 @@ function Fretboard({
     <div
       className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${editable ? "fretboardComponent--editable" : ""} ${glissandoEnabled ? "fretboardComponent--glissando" : ""} ${className}`}
       {...glissando}
+      {...pan}
+      tabIndex={panFrets ? 0 : undefined}
+      role={panFrets ? 'region' : undefined}
+      aria-label={panFrets ? translateUi('app.scrollableScaleFretboard') : undefined}
       data-fret-window-start={isTabMode ? undefined : visualStartFret}
       onClick={editable ? () => {
         setDeleteTargetKey("");

@@ -1,8 +1,25 @@
-.editorDesign.etudeEditor--desktop .desktopEditorActions{display:grid;gap:6px;flex:none;min-width:0;padding-bottom:8px;border-bottom:1px solid var(--ed-line)}
-.editorDesign.etudeEditor--desktop .desktopEditorFileActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.editorDesign.etudeEditor--desktop .desktopEditorSessionActions{display:flex;gap:6px}
-.editorDesign.etudeEditor--desktop .desktopEditorActions button{height:36px;min-height:36px;min-width:0;padding:6px 8px;white-space:nowrap}
-.editorDesign.etudeEditor--desktop .desktopEditorFileActions button{height:auto;white-space:normal;overflow-wrap:anywhere}
-.editorDesign.etudeEditor--desktop .desktopEditorSessionActions .etudeEditorSave{flex:1;margin:0}
-.editorDesign.etudeEditor--desktop .desktopEditorHelpButton{flex:0 0 36px;padding:6px}
-.etudeEditor--desktop .desktopPdfSave{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.editorDesign.etudeEditor--desktop>header.desktopEditorHeader{position:relative;z-index:10;display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;min-height:48px;padding:0 0 10px}
+.etudeEditor--desktop .desktopEditorHeading{display:flex;align-items:center;flex-wrap:wrap;gap:14px;min-width:0}
+.etudeEditor--desktop .desktopEditorHeading>strong{font-size:16px;white-space:nowrap}
+.editorDesign.etudeEditor--desktop .desktopEditorActions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-left:auto;min-width:0}
+.editorDesign.etudeEditor--desktop :is(.desktopEditorFileActions,.desktopEditorSessionActions){display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.editorDesign.etudeEditor--desktop .desktopEditorSessionActions{padding-left:10px;border-left:1px solid var(--ed-line)}
+.editorDesign.etudeEditor--desktop .desktopEditorActions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;min-height:38px;min-width:0;padding:6px 12px;white-space:nowrap}
+.editorDesign.etudeEditor--desktop .desktopEditorSessionActions .etudeEditorSave{margin:0;padding-inline:20px}
+.etudeEditor--desktop .desktopSourceReview{position:relative}
+.editorDesign.etudeEditor--desktop .desktopSourceReviewToggle{display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 10px;background:var(--ed-soft);font-size:12px}
+.etudeEditor--desktop .desktopSourceReviewToggle span{font-size:11px;font-weight:400;color:var(--ed-muted)}
+.etudeEditor--desktop .desktopSourceReviewPanel{position:absolute;top:calc(100% + 8px);left:0;width:380px;max-width:calc(100vw - 64px);max-height:65dvh;overflow:auto;padding:16px;border:1px solid var(--ed-line);border-radius:12px;background:var(--ed-bg);color:var(--ed-ink);box-shadow:0 12px 36px #241c2429}
+.etudeEditor--desktop .desktopSourceReviewTitle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.editorDesign.etudeEditor--desktop .desktopSourceReviewTitle button{min-height:28px;width:28px;padding:0;font-size:20px}
+.etudeEditor--desktop .desktopSourceReviewPanel p{margin:8px 0 12px;font-size:12px;line-height:1.6;color:var(--ed-muted)}
+.etudeEditor--desktop .desktopSourceReviewPosition{display:grid;gap:8px;font-size:12px}
+.editorDesign.etudeEditor--desktop .desktopSourceReviewPosition label{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0}
+.editorDesign.etudeEditor--desktop .desktopSourceReviewPosition select{width:auto;min-height:36px;font-size:12px}
+.etudeEditor--desktop .desktopSourceReviewSteps{display:flex;gap:8px;margin:12px 0 8px}
+.etudeEditor--desktop .desktopSourceReviewSteps button{flex:1}
+.etudeEditor--desktop .desktopSourceReviewPanel>small{font-size:11px;color:var(--ed-muted)}
+.etudeEditor--desktop .desktopSourceReviewConfirm{border-top:1px solid var(--ed-line);margin-top:14px;padding-top:4px}
+.etudeEditor--desktop .desktopSourceReviewConfirm button{width:100%}
+.etudeEditor--desktop .desktopLocationTarget{background:#b57a200a;box-shadow:inset 0 0 0 2px #b57a2080;border-radius:5px}
+@media(max-width:1100px){.editorDesign.etudeEditor--desktop .desktopEditorActions{gap:6px}.editorDesign.etudeEditor--desktop .desktopEditorActions button{padding-inline:9px}.editorDesign.etudeEditor--desktop>header.desktopEditorHeader{gap:8px}}

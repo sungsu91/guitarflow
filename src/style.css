@@ -74340,3 +74340,17 @@ html body #root main.app.app.app .chordTransitionBody .currentProgressionReadout
   transition: none !important;
   animation: none !important;
 }
+
+/* Shared scale fields: key / named scale / position. Device sizing stays in layouts. */
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker > .scaleFamilySelect {
+  order: 2 !important;
+}
+@media (max-width: 767px) {
+  html body .app .fretboardViewerPanel .viewerScaleSelectGrid.viewerSelectGrid {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.8fr) minmax(0, 1fr) !important;
+  }
+  html body .app.app.app .fretboardViewerPanel .viewerScaleSelectGrid.viewerSelectGrid .metronomeSelectButton.metronomeSelectButton {
+    padding: 0 6px !important;
+    gap: 3px !important;
+  }
+}

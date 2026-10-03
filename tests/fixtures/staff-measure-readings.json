@@ -1,0 +1,2473 @@
+[
+  {
+    "page": 1,
+    "staff": 8,
+    "bar": 3,
+    "ink": {
+      "x": 1550,
+      "y": 2117,
+      "width": 434,
+      "height": 62,
+      "stems": [
+        {
+          "x": 1573,
+          "top": 2097,
+          "bottom": 2191,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6447368421052632
+            },
+            {
+              "step": 8,
+              "support": 0.8421052631578947
+            },
+            {
+              "step": 10,
+              "support": 0.7894736842105263
+            }
+          ]
+        },
+        {
+          "x": 1649,
+          "top": 2106,
+          "bottom": 2179,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 7,
+              "support": 0.808695652173913
+            },
+            {
+              "step": 9,
+              "support": 0.8173913043478261
+            }
+          ]
+        },
+        {
+          "x": 1702,
+          "top": 2115,
+          "bottom": 2183,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            },
+            {
+              "step": 8,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 1790,
+          "top": 2081,
+          "bottom": 2196,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.9487179487179487
+            },
+            {
+              "step": 5,
+              "support": 0.8869565217391304
+            },
+            {
+              "step": 6,
+              "support": 0.8026315789473685
+            },
+            {
+              "step": 7,
+              "support": 0.8956521739130435
+            }
+          ]
+        },
+        {
+          "x": 1846,
+          "top": 2123,
+          "bottom": 2183,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8846153846153846
+            },
+            {
+              "step": 1,
+              "support": 0.7727272727272727
+            },
+            {
+              "step": 2,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 7,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1893,
+          "top": 2129,
+          "bottom": 2190,
+          "heads": [
+            {
+              "step": -1,
+              "support": 0.9181818181818182
+            },
+            {
+              "step": 0,
+              "support": 0.9102564102564102
+            },
+            {
+              "step": 1,
+              "support": 0.9181818181818182
+            },
+            {
+              "step": 6,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1928,
+          "top": 2138,
+          "bottom": 2195,
+          "heads": [
+            {
+              "step": -1,
+              "support": 0.8363636363636363
+            },
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6447368421052632
+            }
+          ]
+        }
+      ],
+      "slashes": []
+    },
+    "original": "clef-G2+keySignature-CM+note-C5_sixteenth+note-E5_sixteenth+note-C5_eighth+note-C5_eighth+note-C5_sixteenth+note-C5_sixteenth+note-C5_sixteenth+note-C5_sixteenth+note-C5_quarter+barline+note-E5_eighth.+note-E5_sixteenth+note-F5_sixteenth+note-E5_sixteenth+note-E5_eighth+note-D5_quarter+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter|note-A5_quarter|note-C6_quarter+note-E5_eighth|note-A5_eighth+note-B4_eighth|note-F5_eighth+note-A3_quarter|note-C5_quarter|note-F5_quarter+note-E5_quarter+note-F3_eighth|note-C5_eighth|note-F5_eighth+note-E5_sixteenth+note-D5_sixteenth+note-A4_sixteenth+barline",
+    "readings": [
+      "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-A5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-F5_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-C6_quarter+note-E5_eighth|note-A5_eighth+note-D5_eighth|note-F5_eighth|note-A5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 1,
+    "bar": 1,
+    "ink": {
+      "x": 99,
+      "y": 208,
+      "width": 587,
+      "height": 62,
+      "stems": [
+        {
+          "x": 214,
+          "top": 201,
+          "bottom": 242,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            }
+          ]
+        },
+        {
+          "x": 352,
+          "top": 199,
+          "bottom": 242,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6695652173913044
+            }
+          ]
+        },
+        {
+          "x": 494,
+          "top": 200,
+          "bottom": 242,
+          "heads": []
+        }
+      ],
+      "slashes": [
+        {
+          "x": 214,
+          "top": 201,
+          "bottom": 242,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        },
+        {
+          "x": 352,
+          "top": 199,
+          "bottom": 242,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        },
+        {
+          "x": 494,
+          "top": 200,
+          "bottom": 242,
+          "hollow": true,
+          "support": 1,
+          "duration": "2"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-A4_quarter+nonote_quarter+barline+note-A4_quarter|note-F5_quarter|note-A5_quarter|note-C6_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-A3_quarter|note-C5_quarter|note-E5_quarter+note-B4b_eighth|note-D5_eighth+note-A4_eighth|note-C5_eighth+barline+note-E3_quarter|note-G4_quarter|note-B4_quarter+note-A4_quarter|note-C5_quarter|note-E5_quarter+note-C4_quarter|note-G4_quarter|note-C5_quarter+rest-eighth+note-A3_sixteenth|note-A4_sixteenth+nonote_sixteenth+nonote_sixteenth",
+    "readings": [
+      "clef-G2+keySignature-CM+note-A4_quarter+note-A4_quarter+note-A4_half+barline",
+      "clef-G2+keySignature-CM+note-G4_quarter+note-G4_quarter+note-G4_half+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 1,
+    "bar": 3,
+    "ink": {
+      "x": 1381,
+      "y": 208,
+      "width": 603,
+      "height": 62,
+      "stems": [
+        {
+          "x": 1423,
+          "top": 187,
+          "bottom": 308,
+          "heads": [
+            {
+              "step": -5,
+              "support": 1
+            },
+            {
+              "step": 2,
+              "support": 1
+            },
+            {
+              "step": 3,
+              "support": 0.9217391304347826
+            },
+            {
+              "step": 4,
+              "support": 1
+            },
+            {
+              "step": 5,
+              "support": 0.6173913043478261
+            }
+          ]
+        },
+        {
+          "x": 1530,
+          "top": 226,
+          "bottom": 293,
+          "heads": [
+            {
+              "step": 2,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 3,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.9736842105263158
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6710526315789473
+            }
+          ]
+        },
+        {
+          "x": 1672,
+          "top": 181,
+          "bottom": 288,
+          "heads": [
+            {
+              "step": -2,
+              "support": 1
+            },
+            {
+              "step": -1,
+              "support": 0.6181818181818182
+            },
+            {
+              "step": 2,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.618421052631579
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6710526315789473
+            }
+          ]
+        },
+        {
+          "x": 1800,
+          "top": 203,
+          "bottom": 242,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 8,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 1888,
+          "top": 213,
+          "bottom": 311,
+          "heads": [
+            {
+              "step": -6,
+              "support": 0.6097560975609756
+            },
+            {
+              "step": -5,
+              "support": 1
+            },
+            {
+              "step": 5,
+              "support": 0.9217391304347826
+            },
+            {
+              "step": 6,
+              "support": 0.8026315789473685
+            },
+            {
+              "step": 7,
+              "support": 0.8
+            }
+          ]
+        },
+        {
+          "x": 1944,
+          "top": 222,
+          "bottom": 303,
+          "heads": [
+            {
+              "step": -4,
+              "support": 1
+            },
+            {
+              "step": -3,
+              "support": 0.6633663366336634
+            },
+            {
+              "step": 4,
+              "support": 0.7105263157894737
+            },
+            {
+              "step": 5,
+              "support": 0.7391304347826086
+            },
+            {
+              "step": 6,
+              "support": 0.8026315789473685
+            }
+          ]
+        }
+      ],
+      "slashes": [
+        {
+          "x": 1800,
+          "top": 203,
+          "bottom": 242,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-A4_quarter+nonote_quarter+barline+note-A4_quarter|note-F5_quarter|note-A5_quarter|note-C6_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-A3_quarter|note-C5_quarter|note-E5_quarter+note-B4b_eighth|note-D5_eighth+note-A4_eighth|note-C5_eighth+barline+note-E3_quarter|note-G4_quarter|note-B4_quarter+note-A4_quarter|note-C5_quarter|note-E5_quarter+note-C4_quarter|note-G4_quarter|note-C5_quarter+rest-eighth+note-A3_sixteenth|note-A4_sixteenth+nonote_sixteenth+nonote_sixteenth",
+    "readings": [
+      "clef-G2+keySignature-CM+note-G3_quarter|note-G4_quarter|note-B4_quarter+note-A4_quarter|note-C5_quarter+note-C4_quarter|note-G4_quarter|note-C5_quarter+note-A4_eighth+note-G3_sixteenth+note-A3_sixteenth+barline",
+      "clef-G2+keySignature-CM+note-G3_quarter|note-G4_quarter|note-B4_quarter+note-A4_quarter|note-C5_quarter+note-C4_quarter|note-G4_quarter|note-C5_quarter+note-G4_eighth+note-G3_sixteenth+note-A3_sixteenth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 5,
+    "bar": 3,
+    "ink": {
+      "x": 1457,
+      "y": 1283,
+      "width": 527,
+      "height": 62,
+      "stems": [
+        {
+          "x": 1477,
+          "top": 1304,
+          "bottom": 1356,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6447368421052632
+            }
+          ]
+        },
+        {
+          "x": 1601,
+          "top": 1278,
+          "bottom": 1317,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6869565217391305
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        },
+        {
+          "x": 1675,
+          "top": 1276,
+          "bottom": 1317,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        },
+        {
+          "x": 1750,
+          "top": 1275,
+          "bottom": 1317,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            }
+          ]
+        },
+        {
+          "x": 1938,
+          "top": 1289,
+          "bottom": 1347,
+          "heads": [
+            {
+              "step": 0,
+              "support": 1
+            },
+            {
+              "step": 1,
+              "support": 0.6090909090909091
+            },
+            {
+              "step": 4,
+              "support": 0.6973684210526315
+            }
+          ]
+        }
+      ],
+      "slashes": [
+        {
+          "x": 1601,
+          "top": 1278,
+          "bottom": 1317,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        },
+        {
+          "x": 1675,
+          "top": 1276,
+          "bottom": 1317,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        },
+        {
+          "x": 1750,
+          "top": 1275,
+          "bottom": 1317,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-C5_quarter+note-A4_sixteenth+note-G4_sixteenth+note-E5_eighth+note-E5_half+barline+note-E5_eighth.+note-F5_sixteenth+note-F5_eighth+note-E5_sixteenth+note-E5_sixteenth+note-E5_eighth+note-D5_eighth+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter+note-A4_sixteenth+note-A4_sixteenth+note-A4_sixteenth+rest-eighth+rest-half+barline",
+    "readings": [
+      "clef-G2+keySignature-CM+note-C5_quarter+note-A4_sixteenth+note-A4_sixteenth+note-A4_quarter+rest-eighth.+note-E4_sixteenth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter+note-A4_eighth+note-G4_eighth+note-A4_quarter+rest-eighth.+note-E4_sixteenth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 7,
+    "bar": 1,
+    "ink": {
+      "x": 98,
+      "y": 1820,
+      "width": 488,
+      "height": 62,
+      "stems": [
+        {
+          "x": 197,
+          "top": 1800,
+          "bottom": 1894,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.618421052631579
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 8,
+              "support": 0.75
+            },
+            {
+              "step": 10,
+              "support": 0.7105263157894737
+            }
+          ]
+        },
+        {
+          "x": 271,
+          "top": 1809,
+          "bottom": 1882,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 7,
+              "support": 0.8695652173913043
+            },
+            {
+              "step": 8,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 9,
+              "support": 0.8869565217391304
+            }
+          ]
+        },
+        {
+          "x": 326,
+          "top": 1816,
+          "bottom": 1886,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8717948717948718
+            },
+            {
+              "step": 6,
+              "support": 0.8026315789473685
+            },
+            {
+              "step": 8,
+              "support": 0.8026315789473685
+            }
+          ]
+        },
+        {
+          "x": 412,
+          "top": 1782,
+          "bottom": 1899,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.9230769230769231
+            },
+            {
+              "step": 5,
+              "support": 0.8869565217391304
+            },
+            {
+              "step": 6,
+              "support": 0.7105263157894737
+            },
+            {
+              "step": 7,
+              "support": 0.8956521739130435
+            }
+          ]
+        },
+        {
+          "x": 552,
+          "top": 1826,
+          "bottom": 1885,
+          "heads": [
+            {
+              "step": 0,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.6052631578947368
+            }
+          ]
+        }
+      ],
+      "slashes": []
+    },
+    "original": "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-C5_eighth|note-G5_eighth+note-B4_eighth|note-F5_eighth+note-A3_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-E4_eighth+barline+note-G4_sixteenth+note-G4_eighth.+note-A4_eighth+note-E4_sixteenth+note-G4_sixteenth+note-G4_eighth+note-G4_eighth+note-C5_sixteenth+note-D5_eighth.+barline+note-D5_sixteenth+note-E5_sixteenth+note-E5_eighth+note-E5_eighth+note-G5_sixteenth+note-E5b_sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+note-D5_sixteenth+note-D5_quarter+barline",
+    "readings": [
+      "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-E4_sixteenth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-E4_sixteenth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 9,
+    "bar": 3,
+    "ink": {
+      "x": 1388,
+      "y": 2358,
+      "width": 591,
+      "height": 62,
+      "stems": [
+        {
+          "x": 1409,
+          "top": 2376,
+          "bottom": 2431,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6447368421052632
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6578947368421053
+            }
+          ]
+        },
+        {
+          "x": 1537,
+          "top": 2351,
+          "bottom": 2392,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        },
+        {
+          "x": 1615,
+          "top": 2351,
+          "bottom": 2392,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6695652173913044
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        },
+        {
+          "x": 1695,
+          "top": 2350,
+          "bottom": 2392,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            }
+          ]
+        },
+        {
+          "x": 1781,
+          "top": 2361,
+          "bottom": 2424,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8717948717948718
+            },
+            {
+              "step": 1,
+              "support": 0.7545454545454545
+            },
+            {
+              "step": 7,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1829,
+          "top": 2370,
+          "bottom": 2430,
+          "heads": [
+            {
+              "step": -1,
+              "support": 0.8454545454545455
+            },
+            {
+              "step": 0,
+              "support": 0.8076923076923077
+            },
+            {
+              "step": 1,
+              "support": 0.9454545454545454
+            },
+            {
+              "step": 6,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1878,
+          "top": 2379,
+          "bottom": 2436,
+          "heads": [
+            {
+              "step": -1,
+              "support": 0.8090909090909091
+            },
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6447368421052632
+            }
+          ]
+        }
+      ],
+      "slashes": [
+        {
+          "x": 1537,
+          "top": 2351,
+          "bottom": 2392,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        },
+        {
+          "x": 1615,
+          "top": 2351,
+          "bottom": 2392,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        },
+        {
+          "x": 1695,
+          "top": 2350,
+          "bottom": 2392,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-C5_quarter+note-A4_sixteenth+note-G4_sixteenth+note-E5_eighth+note-E5_half+barline+note-E5_eighth.+note-E5_sixteenth+note-F5_eighth+note-E5_sixteenth+note-E5_sixteenth+note-E5_sixteenth+note-D5_eighth.+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter+note-C5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+nonote_sixteenth+note-C5_quarter+nonote_thirty_second+note-D5_thirty_second+note-C5_thirty_second+note-G4_thirty_second+barline",
+    "readings": [
+      "clef-G2+keySignature-CM+note-C5_quarter+note-A4_eighth+note-B4_eighth+note-A4_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter+note-G4_eighth+note-G4_eighth+note-G4_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline"
+    ]
+  },
+  {
+    "page": 1,
+    "staff": 9,
+    "bar": 4,
+    "ink": {
+      "x": 1544,
+      "y": 2366,
+      "width": 435,
+      "height": 62,
+      "stems": [
+        {
+          "x": 1564,
+          "top": 2388,
+          "bottom": 2441,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1654,
+          "top": 2360,
+          "bottom": 2401,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6608695652173913
+            },
+            {
+              "step": 8,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 1705,
+          "top": 2360,
+          "bottom": 2401,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 8,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 1777,
+          "top": 2359,
+          "bottom": 2401,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6869565217391305
+            }
+          ]
+        },
+        {
+          "x": 1824,
+          "top": 2372,
+          "bottom": 2432,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.7948717948717948
+            },
+            {
+              "step": 1,
+              "support": 0.8181818181818182
+            },
+            {
+              "step": 7,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1870,
+          "top": 2378,
+          "bottom": 2439,
+          "heads": [
+            {
+              "step": -1,
+              "support": 0.9727272727272728
+            },
+            {
+              "step": 0,
+              "support": 0.8974358974358975
+            },
+            {
+              "step": 1,
+              "support": 0.7818181818181819
+            },
+            {
+              "step": 6,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1908,
+          "top": 2385,
+          "bottom": 2444,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6923076923076923
+            },
+            {
+              "step": -1,
+              "support": 0.7181818181818181
+            },
+            {
+              "step": 4,
+              "support": 0.631578947368421
+            },
+            {
+              "step": 5,
+              "support": 1
+            }
+          ]
+        }
+      ],
+      "slashes": [
+        {
+          "x": 1654,
+          "top": 2360,
+          "bottom": 2401,
+          "hollow": false,
+          "support": 1,
+          "duration": "16"
+        },
+        {
+          "x": 1705,
+          "top": 2360,
+          "bottom": 2401,
+          "hollow": false,
+          "support": 1,
+          "duration": "16"
+        },
+        {
+          "x": 1777,
+          "top": 2359,
+          "bottom": 2401,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-C5_quarter+note-E5_sixteenth+note-G5_sixteenth+note-A5_eighth+note-G5_sixteenth+note-G5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+barline+note-C5_quarter+note-A4_sixteenth+note-G4_sixteenth+note-E5_eighth+note-E5_half+barline+note-E5_eighth.+note-E5_sixteenth+note-G5_eighth+note-E5_sixteenth+note-E5_sixteenth+note-E5_sixteenth+note-D5_eighth.+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+barline",
+    "readings": [
+      "clef-G2+keySignature-CM+note-C5_quarter+note-A4_eighth+note-A4_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter+note-G4_eighth+note-G4_eighth+note-G4_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter+note-A4_eighth+note-A4_eighth+note-A4_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 1,
+    "bar": 2,
+    "ink": {
+      "x": 686,
+      "y": 208,
+      "width": 695,
+      "height": 62,
+      "stems": [
+        {
+          "x": 711,
+          "top": 188,
+          "bottom": 281,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6447368421052632
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 8,
+              "support": 1
+            },
+            {
+              "step": 9,
+              "support": 0.9565217391304348
+            },
+            {
+              "step": 10,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 859,
+          "top": 197,
+          "bottom": 270,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 7,
+              "support": 1
+            },
+            {
+              "step": 8,
+              "support": 0.9605263157894737
+            },
+            {
+              "step": 9,
+              "support": 1
+            },
+            {
+              "step": 10,
+              "support": 0.631578947368421
+            }
+          ]
+        },
+        {
+          "x": 953,
+          "top": 204,
+          "bottom": 274,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 6,
+              "support": 1
+            },
+            {
+              "step": 7,
+              "support": 0.9043478260869565
+            },
+            {
+              "step": 8,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 962,
+          "top": 197,
+          "bottom": 231,
+          "heads": [
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            },
+            {
+              "step": 7,
+              "support": 0.7217391304347827
+            },
+            {
+              "step": 8,
+              "support": 0.7236842105263158
+            }
+          ]
+        },
+        {
+          "x": 1052,
+          "top": 205,
+          "bottom": 239,
+          "heads": [
+            {
+              "step": 5,
+              "support": 0.8608695652173913
+            },
+            {
+              "step": 6,
+              "support": 0.8947368421052632
+            },
+            {
+              "step": 7,
+              "support": 0.8608695652173913
+            }
+          ]
+        },
+        {
+          "x": 1063,
+          "top": 172,
+          "bottom": 288,
+          "heads": [
+            {
+              "step": -2,
+              "support": 1
+            },
+            {
+              "step": -1,
+              "support": 0.6090909090909091
+            },
+            {
+              "step": 4,
+              "support": 0.618421052631579
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.9868421052631579
+            },
+            {
+              "step": 7,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1177,
+          "top": 210,
+          "bottom": 248,
+          "heads": []
+        },
+        {
+          "x": 1194,
+          "top": 219,
+          "bottom": 289,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.8717948717948718
+            },
+            {
+              "step": 4,
+              "support": 1
+            },
+            {
+              "step": 5,
+              "support": 0.9391304347826087
+            },
+            {
+              "step": 6,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1288,
+          "top": 226,
+          "bottom": 293,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6794871794871795
+            },
+            {
+              "step": 2,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 3,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.9736842105263158
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6710526315789473
+            }
+          ]
+        }
+      ],
+      "slashes": []
+    },
+    "original": "clef-G2+keySignature-CM+note-A4_quarter+nonote_quarter+barline+note-A4_quarter|note-F5_quarter|note-A5_quarter|note-C6_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-A3_quarter|note-C5_quarter|note-E5_quarter+note-B4b_eighth|note-D5_eighth+note-A4_eighth|note-C5_eighth+barline+note-E3_quarter|note-G4_quarter|note-B4_quarter+note-A4_quarter|note-C5_quarter|note-E5_quarter+note-C4_quarter|note-G4_quarter|note-C5_quarter+rest-eighth+note-A3_sixteenth|note-A4_sixteenth+nonote_sixteenth+nonote_sixteenth",
+    "readings": [
+      "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+note-B4b_eighth|note-D5_eighth+note-A4_eighth|note-C5_eighth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+note-B4b_eighth|note-D5_eighth+note-A4_eighth|note-C5_eighth+barline"
+    ]
+  },
+  {
+    "page": 1,
+    "staff": 3,
+    "bar": 2,
+    "ink": {
+      "x": 880,
+      "y": 863,
+      "width": 414,
+      "height": 62,
+      "stems": [
+        {
+          "x": 904,
+          "top": 844,
+          "bottom": 937,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6578947368421053
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.6447368421052632
+            },
+            {
+              "step": 8,
+              "support": 0.8026315789473685
+            },
+            {
+              "step": 10,
+              "support": 0.7894736842105263
+            }
+          ]
+        },
+        {
+          "x": 976,
+          "top": 852,
+          "bottom": 925,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 7,
+              "support": 0.7565217391304347
+            },
+            {
+              "step": 8,
+              "support": 0.631578947368421
+            },
+            {
+              "step": 9,
+              "support": 0.8260869565217391
+            }
+          ]
+        },
+        {
+          "x": 1028,
+          "top": 859,
+          "bottom": 928,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 6,
+              "support": 0.7368421052631579
+            },
+            {
+              "step": 8,
+              "support": 0.7105263157894737
+            }
+          ]
+        },
+        {
+          "x": 1114,
+          "top": 826,
+          "bottom": 941,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.9615384615384616
+            },
+            {
+              "step": 5,
+              "support": 0.8869565217391304
+            },
+            {
+              "step": 6,
+              "support": 0.6842105263157895
+            },
+            {
+              "step": 7,
+              "support": 0.8608695652173913
+            }
+          ]
+        },
+        {
+          "x": 1248,
+          "top": 852,
+          "bottom": 911,
+          "heads": [
+            {
+              "step": 2,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.7368421052631579
+            }
+          ]
+        },
+        {
+          "x": 1261,
+          "top": 875,
+          "bottom": 909,
+          "heads": [
+            {
+              "step": 6,
+              "support": 0.7236842105263158
+            },
+            {
+              "step": 7,
+              "support": 0.6608695652173913
+            }
+          ]
+        }
+      ],
+      "slashes": [],
+      "triplets": []
+    },
+    "original": "clef-G2+keySignature-CM+note-E5_quarter+note-F5_eighth+note-E5_sixteenth+note-E5_sixteenth+note-E5_sixteenth+note-D5_eighth.+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter|note-A5_quarter|note-C6_quarter+note-D5_sixteenth|note-G5_sixteenth+note-D5_sixteenth|note-F5_sixteenth+note-A3_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-G4_sixteenth+barline+note-G4_sixteenth+note-G4_eighth.+note-A4_eighth+note-C5_sixteenth+note-G4_sixteenth+note-G4_sixteenth+note-G4_eighth.+note-C5_sixteenth+note-D5_eighth.+barline",
+    "readings": [
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-B4_quarter|note-D5_quarter|note-F5_quarter+rest-eighth.+note-G4_sixteenth+barline",
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-G4_sixteenth+barline",
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-F5_eighth|note-A5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-G4_sixteenth+barline"
+    ]
+  },
+  {
+    "page": 1,
+    "staff": 7,
+    "bar": 2,
+    "ink": {
+      "x": 822,
+      "y": 1861,
+      "width": 387,
+      "height": 62,
+      "stems": [
+        {
+          "x": 846,
+          "top": 1844,
+          "bottom": 1936,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6578947368421053
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 8,
+              "support": 0.881578947368421
+            },
+            {
+              "step": 10,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 912,
+          "top": 1850,
+          "bottom": 1924,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 7,
+              "support": 0.8608695652173913
+            },
+            {
+              "step": 8,
+              "support": 0.7105263157894737
+            },
+            {
+              "step": 9,
+              "support": 0.9043478260869565
+            }
+          ]
+        },
+        {
+          "x": 959,
+          "top": 1859,
+          "bottom": 1928,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8846153846153846
+            },
+            {
+              "step": 6,
+              "support": 0.881578947368421
+            },
+            {
+              "step": 8,
+              "support": 0.9210526315789473
+            }
+          ]
+        },
+        {
+          "x": 1045,
+          "top": 1826,
+          "bottom": 1941,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.8461538461538461
+            },
+            {
+              "step": 5,
+              "support": 0.7478260869565218
+            },
+            {
+              "step": 6,
+              "support": 0.631578947368421
+            },
+            {
+              "step": 7,
+              "support": 0.8
+            }
+          ]
+        },
+        {
+          "x": 1170,
+          "top": 1867,
+          "bottom": 1925,
+          "heads": [
+            {
+              "step": 0,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.618421052631579
+            }
+          ]
+        },
+        {
+          "x": 1182,
+          "top": 1889,
+          "bottom": 1923,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 0.6347826086956522
+            }
+          ]
+        }
+      ],
+      "slashes": [],
+      "triplets": []
+    },
+    "original": "clef-G2+keySignature-CM+note-E5_eighth.+note-E5_sixteenth+note-F5_eighth+note-E5_sixteenth+note-E5_sixteenth+note-E5_sixteenth+note-D5_eighth.+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_sixteenth|note-G5_sixteenth+note-D5_sixteenth|note-F5_sixteenth+note-A3_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-E4_sixteenth+barline+note-G4_eighth+note-G4_sixteenth+note-A4_sixteenth+note-A4_sixteenth+note-C5_sixteenth+note-A4_eighth+note-G4_quarter+rest-sixteenth+note-C5_sixteenth+note-D5_eighth+barline",
+    "readings": [
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-F5_eighth|note-A5_eighth+note-C4_quarter|note-C5_quarter|note-F5_quarter+rest-eighth.+note-E4_sixteenth+barline",
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-E4_sixteenth+barline",
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-E4_sixteenth+barline",
+      "clef-G2+keySignature-CM+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+rest-eighth.+note-E4_sixteenth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 2,
+    "bar": 1,
+    "ink": {
+      "x": 98,
+      "y": 476,
+      "width": 741,
+      "height": 62,
+      "stems": [
+        {
+          "x": 214,
+          "top": 503,
+          "bottom": 556,
+          "heads": [
+            {
+              "step": -2,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.881578947368421
+            }
+          ]
+        },
+        {
+          "x": 282,
+          "top": 503,
+          "bottom": 556,
+          "heads": [
+            {
+              "step": -2,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 350,
+          "top": 488,
+          "bottom": 549,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6923076923076923
+            },
+            {
+              "step": -1,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.8157894736842105
+            },
+            {
+              "step": 5,
+              "support": 0.7739130434782608
+            },
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 360,
+          "top": 499,
+          "bottom": 548,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 0.7739130434782608
+            },
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 395,
+          "top": 488,
+          "bottom": 539,
+          "heads": [
+            {
+              "step": 0,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 0.7739130434782608
+            },
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 430,
+          "top": 488,
+          "bottom": 548,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6923076923076923
+            },
+            {
+              "step": -1,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 0.7739130434782608
+            },
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 464,
+          "top": 488,
+          "bottom": 557,
+          "heads": [
+            {
+              "step": -2,
+              "support": 1
+            },
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 532,
+          "top": 491,
+          "bottom": 549,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6923076923076923
+            },
+            {
+              "step": -1,
+              "support": 1
+            },
+            {
+              "step": 5,
+              "support": 0.6695652173913044
+            }
+          ]
+        },
+        {
+          "x": 600,
+          "top": 491,
+          "bottom": 549,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6923076923076923
+            },
+            {
+              "step": -1,
+              "support": 1
+            },
+            {
+              "step": 5,
+              "support": 0.6695652173913044
+            }
+          ]
+        },
+        {
+          "x": 668,
+          "top": 506,
+          "bottom": 580,
+          "heads": [
+            {
+              "step": -6,
+              "support": 0.6585365853658537
+            },
+            {
+              "step": -5,
+              "support": 1
+            },
+            {
+              "step": 2,
+              "support": 0.8289473684210527
+            },
+            {
+              "step": 3,
+              "support": 0.7652173913043478
+            }
+          ]
+        },
+        {
+          "x": 715,
+          "top": 500,
+          "bottom": 572,
+          "heads": [
+            {
+              "step": -4,
+              "support": 1
+            },
+            {
+              "step": 2,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 3,
+              "support": 0.9304347826086956
+            },
+            {
+              "step": 4,
+              "support": 0.868421052631579
+            }
+          ]
+        },
+        {
+          "x": 762,
+          "top": 494,
+          "bottom": 557,
+          "heads": [
+            {
+              "step": -2,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.7631578947368421
+            },
+            {
+              "step": 5,
+              "support": 0.9217391304347826
+            }
+          ]
+        },
+        {
+          "x": 809,
+          "top": 488,
+          "bottom": 549,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6923076923076923
+            },
+            {
+              "step": -1,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.6842105263157895
+            },
+            {
+              "step": 5,
+              "support": 0.7391304347826086
+            },
+            {
+              "step": 6,
+              "support": 0.868421052631579
+            }
+          ]
+        }
+      ],
+      "slashes": [],
+      "triplets": [
+        {
+          "x": 391.5,
+          "y": 447,
+          "width": 11,
+          "height": 20,
+          "method": "printed-triplet-consensus"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-C4_sixteenth+note-C4_sixteenth+note-D4_thirty_second+note-E4b_thirty_second+note-D4_sixteenth+note-C4_eighth+note-D4_sixteenth+note-D4_sixteenth+note-E3_thirty_second+note-F3_thirty_second+note-A3_thirty_second+note-D4_thirty_second+barline+note-D4_sixteenth+note-G4_sixteenth+note-A4_sixteenth+note-G4_sixteenth+note-E4_sixteenth+note-D4_sixteenth+note-G3_half+barline+note-E4_thirty_second+note-A4_thirty_second+note-B4_thirty_second+note-G4_thirty_second+note-E4_thirty_second+note-G4_sixteenth+note-A4_thirty_second+note-C5_thirty_second+note-E5_thirty_second+note-G5_thirty_second+note-A5_thirty_second+note-G5_thirty_second+note-E5_thirty_second+note-D5_thirty_second+note-C5_sixteenth+barline",
+    "readings": [
+      "clef-G2+note-C4_eighth+note-C4_eighth+note-D4_sixteenth+note-E4b_sixteenth+note-D4_sixteenth+note-C4_eighth+note-D4_eighth+note-D4_eighth+note-G3_sixteenth+note-A3_sixteenth+note-C4_sixteenth+note-D4_sixteenth+barline",
+      "clef-G2+note-C4_eighth+note-C4_eighth+note-D4_sixteenth+note-E4b_sixteenth+note-D4_sixteenth+note-C4_eighth+note-D4_eighth+note-D4_eighth+note-G3_sixteenth+note-A3_sixteenth+note-C4_sixteenth+note-D4_sixteenth+barline",
+      "clef-G2+note-C4_eighth+note-C4_eighth+note-D4_sixteenth+note-E4b_sixteenth+note-D4_sixteenth+note-C4_eighth+note-D4_eighth+note-D4_eighth+note-G3_sixteenth+note-A3_sixteenth+note-C4_sixteenth+note-D4_sixteenth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 3,
+    "bar": 2,
+    "ink": {
+      "x": 701,
+      "y": 745,
+      "width": 703,
+      "height": 62,
+      "stems": [
+        {
+          "x": 736,
+          "top": 754,
+          "bottom": 816,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6282051282051282
+            },
+            {
+              "step": -1,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.8157894736842105
+            },
+            {
+              "step": 5,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 6,
+              "support": 0.8157894736842105
+            }
+          ]
+        },
+        {
+          "x": 745,
+          "top": 767,
+          "bottom": 816,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.6025641025641025
+            },
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 6,
+              "support": 0.8157894736842105
+            }
+          ]
+        },
+        {
+          "x": 781,
+          "top": 754,
+          "bottom": 808,
+          "heads": [
+            {
+              "step": 0,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 6,
+              "support": 0.8157894736842105
+            }
+          ]
+        },
+        {
+          "x": 816,
+          "top": 754,
+          "bottom": 818,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6666666666666666
+            },
+            {
+              "step": -1,
+              "support": 1
+            },
+            {
+              "step": 4,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 5,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 6,
+              "support": 0.8157894736842105
+            }
+          ]
+        },
+        {
+          "x": 851,
+          "top": 754,
+          "bottom": 824,
+          "heads": [
+            {
+              "step": -2,
+              "support": 1
+            },
+            {
+              "step": -1,
+              "support": 0.6090909090909091
+            },
+            {
+              "step": 6,
+              "support": 0.8157894736842105
+            }
+          ]
+        },
+        {
+          "x": 901,
+          "top": 782,
+          "bottom": 842,
+          "heads": [
+            {
+              "step": -4,
+              "support": 0.8780487804878049
+            },
+            {
+              "step": 2,
+              "support": 0.6710526315789473
+            },
+            {
+              "step": 3,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 971,
+          "top": 788,
+          "bottom": 842,
+          "heads": [
+            {
+              "step": -4,
+              "support": 0.8780487804878049
+            },
+            {
+              "step": -3,
+              "support": 0.7623762376237624
+            },
+            {
+              "step": 2,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1028,
+          "top": 751,
+          "bottom": 842,
+          "heads": [
+            {
+              "step": -4,
+              "support": 0.8780487804878049
+            },
+            {
+              "step": -3,
+              "support": 0.7623762376237624
+            },
+            {
+              "step": 7,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1076,
+          "top": 751,
+          "bottom": 822,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6538461538461539
+            },
+            {
+              "step": -1,
+              "support": 0.7818181818181819
+            },
+            {
+              "step": 0,
+              "support": 0.8717948717948718
+            },
+            {
+              "step": 7,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1124,
+          "top": 757,
+          "bottom": 822,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6538461538461539
+            },
+            {
+              "step": -1,
+              "support": 0.7818181818181819
+            },
+            {
+              "step": 0,
+              "support": 0.8717948717948718
+            },
+            {
+              "step": 6,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1171,
+          "top": 766,
+          "bottom": 822,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6538461538461539
+            },
+            {
+              "step": -1,
+              "support": 0.7818181818181819
+            },
+            {
+              "step": 0,
+              "support": 0.8717948717948718
+            },
+            {
+              "step": 4,
+              "support": 0.6447368421052632
+            },
+            {
+              "step": 5,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1219,
+          "top": 757,
+          "bottom": 822,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.6538461538461539
+            },
+            {
+              "step": -1,
+              "support": 0.7818181818181819
+            },
+            {
+              "step": 0,
+              "support": 0.8717948717948718
+            },
+            {
+              "step": 6,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1284,
+          "top": 737,
+          "bottom": 786,
+          "heads": [
+            {
+              "step": 2,
+              "support": 0.6447368421052632
+            },
+            {
+              "step": 3,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1353,
+          "top": 740,
+          "bottom": 791,
+          "heads": [
+            {
+              "step": 2,
+              "support": 1
+            },
+            {
+              "step": 8,
+              "support": 0.8157894736842105
+            }
+          ]
+        }
+      ],
+      "slashes": [],
+      "triplets": [
+        {
+          "x": 776,
+          "y": 715,
+          "width": 14,
+          "height": 21,
+          "method": "printed-triplet-consensus"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-D5_sixteenth+note-C5_sixteenth+note-A4_sixteenth+note-G4_sixteenth+note-G4_sixteenth+note-E4_sixteenth+note-D4_sixteenth+note-C4_quarter+rest-eighth+note-E3_eighth+barline+note-D4_sixteenth+note-E4b_sixteenth+note-D4_sixteenth+note-C4_sixteenth+note-A4_eighth+note-A4_sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+note-D5_sixteenth+note-A4_sixteenth+note-G4_sixteenth+barline+note-E5_eighth+note-G5_eighth+note-A5_sixteenth+note-G5_sixteenth+note-E5_sixteenth+note-C5_sixteenth+note-C5_quarter+rest-sixteenth+note-G4_thirty_second+note-A4_thirty_second+note-C5_thirty_second+barline",
+    "readings": [
+      "clef-G2+note-D4_sixteenth+note-E4b_sixteenth+note-D4_sixteenth+note-C4_eighth+note-A4_eighth+note-G4_sixteenth+note-E5_sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+note-D5_sixteenth+note-A4_eighth+note-G4_eighth+barline",
+      "clef-G2+note-D4_sixteenth+note-E4b_sixteenth+note-D4_sixteenth+note-C4_eighth+note-A4_eighth+note-G4_sixteenth+note-E5_sixteenth+note-F5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+note-D5_sixteenth+note-A4_eighth+note-G4_eighth+barline",
+      "clef-G2+note-D4_sixteenth+note-E4b_sixteenth+note-D4_sixteenth+note-C4_eighth+note-A4_eighth+note-G4_sixteenth+note-E5_sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+note-D5_sixteenth+note-A4_eighth+note-G4_eighth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 8,
+    "bar": 2,
+    "ink": {
+      "x": 922,
+      "y": 2089,
+      "width": 510,
+      "height": 62,
+      "stems": [
+        {
+          "x": 946,
+          "top": 2071,
+          "bottom": 2163,
+          "heads": [
+            {
+              "step": 4,
+              "support": 0.6447368421052632
+            },
+            {
+              "step": 5,
+              "support": 1
+            },
+            {
+              "step": 8,
+              "support": 0.8157894736842105
+            },
+            {
+              "step": 10,
+              "support": 0.7894736842105263
+            }
+          ]
+        },
+        {
+          "x": 1041,
+          "top": 2076,
+          "bottom": 2151,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 7,
+              "support": 0.7565217391304347
+            },
+            {
+              "step": 9,
+              "support": 0.7652173913043478
+            }
+          ]
+        },
+        {
+          "x": 1109,
+          "top": 2086,
+          "bottom": 2155,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8205128205128205
+            },
+            {
+              "step": 6,
+              "support": 0.7368421052631579
+            },
+            {
+              "step": 8,
+              "support": 0.7368421052631579
+            }
+          ]
+        },
+        {
+          "x": 1194,
+          "top": 2053,
+          "bottom": 2168,
+          "heads": [
+            {
+              "step": -2,
+              "support": 0.9358974358974359
+            },
+            {
+              "step": 5,
+              "support": 0.8260869565217391
+            },
+            {
+              "step": 6,
+              "support": 0.6052631578947368
+            },
+            {
+              "step": 7,
+              "support": 0.8347826086956521
+            }
+          ]
+        },
+        {
+          "x": 1271,
+          "top": 2092,
+          "bottom": 2155,
+          "heads": [
+            {
+              "step": 0,
+              "support": 0.8461538461538461
+            },
+            {
+              "step": 1,
+              "support": 0.7727272727272727
+            },
+            {
+              "step": 7,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1316,
+          "top": 2101,
+          "bottom": 2161,
+          "heads": [
+            {
+              "step": -1,
+              "support": 0.9090909090909091
+            },
+            {
+              "step": 0,
+              "support": 0.7435897435897436
+            },
+            {
+              "step": 1,
+              "support": 0.8727272727272727
+            },
+            {
+              "step": 6,
+              "support": 1
+            }
+          ]
+        },
+        {
+          "x": 1359,
+          "top": 2107,
+          "bottom": 2167,
+          "heads": [
+            {
+              "step": -1,
+              "support": 0.7818181818181819
+            },
+            {
+              "step": 5,
+              "support": 1
+            }
+          ]
+        }
+      ],
+      "slashes": []
+    },
+    "original": "clef-G2+keySignature-CM+note-E5_quarter+note-F5_eighth+note-E5_sixteenth+note-E5_sixteenth+note-E5_sixteenth+note-D5_eighth.+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-A3_quarter|note-C5_quarter|note-E5_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+barline+note-C5_quarter+note-E5_sixteenth+note-G5_sixteenth+note-A5_eighth+note-A5_quarter+note-G5_sixteenth+note-G5_sixteenth+note-D5_sixteenth+note-C5_sixteenth+barline",
+    "readings": [
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-F5_eighth|note-G5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-F5_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline",
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-C5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-F5_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline",
+      "clef-G2+note-C5_quarter|note-F5_quarter|note-A5_quarter+note-E5_eighth|note-A5_eighth+note-D5_eighth|note-F5_eighth+note-C4_quarter|note-C5_quarter|note-E5_quarter+note-E5_sixteenth+note-D5_sixteenth+note-C5_eighth+barline"
+    ]
+  },
+  {
+    "page": 2,
+    "staff": 10,
+    "bar": 3,
+    "ink": {
+      "x": 1253,
+      "y": 2626,
+      "width": 456,
+      "height": 63,
+      "stems": [
+        {
+          "x": 1296,
+          "top": 2618,
+          "bottom": 2661,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            }
+          ]
+        },
+        {
+          "x": 1382,
+          "top": 2620,
+          "bottom": 2662,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6521739130434783
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        },
+        {
+          "x": 1438,
+          "top": 2620,
+          "bottom": 2661,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6695652173913044
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        },
+        {
+          "x": 1524,
+          "top": 2619,
+          "bottom": 2661,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6869565217391305
+            }
+          ]
+        },
+        {
+          "x": 1612,
+          "top": 2621,
+          "bottom": 2661,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6695652173913044
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        },
+        {
+          "x": 1624,
+          "top": 2570,
+          "bottom": 2604,
+          "heads": []
+        },
+        {
+          "x": 1675,
+          "top": 2620,
+          "bottom": 2661,
+          "heads": [
+            {
+              "step": 3,
+              "support": 0.6782608695652174
+            },
+            {
+              "step": 8,
+              "support": 0.9342105263157895
+            }
+          ]
+        }
+      ],
+      "slashes": [
+        {
+          "x": 1296,
+          "top": 2618,
+          "bottom": 2661,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        },
+        {
+          "x": 1382,
+          "top": 2620,
+          "bottom": 2662,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        },
+        {
+          "x": 1438,
+          "top": 2620,
+          "bottom": 2661,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        },
+        {
+          "x": 1524,
+          "top": 2619,
+          "bottom": 2661,
+          "hollow": false,
+          "support": 1,
+          "duration": "4"
+        },
+        {
+          "x": 1612,
+          "top": 2621,
+          "bottom": 2661,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        },
+        {
+          "x": 1675,
+          "top": 2620,
+          "bottom": 2661,
+          "hollow": false,
+          "support": 1,
+          "duration": "8"
+        }
+      ]
+    },
+    "original": "clef-G2+keySignature-CM+note-E5_eighth.+note-F5_sixteenth+note-F5_eighth+note-G5_sixteenth+note-E5_sixteenth+note-E5_eighth+note-D5_eighth+rest-sixteenth+note-E5_sixteenth+note-D5_sixteenth+note-D5_sixteenth+barline+note-C5_quarter+note-C5_eighth+note-C5_quarter+note-C5_sixteenth+note-B4_sixteenth+barline+note-A4_quarter+note-A4_eighth+note-A4_quarter+note-A4_sixteenth+note-A4_sixteenth+barline+note-A4_quarter+note-A4_quarter+rest-half+barline",
+    "readings": [
+      "clef-G2+note-G4_quarter+note-G4_eighth+note-A4_eighth+note-A4_quarter+note-G4_eighth+note-A4_eighth+barline",
+      "clef-G2+note-F4_quarter+note-G4_eighth+note-G4_eighth+note-G4_quarter+note-G4_eighth+note-G4_eighth+barline",
+      "clef-G2+note-G4_quarter+note-A4_eighth+note-A4_eighth+note-G4_quarter+note-G4_eighth+note-A4_eighth+barline"
+    ]
+  }
+]
