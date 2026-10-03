@@ -1,0 +1,11 @@
+Tested CrispEmbed OCR browser runtime, retained byte-for-byte for reproducible
+builds. Source: https://github.com/CrispStrobe/CrispEmbed (MIT license).
+Original runtime download: https://crispstrobe.github.io/CrispEmbed/
+Wrapper source: https://github.com/CrispStrobe/CrispEmbed/blob/main/wasm/crispembed-ocr.js
+
+The runtime checksums are pinned in scripts/sync-staff-omr-assets.mjs. Do not
+replace these files or their pins without repeating the score recognition audit.
+
+The TrOMR model is downloaded separately from revision
+f7912e2c68d5d89c9ff2546bbbcc736268822af0 of https://huggingface.co/cstr/tromr-GGUF
+and verified by SHA-256. Its Apache-2.0 license is included as TrOMR-LICENSE.txt.
