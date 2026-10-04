@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   SHOOTER_VOICE_NOTES, SHOOTER_VOICE_STABLE_MS, SHOOTER_VOICE_TOLERANCE_CENTS,
-  pickShooterVoiceNote, getShooterVoiceNoteLabel, getShooterInputSource,
+  pickShooterVoiceNote, getShooterVoiceNoteLabel, getShooterInputSource, getShooterVoiceGuidance,
   createShooterVoiceJudgmentState, observeShooterVoiceFrame, commitShooterVoiceHit,
   resetShooterVoiceJudgmentState, detectShooterVoicePitch,
 } from "../src/shooter/voiceMode.js";
@@ -25,24 +25,24 @@ function series(target, { frequency = target.frequency, cents = () => 0, times =
 }
 
 test("voice contains exactly eight natural absolute pitches and samples all eight uniformly without stages", () => {
-  assert.deepEqual(SHOOTER_VOICE_NOTES.map(note => note.pitch), ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"]);
-  assert.deepEqual(SHOOTER_VOICE_NOTES.map(note => note.midi), [60, 62, 64, 65, 67, 69, 71, 72]);
+  assert.deepEqual(SHOOTER_VOICE_NOTES.map(note => note.pitch), ["C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4"]);
+  assert.deepEqual(SHOOTER_VOICE_NOTES.map(note => note.midi), [48, 50, 52, 53, 55, 57, 59, 60]);
   SHOOTER_VOICE_NOTES.forEach((note, index) => {
     assert.equal(pickShooterVoiceNote(() => (index + 0.5) / 8), note);
     assert.equal(note.frequency, midiToFrequency(note.midi));
     assert.equal(note.stringNumber, undefined);
     assert.equal(note.fretNumber, undefined);
   });
-  assert.equal(getShooterVoiceNoteLabel("C4", true), "도");
-  assert.equal(getShooterVoiceNoteLabel("C5", true), "높은 도");
-  assert.equal(getShooterVoiceNoteLabel("C5", false), "C5");
+  assert.equal(getShooterVoiceNoteLabel("C3", true), "도");
+  assert.equal(getShooterVoiceNoteLabel("C4", true), "높은 도");
+  assert.equal(getShooterVoiceNoteLabel("C4", false), "C4");
   const selection = { shooterSource: "midi" };
   assert.equal(getShooterInputSource("voice", selection), "audio");
   assert.equal(getShooterInputSource("easy", selection), "midi");
   assert.equal(selection.shooterSource, "midi");
 });
 
-test("real C4–C5 PCM test tones pass YIN and hit only after sustained stabilization", () => {
+test("real C3–C4 PCM test tones pass YIN and hit only after sustained stabilization", () => {
   for (const sampleRate of [44100, 48000]) for (const target of SHOOTER_VOICE_NOTES) {
     for (const amplitude of [0.008, 0.08, 0.3]) for (const harmonics of [false, true]) {
       const results = series(target, { sampleRate, amplitude, harmonics });
@@ -178,4 +178,37 @@ test("shared microphone calibration, gates and release work for voice PCM on bot
       else globalThis.window = previousWindow;
     }
   }
+});
+
+test("voice guidance agrees with absolute pitch judgment and discards stale or uncertain readings", () => {
+  for (const target of SHOOTER_VOICE_NOTES) {
+    for (const [cents, expected] of [[-1200, "raise"], [-55, "raise"], [-40, "hold"], [0, "hold"], [40, "hold"], [55, "lower"], [1200, "lower"]]) {
+      const frequency = target.frequency * 2 ** (cents / 1200);
+      const judgment = observeShooterVoiceFrame(createShooterVoiceJudgmentState(), { frequency, target, now: 0, confidence: 1 });
+      assert.equal(getShooterVoiceGuidance({ frequency, targetPitch: target.pitch, reason: judgment.reason }), expected, target.pitch + ": " + cents);
+    }
+    for (const reason of ["held", "hit", "target-lock", "no-signal", "no-pitch", "low-confidence", "listening", "no-target"]) {
+      assert.equal(getShooterVoiceGuidance({ frequency: target.frequency / 2, targetPitch: target.pitch, reason }), null);
+    }
+  }
+  for (const frequency of [0, null, NaN, Infinity, -100]) {
+    assert.equal(getShooterVoiceGuidance({ frequency, targetPitch: "C3", reason: "wrong-pitch" }), null);
+  }
+  assert.equal(getShooterVoiceGuidance({ frequency: 130.81, targetPitch: null, reason: "wrong-pitch" }), null);
+  assert.equal(getShooterVoiceGuidance(), null);
+});
+
+test("live voice display follows octave changes while guitar retains its existing confirmation", async () => {
+  const { createShooterPitchDisplayState, updateShooterPitchDisplay } = await import("../src/shooter/pitchDisplay.js");
+  const voice = createShooterPitchDisplayState(), guitar = createShooterPitchDisplayState();
+  for (const state of [voice, guitar]) updateShooterPitchDisplay(state, { now: 0, frequency: midiToFrequency(60), confidence: 1, reason: "wrong-pitch" });
+  const next = { now: 34, frequency: midiToFrequency(48), confidence: 1, reason: "stabilizing" };
+  assert.equal(updateShooterPitchDisplay(voice, { ...next, immediate: true }).pitch.note, "C3");
+  assert.equal(updateShooterPitchDisplay(guitar, next).pitch.note, "C4");
+  assert.equal(updateShooterPitchDisplay(guitar, { ...next, now: 68 }).pitch.note, "C4");
+  assert.equal(updateShooterPitchDisplay(guitar, { ...next, now: 102 }).pitch.note, "C3");
+  const held = updateShooterPitchDisplay(voice, { now: 204, reason: "no-signal", immediate: true });
+  assert.equal(held.pitch.note, "C3");
+  assert.equal(held.reason, "held");
+  assert.equal(getShooterVoiceGuidance({ frequency: held.pitch.frequency, targetPitch: "C3", reason: held.reason }), null);
 });

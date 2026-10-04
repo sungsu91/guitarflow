@@ -227,7 +227,7 @@ import ProgressSettings from "./shooter/ProgressSettings.jsx";
 import ShooterVoiceIntro from "./shooter/ShooterVoiceIntro.jsx";
 import {
   SHOOTER_VOICE_DIFFICULTY_ID, SHOOTER_VOICE_NOTES, pickShooterVoiceNote,
-  getShooterVoiceNoteLabel, getShooterInputSource, detectShooterVoicePitch,
+  getShooterVoiceNoteLabel, getShooterInputSource, detectShooterVoicePitch, getShooterVoiceGuidance,
   createShooterVoiceJudgmentState, resetShooterVoiceJudgmentState,
   releaseShooterVoiceJudgment, observeShooterVoiceFrame, commitShooterVoiceHit,
 } from "./shooter/voiceMode.js";
@@ -15942,7 +15942,7 @@ const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM, label: ko["app.hardRandom"], hint: ko["app.openStringsFret12RandomIncludingSharps"] },
   { id: SHOOTER_DIFFICULTIES.VOICE, label: ko["shooter.voice"], hint: ko["shooter.voiceRange"] },
 ];
-const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
+const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.VOICE;
 const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 4;
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM]: {
@@ -22848,7 +22848,7 @@ function App({ onReady }) {
         }
       }
       const display = updateShooterPitchDisplay(shooterPitchDisplayRef.current, {
-        now, frequency: pitch, confidence: yinResult?.confidence ?? 0,
+        now, frequency: pitch, confidence: yinResult?.confidence ?? 0, immediate: voiceMode,
         reason: gameStateRef.current === GAME_STATES.PLAYING ? judgment.reason : "listening", accepted: judgment.accepted,
       });
       if (judgment.accepted || now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
@@ -22861,7 +22861,7 @@ function App({ onReady }) {
             return currentPitch === nextDetectedPitch ? currentPitch : nextDetectedPitch;
           }
           return currentPitch.note === nextDetectedPitch.note
-            && Math.abs(currentPitch.frequency - nextDetectedPitch.frequency) < 2
+            && Math.abs(currentPitch.frequency - nextDetectedPitch.frequency) < (voiceMode ? 0.2 : 2)
             ? currentPitch
             : nextDetectedPitch;
         });
@@ -27533,6 +27533,12 @@ function App({ onReady }) {
   )) ?? getFrontShooterTarget(shooterTargets, { excludePending: true });
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
+  const shooterVoiceGuidance = isShooterVoiceMode && hasMic && gameState === GAME_STATES.PLAYING && !shooterCountInLabel
+    ? getShooterVoiceGuidance({ frequency: detectedPitch?.frequency, targetPitch: shooterGuidePitch, reason: shooterPitchStatus })
+    : null;
+  const shooterVoiceMessage = shooterVoiceGuidance ? localizeUi({
+    raise: ko["shooter.voiceRaise"], lower: ko["shooter.voiceLower"], hold: ko["shooter.voiceHold"],
+  }[shooterVoiceGuidance]) : "";
   const shooterGuideDifficulty = shooterTarget?.difficulty ?? shooterDifficulty;
   const isShooterEasyScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.EASY;
   const isShooterRandom = isShooterRandomDifficulty(shooterGuideDifficulty);
@@ -30485,7 +30491,7 @@ function App({ onReady }) {
         <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} onLayoutChange={setShooterRecordingLayout} gamePlaying={gameState === GAME_STATES.PLAYING} onReview={pauseGame} />
       ) : null}
       {!desktopShooterScene && appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && !helpGuideOpen && !utilityMenuOpen && !appContentInteractionLocked && typeof document !== "undefined" ? createPortal(
-        <ShooterPitchMonitor mobile={isMobileLayout} arenaRef={shooterArenaRef} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
+        <ShooterPitchMonitor voiceMessage={shooterVoiceMessage} mobile={isMobileLayout} arenaRef={shooterArenaRef} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
         shooterRecordingActive && isMobileLayout ? (shooterArenaRef.current?.closest('.shooterPanel') ?? document.body) : document.body,
       ) : null}
       {themeTransition && typeof document !== "undefined"
@@ -33359,7 +33365,7 @@ function App({ onReady }) {
           className={`shooterPanel ${horizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterPanel--mobileLandscape" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
           aria-label={mapEditor.enabled ? translateUi("app.mapStudio") : translateUi("menu.shooter")}
         >
-          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps voiceMode={isShooterVoiceMode} recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
+          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps voiceMessage={shooterVoiceMessage} voiceMode={isShooterVoiceMode} recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
           <div className="modeHelper shooterHelper"><Translation id="app.buildFretboardRecognitionAndPickingAccuracyThroughRepetition" /></div>
           {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
             anchor={shooterDifficultyAnchor}
@@ -33694,6 +33700,7 @@ function App({ onReady }) {
               <DesktopHorizontalBattleView
                 bestScore={shooterRecords.best.score}
                 currentPitch={detectedPitch?.note ?? ""}
+                voiceMessage={shooterVoiceMessage}
                 currentScore={score}
                 difficultyLabel={shooterDifficultyLabel}
                 judgment={gameState === GAME_STATES.PLAYING ? feedback : ""}
@@ -33833,7 +33840,7 @@ function App({ onReady }) {
             {gameState === GAME_STATES.PLAYING && shooterCountInLabel ? (
               <div aria-live="assertive" className="shooterCountInOverlay" role="status">
                 <strong>{localizeUi(shooterCountInLabel)}</strong>
-                {isShooterVoiceMode ? <span><Translation id="shooter.voiceRange" /></span> : isShooterRandomDifficulty(shooterDifficulty) ? (
+                {isShooterVoiceMode ? <ShooterVoiceIntro mobile={isMobileLayout} /> : isShooterRandomDifficulty(shooterDifficulty) ? (
                   <span>
                     {shooterDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
                       ? localizeUi(SHOOTER_EASY_RANDOM_RANGE_LABEL)
@@ -34267,7 +34274,6 @@ function App({ onReady }) {
             ) : null}
             {gameState !== GAME_STATES.PLAYING && !(isMobileLayout && shooterGuitarPickerOpen) && (
               <div className={gameState === GAME_STATES.GAMEOVER ? "shooterResultHost" : `shooterCenterStatus ${gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterCenterStatus--startMenu" : ""} ${gameState === GAME_STATES.PAUSED ? "shooterCenterStatus--pauseMenu" : ""} ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""} ${gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? "desktopHorizontalResultReceipt" : ""}`}>
-                {isShooterVoiceMode && gameState !== GAME_STATES.GAMEOVER ? <ShooterVoiceIntro mobile={isMobileLayout} /> : null}
                 {gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? (
                   <div
                     className={`shooterStartPanel ${mapEditor.available ? "shooterStartPanel--withMapEdit" : ""}`}

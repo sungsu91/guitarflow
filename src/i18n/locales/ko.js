@@ -1,7 +1,10 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "shooter.voiceRaise": "낮아요 · 더 높게 ↑",
+  "shooter.voiceLower": "높아요 · 더 낮게 ↓",
+  "shooter.voiceHold": "좋아요 · 유지하세요",
   "shooter.voice": "보이스",
-  "shooter.voiceRange": "보이스 · C4–C5",
+  "shooter.voiceRange": "보이스 · C3–C4",
   "shooter.voiceDescription": "목소리로 도레미파솔라시도를 맞혀보세요",
   "shooter.voiceSustain": "아~~, 우~~ 또는 허밍으로 음정을 유지해 보세요",
   "app.scrollableScaleFretboard": "전체 스케일 지판 · 가로로 스크롤",

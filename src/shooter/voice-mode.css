@@ -1,9 +1,7 @@
 .shooterVoiceIntroMobile,
 .shooterVoiceIntroDesktop {
-  position: absolute;
-  bottom: calc(100% + 18px);
-  left: 50%;
-  transform: translateX(-50%);
+  box-sizing: border-box;
+  flex: 0 0 auto;
   display: grid;
   gap: 5px;
   text-align: center;
@@ -19,8 +17,8 @@
 .shooterVoiceIntroDesktop b { font-size: 20px; }
 .shooterVoiceIntroMobile p,
 .shooterVoiceIntroDesktop p { margin: 0; font-size: inherit; line-height: 1.5; }
-/* Keep the small voice guide legible in both app themes, including the lobby. */
-html body .app .shooterArena .shooterCenterStatus > :is(.shooterVoiceIntroMobile, .shooterVoiceIntroDesktop) :is(b, p) {
+/* Keep the small voice guide legible in both app themes, during the count-in. */
+html body .app .shooterArena .shooterCountInOverlay > :is(.shooterVoiceIntroMobile, .shooterVoiceIntroDesktop) :is(b, p) {
   color: #f8fafc !important;
   text-shadow: none;
 }

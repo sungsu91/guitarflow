@@ -1,8 +1,11 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "shooter.voiceRaise": "Too low · Go higher ↑",
+  "shooter.voiceLower": "Too high · Go lower ↓",
+  "shooter.voiceHold": "On pitch · Hold it",
   "shooter.voice": "Voice",
-  "shooter.voiceRange": "Voice · C4–C5",
-  "shooter.voiceDescription": "Sing the eight notes from C4 to C5",
+  "shooter.voiceRange": "Voice · C3–C4",
+  "shooter.voiceDescription": "Sing the eight notes from C3 to C4",
   "shooter.voiceSustain": "Hold a steady vowel or hum the target note",
   "app.scrollableScaleFretboard": "Full scale fretboard · scroll horizontally",
   "app.scaleAllPositionsHint": "All · frets 0–24 · swipe the fretboard left or right",

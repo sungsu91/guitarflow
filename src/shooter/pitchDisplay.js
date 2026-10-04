@@ -7,11 +7,12 @@ export function createShooterPitchDisplayState() {
 }
 
 // This is display memory only. Never feed a held reading back into hit judgment.
-export function updateShooterPitchDisplay(state, { now, frequency, confidence = 0, reason, accepted = false }) {
+export function updateShooterPitchDisplay(state, { now, frequency, confidence = 0, reason, accepted = false, immediate = false }) {
   const note = confidence >= 0.82 ? frequencyToChromaticPitch(frequency) : null;
   if (note) {
     const changed = state.pitch && state.pitch.note !== note.pitch;
-    if (changed && !accepted) {
+    // Voice guidance follows the live pitch; hit stabilization stays in judgment.
+    if (changed && !accepted && !immediate) {
       state.pendingFrames = state.pendingNote === note.pitch ? state.pendingFrames + 1 : 1;
       state.pendingNote = note.pitch;
       const octaveJump = Math.abs(note.midi - state.pitch.midi) >= 12;

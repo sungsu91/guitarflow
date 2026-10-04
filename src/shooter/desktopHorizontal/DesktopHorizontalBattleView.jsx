@@ -30,6 +30,7 @@ function HudItem({ children, label, meta = "" }) {
 const DesktopHorizontalBattleView = memo(function DesktopHorizontalBattleView({
   bestScore = 0,
   currentPitch,
+  voiceMessage = "",
   currentScore = 0,
   difficultyLabel,
   judgment,
@@ -75,7 +76,7 @@ const DesktopHorizontalBattleView = memo(function DesktopHorizontalBattleView({
       <div className="desktopHorizontalBattleHud" aria-label={translateUi("shooter.desktopNoteShooterStatus")}>
         <HudItem label="TARGET" meta={targetPitch || "WAITING"}>{localizeUi(targetLabel || "—")}</HudItem>
         {mobileLandscape ? (
-          <HudItem label="SIGNAL" meta={translateUi("shooter.playedNote")}>{currentPitch || "—"}</HudItem>
+          <HudItem label="SIGNAL" meta={voiceMessage || translateUi("shooter.playedNote")}>{currentPitch || "—"}</HudItem>
         ) : (
           <>
             <HudItem label="BEST" meta="HIGH SCORE">{Number(bestScore || 0).toLocaleString()}</HudItem>

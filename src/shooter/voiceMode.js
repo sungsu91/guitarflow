@@ -9,8 +9,8 @@ export const SHOOTER_VOICE_MAX_FRAME_GAP_MS = 250;
 export const SHOOTER_VOICE_MIN_CONFIDENCE = 0.85;
 
 export const SHOOTER_VOICE_NOTES = Object.freeze([
-  ["C4", 60, "도"], ["D4", 62, "레"], ["E4", 64, "미"], ["F4", 65, "파"],
-  ["G4", 67, "솔"], ["A4", 69, "라"], ["B4", 71, "시"], ["C5", 72, "높은 도"],
+  ["C3", 48, "도"], ["D3", 50, "레"], ["E3", 52, "미"], ["F3", 53, "파"],
+  ["G3", 55, "솔"], ["A3", 57, "라"], ["B3", 59, "시"], ["C4", 60, "높은 도"],
 ].map(([pitch, midi, solfege]) => Object.freeze({
   pitch, midi, solfege, octave: Math.floor(midi / 12) - 1,
   noteName: pitch[0], frequency: midiToFrequency(midi), group: "shooter-voice",
@@ -27,6 +27,18 @@ export function getShooterVoiceNoteLabel(pitch, solfegeOn) {
 // Override the input only for this mode; preserve the user's guitar/MIDI setting.
 export function getShooterInputSource(difficulty, selection) {
   return difficulty === SHOOTER_VOICE_DIFFICULTY_ID ? "audio" : selection.shooterSource;
+}
+
+// Guidance uses the same absolute target and tolerance as judgment. Held display
+// memory, silence and uncertain pitch must never tell the player to change pitch.
+export function getShooterVoiceGuidance({ frequency, targetPitch, reason } = {}) {
+  if (reason !== "wrong-pitch" && reason !== "stabilizing") return null;
+  const target = SHOOTER_VOICE_NOTES.find(note => note.pitch === targetPitch);
+  if (!target || !Number.isFinite(frequency) || frequency <= 0) return null;
+  const cents = centsBetween(frequency, target.frequency);
+  if (cents < -SHOOTER_VOICE_TOLERANCE_CENTS) return "raise";
+  if (cents > SHOOTER_VOICE_TOLERANCE_CENTS) return "lower";
+  return "hold";
 }
 
 export function detectShooterVoicePitch(buffer, sampleRate) {
@@ -72,7 +84,7 @@ export function observeShooterVoiceFrame(state, {
   if (!note || targetKey == null) return reject("no-target");
   if (!Number.isFinite(frequency) || frequency <= 0) return reject("no-pitch");
   if (!Number.isFinite(confidence) || confidence < SHOOTER_VOICE_MIN_CONFIDENCE) return reject("low-confidence");
-  // The canonical frequency is authoritative: C4 and C5 must never share a hit.
+  // The canonical frequency is authoritative: C3 and C4 must never share a hit.
   const cents = centsBetween(frequency, note.frequency);
   const detectedPitch = frequencyToChromaticPitch(frequency)?.pitch;
   if (Math.abs(cents) > SHOOTER_VOICE_TOLERANCE_CENTS) return reject("wrong-pitch", { cents, detectedPitch });
