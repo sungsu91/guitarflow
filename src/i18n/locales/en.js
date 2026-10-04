@@ -1,5 +1,9 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "shooter.voice": "Voice",
+  "shooter.voiceRange": "Voice · C4–C5",
+  "shooter.voiceDescription": "Sing the eight notes from C4 to C5",
+  "shooter.voiceSustain": "Hold a steady vowel or hum the target note",
   "app.scrollableScaleFretboard": "Full scale fretboard · scroll horizontally",
   "app.scaleAllPositionsHint": "All · frets 0–24 · swipe the fretboard left or right",
   "etudes.scoreStorageFull": "Score storage is full. Your draft remains open. Export a score file to keep a copy, then try saving again.",

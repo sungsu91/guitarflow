@@ -1,5 +1,9 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "shooter.voice": "보이스",
+  "shooter.voiceRange": "보이스 · C4–C5",
+  "shooter.voiceDescription": "목소리로 도레미파솔라시도를 맞혀보세요",
+  "shooter.voiceSustain": "아~~, 우~~ 또는 허밍으로 음정을 유지해 보세요",
   "app.scrollableScaleFretboard": "전체 스케일 지판 · 가로로 스크롤",
   "app.scaleAllPositionsHint": "전체 · 0–24프렛 · 지판을 좌우로 밀어보세요",
   "etudes.scoreStorageFull": "악보 저장 공간이 부족합니다. 현재 초안은 화면에 남아 있으니 제작 악보 파일로 보관한 뒤 다시 저장해 주세요.",

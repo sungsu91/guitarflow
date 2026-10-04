@@ -133,7 +133,7 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(appSource, /const attackShooterTargetByClick = useCallback/);
   assert.match(appSource, /const desktopHorizontalClickAttackActive = import\.meta\.env\.DEV && desktopHorizontalShooterActive/);
   assert.match(appSource, /data-click-attack=\{desktopHorizontalClickAttackActive/);
-  assert.match(appSource, /detectorReady = shooterHitboxDebugEnabled[\s\S]*\|\| desktopHorizontalClickAttackActive/);
+  assert.match(appSource, /detectorReady = \(shooterHitboxDebugEnabled && shooterDifficultyRef.current !== SHOOTER_DIFFICULTIES.VOICE\)[\s\S]*\|\| desktopHorizontalClickAttackActive/);
   assert.match(appSource, /horizontalShooterActive \|\| !shooterGuitarCabinetActive/);
   assert.match(appSource, /<ShootingMapRenderer[\s\S]*threeDLabPreview=\{mobileLandscapeShooterSelected && !mobileLandscapeShooterActive\}[\s\S]*className="mobileLandscapeShooterPrompt"/);
   assert.match(appSource, /className="mobileLandscapeShooterHome"/);
