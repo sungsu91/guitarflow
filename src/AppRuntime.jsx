@@ -3,6 +3,8 @@ import App from "./App.jsx";
 import DesktopLayout from "./layouts/DesktopLayout.jsx";
 import { BackingLoopProvider } from "./components/BackingLoop.jsx";
 import "./layouts/tablet-shooter.css";
+import "./layouts/tablet-learning.css";
+import "./layouts/tablet-dialogs.css";
 import "./layouts/tablet-readability.css";
 import "./layouts/tablet-layout.css";
 import "./layouts/tablet-fretboard.css";

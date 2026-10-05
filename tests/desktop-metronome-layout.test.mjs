@@ -58,8 +58,8 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /@media \(max-width: 1439px\), \(max-height: 820px\)[\s\S]*padding-bottom: 94px/);
   assert.match(styles, /background: var\(--riff-surface-shell\) !important/);
   assert.doesNotMatch(styles, /grid-template-areas:\s*"board hero"\s*"board controls"/);
-  assert.match(appSource, /hasDirectionPractice && \(landscapePlayFocus \|\| !isMobileLayout\) \? referenceLandscapeBeatStrip : null/);
-  assert.match(appSource, /isMobileLayout && !landscapePlayFocus \? referenceLandscapeBeatStrip : null/);
+  assert.match(appSource, /hasDirectionPractice && \(isTabletLayout \|\| landscapePlayFocus \|\| !isMobileLayout\) \? referenceLandscapeBeatStrip : null/);
+  assert.match(appSource, /isMobileLayout && !isTabletLayout && !landscapePlayFocus \? referenceLandscapeBeatStrip : null/);
   assert.match(styles, /--desktop-stage3-control-width: clamp\(400px, 31vw, 470px\)/);
   assert.match(styles, /> \.chordTransitionPanel \{[\s\S]*grid-template-columns: minmax\(0, 1fr\) var\(--desktop-stage3-control-width\)/);
   assert.match(styles, /> \.chordTransitionPanel > \.stage3DesktopPrimaryColumn \{[\s\S]*--desktop-stage3-work-width: 100%[\s\S]*--desktop-stage3-progression-width: 96%[\s\S]*grid-template-rows: minmax\(0, 1fr\) clamp\(114px, 12vh, 128px\)[\s\S]*background: var\(--riff-surface-panel\)/);

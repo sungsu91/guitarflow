@@ -6063,9 +6063,10 @@ function MetronomeSelectControl({
         }))
       : layout === "grid" ? Math.ceil(gridOptions.length / 2) : gridOptions.length;
     const hasOptionDescriptions = measurementOptions.some((option) => option.description);
-    const optionRowHeight = hasOptionDescriptions ? 54 : 36;
-    const tabBarHeight = availableOptionTabs.length ? 46 : 0;
-    const estimatedMenuHeight = Math.min(360, 14 + tabBarHeight + rows * optionRowHeight + (hasVisibleSelectionTools ? 40 : 0));
+    const tabletMenu = document.documentElement.dataset.rifflabDevice === "tablet";
+    const optionRowHeight = tabletMenu ? (hasOptionDescriptions ? 88 : 52) : (hasOptionDescriptions ? 54 : 36);
+    const tabBarHeight = availableOptionTabs.length ? (tabletMenu ? 148 : 46) : 0;
+    const estimatedMenuHeight = Math.min(tabletMenu ? 660 : 360, 14 + tabBarHeight + rows * optionRowHeight + (hasVisibleSelectionTools ? 40 : 0));
     const viewportPadding = 12;
     const menuGap = 6;
     const visualViewport = window.visualViewport;
@@ -6116,9 +6117,13 @@ function MetronomeSelectControl({
     const menuLeftEdge = toolbarRect ? Math.max(viewportPadding, toolbarRect.left + 6) : viewportPadding;
     const menuRightEdge = toolbarRect ? Math.min(viewportWidth - viewportPadding, toolbarRect.right - 6) : viewportWidth - viewportPadding;
     desiredWidth = Math.min(desiredWidth, menuRightEdge - menuLeftEdge);
+    if (tabletMenu) {
+      desiredWidth = Math.min(menuRightEdge - menuLeftEdge, Math.max(desiredWidth,
+        hasOptionDescriptions || availableOptionTabs.length ? 600 : 280));
+    }
     const left = Math.max(menuLeftEdge, Math.min(rect.left, menuRightEdge - desiredWidth));
     const directionSpace = nextDirection === "up" ? topSpace : bottomSpace;
-    const maxHeight = Math.max(72, Math.min(280, directionSpace));
+    const maxHeight = Math.max(72, Math.min(tabletMenu ? 660 : 280, directionSpace));
     setOpenDirection(nextDirection);
     setMenuStyle({
       "--riff-dropdown-left": `${left}px`,
@@ -30329,7 +30334,7 @@ function App({ onReady }) {
         ariaLabel={translateUi("app.voiceLeadingCourse")}
         className="stage3LoadSelect stage3RecommendedLoadSelect stage3VoicingCourseSelect"
         panelDirectionIndicator
-        dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
+        dropdownDirection={!isMobileLayout || isTabletLayout || landscapePlayFocus ? "down" : "up"}
         label={translateUi("app.voiceLeading")}
         matchTriggerWidth
         onChange={(slotId) => {
@@ -30358,7 +30363,7 @@ function App({ onReady }) {
       <MetronomeSelectControl
         ariaLabel={translateUi("app.chooseRecommendedOrCustomProgression")}
         className="stage3LoadSelect stage3UserLoadSelect stage3RecommendedLoadSelect"
-        dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
+        dropdownDirection={!isMobileLayout || isTabletLayout || landscapePlayFocus ? "down" : "up"}
         label={translateUi("app.chooseProgression")}
         matchTriggerWidth
         onChange={(slotId) => {
@@ -35124,7 +35129,8 @@ function App({ onReady }) {
             onConfirm={confirmDeleteStage3StorageItems}
           />
         ) : null}
-        <section className="chordTransitionPanel" aria-label={translateUi("originalUi.chordTransitionPractice")}>
+        <section className={`chordTransitionPanel ${isTabletLayout ? "tabletLearningPanel tabletRhythmPractice" : ""}`} aria-label={translateUi("originalUi.chordTransitionPractice")}>
+          {isTabletLayout ? stage3LandscapeLoadToolbar : null}
           <div className="stage3DesktopPrimaryColumn">
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label={translateUi("originalUi.currentChordFingering")}>
@@ -35349,7 +35355,7 @@ function App({ onReady }) {
           </div>
           <div className="stage3DesktopSideColumn">
           <div className="stage3PracticeUtilityPanel">
-            {stage3LandscapeLoadToolbar}
+            {!isTabletLayout ? stage3LandscapeLoadToolbar : null}
             <div className={isMobileLayout ? "stage3MobileTransportDeck" : "standaloneMetronomePanel stage3StandaloneTransportDeck"}>
               <MetronomeTransportCard
                 actionAriaLabel={translateUi("app.playbackTapTempoCountIn")}
@@ -35419,8 +35425,8 @@ function App({ onReady }) {
           />
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--training"
-            upward={isMobileLayout && landscapePlayFocus}
-            defaultExpanded={!isMobileLayout || !viewportProfile.isLandscape}
+            upward={isMobileLayout && !isTabletLayout && landscapePlayFocus}
+            defaultExpanded={isTabletLayout || !isMobileLayout || !viewportProfile.isLandscape}
             disabled={stage3RecommendedAccompanimentLocked}
             hidePartSummary={landscapePlayFocus}
             lockedLabel={translateUi("app.recommendedProgressions")}
@@ -35443,7 +35449,7 @@ function App({ onReady }) {
         </>
       ) : !LEGACY_PRACTICE_RENDERING_ENABLED ? (
         <section
-          className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""}`}
+          className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""} ${isTabletLayout && hasDirectionPractice ? "tabletLearningPanel" : ""}`}
           aria-label={translateUi("originalUi.referenceFretboardTraining")}
         >
           {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
@@ -35456,15 +35462,6 @@ function App({ onReady }) {
           )}
 
           <div className="referenceTrainingMainRow">
-            {isTabletLayout && hasDirectionPractice ? (
-              <div className="tabletPracticeGuide">
-                <div><span>{localizeUi(referenceCurrentLabel)}</span><strong>{getReferenceStageValue(referenceDisplayPrompt)}</strong></div>
-                <div><span>{localizeUi(referenceNextLabel)}</span><strong>{getReferenceStageValue(referenceNextPrompt)}</strong></div>
-                <p>{gameState === GAME_STATES.PLAYING
-                  ? translateUi("app.findAndPlayTheHighlightedNoteOnTheFretboard")
-                  : translateUi("app.pressStartToPracticeFindingPositionsOnTheReferenceFretboard")}</p>
-              </div>
-            ) : null}
             <aside
               className={`referenceFretboard referenceTrainingBoard ${scalePracticePickerEnabled ? "referenceTrainingBoard--scalePositions" : ""}`}
               aria-label={translateUi("originalUi.referenceFretboard")}
@@ -35481,7 +35478,7 @@ function App({ onReady }) {
                         onChange={changeScaleRoot}
                         options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
                         triggerLabel={isMobileLayout ? selectedScaleRoot : null}
-                        showLabel={!isMobileLayout}
+                        showLabel={!isMobileLayout || isTabletLayout}
                         value={selectedScaleRoot}
                       />
                       <MetronomeSelectControl
@@ -35490,7 +35487,7 @@ function App({ onReady }) {
                           dropdownDirection="down"
                           onChange={changeScale}
                           options={SCALE_OPTIONS}
-                          showLabel={!isMobileLayout}
+                          showLabel={!isMobileLayout || isTabletLayout}
                           value={selectedScaleId}
                         />
                       <MetronomeSelectControl
@@ -35500,7 +35497,7 @@ function App({ onReady }) {
                         onChange={changeScaleDetail}
                         options={scalePracticePickerEnabled ? scalePracticePositionOptions : selectedScaleDetailOptions}
                         triggerLabel={scalePracticePositionTriggerLabel}
-                        showLabel={!isMobileLayout}
+                        showLabel={!isMobileLayout || isTabletLayout}
                         value={scalePracticePickerEnabled ? scalePracticePositionValue : selectedScaleDetailValue}
                       />
                       {isMobileLayout && <TrainingNoteGuideToggle
@@ -35574,7 +35571,7 @@ function App({ onReady }) {
               </p>
             </aside>
 
-            {hasDirectionPractice && (landscapePlayFocus || !isMobileLayout) ? referenceLandscapeBeatStrip : null}
+            {hasDirectionPractice && (isTabletLayout || landscapePlayFocus || !isMobileLayout) ? referenceLandscapeBeatStrip : null}
 
             <div className={`referenceTrainingToolbar trainingSettingsPanel ${hasDirectionPractice ? "referenceTrainingToolbar--standalone" : ""}`}>
               {hasDirectionPractice ? (
@@ -35585,7 +35582,7 @@ function App({ onReady }) {
                       : "trainingStandaloneMetronomeDeck standaloneMetronomePanel"
                   }
                 >
-                  {isMobileLayout && !landscapePlayFocus ? referenceLandscapeBeatStrip : null}
+                  {isMobileLayout && !isTabletLayout && !landscapePlayFocus ? referenceLandscapeBeatStrip : null}
                   <MetronomeTransportCard
                     actionAriaLabel={translateUi("app.playbackTapTempoCountIn")}
                     actionPanelClassName={
