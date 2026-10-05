@@ -1,6 +1,7 @@
 import { SCALE_OPTIONS, getScaleDefinition, getLegacyScaleDefinition, getScalePatterns } from './fretboard/scaleCatalog.js';
 import { SCALE_ALL_POSITIONS, SCALE_OVERVIEW_MAX_FRET, buildScaleOverviewPositions } from './fretboard/scaleOverview.js';
 import FretboardViewerLayout from "./layouts/FretboardViewerLayout.jsx";
+import TabletPracticeTitle from "./layouts/TabletPracticeTitle.jsx";
 import DesktopShooterMaps, {DesktopShooterLives,DesktopShooterMapGallery,DesktopShooterSkinButton,DesktopShooterStartButton,useDesktopShooterMap} from './shooter/DesktopShooterMaps.jsx';
 import DesktopNoteScaleViewer from "./layouts/DesktopNoteScaleViewer.jsx";
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
@@ -35130,6 +35131,7 @@ function App({ onReady }) {
           />
         ) : null}
         <section className={`chordTransitionPanel ${isTabletLayout ? "tabletLearningPanel tabletRhythmPractice" : ""}`} aria-label={translateUi("originalUi.chordTransitionPractice")}>
+          {isTabletLayout ? <TabletPracticeTitle mode="rhythm" /> : null}
           {isTabletLayout ? stage3LandscapeLoadToolbar : null}
           <div className="stage3DesktopPrimaryColumn">
           <div className="chordTransitionBody">
@@ -35426,7 +35428,7 @@ function App({ onReady }) {
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--training"
             upward={isMobileLayout && !isTabletLayout && landscapePlayFocus}
-            defaultExpanded={isTabletLayout || !isMobileLayout || !viewportProfile.isLandscape}
+            defaultExpanded={!isTabletLayout && (!isMobileLayout || !viewportProfile.isLandscape)}
             disabled={stage3RecommendedAccompanimentLocked}
             hidePartSummary={landscapePlayFocus}
             lockedLabel={translateUi("app.recommendedProgressions")}
@@ -35452,6 +35454,7 @@ function App({ onReady }) {
           className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""} ${isTabletLayout && hasDirectionPractice ? "tabletLearningPanel" : ""}`}
           aria-label={translateUi("originalUi.referenceFretboardTraining")}
         >
+          {isTabletLayout && hasDirectionPractice ? <TabletPracticeTitle mode={selectedCategory.id} /> : null}
           {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
             <ContentTitle {...contentHeader} />
           ) : null}
