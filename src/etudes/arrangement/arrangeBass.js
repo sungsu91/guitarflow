@@ -25,20 +25,20 @@ function pieces(start,end){
  return result;
 }
 function position(target,pc,previous){
- const low=Math.min(...target.tuning),midi=low+(pc-low%12+12)%12;
+ const low=Math.min(...target.tuning)+(target.capo??0),midi=low+(pc-low%12+12)%12;
  const choices=tabCandidates(target,midi).filter(n=>n.fret<=7);
  const cost=n=>n.fret*.65+(previous?Math.abs(n.fret-previous.fret)*.2+Math.abs(n.string-previous.string)*.15:0);
  choices.sort((a,b)=>cost(a)-cost(b));
  if(!choices.length)throw Error(`${midiName(midi)}음을 0~7프렛에 놓을 수 없습니다. 베이스 튜닝을 확인해 주세요.`);
  return {...choices[0],midi};
 }
-export function arrangeBass(source,{pattern='quarters',rows=bassChordRows(source)}={}){
+export function arrangeBass(source,{pattern='quarters',rows=bassChordRows(source),target:requestedTarget,sourceCapo=source.capo??0}={}){
  if(source.instrument==='drums')throw Error('코드가 있는 악보에서 베이스 편곡을 시작해 주세요.');
  if(!BASS_PATTERNS.some(p=>p.id===pattern))throw Error('베이스 반주 패턴을 선택해 주세요.');
  if(rows.length!==source.measures.length)throw Error('원본과 코드 마디 수가 다릅니다.');
- const target={instrument:'bass',tuning:[...(source.instrument==='bass'?source.tuning:scoreInstrument('bass').tuning)],capo:0};
- if(!validScoreTuning('bass',target.tuning))throw Error('베이스 튜닝을 확인해 주세요.');
- const meters=measureMeters(source),capo=source.capo??0,problems=[],audit=[];let active=null,previous=null;
+ const target={instrument:'bass',tuning:[...(requestedTarget?.tuning??(source.instrument==='bass'?source.tuning:scoreInstrument('bass').tuning))],capo:requestedTarget?.capo??0};
+ if(!validScoreTuning('bass',target.tuning)||!Number.isInteger(target.capo)||target.capo<0||target.capo>12||requestedTarget&&requestedTarget.instrument!=='bass')throw Error('베이스 튜닝·카포를 확인해 주세요.');
+ const meters=measureMeters(source),capo=sourceCapo,problems=[],audit=[];let active=null,previous=null;
  const measures=source.measures.map((m,i)=>{
   const row=rows[i],meter=meters[i],capacity=meterTicks(meter);
   if(!validScoreMeter(meter))throw Error(`${i+1}마디의 박자표를 확인해 주세요.`);
@@ -75,7 +75,7 @@ export function arrangeBass(source,{pattern='quarters',rows=bassChordRows(source
  const snapshot=structuredClone(source);delete snapshot.bassArrangement;
  const {pdfTabImport,guitarArrangement,bassArrangement,...base}=source;
  const reviewBars=source.measures.flatMap((m,i)=>m.pdfImport?.needsReview?[i+1]:[]);
- const document={...base,...target,id:newId('score'),kind:'user',origin:null,title:`${source.title.replace(/ · 베이스 반주$/,'')} · 베이스 반주`,purpose:'코드 진행으로 만든 합주 연습용 베이스 반주 · 원곡 베이스 채보 아님',viewSettings:{...source.viewSettings,notationView:'both',systemBreaks:[],sourceLayout:false},measures,bassArrangement:{version:1,pattern,chordRows:structuredClone(rows),sourceDocument:snapshot,sourceReviewBars:reviewBars,audit}};
+ const document={...base,...target,id:newId('score'),kind:'user',origin:null,title:`${source.title.replace(/ · 베이스 반주$/,'')} · 베이스 반주`,purpose:'코드 진행으로 만든 합주 연습용 베이스 반주 · 원곡 베이스 채보 아님',viewSettings:{...source.viewSettings,notationView:'both',systemBreaks:[],sourceLayout:false},measures,bassArrangement:{version:1,pattern,chordRows:structuredClone(rows),sourceCapo:capo,target,sourceDocument:snapshot,sourceReviewBars:reviewBars,audit}};
  if(capo){const key=transposeMiniChordLabel(source.keySignature??'C',capo);document.keySignature=({ 'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb','D#m':'Ebm','A#m':'Bbm' })[key]??key;}
  const compiled=compileDocumentV2(document);
  if(compiled.errors.length||compiled.issues.length)throw Error(`베이스 악보 검증 실패: ${[...compiled.errors,...compiled.issues].slice(0,2).join(' / ')}`);

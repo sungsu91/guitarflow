@@ -18,11 +18,11 @@ export default function DesktopPdfTabImport(props){
   const choosing=!busy&&!result;
   const checkpoint=props.checkpoint;
   const resumeLabel=checkpoint?.completed&&!checkpoint.complete?t(error?'editor.importRetryPage':'editor.importContinuePage',{value1:checkpoint.completed+1,value2:Math.min(checkpoint.totalPages,checkpoint.completed+props.batchSize)}):t(attempted?'editor.importAnalyzeAgain':'editor.importAnalyze');
-  const pianoResult=result?.target?.instrument==='piano';
+  const pianoResult=Boolean(result)&&target?.instrument==='piano';
   useLanguage();
   const activity=importActivityDetails(progress,{pdfFile,photos:props.photos});
   const comparison=notationCheckSummary(result);
-  const targetPanel=sourceMode==='grand'?<div className="pdfImportTarget desktopPianoImportRoute"><strong>{t('editor.pianoGuitarRoute')}</strong><span>{t('editor.pianoGuitarRouteHint')}</span></div>:choosing?<DesktopImportTargetSettings {...props} opening={selecting}/>:<ImportTargetCaption target={target}/>;
+  const targetPanel=sourceMode==='grand'&&target?.instrument!=='bass'?<div className="pdfImportTarget desktopPianoImportRoute"><strong>{t('editor.pianoGuitarRoute')}</strong><span>{t('editor.pianoGuitarRouteHint')}</span></div>:choosing?<DesktopImportTargetSettings {...props} opening={selecting}/>:<ImportTargetCaption target={target}/>;
   return <dialog ref={dialog} data-busy={busy} data-stage={choosing?'selection':'recognition'} data-has-photos={Boolean(photo&&choosing)} className="desktopPdfTabImport" aria-label="PDF·사진에서 악보 가져오기" onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();cancel();}}>
     <header><div><small>FRETIVA LAB · DESKTOP</small><h2>PDF·사진에서 악보 가져오기</h2></div><button type="button" onClick={cancel} aria-label="PDF TAB 분석 닫기">×</button></header>
     <div className="desktopPdfTabBody">{!result&&checkpoint&&<section className="desktopImportCheckpoint" aria-label={t('editor.importCheckpoint')}>
@@ -63,7 +63,7 @@ export default function DesktopPdfTabImport(props){
       <ul className="pdfTabPageResults" aria-label="페이지별 분석 결과">{result.pages.map(page=><li key={page.page}>{page.page}페이지 <strong>{page.staffs.reduce((n,s)=>n+s.measures.length,0)}마디</strong></li>)}</ul>
       <PhotoScanNotice result={result}/><PdfTabCoverageNotice summary={result.summary} showPhotoRecovery/>
       {Boolean(props.partOptions?.length)&&<div className="desktopImportPart"><p>{t('editor.photoPartHint')}</p><label>{t('editor.photoPartLabel')}<select aria-label={t('editor.photoPartLabel')} disabled={opening} value={props.selectedPart??''} onChange={e=>props.changePart(e.target.value)}><option value="">{t('editor.photoPartChoose')}</option>{props.partOptions.map(part=><option value={part} key={part}>{t('editor.photoPartOrder',{value1:part})}</option>)}</select></label></div>}
-      {result.pages.some(p=>p.notation)&&<p className="notationReviewNotice">{target.instrument==='piano'?t('editor.pianoImportHint'):<>오선보에서 기본 운지로 배치한 초안입니다. 음높이·리듬·도돌이표를 원본과 비교해 주세요. 붙임줄·이음줄·주법, 1·2번 반복 구간 및 D.C.·D.S.·코다 진행은 직접 확인해 입력해 주세요.</>}</p>}
+      {result.pages.some(p=>p.notation)&&<p className="notationReviewNotice">{target.instrument==='bass'?'선택한 베이스 설정으로 엽니다. 멜로디·코드는 저음 반주로 변환하며, 읽지 못한 코드는 먼저 확인합니다.':target.instrument==='piano'?t('editor.pianoImportHint'):<>오선보에서 기본 운지로 배치한 초안입니다. 음높이·리듬·도돌이표를 원본과 비교해 주세요. 붙임줄·이음줄·주법, 1·2번 반복 구간 및 D.C.·D.S.·코다 진행은 직접 확인해 입력해 주세요.</>}</p>}
     </section>}
     {comparison&&<p className="notationReviewNotice">{t('editor.notationCheckResult',{value1:comparison.matches,value2:comparison.mismatches})}{comparison.warnings.map(w=><span key={w}> {w}</span>)}</p>}</div><footer><button type="button" onClick={cancel}>{t(busy?'editor.importPause':'common.cancel')}</button>{!busy&&!result&&<button type="button" className="pdfTabOpen" disabled={selecting||!!targetError||!hasSource} onClick={analyze}>{resumeLabel}</button>}{result&&<button type="button" className={pianoResult?'pdfTabOriginal':'pdfTabOpen'} disabled={opening} aria-busy={opening} onClick={open}>{opening?'제작실로 옮기는 중…':pianoResult?t('editor.openPianoOriginal'):'제작실에서 열기'}</button>}{pianoResult&&<button type="button" className="pdfTabOpen" disabled={opening} onClick={props.arrange}>{t('editor.arrangePianoToTab')}</button>}</footer>
   </dialog>;

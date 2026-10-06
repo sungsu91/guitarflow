@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {importPdfTab} from './importPdfTab.js';
 import {tabSourceKind} from './imageTabSource.js';
 import {photoFilesToAdd,preparePhoto,importPhotoBatch} from './photoBatch.js';
-import {analysisToDocument} from './scoreAdapter.js';
+import {prepareInstrumentOutput,recognitionTarget} from './instrumentOutput.js';
 import {analysisPartOptions} from './photoParts.js';
 import {resolveImportTarget,withImportPitchDefault} from './importTarget.js';
 import {importTargetOptions,selectImportInstrument,selectImportTuning} from './importTargetOptions.js';
@@ -24,7 +24,7 @@ export default function usePdfTabImport({onClose,onOpen,active=true,layout,targe
   const saveCheckpoint=value=>{checkpointRef.current=value;setCheckpoint(value);};
   const [selectedPart,setSelectedPart]=useState(null),partOptions=analysisPartOptions(result??checkpoint);
   const [elapsedSeconds,setElapsedSeconds]=useState(0),startedAt=useRef(null);
-  const [arrangementDocument,setArrangementDocument]=useState(null);
+  const [arrangementDocument,setArrangementDocument]=useState(null),[arrangementReview,setArrangementReview]=useState(null);
   useEffect(()=>{if(!busy)return;const tick=()=>setElapsedSeconds(Math.floor((performance.now()-startedAt.current)/1000));tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer);},[busy]);
   const changePart=value=>{if(openingRef.current)return;setSelectedPart(Number(value)||null);generated.current=null;setError('');};
   useEffect(()=>()=>{generation.current++;job.current?.abort();},[]);
@@ -40,7 +40,7 @@ export default function usePdfTabImport({onClose,onOpen,active=true,layout,targe
   };
   const changeTargetInstrument=value=>{
     if(busyRef.current||openingRef.current||result)return;
-    if(sourceMode==='grand'&&value!=='piano:0')return;
+    if(sourceMode==='grand'&&value!=='piano:0'&&!value.startsWith('bass:'))setSourceMode('staff');
     if(changeTarget((current,id)=>withImportPitchDefault(selectImportInstrument(current,id),notationPitchOverride.current),value)){
       if(value==='piano:0')setSourceMode('grand');
     }
@@ -90,7 +90,7 @@ export default function usePdfTabImport({onClose,onOpen,active=true,layout,targe
   const removePhoto=()=>{if(busyRef.current||opening)return;setPhotos(list=>list.filter((_,index)=>index!==photoIndex));setPhotoIndex(Math.max(0,photoIndex-1));invalidate(photoIndex,photos.length-1);};
   const changeSourceMode=value=>{
     if(busyRef.current||openingRef.current||result)return;
-    if(value==='grand')setTargetState({target:withImportPitchDefault({instrument:'piano'},notationPitchOverride.current)});
+    if(value==='grand'&&target?.instrument!=='bass')setTargetState({target:withImportPitchDefault({instrument:'piano'},notationPitchOverride.current)});
     else if(value==='tab'&&target?.instrument==='piano')setTargetState({target:withImportPitchDefault({instrument:'guitar'},notationPitchOverride.current)});
     setSourceMode(value);invalidate();
   };
@@ -98,7 +98,7 @@ export default function usePdfTabImport({onClose,onOpen,active=true,layout,targe
     if((!pdfFile&&!photos.length)||busyRef.current||openingRef.current||targetError||result)return;
     const {controller,token}=begin();generated.current=null;setAttempted(true);
     try{
-      const options={sourceMode,target,verifyNotation,resume:checkpointRef.current,pageLimit:IMPORT_PAGE_BATCH,onCheckpoint:value=>{if(token===generation.current)saveCheckpoint(value);},includeSourcePreview:true,signal:controller.signal,onProgress:p=>{if(token===generation.current)setProgress(p);}};
+      const options={sourceMode,target:recognitionTarget(target,sourceMode),verifyNotation,resume:checkpointRef.current,pageLimit:IMPORT_PAGE_BATCH,onCheckpoint:value=>{if(token===generation.current)saveCheckpoint(value);},includeSourcePreview:true,signal:controller.signal,onProgress:p=>{if(token===generation.current)setProgress(p);}};
       const analysis=pdfFile?await importPdfTab(pdfFile,options):await importPhotoBatch(photos,{...options,autoScan:true});
       if(token===generation.current){saveCheckpoint(analysis);if(analysis.complete)setResult(analysis);else if(photos.length)setPhotoIndex(Math.min(analysis.completed,photos.length-1));}
     }
@@ -112,17 +112,19 @@ export default function usePdfTabImport({onClose,onOpen,active=true,layout,targe
     try{
       await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
       if(token!==generation.current)return;
-      generated.current??=analysisToDocument(analysis,{part:selectedPart,allowPartial:partial});
-      if(arrange===true&&generated.current.instrument==='piano')setArrangementDocument(generated.current);
-      else await onOpen(generated.current);
+      generated.current??=prepareInstrumentOutput(analysis,{target,sourceMode,part:selectedPart,allowPartial:partial});
+      const output=generated.current;
+      if(output.reviewInstrument){setArrangementReview(output);setArrangementDocument(output.document);}
+      else if(arrange===true&&output.document.instrument==='piano'){setArrangementReview(null);setArrangementDocument(output.document);}
+      else await onOpen(output.document);
     }catch(e){if(token===generation.current)setError(e.message);}
     finally{openingRef.current=false;if(token===generation.current)setOpening(false);}
   };
   const applyArrangement=async document=>{
     if(openingRef.current)return;
     openingRef.current=true;setOpening(true);setArrangementDocument(null);const token=generation.current;
-    try{await onOpen(document);}catch(e){if(token===generation.current)setError(e.message);}
+    try{if(arrangementReview?.reviewInstrument==='bass'&&document.bassArrangement){document.bassArrangement.automatic=true;document.bassArrangement.importCoverage=arrangementReview.document.pdfTabImport?.pageCoverage??null;}await onOpen(document);}catch(e){if(token===generation.current)setError(e.message);}
     finally{openingRef.current=false;if(token===generation.current)setOpening(false);}
   };
-  return {checkpoint,paused,batchSize:IMPORT_PAGE_BATCH,openPartial:()=>open(false,true),previewPhotoScan,dialog,busy,preparing,opening,progress,elapsedSeconds,result,selectedPart,partOptions,changePart,target,targetError,targetOptions:importTargetOptions(target),changeTargetInstrument,changeTargetTuning,changeNotationPitch,verifyNotation,changeVerifyNotation,error:targetError||error,cancel,run,addPhotos,open,arrange:()=>open(true),arrangementDocument,closeArrangement:()=>setArrangementDocument(null),applyArrangement,pdfFile,removePdf,photos,photo:photos[photoIndex],photoIndex,setPhotoIndex,rotation:photos[photoIndex]?.rotation??0,rotatePhoto,movePhoto,removePhoto,updatePhotoScan,analyze,attempted,sourceMode,changeSourceMode};
+  return {checkpoint,paused,batchSize:IMPORT_PAGE_BATCH,openPartial:()=>open(false,true),previewPhotoScan,dialog,busy,preparing,opening,progress,elapsedSeconds,result,selectedPart,partOptions,changePart,target,targetError,targetOptions:importTargetOptions(target),changeTargetInstrument,changeTargetTuning,changeNotationPitch,verifyNotation,changeVerifyNotation,error:targetError||error,cancel,run,addPhotos,open,arrange:()=>open(true),arrangementDocument,arrangementReview,closeArrangement:()=>setArrangementDocument(null),applyArrangement,pdfFile,removePdf,photos,photo:photos[photoIndex],photoIndex,setPhotoIndex,rotation:photos[photoIndex]?.rotation??0,rotatePhoto,movePhoto,removePhoto,updatePhotoScan,analyze,attempted,sourceMode,changeSourceMode};
 }
