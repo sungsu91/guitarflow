@@ -52,6 +52,8 @@
 .mobilePdfTabImport .staffImportOptions:disabled{opacity:.6}
 .mobilePdfTabImport .mobilePdfTabFile{padding:12px;border-color:var(--conversion-border);background:var(--conversion-card);color:var(--conversion-text)}
 .mobilePdfTabImport .mobilePdfTabFile input{color:inherit}
+.mobilePdfTabImport .mobilePdfTabFile:not(.mobilePhotoCapture) input[type=file]{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:44px;padding:2px;border:0;border-radius:0;background:transparent;box-shadow:none;font:inherit}
+.mobilePdfTabImport .mobilePdfTabFile:not(.mobilePhotoCapture) input[type=file]::file-selector-button{min-height:40px;margin:0 8px 0 0;padding:6px 10px;border:1px solid var(--conversion-border);border-radius:6px;background:var(--conversion-selected);color:inherit;font:inherit}
 .mobilePdfTabImport header,.mobilePdfTabImport footer{border-color:var(--conversion-border)}
 .mobilePdfTabImport footer{background:var(--conversion-surface)}
 .mobilePdfTabImport button{background:var(--conversion-card);color:var(--conversion-text);border-color:var(--conversion-border)}

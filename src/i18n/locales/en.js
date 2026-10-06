@@ -91,6 +91,8 @@ export default {
   "editor.photoScanCorners": "Adjust corners",
   "editor.photoScanDone": "Done",
   "editor.photoScanCompare": "Compare photo correction",
+  "editor.photoPreviewEnlarge": "Enlarge preview",
+  "editor.photoPreviewZoom": "Preview zoom",
   "editor.photoScanOriginal": "Original",
   "editor.photoScanResult": "Corrected",
   "editor.photoScanCorner": "Paper corner {value1}",

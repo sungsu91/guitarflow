@@ -46,6 +46,8 @@
 .desktopPdfTabImport .pdfTabFileButton{margin:0;padding:16px;border-color:var(--conversion-border);background:var(--conversion-card);color:var(--conversion-text)}
 .desktopPdfTabImport .pdfTabFileButton+.pdfTabFileButton{margin-top:10px}
 .desktopPdfTabImport .pdfTabFileButton input{color:inherit}
+.desktopPdfTabImport .pdfTabFileButton input[type=file]{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:36px;padding:2px;border:0;border-radius:0;background:transparent;box-shadow:none;font:inherit}
+.desktopPdfTabImport .pdfTabFileButton input[type=file]::file-selector-button{margin:0 8px 0 0;padding:6px 10px;border:1px solid var(--conversion-border);border-radius:6px;background:var(--conversion-selected);color:inherit;font:inherit;cursor:pointer}
 .desktopPdfTabImport header small{color:var(--conversion-muted)}
 .desktopPdfTabImport button{border-color:var(--conversion-border)}
 @media(prefers-reduced-motion:reduce){.desktopPdfTabImport .scoreConversionChoice{transition:none}}

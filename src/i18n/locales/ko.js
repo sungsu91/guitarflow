@@ -91,6 +91,8 @@ export default {
   "editor.photoScanCorners": "영역 조정",
   "editor.photoScanDone": "조정 완료",
   "editor.photoScanCompare": "보정 전후 비교",
+  "editor.photoPreviewEnlarge": "크게 보기",
+  "editor.photoPreviewZoom": "미리보기 배율",
   "editor.photoScanOriginal": "원본",
   "editor.photoScanResult": "보정본",
   "editor.photoScanCorner": "종이 모서리 {value1}",
