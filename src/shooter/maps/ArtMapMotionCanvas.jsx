@@ -9,7 +9,7 @@ function subscribe(listener) {
 }
 const wantsStill = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches || Boolean(navigator.connection?.saveData);
 
-function MotionCanvas({ id, src, active }) {
+function MotionCanvas({ id, src, presentation, active }) {
   const ref = useRef(null), renderer = useRef(null), activeRef = useRef(active);
   const [ready, setReady] = useState(false);
   activeRef.current = active;
@@ -19,7 +19,7 @@ function MotionCanvas({ id, src, active }) {
     image.decode().then(() => {
       if (cancelled) return;
       renderer.current = createArtMapMotion(ref.current, image, id, {
-        onReady: () => setReady(true), onFailure: error => {
+        presentation, onReady: () => setReady(true), onFailure: error => {
           if (ref.current) ref.current.dataset.motionFallback = error?.message ?? 'Context lost';
           setReady(false);
         },
@@ -27,7 +27,7 @@ function MotionCanvas({ id, src, active }) {
       renderer.current?.setActive(activeRef.current);
     }).catch(() => { /* The still image remains visible if decoding or WebGL fails. */ });
     return () => { cancelled = true; renderer.current?.dispose(); renderer.current = null; };
-  }, [id, src]);
+  }, [id, src, presentation]);
   useEffect(() => { renderer.current?.setActive(active); }, [active]);
   return <canvas ref={ref} className="artMapMotionCanvas" data-ready={ready} aria-hidden="true" />;
 }

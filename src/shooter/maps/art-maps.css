@@ -33,47 +33,16 @@
   background: var(--art-map-glow);
   box-shadow: 0 0 12px 3px var(--art-map-glow);
   opacity: .3;
-  animation: art-map-glimmer 6s ease-in-out infinite;
+  animation: art-map-glimmer 10s ease-in-out infinite;
   animation-delay: calc(var(--spark-index) * -.73s);
 }
-.artMapLightVeil, .artMapMist { position: absolute; pointer-events: none; }
-.artMapLightVeil {
-  inset: -12% -35%;
-  background: linear-gradient(112deg, transparent 20%, #e7edff17 27%, transparent 35%, transparent 68%, #ffc77e20 76%, transparent 83%);
-  mask-image: linear-gradient(#000 10%, #0009 45%, transparent 82%);
-  mix-blend-mode: screen;
-  animation: art-map-light-flow 8s ease-in-out infinite alternate;
-}
-.artMapMist {
-  width: 155%; height: 24%; left: -25%; bottom: 15%;
-  background: radial-gradient(ellipse at 23% 60%, #e6e6d63d, transparent 48%), radial-gradient(ellipse at 72% 40%, #cddde852, transparent 48%);
-  filter: blur(14px);
-  mask-image: linear-gradient(transparent, #000 40%, #000 70%, transparent);
-  animation: art-map-mist-flow 10s ease-in-out infinite alternate;
-}
-[data-art-map="glass-garden"] .artMapMist { opacity: .35; height: 13%; bottom: 21%; }
-[data-art-map="silk-theatre"] .artMapMist { opacity: .2; height: 15%; }
-[data-art-map="silk-theatre"] .artMapLightVeil { background: linear-gradient(115deg, transparent 19%, #fac17d30 27%, transparent 40%, transparent 62%, #f5d4b735 73%, transparent 83%); animation-duration: 6s; }
-[data-art-map="gilded-ink"] .artMapMist { opacity: .9; }
-[data-art-map="gilded-ink"] .artMapLightVeil { opacity: .45; }
-.mobileArtMap .artMapLightVeil { opacity: .6; }
-.mobileArtMap .artMapMist { filter: blur(9px); }
 .artMapAtmosphere[data-active="false"] * { animation-play-state: paused; }
 @keyframes art-map-glimmer {
-  0%, 100% { opacity: 0; transform: translate3d(-10px, 28px, 0) scale(.6); }
-  40% { opacity: .75; }
-  85% { opacity: .18; transform: translate3d(22px, -65px, 0) scale(1.1); }
-}
-@keyframes art-map-light-flow {
-  from { transform: translate3d(-8%, -2%, 0) rotate(-3deg); opacity: .38; }
-  to { transform: translate3d(10%, 3%, 0) rotate(4deg); opacity: .95; }
-}
-@keyframes art-map-mist-flow {
-  from { transform: translate3d(-7%, 7%, 0) scaleY(.9); }
-  to { transform: translate3d(9%, -8%, 0) scaleY(1.15); }
+  0%, 100% { opacity: 0; transform: translate3d(-3px, 6px, 0) scale(.6); }
+  40% { opacity: .4; }
+  85% { opacity: .18; transform: translate3d(3px, -12px, 0) scale(1.1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .artMapAtmosphere :is(i, .artMapMist, .artMapLightVeil) { animation: none; }
+  .artMapAtmosphere i { animation: none; }
   .artMapAtmosphere i { opacity: .15; }
-  .artMapLightVeil { opacity: .2; }
 }

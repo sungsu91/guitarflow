@@ -1,5 +1,7 @@
-// The scenery clock is independent of rhythm timing. Only the backdrop is warped;
-// the stage base and the middle note lane remain anchored.
+import { getArtMapMaterials } from './artMapMaterials.js';
+
+// The painting stays fixed. Only hand-selected material interiors receive motion.
+// Never deform the viewport or infer fabric/water from a screen-edge gradient.
 export const ART_MAP_MOTION = Object.freeze({ 'glass-garden': 0, 'silk-theatre': 1, 'gilded-ink': 2 });
 export function getArtMapCover(imageWidth, imageHeight, width, height) {
   const scale = Math.max(width / imageWidth, height / imageHeight);
@@ -20,52 +22,47 @@ uniform vec2 cropScale;
 uniform vec2 cropOffset;
 uniform float time;
 uniform float scene;
-float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
-float noise(vec2 p) {
-  vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-  return mix(mix(hash(i), hash(i+vec2(1.,0.)), f.x), mix(hash(i+vec2(0.,1.)), hash(i+vec2(1.,1.)), f.x), f.y);
+uniform vec4 materialPaths[6];
+uniform vec3 materialRadiiA;
+uniform vec3 materialRadiiB;
+uniform vec2 imageSize;
+vec3 material(vec2 p, vec4 path, float radius, float phase) {
+  if(radius<=0.) return vec3(0.);
+  vec2 aspect=vec2(imageSize.x/imageSize.y,1.);
+  vec2 a=path.xy*aspect, b=path.zw*aspect, point=p*aspect;
+  vec2 direction=b-a;
+  float along=clamp(dot(point-a,direction)/max(dot(direction,direction),.000001),0.,1.);
+  float distance=length(point-mix(a,b,along));
+  float mask=1.-smoothstep(radius*.35,radius,distance);
+  float wave=along*8.-time*.65+phase;
+  if(scene>1.5) wave=p.y*190.-time*2.1+phase;
+  float fold=sin(wave)*mask;
+  float sheen=pow(.5+.5*sin(wave+.8),4.)*mask;
+  return vec3(mask,fold,sheen);
 }
 void main() {
   vec2 p=uv*cropScale+cropOffset;
-  vec2 q=p;
-  float edge=smoothstep(.10,.42,abs(uv.x-.5));
-  float upper=1.-smoothstep(.68,.82,p.y);
-  float border=smoothstep(0.,.045,p.x)*smoothstep(0.,.045,1.-p.x)*smoothstep(0.,.04,p.y);
-  vec3 light=vec3(0.);
-  if(scene<.5) {
-    float sway=sin(time*.85+p.y*7.)*.012+sin(time*1.3+p.y*15.)*.004;
-    q.x+=sway*edge*upper*border;
-    q.y+=cos(time*.65+p.x*11.)*.005*edge*upper*border;
-    float water=smoothstep(.66,.73,p.y)*(1.-smoothstep(.765,.80,p.y))*(1.-edge*.75);
-    q.x+=sin(p.y*170.-time*3.+sin(p.x*19.+time))*.004*water;
-    q.y+=sin(p.x*54.+time*1.4)*.0009*water;
-    float caustic=pow(max(0.,sin(p.y*135.-time*2.3+sin(p.x*17.+time*.7))),12.);
-    light=vec3(.21,.42,.5)*caustic*water*.18;
-    light+=vec3(.13,.18,.25)*pow(max(0.,sin(p.x*19.+p.y*11.-time*1.5)),14.)*edge*upper;
-  } else if(scene<1.5) {
-    float fabric=(edge*.85+(1.-smoothstep(.10,.28,p.y))*.45)*upper*border;
-    q.x+=(sin(p.y*10.-time*1.1)*.020+sin(p.y*23.+time*.7)*.006)*fabric;
-    q.y+=sin(p.x*13.+p.y*8.-time*.95)*.015*fabric;
-    float sheen=pow(max(0.,sin(p.x*8.+p.y*12.-time*1.15)),7.);
-    light=vec3(.24,.13,.055)*sheen*fabric;
-  } else {
-    float valley=smoothstep(.40,.61,p.y)*(1.-smoothstep(.77,.87,p.y));
-    q.x+=(sin(p.y*22.+time*.65)*.009+sin(p.y*51.-time*.6)*.003)*valley;
-    q.y+=sin(p.x*12.+time*.7)*.004*valley;
-    float mist=noise(vec2(p.x*8.-time*.22,p.y*17.+time*.12));
-    mist=mix(mist,noise(vec2(p.x*17.+time*.1,p.y*30.-time*.1)),.28);
-    light=vec3(.4,.46,.46)*smoothstep(.35,.85,mist)*valley*.30;
-    float waterfall=pow(max(0.,sin(p.y*65.-time*3.+p.x*22.)),9.)*edge*upper;
-    light+=vec3(.23,.16,.055)*waterfall*.35;
+  vec3 effect=material(p,materialPaths[0],materialRadiiA.x,0.)
+    +material(p,materialPaths[1],materialRadiiA.y,1.7)
+    +material(p,materialPaths[2],materialRadiiA.z,3.4)
+    +material(p,materialPaths[3],materialRadiiB.x,5.1)
+    +material(p,materialPaths[4],materialRadiiB.y,6.8)
+    +material(p,materialPaths[5],materialRadiiB.z,8.5);
+  vec3 color=texture2D(painting,p).rgb;
+  // Outside the material paths the pixel is identical at every point in time.
+  // Silk surface detail moves less than one source pixel; its outline stays fixed.
+  if(scene>.5 && scene<1.5 && effect.x>0.) {
+    vec2 detail=vec2(.65,.35)*clamp(effect.y,-1.,1.)/imageSize;
+    color=texture2D(painting,p+detail).rgb;
+    color*=1.+effect.y*.035;
   }
-  vec3 color=texture2D(painting,clamp(q,vec2(.001),vec2(.999))).rgb;
-  // Bright paint catches the light; dark negative space stays quiet for notes.
-  light*=.25+smoothstep(.10,.65,max(color.r,max(color.g,color.b)));
-  gl_FragColor=vec4(color+light,1.);
+  vec3 tint=scene<.5?vec3(.12,.15,.19):vec3(.19,.14,.075);
+  float paint=smoothstep(.12,.65,max(color.r,max(color.g,color.b)));
+  gl_FragColor=vec4(color+tint*effect.z*paint,1.);
 }
 `;
 
-export function createArtMapMotion(canvas, image, id, { onReady = () => {}, onFailure = () => {} } = {}) {
+export function createArtMapMotion(canvas, image, id, { presentation = 'desktop', onReady = () => {}, onFailure = () => {} } = {}) {
   const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, powerPreference: 'low-power' });
   if (!gl) { onFailure(new Error('WebGL unavailable')); return null; }
   const shaders = [], resources = [];
@@ -135,8 +132,17 @@ export function createArtMapMotion(canvas, image, id, { onReady = () => {}, onFa
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-    uniforms = Object.fromEntries(['time', 'scene', 'cropScale', 'cropOffset'].map(name => [name, gl.getUniformLocation(program, name)]));
+    uniforms = Object.fromEntries(['time', 'scene', 'cropScale', 'cropOffset', 'imageSize', 'materialPaths[0]', 'materialRadiiA', 'materialRadiiB'].map(name => [name, gl.getUniformLocation(program, name)]));
     gl.uniform1f(uniforms.scene, ART_MAP_MOTION[id] ?? 0);
+    gl.uniform2fv(uniforms.imageSize, [image.naturalWidth, image.naturalHeight]);
+    const materials = getArtMapMaterials(id, presentation);
+    const paths = new Float32Array(24), radii = new Float32Array(6);
+    materials.forEach((path, index) => { paths.set(path.slice(0, 4), index * 4); radii[index] = path[4]; });
+    gl.uniform4fv(uniforms['materialPaths[0]'], paths);
+    gl.uniform3fv(uniforms.materialRadiiA, radii.slice(0, 3));
+    gl.uniform3fv(uniforms.materialRadiiB, radii.slice(3));
+    canvas.dataset.motionMode = 'material-only';
+    canvas.dataset.presentation = presentation;
     resize(); draw(); onReady();
     observer = new view.ResizeObserver(() => { resize(); draw(); }); observer.observe(canvas);
     if (view.IntersectionObserver) { visibilityObserver = new view.IntersectionObserver(([entry]) => { intersecting = entry.isIntersecting; sync(); }); visibilityObserver.observe(canvas); }
