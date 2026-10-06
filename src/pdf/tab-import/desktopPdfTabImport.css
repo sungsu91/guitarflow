@@ -95,8 +95,8 @@
 
 /* Keep the selected file beside settings instead of below a long form. */
 .desktopPdfTabImport[data-stage=selection]{width:min(1040px,calc(100vw - 40px));max-height:calc(100dvh - 40px);padding:22px}
-.desktopPdfTabImport[data-stage=selection]>.desktopPdfTabBody{display:flex;overflow:hidden}
-.desktopImportSelection{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;min-width:0;min-height:0;width:100%}
+.desktopPdfTabImport[data-stage=selection]>.desktopPdfTabBody{display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.desktopImportSelection{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;min-width:0;min-height:0;width:100%}
 .desktopImportSetup,.desktopImportFiles{min-width:0;min-height:0;overscroll-behavior:contain}
 .desktopImportSetup{overflow:auto}
 .desktopImportFiles{display:flex;flex-direction:column;gap:12px;overflow:auto;padding:10px 0 0 22px;border-left:1px solid var(--conversion-border)}
@@ -144,3 +144,5 @@
 .desktopImportCheckpoint p{margin:6px 0;line-height:1.5}
 .desktopImportCheckpoint button{padding:8px 12px;border:1px solid #b7a28a;border-radius:8px;background:white;color:#493525;max-width:100%;white-space:normal}
 .desktopImportCheckpoint label{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+
+.desktopPdfTabImport[data-stage=selection] .desktopImportCheckpoint{flex:none;max-height:140px;overflow:auto;margin:0}

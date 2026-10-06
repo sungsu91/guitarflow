@@ -84,3 +84,5 @@ self.onmessage=({data})=>{try{
   catch{result.chordRegions=[];result.chordWarning='코드명을 읽지 못했습니다. 원본 코드명을 확인해 주세요.';}
   self.postMessage({result},[...(result.notationSystems??[]).flatMap(system=>[system.rgba,system.extension,...(system.pianoTop?[system.pianoTop]:[])]),...result.chordRegions.map(r=>r.rgba)]);
 }catch(error){self.postMessage({error:error.message});}};
+
+self.postMessage({ready:1});

@@ -23,7 +23,7 @@ export default function MobilePdfTabImport(props){
   const comparison=notationCheckSummary(result);
   return <dialog ref={dialog} data-has-photos={Boolean(photo&&!busy&&!result)} className="mobilePdfTabImport" aria-label={t('editor.pdfImportConvert')} onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();cancel();}}>
     <header><h2>{t('editor.pdfImportConvert')}</h2><button type="button" onClick={cancel} aria-label={t('common.close')}>×</button></header>
-    <div className="mobilePdfTabBody">{!result&&checkpoint&&<section className="mobileImportCheckpoint" aria-label={t('editor.importCheckpoint')}>
+    <div className="mobilePdfTabBody">{!result&&checkpoint?.completed>0&&<section className="mobileImportCheckpoint" aria-label={t('editor.importCheckpoint')}>
       <strong role="status">{t('editor.importCheckpointCount',{value1:checkpoint.completed,value2:checkpoint.totalPages})}</strong>
       <p>{t(props.paused?'editor.importPausedHint':'editor.importCheckpointHint')}</p>
       {!busy&&checkpoint.completed>0&&<><PhotoScanNotice result={checkpoint}/>{Boolean(props.partOptions?.length)&&<label>{t('editor.photoPartLabel')}<select aria-label={t('editor.photoPartLabel')} disabled={opening} value={props.selectedPart??''} onChange={e=>props.changePart(e.target.value)}><option value="">{t('editor.photoPartChoose')}</option>{props.partOptions.map(part=><option value={part} key={part}>{t('editor.photoPartOrder',{value1:part})}</option>)}</select></label>}<button type="button" disabled={selecting||!checkpoint.summary.measures} onClick={props.openPartial}>{t('editor.importOpenPartial',{value1:checkpoint.completed})}</button></>}

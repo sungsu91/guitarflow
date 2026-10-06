@@ -1,3 +1,4 @@
+import tabWorkerManifest from './scripts/tab-worker-manifest.mjs';
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import mobileSurfaceCss from "./scripts/mobile-surface-css.mjs";
@@ -444,7 +445,7 @@ export default defineConfig({
   },
   preview: { headers: securityHeaders() },
   css: { postcss: { plugins: [mobileSurfaceCss()] } },
-  plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin(), guitarSkinEditorPlugin()],
+  plugins: [tabWorkerManifest(), react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin(), guitarSkinEditorPlugin()],
 });
 
 // Keep local browser verification aligned with the headers served by Vercel.

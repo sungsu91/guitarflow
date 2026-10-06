@@ -1,3 +1,4 @@
+import {geometryWorkerTask} from './geometryWorkerTask.js';
 import {createLocalOcr,recognizeCandidates} from './localOcr.js';
 import {resolvePage} from './recognition.js';
 import {createStaffOmrClient} from '../../omr/staffOmrClient.js';
@@ -14,19 +15,7 @@ import {grandStaffChordRegions} from '../../omr/grandStaffChords.js';
 import {importSourceRegion} from './importActivity.js';
 
 export function geometryInWorker(image,page,signal,glyphs,sourceMode,cameraPhoto,stringCount,photoScan=false,verifyNotation=false,structureOnly=false){
-  return new Promise((resolve,reject)=>{
-    signal?.throwIfAborted();
-    const worker=new Worker(new URL('./geometry.worker.js',import.meta.url),{type:'module'});
-    let finished=false;
-    const finish=(fn,value)=>{if(finished)return;finished=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);worker.terminate();fn(value);};
-    const timer=setTimeout(()=>finish(reject,Error('TAB 구조 분석 응답 시간이 초과되었습니다. 다시 시도해 주세요.')),30000);
-    const abort=()=>finish(reject,new DOMException('분석 취소','AbortError'));
-    signal?.addEventListener('abort',abort,{once:true});
-    worker.onmessage=({data})=>data.error?finish(reject,Error(data.error)):finish(resolve,data.result);
-    worker.onerror=e=>{e.preventDefault?.();finish(reject,Error(e.message||'TAB 분석 Worker 오류'));};
-    worker.onmessageerror=()=>finish(reject,Error('TAB 구조 분석 응답을 읽지 못했습니다. 다시 시도해 주세요.'));
-    try{worker.postMessage({rgba:image.data.buffer,width:image.width,height:image.height,page,glyphs,sourceMode,cameraPhoto,stringCount,photoScan,verifyNotation,structureOnly},[image.data.buffer]);}catch(error){finish(reject,error);}
-  });
+  return geometryWorkerTask(()=>new Worker(new URL('./geometry.worker.js',import.meta.url),{type:'module'}),{rgba:image.data.buffer,width:image.width,height:image.height,page,glyphs,sourceMode,cameraPhoto,stringCount,photoScan,verifyNotation,structureOnly},signal);
 }
 
 // PDF rendering and camera images use exactly the same geometry/OCR decisions.
