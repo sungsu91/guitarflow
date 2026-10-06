@@ -1,24 +1,42 @@
-// Motion is planned per object, in the coordinates of each authored composition.
-// The poster is never uploaded to the animation renderer or displaced.
-export const SILK_STREAMER_SRC = '/assets/maps/art-atlas-v2/silk-streamer.webp';
+// Coordinates belong to each original painting, never to the viewport.
+// Fog is [centerX,centerY,radiusX,radiusY]; falls are [x1,y1,x2,y2].
 export const ART_MAP_SCENE_MOTION = {
-  'silk-theatre': {
-    desktop: { cloth: [[.14,-.055,.205,.53],[.66,-.105,.205,.56]] },
-    mobile: { cloth: [[-.12,-.02,.43,.43],[.72,-.08,.40,.47]] },
-    tablet: { cloth: [[.23,-.055,.19,.52],[.59,-.105,.19,.56]] },
-  },
+  'silk-theatre': { desktop: {}, mobile: {}, tablet: {} },
   'glass-garden': {
-    desktop: { pool: [0,.728,1,.036] },
-    mobile: { pool: [0,.737,1,.026] },
-    tablet: { pool: [0,.727,1,.036] },
+    desktop: { pool:[0,.728,1,.036], beacon:[.50,.596,.041,.128], falls:[
+      [.184,.551,.240,.717],[.869,.566,.804,.716],
+      [.067,.612,.068,.744],[.885,.605,.885,.744],
+      [.151,.658,.151,.732],[.948,.648,.948,.737],
+    ] },
+    mobile: { pool:[0,.737,1,.026], beacon:[.501,.626,.077,.093], falls:[
+      [.139,.549,.220,.675],[.891,.578,.785,.671],
+      [.078,.647,.080,.738],[.925,.658,.926,.739],
+      [.255,.696,.256,.73],[.726,.698,.725,.731],
+    ] },
+    tablet: { pool:[0,.727,1,.036], beacon:[.50,.594,.039,.126], falls:[
+      [.205,.568,.273,.707],[.838,.595,.791,.711],
+      [.056,.646,.056,.744],[.952,.610,.952,.720],
+      [.151,.626,.153,.737],[.845,.669,.845,.737],
+    ] },
   },
   'gilded-ink': {
-    desktop: { moon: [.50,.017,.14,.249] },
-    mobile: { moon: [.487,.070,.186,.093] },
-    tablet: { moon: [.501,.018,.14,.249] },
+    desktop: { moon:[.50,.017,.14,.249], fog:[
+      [.238,.252,.143,.063],[.762,.286,.143,.064],
+      [.235,.546,.180,.066],[.786,.536,.186,.071],
+      [.246,.727,.249,.053],[.75,.742,.247,.045],
+    ] },
+    mobile: { moon:[.487,.070,.186,.093], fog:[
+      [.215,.214,.179,.053],[.79,.275,.183,.055],
+      [.222,.510,.182,.057],[.798,.50,.180,.064],
+      [.244,.741,.240,.049],[.763,.738,.231,.053],
+    ] },
+    tablet: { moon:[.501,.018,.14,.249], fog:[
+      [.232,.24,.15,.06],[.767,.27,.15,.065],
+      [.244,.552,.172,.058],[.787,.559,.185,.065],
+      [.252,.741,.248,.046],[.749,.746,.243,.041],
+    ] },
   },
 };
-
-export function getArtMapSceneMotion(id, presentation) {
+export function getArtMapSceneMotion(id,presentation) {
   return ART_MAP_SCENE_MOTION[id]?.[presentation] ?? {};
 }
