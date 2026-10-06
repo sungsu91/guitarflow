@@ -1,4 +1,4 @@
-# Fretiva Art Atlas v1
+# Fretiva Art Atlas — independent scene objects
 
 Three original maps, appended after the existing choices on every device:
 
@@ -18,14 +18,22 @@ floor below the player and a quieter center for notes.
 - Full generation prompts: `assets-source/shooter-art-atlas/prompts.json`.
 - Shared map data: `src/shooter/maps/artMapCatalog.js`.
 - Separate desktop, phone and tablet views: `src/shooter/maps/ArtMapRenderer.jsx`.
-- The painting, architecture, floor and central space remain stationary. Six small
-  material paths per source artwork confine effects to silk interiors, glass
-  petals or actual waterfalls. Phone/tablet masks are authored independently.
-- Silk has subpixel surface flow and travelling sheen; glass and waterfalls have
-  local light movement only. No camera drift, scene-wide UV distortion, broad
-  moving mist or sweeping light overlays. Eight small glimmers drift slowly.
-- Material masks: `src/shooter/maps/artMapMaterials.js`. Unknown compositions
-  receive no material motion rather than borrowing an unrelated image's mask.
+- The painting is a stationary DOM image. It is never uploaded to the animation
+  renderer, so neither architecture nor floor can be warped by its shader.
+- Each map has a planned moving subject on a separate transparent layer:
+  - Silk: two detached embroidered silk streamers with pinned upper ends and
+    travelling folds. The free fabric silhouette sways visibly, independently
+    on each side. The generated sprite preserves alpha and matches the painting.
+  - Glass garden: expanding elliptical ripples and moving reflection glints,
+    clipped to the authored water band above the solid stage.
+  - Gilded ink: four luminous comet trails orbit the painted golden lunar ring.
+    The mountains, scrolls and ring itself are stationary.
+- `artMapSceneMotion.js` owns separate placements for desktop, phone and tablet.
+  `artMapObjectShader.js` draws these objects; no broad fog, camera drift or
+  full-painting deformation is used. Unknown compositions have no object motion.
+- New transparent asset: `public/assets/maps/art-atlas-v2/silk-streamer.webp`.
+  Created with built-in ImageGen; prompt saved in
+  `assets-source/shooter-art-atlas-v2/prompts.json`.
 - The scenery has an independent clock, capped at 30 fps and one million shaded
   pixels. It pauses with the game or when hidden. Reduced motion / data saving
   use the still artwork; unavailable WebGL retains the poster and CSS atmosphere.
@@ -50,6 +58,7 @@ reduced motion and runtime errors.
 
 The motion/presence audit uses `SHOOTER_TEST_URL` and `SHOOTER_TEST_OUTPUT`.
 It captures actual GPU frames and requires **zero changed pixels outside the
-material masks**, zero floor/central-space changes and visible local effects.
+object bounds**, zero floor/central-space changes and visible object effects.
+Silk must also change its alpha silhouette; a brightness-only change cannot pass.
 It also checks each device's bass size, picker close/pause behavior and reduced
-motion. The emitted `*-motion-only.png` files show every moving material pixel.
+motion. The emitted `*-motion-only.png` files show every moving object pixel.

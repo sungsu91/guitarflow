@@ -14,11 +14,13 @@ test('motion uses the same bottom-aligned cover crop as each platform poster', (
 
 function fixture() {
   const callbacks = new Map(), listeners = new Map(), canvasListeners = new Map();
-  let next = 0, draws = 0, deletes = 0;
+  let next = 0, draws = 0, deletes = 0, contextOptions;
+  const uploads = [];
   const gl = new Proxy({}, { get(_, key) {
     if (key === 'getShaderParameter' || key === 'getProgramParameter') return () => true;
     if (key === 'isContextLost') return () => false;
     if (key === 'drawArrays') return () => { draws++; };
+    if (key === 'texImage2D') return (...args) => { uploads.push(args.at(-1)); };
     if (String(key).startsWith('delete')) return () => { deletes++; };
     return () => ({});
   } });
@@ -28,13 +30,26 @@ function fixture() {
     ResizeObserver: class { observe() {} disconnect() {} },
   };
   documentObject.defaultView = windowObject;
-  const canvas = { ownerDocument: documentObject, dataset: {}, getContext: () => gl,
+  const canvas = { ownerDocument: documentObject, dataset: {}, getContext: (_, options) => { contextOptions = options; return gl; },
     getBoundingClientRect: () => ({width:1920,height:1080}),
     addEventListener: (name,fn) => canvasListeners.set(name,fn), removeEventListener: name => canvasListeners.delete(name),
   };
   const advance = now => { const pending=[...callbacks.values()]; callbacks.clear(); for (const fn of pending) fn(now); };
-  return {canvas,advance,listeners,canvasListeners,documentObject,callbacks,get draws(){return draws;},get deletes(){return deletes;}};
+  return {canvas,advance,listeners,canvasListeners,documentObject,callbacks,uploads,get contextOptions(){return contextOptions;},get draws(){return draws;},get deletes(){return deletes;}};
 }
+
+test('the object renderer never uploads the background painting as a deformable texture', () => {
+  for (const id of ['silk-theatre', 'glass-garden', 'gilded-ink']) {
+    const f = fixture(), poster = {naturalWidth:2048,naturalHeight:1152}, sprite = {isTransparentCloth:true};
+    const motion = createArtMapMotion(f.canvas,poster,id,{sprite:id==='silk-theatre'?sprite:null});
+    assert.equal(f.contextOptions.alpha,true,'background is visible through the independent layer');
+    assert.equal(f.uploads.length,1);
+    assert.notEqual(f.uploads[0],poster,'scene geometry must be unavailable to the shader');
+    if(id==='silk-theatre')assert.equal(f.uploads[0],sprite);
+    else assert.deepEqual(f.uploads[0],new Uint8Array(4));
+    motion.dispose();
+  }
+});
 
 test('scenery pauses without advancing its clock, respects tab visibility, and disposes GPU resources', () => {
   const f=fixture(); let ready=0;

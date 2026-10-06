@@ -1,7 +1,7 @@
-import { getArtMapMaterials } from './artMapMaterials.js';
+import { getArtMapSceneMotion } from './artMapSceneMotion.js';
+import { artMapObjectFragment } from './artMapObjectShader.js';
 
-// The painting stays fixed. Only hand-selected material interiors receive motion.
-// Never deform the viewport or infer fabric/water from a screen-edge gradient.
+// Scene objects have their own transparent surface. The poster stays in the DOM.
 export const ART_MAP_MOTION = Object.freeze({ 'glass-garden': 0, 'silk-theatre': 1, 'gilded-ink': 2 });
 export function getArtMapCover(imageWidth, imageHeight, width, height) {
   const scale = Math.max(width / imageWidth, height / imageHeight);
@@ -14,56 +14,9 @@ attribute vec2 position;
 varying vec2 uv;
 void main() { uv = vec2((position.x + 1.) * .5, (1. - position.y) * .5); gl_Position = vec4(position, 0., 1.); }
 `;
-const fragmentSource = `
-precision highp float;
-varying vec2 uv;
-uniform sampler2D painting;
-uniform vec2 cropScale;
-uniform vec2 cropOffset;
-uniform float time;
-uniform float scene;
-uniform vec4 materialPaths[6];
-uniform vec3 materialRadiiA;
-uniform vec3 materialRadiiB;
-uniform vec2 imageSize;
-vec3 material(vec2 p, vec4 path, float radius, float phase) {
-  if(radius<=0.) return vec3(0.);
-  vec2 aspect=vec2(imageSize.x/imageSize.y,1.);
-  vec2 a=path.xy*aspect, b=path.zw*aspect, point=p*aspect;
-  vec2 direction=b-a;
-  float along=clamp(dot(point-a,direction)/max(dot(direction,direction),.000001),0.,1.);
-  float distance=length(point-mix(a,b,along));
-  float mask=1.-smoothstep(radius*.35,radius,distance);
-  float wave=along*8.-time*.65+phase;
-  if(scene>1.5) wave=p.y*190.-time*2.1+phase;
-  float fold=sin(wave)*mask;
-  float sheen=pow(.5+.5*sin(wave+.8),4.)*mask;
-  return vec3(mask,fold,sheen);
-}
-void main() {
-  vec2 p=uv*cropScale+cropOffset;
-  vec3 effect=material(p,materialPaths[0],materialRadiiA.x,0.)
-    +material(p,materialPaths[1],materialRadiiA.y,1.7)
-    +material(p,materialPaths[2],materialRadiiA.z,3.4)
-    +material(p,materialPaths[3],materialRadiiB.x,5.1)
-    +material(p,materialPaths[4],materialRadiiB.y,6.8)
-    +material(p,materialPaths[5],materialRadiiB.z,8.5);
-  vec3 color=texture2D(painting,p).rgb;
-  // Outside the material paths the pixel is identical at every point in time.
-  // Silk surface detail moves less than one source pixel; its outline stays fixed.
-  if(scene>.5 && scene<1.5 && effect.x>0.) {
-    vec2 detail=vec2(.65,.35)*clamp(effect.y,-1.,1.)/imageSize;
-    color=texture2D(painting,p+detail).rgb;
-    color*=1.+effect.y*.035;
-  }
-  vec3 tint=scene<.5?vec3(.12,.15,.19):vec3(.19,.14,.075);
-  float paint=smoothstep(.12,.65,max(color.r,max(color.g,color.b)));
-  gl_FragColor=vec4(color+tint*effect.z*paint,1.);
-}
-`;
 
-export function createArtMapMotion(canvas, image, id, { presentation = 'desktop', onReady = () => {}, onFailure = () => {} } = {}) {
-  const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, powerPreference: 'low-power' });
+export function createArtMapMotion(canvas, image, id, { presentation = 'desktop', sprite = null, onReady = () => {}, onFailure = () => {} } = {}) {
+  const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, antialias: false, depth: false, powerPreference: 'low-power' });
   if (!gl) { onFailure(new Error('WebGL unavailable')); return null; }
   const shaders = [], resources = [];
   let disposed = false, failed = false, active = false, frame = 0, last = 0, elapsed = 0, drawnAt = 0;
@@ -121,7 +74,7 @@ export function createArtMapMotion(canvas, image, id, { presentation = 'desktop'
     };
     program = gl.createProgram(); resources.push(['deleteProgram', program]);
     gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
-    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource)); gl.linkProgram(program);
+    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, artMapObjectFragment)); gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
     gl.useProgram(program);
     const buffer = gl.createBuffer(); resources.push(['deleteBuffer', buffer]);
@@ -131,17 +84,16 @@ export function createArtMapMotion(canvas, image, id, { presentation = 'desktop'
     const texture = gl.createTexture(); resources.push(['deleteTexture', texture]); gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-    uniforms = Object.fromEntries(['time', 'scene', 'cropScale', 'cropOffset', 'imageSize', 'materialPaths[0]', 'materialRadiiA', 'materialRadiiB'].map(name => [name, gl.getUniformLocation(program, name)]));
+    if (sprite) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sprite);
+    else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+    uniforms = Object.fromEntries(['time', 'scene', 'cropScale', 'cropOffset', 'clothLeft', 'clothRight', 'pool', 'moon'].map(name => [name, gl.getUniformLocation(program, name)]));
     gl.uniform1f(uniforms.scene, ART_MAP_MOTION[id] ?? 0);
-    gl.uniform2fv(uniforms.imageSize, [image.naturalWidth, image.naturalHeight]);
-    const materials = getArtMapMaterials(id, presentation);
-    const paths = new Float32Array(24), radii = new Float32Array(6);
-    materials.forEach((path, index) => { paths.set(path.slice(0, 4), index * 4); radii[index] = path[4]; });
-    gl.uniform4fv(uniforms['materialPaths[0]'], paths);
-    gl.uniform3fv(uniforms.materialRadiiA, radii.slice(0, 3));
-    gl.uniform3fv(uniforms.materialRadiiB, radii.slice(3));
-    canvas.dataset.motionMode = 'material-only';
+    const layout = getArtMapSceneMotion(id, presentation), empty = [0,0,0,0];
+    gl.uniform4fv(uniforms.clothLeft, layout.cloth?.[0] ?? empty);
+    gl.uniform4fv(uniforms.clothRight, layout.cloth?.[1] ?? empty);
+    gl.uniform4fv(uniforms.pool, layout.pool ?? empty);
+    gl.uniform4fv(uniforms.moon, layout.moon ?? empty);
+    canvas.dataset.motionMode = 'independent-objects';
     canvas.dataset.presentation = presentation;
     resize(); draw(); onReady();
     observer = new view.ResizeObserver(() => { resize(); draw(); }); observer.observe(canvas);
