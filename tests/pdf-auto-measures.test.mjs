@@ -223,3 +223,15 @@ test('stacked hi-hat crosses, snare and kick with beams are one drum measure, no
  const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1);assert.equal(r.measures.length,1);assert.deepEqual(r.systems[0].lineCounts,[5]);
  const bars=practiceMeasureMap([r],[4,4]);assert.equal(bars[0].beats,4);assert.equal(barAtTick(practiceOrder({barMap:bars}),4).ended,true);
 });
+
+test('aligned quarter-note chord stems in both hands cannot become a shared barline',()=>{
+ const image=raster([{top:100,count:5,bars:[80,570,900]},{top:210,count:5,bars:[80,570,900]}]);connect(image,80,100,258);
+ // Opposing stems extend beyond their respective staves but do not connect.
+ connect(image,320,100,163);connect(image,320,195,258);
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1);assert.equal(r.systems[0].staffCount,2);assert.equal(r.measures.length,2);assert.deepEqual(r.systems[0].barlines,[.08,.57,.9]);
+});
+
+test('continuous shared barlines are retained even when they extend beyond both staves',()=>{
+ const image=raster([{top:100,count:5,bars:[80,320,570,900]},{top:210,count:5,bars:[80,320,570,900]}]);connect(image,80,100,258);connect(image,320,88,270);
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1);assert.equal(r.measures.length,3);assert.ok(r.systems[0].barlines.includes(.32));
+});

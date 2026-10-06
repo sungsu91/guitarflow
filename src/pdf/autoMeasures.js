@@ -1,5 +1,5 @@
 import {binaryPage,detectStaffs,detectBarlines,runs} from './tab-import/geometry.js';
-export const PRACTICE_DETECTION_VERSION='layout-9';
+export const PRACTICE_DETECTION_VERSION='layout-10';
 import {TAB_IMPORT_CONFIG} from './tab-import/config.js';
 import {detectPracticeBarlines,hasRuledStaffStart} from './practiceBarlines.js';
 
@@ -119,7 +119,11 @@ function systemMeasures(staffs,ink,width){
   // hand. Another part must endorse it, and the column must cross both staves
   // and their gap before that local note-shape rejection can be overridden.
   const connected=connectedCandidates.map(list=>list.some(other=>Math.abs(x-other)<g*.45));
-  return (!staffs.some(s=>s.lines.length!==staffs[0].lines.length)&&support.every(Boolean))||staffs.some((s,i)=>i&&connected[i]&&connected[i-1]&&verticalBridge(ink,width,staffs[i-1].y+staffs[i-1].height,s.y,Math.round(x),g));
+  // Aligned quarter-note chords in both hands can pass the relaxed height
+  // test. At least one part must also pass the normal stem-extension gate,
+  // unless an actual continuous barline connects the staves through the gap.
+  const bounded=staffs.some(s=>s.bars.some(other=>Math.abs(x-other)<g*.45));
+  return (!staffs.some(s=>s.lines.length!==staffs[0].lines.length)&&support.every(Boolean)&&bounded)||staffs.some((s,i)=>i&&connected[i]&&connected[i-1]&&verticalBridge(ink,width,staffs[i-1].y+staffs[i-1].height,s.y,Math.round(x),g));
  });
  // Taller staves provide a stronger boundary test: a note stem that crosses
  // a small notation staff will usually not cross the accompanying TAB.

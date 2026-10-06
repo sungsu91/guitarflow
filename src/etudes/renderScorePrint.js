@@ -70,9 +70,12 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
    const first=placements[i].column===1,last=!placements[i+1]||placements[i+1].row!==placements[i].row;
    const host=document.createElement('div');host.style.cssText='position:fixed;left:-100000px;top:0;visibility:hidden';document.body.append(host);
    try{
-   drawScore(host,{...compiled,document:undefined,measureCharts:[measureChordCharts(compiled)[i]],slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],incomingTie:Boolean(i&&compiled.measures[i-1].at(-1)?.tieTo===compiled.measures[i][0]?.id),repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],harmonyChanges:[compiled.harmonyChanges?.[i]],annotationOffsets:[m.annotationOffsets],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
-    {editor:true,barOffset:i,view,systemFootroom,editorWidth:geometry.cellWidth,engraving:geometry,systemStart:first,systemEnd:last,scoreEnd:i===compiled.measures.length-1,tabRhythm:metadata.viewSettings?.tabRhythm!==false,tabBeamPosition:metadata.viewSettings?.tabBeamPosition,tabPickingPosition:metadata.viewSettings?.tabPickingPosition});
+   drawScore(host,{...compiled,document:undefined,pianoStaffLayout:metadata.viewSettings?.pianoStaffLayout,measureCharts:[measureChordCharts(compiled)[i]],slurSpans:slurSpans(compiled.measures),measures:[compiled.measures[i]],incomingTie:Boolean(i&&compiled.measures[i-1].at(-1)?.tieTo===compiled.measures[i][0]?.id),repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],harmonyChanges:[compiled.harmonyChanges?.[i]],annotationOffsets:[m.annotationOffsets],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
+    {editor:true,barOffset:i,view,systemFootroom,editorWidth:geometry.cellWidth,engraving:geometry,systemStart:first,systemEnd:last,scoreEnd:i===compiled.measures.length-1,tabRhythm:metadata.viewSettings?.tabRhythm!==false,tabBeamPosition:metadata.viewSettings?.tabBeamPosition,tabShortStems:Boolean(metadata.viewSettings?.tabShortStems),tabPickingPosition:metadata.viewSettings?.tabPickingPosition});
    const svg=host.querySelector('svg');svg.querySelectorAll('.etudeEditorHit,.etudeInputCursor').forEach(el=>el.remove());
+   // Export rasterizes each cell independently; a centered number at x=0
+   // loses its leading digits even though the editor permits SVG overflow.
+   svg.querySelectorAll('.etudeMeasureNumber').forEach(label=>{label.setAttribute('text-anchor','start');label.setAttribute('x',String(Math.max(4,Number(label.getAttribute('x')))));});
    // Keep small annotations readable at physical paper size without changing
    // note spacing, system breaks, or the size of the whole score.
    const paperScale=paperWidth/geometry.rowWidth;
@@ -85,10 +88,12 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
    // Align the actual stave origins before pagination, preserving annotations
    // and the horizontal scale instead of stretching individual measures.
    const cells=[...section.querySelectorAll('svg')].map(svg=>{
-    const number=svg.querySelector('.etudeMeasureNumber');
-    if(!number)return null;
+    // First-system numbers are lifted to clear the clef. They are annotations,
+    // not a reliable staff origin: aligning them staggers the first measure.
+    const staveTop=Number(svg.dataset.staveTop);
+    if(!Number.isFinite(staveTop))return null;
     const box=svg.viewBox.baseVal;
-    return {svg,x:box.x,y:box.y,width:box.width,height:box.height,top:Number(number.getAttribute('y'))+4-box.y};
+    return {svg,x:box.x,y:box.y,width:box.width,height:box.height,top:staveTop-box.y};
    }).filter(Boolean);
    if(cells.length>1){
     const top=Math.max(...cells.map(cell=>cell.top));

@@ -558,6 +558,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     }
     if(editor) {
       const svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
+      svg.dataset.staveTop=String((view==='tab'?tab:stave).getYForLine(0));
       svg.dataset.playbackTop=String((view==='tab'?tab:stave).getYForLine(0)-12-headroom);
       svg.dataset.playbackBottom=String(view==='staff'?stave.getYForLine(4)+28:tab.getYForLine(stringCount-1)+(tabRhythm?60:14));
       const centers=tabs.map((t,i)=>measure[i].rest?t.getAbsoluteX():t.getStemX());

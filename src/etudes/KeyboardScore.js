@@ -35,6 +35,7 @@ export function drawKeyboardScore(element,score,{mobile=false,editor=false,edito
    if(editor&&!systemEnd)stave.setEndBarType(Barline.type.NONE);
    if(mark.repeatStart)stave.setBegBarType(Barline.type.REPEAT_BEGIN);if(mark.repeatEnd)stave.setEndBarType(Barline.type.REPEAT_END);else if(mark.endBarline==='final')stave.setEndBarType(Barline.type.END);return stave;
   });
+  if(b===0)svg.dataset.staveTop=String(staves[0].getYForLine(0));
   const start=Math.max(...staves.map(s=>s.getNoteStartX()))+(drums?22:0);staves.forEach(s=>s.setNoteStartX(start).setContext(context).draw());
   if(!drums&&!single)new StaveConnector(staves[0],staves[1]).setType(StaveConnector.type.BRACE).setContext(context).draw();
   if(editor&&!systemEnd&&!mark.repeatEnd){staves.forEach(stave=>{const line=document.createElementNS(ns,'line');Object.entries({x1:x+w-1.5,x2:x+w-1.5,y1:stave.getYForLine(0),y2:stave.getYForLine(4),stroke:'#171717','stroke-width':1,'vector-effect':'non-scaling-stroke',class:'etudeMeasureBoundary','pointer-events':'none'}).forEach(([k,v])=>line.setAttribute(k,String(v)));svg.append(line);});}
