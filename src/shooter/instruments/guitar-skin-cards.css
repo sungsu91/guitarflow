@@ -1,0 +1,59 @@
+.shooterGuitarSkinCard {
+  position: relative;
+  min-width: 0;
+  display: grid;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard > .shooterGuitarPickerItem {
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard > .shooterGuitarDelete {
+  position: absolute !important;
+  z-index: 2;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 1px solid rgba(219, 189, 159, .32) !important;
+  border-radius: 5px !important;
+  color: #f3d4c4 !important;
+  background: rgba(15, 22, 28, .86) !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--desktop > .shooterGuitarDelete {
+  top: 5px !important;
+  right: 5px !important;
+  width: 26px !important;
+  height: 26px !important;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--mobile > .shooterGuitarDelete {
+  top: 3px !important;
+  right: 3px !important;
+  width: 34px !important;
+  height: 34px !important;
+  touch-action: manipulation;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard > .shooterGuitarDelete:hover {
+  color: #fff !important;
+  background: #8e3e38 !important;
+  border-color: #e7a192 !important;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard > .shooterGuitarDelete:focus-visible {
+  outline: 2px solid #e7bd81 !important;
+  outline-offset: 2px;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard > .shooterGuitarDelete:disabled {
+  cursor: wait;
+  opacity: .45;
+}

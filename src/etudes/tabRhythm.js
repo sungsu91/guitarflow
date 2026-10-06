@@ -15,6 +15,11 @@ function flagPath(duration,direction,short) {
 }
 // Quarter-note ticks; compound meters group three denominator beats.
 export function rhythmGroups(events,meter=[4,4],{automatic=true}={}) {
+ const voices=[...new Set(events.map(e=>e.voice))];
+ if(voices.length>1)return voices.flatMap(voice=>{
+  const indices=events.flatMap((e,i)=>e.voice===voice?[i]:[]);
+  return rhythmGroups(indices.map(i=>events[i]),meter,{automatic}).map(group=>group.map(i=>indices[i]));
+ }).sort((a,b)=>a[0]-b[0]);
  const beat=1920/meter[1]*(meter[1]===8&&meter[0]%3===0?3:1),groups=[];let group=[],bucket=-1;
  events.forEach((e,i)=>{const b=Math.floor(e.onset/beat);
   if(e.rest||Number(e.duration)<8||b!==bucket||(i>0&&e.tuplet?.groupId!==events[i-1].tuplet?.groupId)){if(group.length)groups.push(group);group=[];}
@@ -82,8 +87,11 @@ export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',
  });
  for(const group of tupletGroups(events)){
   if(group.every(i=>isBlankEvent(events[i])))continue;
-  const first=x(group[0]),last=x(group.at(-1)),center=(first+last)/2,half=Math.max(9,Math.min(16,(last-first)/2)),left=center-half,right=center+half,y=base+direction*19;
-  const label=document.createElementNS(ns,'text');for(const [k,v] of Object.entries({x:center,y:y+4,'text-anchor':'middle','font-size':14,'font-family':'Arial','font-weight':600,class:'tabRhythmTuplet'}))label.setAttribute(k,v);label.textContent='3';g.append(label);
+  // The bracket identifies the complete rhythmic group, even when quarter
+  // notes have no beams or a sextuplet is beamed in two beat-sized groups.
+  const first=x(group[0]),last=x(group.at(-1)),center=(first+last)/2,left=first-5,right=last+5,y=base+direction*19;
+  const label=document.createElementNS(ns,'text');for(const [k,v] of Object.entries({x:center,y:y+4,'text-anchor':'middle','font-size':14,'font-family':'Arial','font-weight':600,class:'tabRhythmTuplet'}))label.setAttribute(k,v);label.textContent=String(events[group[0]].tuplet.actualNotes);g.append(label);
+  label.dataset.tupletEvents=group.join(',');label.dataset.normalNotes=events[group[0]].tuplet.normalNotes;
   line(left,y,left,y-direction*4,1,'tabTupletBracket');line(left,y,center-5,y,1,'tabTupletBracket');line(center+5,y,right,y,1,'tabTupletBracket');line(right,y,right,y-direction*4,1,'tabTupletBracket');
  }
  return base;

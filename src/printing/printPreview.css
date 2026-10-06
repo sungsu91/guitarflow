@@ -1,4 +1,6 @@
 .rt-print-controls {display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.rt-pdf-save-status{display:flex;align-items:center;gap:8px;font-size:12px;min-width:0}
+.rt-pdf-save-status p{flex:1;margin:0;overflow-wrap:anywhere}
 .rt-print-mobile-hint {flex-basis:100%;margin:0;font-size:12px;line-height:1.5;color:var(--rt-muted,#65717b)}
 .rt-print-frame {position:relative;margin:0 auto 16px;flex:none}
 .rt-print-page {width:794px;height:1123px;padding:45px;box-sizing:border-box;background:#fff!important;color:#111!important;position:relative;overflow:hidden;transform-origin:top left;-webkit-text-size-adjust:100%;text-size-adjust:100%;--rt-ink:#111;--rt-staff:#777;--rt-paper:#fff;--rt-measure-number:#666}
@@ -62,7 +64,7 @@ html body .rt-dialog .rt-print-edit > label {display:flex;flex-direction:column;
  .rt-print-preview--mobile {flex:none;height:65dvh;min-height:220px;max-height:640px}
  .rt-print-scroll {position:relative;flex:1;min-width:0;min-height:0;padding:12px;overflow:auto;overflow-anchor:none;overscroll-behavior:contain;background:#dfe5eb;border-radius:0 0 8px 8px}
  .rt-print-navigation {flex:none;padding:8px;border:1px solid var(--rt-border,#dfe5eb);border-radius:8px 8px 0 0;background:var(--rt-bg,#fff)}
- .rt-print-page-controls {display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
+ .rt-print-page-controls {display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;gap:8px;align-items:center}
  html body .rt-dialog .rt-print-page-controls > label {display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;margin:0;font-size:12px}
  .rt-print-page-controls select {min-width:0;max-width:100%;min-height:40px;font-size:14px}
  .rt-print-page-controls button {min-height:40px;padding:6px 10px;white-space:nowrap}
@@ -74,7 +76,7 @@ html body .rt-dialog .rt-print-edit > label {display:flex;flex-direction:column;
  .rt-print-position-toggle {min-height:40px;padding:6px 10px}
  .rt-print-position-toggle[aria-pressed="true"] {background:#17664f;color:#fff}
  .rt-print-gesture-hint {margin:4px 0 0;font-size:12px;line-height:1.5}
- .rt-print-preview--mobile .rt-print-page-controls > label > span {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .rt-print-preview--mobile .rt-print-page-controls {gap:4px}
  .rt-print-preview--mobile .rt-print-page-controls select {font-size:16px}
  .rt-print-page {transform:scale(var(--print-zoom,1));filter:grayscale(1)}
  .rt-print-section {cursor:ns-resize;touch-action:none;user-select:none}
@@ -99,7 +101,7 @@ html body .rt-dialog .rt-print-edit > label {display:flex;flex-direction:column;
  .rt-print-preview {grid-column:1;grid-row:1 / -1;min-height:0}
  .rt-print-controls {grid-column:2;grid-row:1;align-content:start}
  .rt-print-controls > label {width:100%;margin:0}
- .rt-pdf-filename {grid-column:2;grid-row:2}
+ .rt-pdf-filename,.rt-pdf-save-status {grid-column:2;grid-row:2}
  .rt-print-edit {grid-column:2;grid-row:3;min-height:0;overflow:auto;align-self:stretch}
  .rt-dialog-body:has(.rt-print-scroll) > [role="alert"] {grid-column:2;grid-row:4;margin:0}
 }
@@ -129,6 +131,8 @@ html body .rt-dialog .rt-print-edit > label {display:flex;flex-direction:column;
  html body .print-preview-overlay .rt-dialog > header h2{margin:0;font-weight:700;color:inherit}
  html body .print-preview-overlay .rt-dialog button{font:inherit;min-height:40px;padding:8px 12px;border:1px solid #dce2e8;border-radius:8px;background:#fff;color:#273443;cursor:pointer;box-shadow:none}
  html body .print-preview-overlay .rt-dialog button:disabled{opacity:.5;cursor:default}
+ html body .print-preview-overlay .rt-dialog .rt-print-page-controls > .rt-print-page-jump,
+ html body .print-preview-overlay .rt-dialog .rt-print-preview--mobile .rt-print-page-controls > button{display:grid;place-items:center;width:40px;min-width:40px;padding:0}
  html body .print-preview-overlay .rt-dialog :is(input,select,textarea){font:inherit;background:#fff!important;color:#273443!important;border:1px solid #dce2e8;border-radius:7px;padding:8px;min-width:0}
  html body .print-preview-overlay .rt-print-options label{display:flex;align-items:center}
  html body .print-preview-overlay .rt-dialog [type="checkbox"]{appearance:auto;padding:0}
@@ -136,4 +140,9 @@ html body .rt-dialog .rt-print-edit > label {display:flex;flex-direction:column;
  html body .print-preview-overlay[data-layout="mobile"] .rt-dialog :is(input:not([type="checkbox"]),select,textarea){font-size:16px;min-height:44px}
  .rt-print-pages,.score-print-pages{position:relative}
  .rt-pdf-filename p{flex-basis:100%;margin:0;font-size:12px}
+}
+@media screen and (max-width:360px) {
+ html body .print-preview-overlay .rt-dialog .rt-print-preview--mobile .rt-print-page-controls {gap:2px}
+ html body .print-preview-overlay .rt-dialog .rt-print-preview--mobile .rt-print-page-controls > button {width:36px;min-width:36px}
+ html body .print-preview-overlay .rt-dialog .rt-print-preview--mobile .rt-print-page-controls select {padding-inline:4px}
 }

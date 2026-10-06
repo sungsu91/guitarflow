@@ -1,6 +1,7 @@
 import {binaryPage,detectStaffs,detectBarlines,runs} from './tab-import/geometry.js';
-export const PRACTICE_DETECTION_VERSION='layout-7';
+export const PRACTICE_DETECTION_VERSION='layout-8';
 import {TAB_IMPORT_CONFIG} from './tab-import/config.js';
+import {detectPracticeBarlines,hasRuledStaffStart} from './practiceBarlines.js';
 
 // Dense repeated TAB digits/strumming marks can exceed the row projection
 // threshold too. Only sustained horizontal strokes contribute to staff rows;
@@ -121,13 +122,15 @@ function singleLineStaffs(raw,rules,ink,width,height,existing){
 // Layout only: no text, frets, rhythm, or printed repeat interpretation.
 export function detectPracticeMeasures({rgba,width,height,page}) {
  const config={...TAB_IMPORT_CONFIG,minSpacing:5,maxSpacing:65,spacingTolerance:.22,alignedStaffExtension:true};
- const shortConfig={...config,minStaffWidth:.12,minStaffSpan:8};
+ const shortConfig={...config,minStaffWidth:.06,minStaffSpan:8};
  const ink=binaryPage(rgba,width,height),ruleVariants=[230,240].map(threshold=>{const raw=binaryPage(rgba,width,height,threshold);return {raw,rules:practiceStaffRules(raw,width,height)};});
  // Keep solid boundaries first: a shorter arpeggio spine can resemble a
  // broken barline. Relax coverage only when a whole row lacks boundaries.
  const accept=staff=>{
-  let detected=detectBarlines(ink,width,staff,{minMeasureSpacing:.7});
-  if(detected.bars.length<2)detected=detectBarlines(ink,width,staff,{minCoverage:.88,minMeasureSpacing:.7});
+  let detected=detectPracticeBarlines(ink,width,staff,{minMeasureSpacing:.7});
+  if(detected.bars.length<2)detected=detectPracticeBarlines(ink,width,staff,{minCoverage:.88,minMeasureSpacing:.7});
+  const first=detected.measures[0];
+  const ruledStart=first&&Math.abs(first.x-staff.x)<2&&detected.bars.some(x=>Math.abs(x-first.x-first.width)<2)&&hasRuledStaffStart(ruleVariants[0].raw,width,staff);
   // A TAB/time-signature header can end at the first full-height barline.
   // Do not count an inferred, narrow, rhythm-free prefix as a pickup measure.
   const [prefix,next]=detected.measures;
@@ -149,7 +152,8 @@ export function detectPracticeMeasures({rgba,width,height,page}) {
    }
    if(!hasStem){detected.headerEnd=next.x;detected.measures.shift();detected.measures[0]={...next,x:prefix.x,width:next.x+next.width-prefix.x,boundariesKnown:false};}
   }
-  if(detected.bars.length<2)detected.measures=[{x:staff.x,width:staff.width,boundariesKnown:false}];
+  if(ruledStart&&!detected.headerEnd)detected.measures[0]={...first,boundariesKnown:true,boundaryEvidence:'staff-start'};
+  if(!detected.measures.length)detected.measures=[{x:staff.x,width:staff.width,boundariesKnown:false}];
   return {...staff,...detected};
  };
  const staffs=[];
@@ -163,7 +167,7 @@ export function detectPracticeMeasures({rgba,width,height,page}) {
  // A shortened final line can be much narrower than the page. Match its
  // left edge and rule spacing to full lines instead of extending it to them.
  const full=staffs.filter(s=>s.width>=width*.4);
- const selected=staffs.filter(s=>s.width>=width*.4||full.some(other=>Math.abs(other.x-s.x)<Math.max(s.spacing,other.spacing)&&Math.abs(other.spacing-s.spacing)<other.spacing*.25)&&s.bars.length>=2);
+ const selected=staffs.filter(s=>s.width>=width*.4||full.some(other=>other.lines.length===s.lines.length&&Math.abs(other.x-s.x)<Math.max(s.spacing,other.spacing)&&Math.abs(other.spacing-s.spacing)<other.spacing*.25)&&s.bars.some(x=>Math.abs(x-s.x-s.width)<s.spacing));
  const {raw,rules}=ruleVariants[0];
  selected.push(...singleLineStaffs(raw,rules,ink,width,height,staffs));
  selected.sort((a,b)=>a.y-b.y);
@@ -178,7 +182,8 @@ export function detectPracticeMeasures({rgba,width,height,page}) {
   const first=system.staffs[0],last=system.staffs.at(-1),top=Math.max(0,first.y-first.spacing*.75),bottom=Math.min(height,last.y+last.height+last.spacing*.75);
   const {boxes,bars}=systemMeasures(system.staffs,ink,width);
   debug.push({system:index+1,x:first.x/width,y:top/height,width:first.width/width,height:(bottom-top)/height,barlines:bars.map(x=>x/width),staffCount:system.staffs.length,lineCounts:system.staffs.map(s=>s.lines.length)});
-  for(const box of boxes)measures.push({page,system:index+1,x:box.x/width,y:top/height,width:box.width/width,height:(bottom-top)/height,confidence:box.boundariesKnown ? .98 : .72});
+  const staves=system.staffs.map(s=>({top:(s.y-top)/(bottom-top),height:s.height/(bottom-top),lines:s.lines.length}));
+  for(const box of boxes)measures.push({page,system:index+1,x:box.x/width,y:top/height,width:box.width/width,height:(bottom-top)/height,staves,confidence:box.boundariesKnown ? .98 : .72});
  }
  return {page,systems:debug,measures,engineVersion:PRACTICE_DETECTION_VERSION};
 }

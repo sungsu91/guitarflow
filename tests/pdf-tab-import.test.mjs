@@ -22,6 +22,14 @@ function pageFixture(){
 }
 function analysis(page=pageFixture()){const pages=[resolvePage(page)];return {pages,fileName:'Test.pdf',summary:summarizeAnalysis(pages)};}
 
+test('PDF and photo imports set a clean song title and preserve their source names',()=>{
+ for(const fileName of ['Let_It_Be(코드)_페이지_1.pdf','Let_It_Be(코드)_페이지_1.jpg']){
+  const d=analysisToDocument({...analysis(),fileName});
+  assert.equal(d.title,'Let It Be');assert.equal(d.english,d.title);
+  assert.equal(d.pdfTabImport.fileName,fileName);assert.equal(d.measures.length,1);
+ }
+});
+
 test('staff detector excludes five-line notation, short chord grids, and seven-line graphics',()=>{
  for(const [count,length,expected] of [[6,450,1],[5,450,0],[6,70,0],[7,450,0]]){
   const w=600,h=240,p=new Uint8Array(w*h);for(let i=0;i<count;i++)for(let x=40;x<40+length;x++)p[(40+i*16)*w+x]=1;

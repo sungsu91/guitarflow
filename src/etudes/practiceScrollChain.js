@@ -48,7 +48,9 @@ export function bindPracticeScrollChain(reader,layout) {
   if(!gesture.vertical){
    const dx=Math.abs(touch.clientX-gesture.x),dy=Math.abs(touch.clientY-gesture.y);
    if(Math.max(dx,dy)<4)return;
-   if(dx>=dy||!event.cancelable){gesture=null;return;}
+   // A thumb often starts diagonally. Yield only to a clear horizontal drag;
+   // otherwise the browser can latch before the next vertical movement.
+   if(dx>dy*1.5||!event.cancelable){gesture=null;return;}
    gesture.vertical=true;
   }
   if(!event.cancelable){gesture=null;return;}

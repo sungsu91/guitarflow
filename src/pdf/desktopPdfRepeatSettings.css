@@ -1,0 +1,79 @@
+.pdfStudio .desktopPdfRepeatSettings{width:min(760px,90vw);max-width:none;max-height:90dvh;padding:0;box-sizing:border-box;overflow:hidden;color:var(--score-ink);background:var(--score-surface);border:1px solid var(--score-line);border-radius:18px;box-shadow:0 22px 80px #0003}
+.pdfStudio .desktopPdfRepeatSettings[open]{display:flex;flex-direction:column}
+.desktopPdfRepeatSettings>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 28px 18px;flex:none;border-bottom:1px solid var(--score-line)}
+.desktopPdfRepeatTitle{display:flex;align-items:center;gap:12px}
+.desktopPdfRepeatIcon{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:var(--score-soft);color:var(--score-accent)}
+.pdfStudio .desktopPdfRepeatSettings h2{margin:0;font-size:21px;letter-spacing:-.5px}
+.pdfStudio .desktopPdfRepeatSettings h3{font-size:15px;margin:0}
+.pdfStudio .desktopPdfRepeatSettings p{margin:5px 0 0;font-size:12px;line-height:1.55;color:var(--score-muted)}
+.pdfStudio .desktopPdfRepeatSettings :is(button,select,input){min-width:0;font-size:13px;background:var(--score-bg);color:var(--score-ink);border:1px solid var(--score-line);border-radius:8px}
+.pdfStudio .desktopPdfRepeatSettings button{min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;cursor:pointer}
+.pdfStudio .desktopPdfRepeatSettings button:disabled{cursor:default;opacity:.45}
+.pdfStudio .desktopPdfRepeatSettings :is(button,input,select,summary):focus-visible{outline:2px solid var(--score-accent);outline-offset:3px}
+html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings button[aria-pressed=true]{background:var(--score-soft)!important;background-image:none!important;color:var(--score-accent)!important;-webkit-text-fill-color:currentColor!important;border-color:var(--score-accent)!important;box-shadow:inset 0 0 0 1px var(--score-accent)!important}
+.pdfStudio .desktopPdfRepeatSettings .desktopPdfRepeatClose{padding:8px;background:transparent;border:0}
+.desktopPdfRepeatBody{min-height:0;overflow:auto;overscroll-behavior:contain;padding:20px 28px 22px}
+.desktopPdfRepeatModes{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;padding:4px;background:var(--score-bg);border:1px solid var(--score-line);border-radius:11px;margin-bottom:22px}
+.pdfStudio .desktopPdfRepeatModes button{border-color:transparent;background:transparent;padding:9px 15px;font-weight:650}
+.desktopPdfRepeatRangeFields{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);gap:14px;align-items:center}
+.desktopPdfRepeatRangeArrow{color:var(--score-muted);justify-self:center;margin-top:23px}
+.pdfStudio .desktopPdfRepeatSettings label{min-width:0;margin:0;font-size:12px;color:var(--score-muted)}
+.desktopPdfRepeatNumber>span{display:block;margin-bottom:8px;font-size:12px;font-weight:650;color:var(--score-muted)}
+.desktopPdfRepeatNumber>div{display:flex;gap:6px;align-items:center;padding:10px;background:var(--score-bg);border:1px solid var(--score-line);border-radius:12px;transition:border-color .15s}
+.desktopPdfRepeatNumber.is-target>div{border-color:var(--score-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--score-accent) 12%,transparent)}
+.pdfStudio .desktopPdfRepeatNumber input{width:60px;flex:1;min-width:0;text-align:center;font-weight:750;font-size:30px;line-height:1.2;padding:0;border:0;background:transparent;box-shadow:none;appearance:textfield;-moz-appearance:textfield;font-variant-numeric:tabular-nums}
+.desktopPdfRepeatNumber input::-webkit-inner-spin-button,.desktopPdfRepeatNumber input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.pdfStudio .desktopPdfRepeatNumber input[aria-invalid=true]{color:var(--score-danger,#ad3128)}
+.pdfStudio .desktopPdfRepeatNumber button{flex:none;width:28px;min-height:32px;padding:0;border:0;background:transparent}
+.desktopPdfRepeatUnit{margin-right:8px;font-size:13px;color:var(--score-muted)}
+.desktopPdfRepeatShortcuts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:14px}
+.desktopPdfRepeatShortcuts>span{font-size:11px;color:var(--score-muted);margin-right:3px}
+.pdfStudio .desktopPdfRepeatShortcuts button{min-height:28px;font-size:11px;padding:4px 9px;border-radius:20px}
+.desktopPdfRepeatMap{margin-top:22px;padding-top:18px;border-top:1px solid var(--score-line)}
+.desktopPdfRepeatMapHead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.desktopPdfRepeatMapHead strong{font-size:13px}
+.desktopPdfRepeatMapHead>span{font-size:11px;color:var(--score-muted)}
+.desktopPdfRepeatPages{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;padding:2px}
+.pdfStudio .desktopPdfRepeatPages button{min-height:28px;font-size:11px;padding:4px 10px;border-radius:6px}
+.desktopPdfRepeatGrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;max-height:166px;overflow:auto;padding:2px 4px 3px 2px}
+.pdfStudio .desktopPdfRepeatGrid button{position:relative;min-height:33px;padding:5px 0;font-size:12px;font-variant-numeric:tabular-nums;font-weight:550}
+html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings .desktopPdfRepeatGrid button[aria-pressed=true]{box-shadow:none!important;border-color:color-mix(in srgb,var(--score-accent) 28%,var(--score-line))!important}
+html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings .desktopPdfRepeatGrid button[data-edge=true]{background:var(--score-accent)!important;background-image:none!important;color:var(--score-on-accent)!important;-webkit-text-fill-color:currentColor!important;border-color:var(--score-accent)!important;font-weight:750}
+.desktopPdfRepeatGrid i{position:absolute;bottom:2px;width:3px;height:3px;border-radius:50%;background:currentColor}
+.desktopPdfRepeatEditorHead{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+.pdfStudio .desktopPdfRepeatSettings .desktopPdfRepeatTextButton{border:0;background:transparent;color:var(--score-accent);padding:3px 0;min-height:28px;font-size:12px}
+.desktopPdfRepeatPresets{display:flex;gap:8px;margin-bottom:16px}
+.pdfStudio .desktopPdfRepeatPresets button{padding:7px 15px}
+.desktopPdfRepeatPresetAction{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px}
+.pdfStudio .desktopPdfRepeatPresetAction p{margin:0}
+.pdfStudio .desktopPdfRepeatPresetAction button{padding:7px 13px;flex:none;color:var(--score-accent);border-color:var(--score-accent)}
+.desktopPdfRepeatPair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:end;margin-top:12px}
+.pdfStudio .desktopPdfRepeatSettings select{width:100%;margin-top:6px;min-height:38px;padding:7px 10px}
+.desktopPdfRepeatAdvanced{margin-top:18px}
+.desktopPdfRepeatDetails{margin-top:14px;padding-top:14px;border-top:1px solid var(--score-line)}
+.desktopPdfRepeatDetails summary{cursor:pointer;font-size:12px;color:var(--score-ink);padding:3px 0}
+.desktopPdfRepeatDetails summary>span{margin-left:10px;color:var(--score-accent);font-size:11px}
+.pdfStudio .desktopPdfRepeatAdded{display:flex;align-items:center;gap:5px;color:var(--score-accent);min-height:0}
+.pdfStudio .desktopPdfRepeatAdded:empty{margin:0}
+.desktopPdfRepeatList{list-style:none;margin:12px 0 6px;padding:0;display:grid;gap:6px;max-height:150px;overflow:auto}
+.desktopPdfRepeatList li{display:flex;gap:6px}
+.pdfStudio .desktopPdfRepeatList li>button:first-child{flex:1;justify-content:flex-start;padding:7px 10px}
+.desktopPdfRepeatList li>button:first-child>span{margin-left:auto;font-size:12px;color:var(--score-muted)}
+.pdfStudio .desktopPdfRepeatSettings .desktopPdfSymbolSpacing{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.desktopPdfSymbolSpacing input{width:78px;padding:7px}
+.desktopPdfSymbolSpacing small{flex-basis:100%;color:var(--score-muted)}
+.pdfStudio .desktopPdfRepeatSettings>footer{display:block;flex:none;position:static;margin:0;padding:16px 28px 20px;border-top:1px solid var(--score-line);background:var(--score-bg)}
+.desktopPdfRepeatPreview strong{font-size:14px;font-weight:650;display:flex;align-items:center;gap:5px;color:var(--score-ink);font-variant-numeric:tabular-nums}
+.desktopPdfRepeatPreview details{margin-top:5px;font-size:11px;color:var(--score-muted)}
+.desktopPdfRepeatPreview details>summary{cursor:pointer}
+.pdfStudio .desktopPdfRepeatPreview details>p{max-height:55px;overflow:auto;font-size:11px;overflow-wrap:anywhere}
+.desktopPdfRepeatPreview [role=alert]{max-height:70px;overflow:auto}
+.pdfStudio .desktopPdfRepeatPreview [role=alert] p{color:var(--score-danger,#ad3128);margin:0}
+.desktopPdfRepeatFooterActions{display:flex;align-items:center;gap:8px;margin-top:14px}
+.desktopPdfRepeatFooterActions>span{font-size:11px;color:var(--score-muted);margin-right:auto}
+.pdfStudio .desktopPdfRepeatFooterActions button{padding:9px 18px;min-height:40px}
+html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings button.pdfPrimary{background:var(--score-accent)!important;background-image:none!important;color:var(--score-on-accent)!important;-webkit-text-fill-color:currentColor!important;border-color:var(--score-accent)!important;box-shadow:none!important;font-weight:650}
+.desktopPdfRepeatOff,.desktopPdfRepeatEmpty{text-align:center;padding:28px 10px 32px}
+.desktopPdfRepeatOff>span{display:inline-grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--score-soft);color:var(--score-accent);margin-bottom:16px}
+.pdfStudio .desktopPdfRepeatOff p,.pdfStudio .desktopPdfRepeatEmpty p{margin:10px 0 20px}
+@media(max-height:780px){.pdfStudio .desktopPdfRepeatSettings{max-height:94dvh}.desktopPdfRepeatSettings>header{padding:16px 24px}.desktopPdfRepeatBody{padding:16px 24px}.desktopPdfRepeatModes{margin-bottom:16px}.pdfStudio .desktopPdfRepeatSettings>footer{padding:12px 24px 16px}}

@@ -6,7 +6,11 @@
 .editorDesign.etudeEditor--desktop .desktopEditorSessionActions{padding-left:10px;border-left:1px solid var(--ed-line)}
 .editorDesign.etudeEditor--desktop .desktopEditorActions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;min-height:38px;min-width:0;padding:6px 12px;white-space:nowrap}
 .editorDesign.etudeEditor--desktop .desktopEditorSessionActions .etudeEditorSave{margin:0;padding-inline:20px}
-.etudeEditor--desktop .desktopSourceReview{position:relative}
+.etudeEditor--desktop .desktopSourceReview{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.etudeEditor--desktop .desktopReviewQuick{display:flex;align-items:center;gap:6px}
+.editorDesign.etudeEditor--desktop .desktopReviewQuick button{width:36px;min-height:36px;padding:0;flex:none}
+.etudeEditor--desktop .desktopReviewQuick output{display:grid;gap:2px;width:210px;max-width:30vw;font-size:11px;line-height:1.3;color:var(--ed-ink)}
+.etudeEditor--desktop .desktopReviewQuick output span{color:var(--ed-muted)}
 .editorDesign.etudeEditor--desktop .desktopSourceReviewToggle{display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 10px;background:var(--ed-soft);font-size:12px}
 .etudeEditor--desktop .desktopSourceReviewToggle span{font-size:11px;font-weight:400;color:var(--ed-muted)}
 .etudeEditor--desktop .desktopSourceReviewPanel{position:absolute;top:calc(100% + 8px);left:0;width:380px;max-width:calc(100vw - 64px);max-height:65dvh;overflow:auto;padding:16px;border:1px solid var(--ed-line);border-radius:12px;background:var(--ed-bg);color:var(--ed-ink);box-shadow:0 12px 36px #241c2429}

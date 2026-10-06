@@ -31,6 +31,7 @@ export function convertScoreInstrument(document,id){
   document=normalizeInstrumentDocument(document);id=canonicalInstrument(id);
   if(!Object.hasOwn(SCORE_INSTRUMENTS,id))throw Error(ko["etudes.thisInstrumentIsNotSupported"]);
   if((document.instrument??'guitar')===id)return document;
+  if(document.instrument==='piano'&&document.measures.some(m=>m.events.some(e=>e.notes.some(n=>n.pianoTieTo))))throw Error('음마다 지속 시간이 다른 피아노 화음입니다. 기타 편곡에서 멜로디와 지속음을 보존해 변환해 주세요.');
   if(document.instrument==='piano'&&document.measures.some(m=>m.events.some(e=>e.voice))){
    const active=['right','left'].filter(hand=>document.measures.some(m=>m.events.some(e=>e.voice===hand&&!e.blank)));
    if(active.length>1)throw Error(ko["etudes.independentRhythmsForTwoHandsCannotBeConvertedAutomaticallyToASingle"]);

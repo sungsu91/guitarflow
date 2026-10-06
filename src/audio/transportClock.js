@@ -76,6 +76,22 @@ export function collectAudioTransportSteps(cursor, {
   return { cursor: next, steps };
 }
 
+// Keep the audible beat phase when tempo or subdivision changes. A running
+// transport must not acquire another startup lead on every Automator step.
+export function retimeAudioTransportCursor(cursor, { currentTime, stepSeconds, ticksPerMeasure }) {
+  const now = finiteNonNegative(currentTime);
+  const oldTicks = Math.max(1, cursor.ticksPerMeasure || ticksPerMeasure);
+  const bars = Math.max(0, now - cursor.originTime) / (cursor.stepSeconds * oldTicks);
+  const positionSeconds = bars * ticksPerMeasure * stepSeconds;
+  const originTime = Math.max(now, cursor.originTime) - positionSeconds;
+  const next = createAudioTransportCursor({
+    originTime, stepSeconds,
+    // An attack at or before now has already sounded. Replace future attacks only.
+    positionSeconds: Math.max(0, now + 0.002 - originTime),
+  });
+  return { ...next, ticksPerMeasure };
+}
+
 export function getAudioTransportElapsedSeconds({
   audioTime = 0,
   originTime = 0,

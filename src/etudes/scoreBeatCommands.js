@@ -37,7 +37,7 @@ export function editWholeBeat(document,cursor,{copy=false}={}){
  }else events=[blankEvent(target,String(document.meter[1]))];
  const measure=measures[bar];
  const nextEvents=[...range(measure.events,0,target),...events,...range(measure.events,target+beat,capacity)];
- if(nextEvents.length>64)throw Error(ko["etudes.aBarCanContainUpTo64Notes"]);
+ if(nextEvents.length>96)throw Error(ko["etudes.aBarCanContainUpTo64Notes"]);
  measures[bar]={...measure,events:nextEvents};
  return {document:cleanLinks({...document,measures}),cursor:{...cursor,bar,event:nextEvents.findIndex(e=>e.onset===target),noteId:undefined,target:undefined}};
 }

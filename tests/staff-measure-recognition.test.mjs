@@ -7,10 +7,34 @@ import {analysisToDocument,reconcileImportedEdits} from '../src/pdf/tab-import/s
 import {attachPageChords} from '../src/pdf/tab-import/chordRecognition.js';
 import {compileDocumentV2,ticksOf} from '../src/etudes/scoreModel.js';
 import {staffMeasureInk} from '../src/omr/staffMeasureInk.js';
-import {notationBarBounds} from '../src/pdf/tab-import/chordGeometry.js';
+import {notationBarBounds,chordTextRow} from '../src/pdf/tab-import/chordGeometry.js';
 import {chordWordsInRegion} from '../src/pdf/tab-import/chordRecognition.js';
 const fixtures=JSON.parse(fs.readFileSync(new URL('./fixtures/staff-measure-readings.json',import.meta.url)));
 const parse=raw=>parseStaffTokens('clef-G2+keySignature-CM+'+raw);
+
+test('stemless whole-note pitches get bounded agreement checks even when the original rhythm is complete',async()=>{
+ const parsed=parse('note-D5_whole'),system={width:700,height:180,rgba:new Uint8ClampedArray(700*180*4).fill(255).buffer,rect:{x:0,y:0},staff:{spacing:16},measures:[{x:0,width:700,stems:[],slashes:[]}]};
+ let calls=0;
+ const result=await refineStaffMeasures({recognize:async()=>{calls++;return {text:'clef-G2+note-E5_whole+barline'};}},system,parsed);
+ assert.equal(calls,2);assert.equal(result.measures[0].events[0].notes[0].midi,76);
+ assert.equal(result.measures[0].events[0].duration,'1');assert.equal(parsed.measures[0].events[0].notes[0].midi,74);
+ for(const raw of ['note-E5_half+note-E5_half','note-E5_whole+barline+note-E5_whole']){
+  const kept=await refineStaffMeasures({recognize:async()=>({text:'clef-G2+'+raw})},system,parsed);
+  assert.equal(kept.measures[0].events[0].notes[0].midi,74);assert.deepEqual(kept.measures[0].events[0].reviewReasons,['pitch']);
+ }
+});
+
+test('small bar numbers and navigation prose cannot displace the actual chord-name row',()=>{
+ const chords=[{x:150,y:38,width:38,height:37},{x:757,y:38,width:36,height:35},{x:1425,y:38,width:79,height:36}];
+ const clutter=[{x:14,y:47,width:26,height:20},{x:54,y:72,width:20,height:20},{x:105,y:76,width:16,height:16},{x:1729,y:69,width:55,height:23},{x:1805,y:69,width:107,height:23}];
+ const row=chordTextRow([...clutter,...chords],17,1912,92);
+ assert.equal(row.baseline,74);assert.deepEqual(row.components,chords);
+ const sparse=chordTextRow([chords[0]],17,1912,92);assert.equal(sparse.baseline,undefined);assert.deepEqual(sparse.components,[chords[0]],'sparse labels must not disappear');
+ const triplet={x:900,y:76,width:11,height:15},preserved=chordTextRow([...chords,triplet],17,1912,92);
+ assert.deepEqual(preserved.components,chords);assert.deepEqual(preserved.rhythmComponents,[triplet],'a smaller triplet is still read independently of the chord row');
+ const raised={x:1000,y:16,width:35,height:35},mixed=[...chords,raised];
+ assert.deepEqual(chordTextRow(mixed,17,1912,92).components,mixed,'raised chord labels cannot be cropped to a single baseline');
+});
 
 const expected=[
  ['C5 F5 A5:4','E5 G5:8','D5 F5:8','C4 C5 E5:4','E5:16','D5:16','C5:8'],

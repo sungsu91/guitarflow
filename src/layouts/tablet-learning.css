@@ -1,0 +1,372 @@
+/* Learning rooms own their tablet composition. Shared transport, fretboard,
+   audio and practice state are unchanged; phone and desktop never use this class. */
+@layer tablet-learning {
+  .tabletLayout .tabletLearningPanel {
+    --learning-gap: 12px;
+    --learning-title-height: clamp(96px, 9.3dvh, 128px);
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: var(--tablet-content-height) !important;
+    padding: 12px !important;
+    gap: var(--learning-gap) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: var(--learning-title-height) minmax(min-content, 1fr) !important;
+    align-content: start !important;
+    overflow: visible !important;
+  }
+  .tabletLearningPanel > .tabletPracticeTitle {
+    --practice-title-ink: #3b3027;
+    --practice-title-accent: #98723a;
+    --practice-title-line: #ceb58b;
+    --practice-title-soft: #f3ead8;
+    --practice-title-highlight: #fffdf7;
+    --practice-title-frame: #ffffff66;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: var(--learning-title-height) !important;
+    padding: 12px 20px !important;
+    border: 1px solid var(--practice-title-line) !important;
+    border-radius: 18px !important;
+    background: linear-gradient(115deg, var(--practice-title-soft), var(--practice-title-highlight), var(--practice-title-soft)) !important;
+    box-shadow: inset 0 0 0 4px var(--practice-title-frame) !important;
+    color: var(--practice-title-ink) !important;
+  }
+  .theme-brand .tabletLearningPanel > .tabletPracticeTitle {
+    --practice-title-ink: #f4e4ba;
+    --practice-title-accent: #dcb76b;
+    --practice-title-line: #6c542c;
+    --practice-title-soft: #2d2518;
+    --practice-title-highlight: #463721;
+    --practice-title-frame: #13100b55;
+  }
+  .tabletPracticeTitle .tabletPracticeTitleEyebrow {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 9px !important;
+    color: var(--practice-title-accent) !important;
+  }
+  .tabletPracticeTitleEyebrow > span {
+    color: inherit !important;
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+    font-weight: 700 !important;
+    letter-spacing: 2.6px !important;
+  }
+  .tabletPracticeTitleEyebrow > svg { width: 17px !important; height: 17px !important; flex-shrink: 0; color: inherit !important; }
+  .tabletPracticeTitle .tabletPracticeTitleLine {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: clamp(12px, 2.3vw, 24px) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .tabletPracticeTitleLine::before, .tabletPracticeTitleLine::after {
+    content: "";
+    flex: 0 1 100px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--practice-title-accent));
+    opacity: .65;
+  }
+  .tabletPracticeTitleLine::after { transform: rotate(180deg); }
+  .tabletPracticeTitleLine > h1 {
+    margin: 0 !important;
+    flex: 0 1 auto;
+    color: var(--practice-title-ink) !important;
+    font-size: clamp(28px, 3.7vw, 38px) !important;
+    font-weight: 750 !important;
+    line-height: 1.25 !important;
+    letter-spacing: -1.3px !important;
+    text-align: center !important;
+    white-space: normal !important;
+  }
+  .tabletLearningPanel .referenceTrainingMainRow {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: minmax(max-content, 1fr) auto auto !important;
+    grid-template-areas: "board board" "beats beats" "controls controls" !important;
+    gap: var(--learning-gap) !important;
+    align-items: stretch !important;
+    height: auto !important;
+    min-height: calc(var(--tablet-content-height) - var(--learning-title-height) - 38px) !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  .tabletLearningPanel .referenceTrainingToolbar {
+    grid-area: controls !important; display: grid !important; align-self: center !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: 200px !important; grid-template-areas: "transport settings" !important;
+    gap: 12px !important; min-height: 0 !important; padding: 0 !important;
+  }
+  .tabletLearningPanel.scaleBlockTrainingPanel .referenceTrainingToolbar { grid-template-rows: 200px auto !important; grid-template-areas: "transport settings" "audio audio" !important; }
+  .tabletLearningPanel .referenceStandaloneMetronomeDeck { display: contents !important; }
+  .tabletLearningPanel .scaleTrainingBackingLoop { grid-area: audio !important; }
+  .tabletLearningPanel .referenceTrainingBoard {
+    grid-area: board !important;
+    align-self: stretch !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    align-content: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    border: 1px solid var(--studio-panel-border) !important;
+    border-radius: 12px !important;
+    background: var(--studio-surface) !important;
+  }
+  .tabletLearningPanel .referenceTrainingBoard > .referenceHeader {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 48px !important;
+    margin: 0 !important;
+  }
+  .tabletLearningPanel .trainingDetailTitle { font-size: 20px !important; }
+  .tabletLearningPanel .referenceScalePicker {
+    display: grid !important;
+    grid-template-columns: minmax(80px, .65fr) minmax(0, 1.6fr) minmax(104px, .8fr) 72px !important;
+    grid-template-rows: auto !important;
+    gap: 10px !important;
+    align-items: end !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 72px !important;
+    max-height: none !important;
+    padding: 0 !important;
+  }
+  .tabletLearningPanel .referenceScalePicker > * { min-width: 0 !important; width: auto !important; align-self: end !important; }
+  .tabletLearningPanel .referenceScalePicker .metronomeSelectControl { display: flex !important; flex-direction: column !important; gap: 6px !important; height: auto !important; }
+  .tabletLearningPanel .referenceScalePicker .metronomeSelectLabel { display: flex !important; font-size: 14px !important; }
+  .tabletLearningPanel .referenceScalePicker .metronomeSelectButton { max-height: none !important; }
+  .tabletLearningPanel .trainingNoteGuideToggle { min-height: 48px !important; min-width: 64px !important; }
+  .tabletLearningPanel :is(.trainingSharedFretboard, .stageChordSharedFretboard) {
+    --fretboard-board-top: 34px !important;
+    --fretboard-board-bottom: 24px !important;
+    --fretboard-board-height: clamp(180px, 21dvh, 288px) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .tabletLearningPanel :is(.trainingSharedFretboard, .stageChordSharedFretboard) .fretboardComponentScroller {
+    height: calc(var(--fretboard-board-height) + var(--fretboard-board-top) + var(--fretboard-board-bottom)) !important;
+    min-height: 0 !important;
+  }
+  .tabletLearningPanel .fretboardNoteChip { width: 34px !important; height: 34px !important; min-height: 0 !important; }
+  .tabletLearningPanel .fretboardNoteChip b { font-size: 16px !important; }
+  .tabletLearningPanel .mobileScalePositionNavigation { min-height: 48px !important; gap: 14px !important; }
+  .tabletLearningPanel .mobileScalePositionNavigation button { min-width: 48px !important; min-height: 48px !important; }
+  .tabletLearningPanel .referenceBeatMetronomeStrip {
+    grid-area: beats !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 64px !important;
+    height: auto !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+  }
+  .tabletLearningPanel .beatIndicator { display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; }
+  .tabletLearningPanel .beatIndicatorRow { display: flex !important; justify-content: center !important; gap: clamp(8px, 2vw, 24px) !important; width: 100% !important; }
+  .tabletLearningPanel .referenceBeatMetronomeDot { flex: 0 1 48px !important; width: 48px !important; min-width: 0 !important; height: 48px !important; min-height: 48px !important; }
+  .tabletLearningPanel .referenceBeatMetronomeDot .beatDot__glyph { width: 34px !important; height: 34px !important; aspect-ratio: 1 !important; }
+  .tabletLearningPanel .metronomeHeroCard--interactive {
+    grid-area: transport !important;
+    grid-template-columns: 48px minmax(0, 1fr) 48px !important;
+    grid-template-rows: minmax(88px, 1fr) auto !important;
+    min-height: 188px !important;
+    height: 100% !important;
+    max-height: none !important;
+    padding: 10px 12px !important;
+    margin: 0 !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+  }
+  .tabletLearningPanel .metronomeHeroBpmValue strong { font-size: 64px !important; }
+  .tabletLearningPanel .metronomeHeroActionPanel {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    justify-self: stretch !important;
+    gap: 4px !important;
+    min-height: 48px !important;
+  }
+  .tabletLearningPanel .metronomeHeroActionPanel > button { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; padding: 6px 4px !important; min-height: 48px !important; }
+  .tabletLearningPanel .countInToggleButton span { font-size: 12px !important; }
+  .tabletRhythmPractice .stage3BpmActionPanel:has(.metronomeHeroPauseButton) {
+    display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 6px !important;
+  }
+  .tabletRhythmPractice .stage3BpmActionPanel:has(.metronomeHeroPauseButton) > button {
+    display: flex !important; flex-direction: column !important; justify-content: center !important;
+    align-items: center !important; gap: 4px !important; min-height: 56px !important; padding: 4px 0 !important;
+  }
+  .tabletLearningPanel .metronomeHeroActionText { font-size: 16px !important; }
+  .tabletLearningPanel .standaloneMetronomeControl {
+    grid-area: settings !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 188px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+    align-content: center !important;
+  }
+  .tabletLearningPanel .metronomeOptions { height: auto !important; padding: 0 !important; }
+  .tabletLearningPanel .rhythmSettings { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; padding: 0 !important; }
+  .tabletLearningPanel .rhythmSetting { flex-direction: column !important; align-items: stretch !important; gap: 6px !important; }
+  .tabletLearningPanel .rhythmSettingTrigger { width: 100% !important; min-height: 48px !important; padding: 8px 10px !important; font-size: 17px !important; }
+  .tabletLearningPanel .rhythmSettingLabel { font-size: 14px !important; }
+  .tabletLearningPanel .backingLoopPlayerBar { justify-content: center !important; gap: 16px !important; }
+  .tabletLearningPanel .backingLoopMiniPlayer { min-height: 128px !important; }
+
+  /* Rhythm: choose a progression, follow the chart and beat, then adjust playback. */
+  .tabletLayout .tabletRhythmPractice {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: var(--learning-title-height) auto minmax(max-content, 1fr) auto 200px auto !important;
+    grid-template-areas: "title title" "load load" "chart chart" "beats beats" "transport settings" "audio audio" !important;
+  }
+  .tabletRhythmPractice > .tabletPracticeTitle { grid-area: title !important; }
+  .tabletRhythmPractice .stageChordSharedFretboard { --fretboard-board-height: clamp(180px, 18dvh, 228px) !important; }
+  .tabletRhythmPractice .sharedAccompanimentPanel > summary { min-height: 48px !important; }
+  .tabletRhythmPractice :is(.stage3DesktopPrimaryColumn, .stage3DesktopSideColumn, .stage3PracticeUtilityPanel, .stage3MobileTransportDeck) { display: contents !important; }
+  .tabletRhythmPractice > .stage3LoadToolbar { grid-area: load !important; display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto !important; gap: 10px !important; height: auto !important; padding: 0 !important; }
+  .tabletRhythmPractice .stage3LoadToolbar button { min-height: 48px !important; }
+  .tabletRhythmPractice .chordTransitionBody { grid-area: chart !important; min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+  .tabletRhythmPractice .chordTransitionChart {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: auto !important;
+    grid-template-rows: max-content max-content max-content !important;
+    align-content: center !important;
+    gap: 14px !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 12px !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--studio-panel-border) !important;
+    border-radius: 12px !important;
+  }
+  .tabletRhythmPractice .stage3ProgressionHeader { grid-template-columns: minmax(0, 1fr) !important; height: auto !important; padding: 0 !important; }
+  .tabletRhythmPractice .currentProgressionReadout {
+    display: grid !important;
+    grid-template-columns: repeat(var(--stage3-progression-columns, 4), minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(56px, auto) !important;
+    gap: 8px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .tabletRhythmPractice .rhythmChordMeasure { min-width: 0 !important; width: auto !important; }
+  .tabletRhythmPractice .rhythmChordMeasure > button { min-width: 0 !important; min-height: 56px !important; height: auto !important; padding: 6px !important; }
+  .tabletRhythmPractice .rhythmChordMeasure > button > span { font-size: 20px !important; }
+  .tabletRhythmPractice .rhythmChordMeasure > button > small { font-size: 13px !important; }
+  .tabletRhythmPractice .stage3ProgressHud {
+    grid-area: beats !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-rows: auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: 72px !important;
+    height: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 4px 12px !important;
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+  }
+  .tabletRhythmPractice .stage3ProgressHud .referenceBeatMetronomeStrip { grid-area: 1 / 1 !important; }
+  .tabletRhythmPractice .stage3MetronomeSoundToggle { grid-area: 1 / 2 !important; position: static !important; width: auto !important; min-width: 100px !important; min-height: 48px !important; padding: 8px 12px !important; }
+  .tabletRhythmPractice .sharedAccompanimentPanel {
+    grid-area: audio !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+  }
+  .tabletRhythmPractice .miniChordBackingRow { padding: 10px !important; }
+  .tabletRhythmPractice .miniChordBackingRow button { min-height: 44px !important; }
+  .tabletRhythmPractice .sharedAccompanimentRows { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 10px !important; }
+  .tabletRhythmPractice .miniChordBackingRow { min-width: 0 !important; border: 1px solid var(--studio-divider) !important; border-radius: 8px !important; }
+  .tabletRhythmPractice .miniChordBackingControlLine { grid-template-columns: auto minmax(0, 1fr) 44px !important; min-height: 44px !important; gap: 8px !important; }
+  .tabletRhythmPractice .miniChordPowerToggle { min-width: 44px !important; }
+  .tabletRhythmPractice .miniChordBeatOptions { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 8px !important; }
+  .tabletRhythmPractice .miniChordBeatOptions > button { min-width: 0 !important; font-size: 16px !important; padding: 10px 6px !important; }
+  .tabletRhythmPractice .miniChordBackingRow { display: grid !important; gap: 10px !important; padding: 14px !important; }
+  .tabletRhythmPractice .miniChordBackingControlLine { grid-template-columns: 80px minmax(0, 1fr) 48px !important; }
+  .tabletRhythmPractice .miniChordBackingControlLine > :is(span,strong,label) { font-size: 18px !important; }
+  .tabletRhythmPractice .stage3VoicingMovementGuide {
+    position: static !important; inset: auto !important; transform: none !important;
+    width: auto !important; margin: 0 !important;
+    padding: 14px 16px !important; height: auto !important; max-height: none !important;
+  }
+  .tabletRhythmPractice .stage3VoicingMovementGuide strong { font-size: 18px !important; line-height: 1.5 !important; }
+  .tabletRhythmPractice .stage3VoicingMovementGuide p { font-size: 16px !important; line-height: 1.6 !important; margin: 4px 0 0 !important; white-space: normal !important; }
+
+  @media (orientation: portrait) and (min-height: 1100px) and (min-width: 700px) {
+    .tabletLearningPanel.firstPositionTrainingPanel .trainingSharedFretboard { --fretboard-board-height: 360px !important; }
+    .tabletLearningPanel.firstPositionTrainingPanel .referenceBeatMetronomeStrip { min-height: 88px !important; }
+    .tabletLearningPanel.firstPositionTrainingPanel .referenceTrainingToolbar { grid-template-rows: 240px !important; }
+  }
+
+  @media (orientation: landscape) and (min-width: 960px) {
+    .tabletLayout .tabletLearningPanel { --learning-title-height: 88px; }
+    .tabletLayout .referenceTrainingPanel.tabletLearningPanel {
+      grid-template-columns: minmax(0, 1fr) minmax(380px, .72fr) !important;
+      grid-template-rows: var(--learning-title-height) minmax(max-content, 1fr) auto !important;
+      grid-template-areas: "title controls" "board controls" "beats controls" !important;
+    }
+    .tabletLearningPanel.referenceTrainingPanel > .tabletPracticeTitle { grid-area: title !important; }
+    .tabletLearningPanel > .tabletPracticeTitle { gap: 6px !important; padding-block: 10px !important; }
+    .tabletPracticeTitleLine > h1 { font-size: 32px !important; }
+    .tabletLearningPanel .referenceTrainingMainRow {
+      display: contents !important;
+      grid-template-columns: minmax(0, 1fr) minmax(380px, .72fr) !important;
+      grid-template-rows: minmax(0, 1fr) auto !important;
+      grid-template-areas: "board controls" "beats controls" !important;
+    }
+    .tabletLearningPanel .referenceTrainingToolbar { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: 200px auto !important; grid-template-areas: "transport" "settings" !important; }
+    .tabletLearningPanel.scaleBlockTrainingPanel .referenceTrainingToolbar { grid-template-rows: 188px auto auto !important; grid-template-areas: "transport" "settings" "audio" !important; }
+    .tabletLearningPanel :is(.trainingSharedFretboard, .stageChordSharedFretboard) { --fretboard-board-height: 210px !important; }
+    .tabletLayout .tabletRhythmPractice {
+      grid-template-columns: minmax(0, 1fr) minmax(380px, .72fr) !important;
+      grid-template-rows: var(--learning-title-height) auto minmax(max-content, 1fr) auto auto auto !important;
+      grid-template-areas: "title title" "load load" "chart transport" "chart settings" "beats settings" "audio audio" !important;
+    }
+  }
+  @media (max-width: 699px) {
+    .tabletLearningPanel .referenceTrainingMainRow { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: auto auto auto !important; grid-template-areas: "board" "beats" "controls" !important; }
+    .tabletLearningPanel .referenceTrainingToolbar { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: auto auto !important; grid-template-areas: "transport" "settings" !important; }
+    .tabletLearningPanel.scaleBlockTrainingPanel .referenceTrainingToolbar { grid-template-rows: auto auto auto !important; grid-template-areas: "transport" "settings" "audio" !important; }
+    .tabletLayout .tabletRhythmPractice { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: var(--learning-title-height) auto auto auto auto auto auto !important; grid-template-areas: "title" "load" "chart" "beats" "transport" "settings" "audio" !important; }
+    .tabletLearningPanel .referenceScalePicker { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) !important; }
+    .tabletRhythmPractice > .stage3LoadToolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+    .tabletRhythmPractice .stage3StorageMoveButton { grid-column: 1 / -1; }
+    .tabletRhythmPractice .stage3ProgressHud { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; }
+    .tabletRhythmPractice .stage3MetronomeSoundToggle { grid-area: 2 / 1 !important; }
+    .tabletRhythmPractice .sharedAccompanimentRows { grid-template-columns: minmax(0, 1fr) !important; }
+    .tabletRhythmPractice .miniChordBeatOptions { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    .tabletLearningPanel .beatIndicatorRow { gap: 8px !important; }
+  }
+}

@@ -5,6 +5,7 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {applyAnnotationOffsets} from './scoreAnnotations.js';
 import {harmonyLabelLines} from './harmonyLabelLayout.js';
+import {compactChordLabel} from '../chords/chordSymbols.js';
 import {LocateFixed} from 'lucide-react';
 import {slurSpans,slurCovers,drawSlurs} from './slurs.js';
 import {rhythmTimeline,rhythmHighlighter} from './rhythmProgress.js';
@@ -40,6 +41,9 @@ import {drawTabRhythm,drawTabRests,rhythmGroups} from './tabRhythm.js';
 import { drawChordDiagram, chordDiagramVisibility } from './chordStudy.js';
 import {displayMeasureChordCharts,chordChartLayout,drawMeasureChordCharts} from './measureChordCharts.js';
 import { Clef, Dot, Stem, Renderer, Stave, TabStave, StaveNote, TabNote, GhostNote, Tuplet, Voice, Formatter, Beam, Accidental, StaveConnector, Barline, TimeSignature, Curve, StaveLine, StaveTie } from 'vexflow';
+
+// Harmonic/parenthesized labels are wider than their numeric fret alone.
+const tabArpeggioInset=event=>6+5*Math.max(...(event.tones??[event]).map(t=>String(t.fret??'x').length+(t.harmonic?2:0)+(t.parenthesized?2:0)));
 
 // Leave a little breathing room between vertically stacked fret numbers.
 const TAB_LINE_SPACING = 16;
@@ -132,8 +136,9 @@ function prepareMeasure(measure, etude) {
     });
     measure.forEach((n,i)=>{if(n.dotted&&!isBlankEvent(n))Dot.buildAndAttach([notes[i]],{all:true});});
     const tuplets=tupletGroups(measure).map(group=>{
-      new Tuplet(group.map(i=>tabs[i]),{num_notes:3,notes_occupied:2});
-      const tuplet=new EditableTuplet(group.map(i=>notes[i]),{num_notes:3,notes_occupied:2,bracketed:true,ratioed:false});
+      const ratio=measure[group[0]].tuplet;
+      new Tuplet(group.map(i=>tabs[i]),{num_notes:ratio.actualNotes,notes_occupied:ratio.normalNotes});
+      const tuplet=new EditableTuplet(group.map(i=>notes[i]),{num_notes:ratio.actualNotes,notes_occupied:ratio.normalNotes,bracketed:true,ratioed:false});
       return {tuplet, visible:group.some(i=>!isBlankEvent(measure[i]))};
     });
     const groups=[...new Set(measure.map(n=>n.voice))].map(name=>measure.flatMap((n,i)=>n.voice===name?[i]:[]));
@@ -388,14 +393,15 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       }
     }
     if(etude.accompaniment && first&&!charts[index]?.length) context.setFont('Arial',13,'italic').fillText('let ring',x+150,(view==='tab'?tab:stave).getYForLine(0)-18-headroom);
-    // Lift each system's first number above the bracket's curled top.
+    // Lift each system's first number only when the staff is visible.
+    // TAB-only views have no staff clef/bracket to clear.
     // Other measure numbers sit directly above the barline that starts them.
     const measureNumberX = x;
     const measureNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     measureNumber.textContent = String(index + barOffset + 1);
     measureNumber.setAttribute('class', 'etudeMeasureNumber');
     measureNumber.setAttribute('x', String(measureNumberX));
-    measureNumber.setAttribute('y', String((view==='tab'?tab:stave).getYForLine(0) - (first?24:4)));
+    measureNumber.setAttribute('y', String((view==='tab'?tab:stave).getYForLine(0) - (first&&view!=='tab'?24:4)));
     measureNumber.style.cssText='font:400 10px Arial,sans-serif;fill:#999;stroke:none';
     measureNumber.setAttribute('text-anchor', 'middle');
     element.querySelector('svg').style.overflow='visible';
@@ -405,13 +411,13 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       for(const change of changes){
        const group=context.openGroup('etudeHarmonyLabel');
        group.dataset.scoreBar=String(index);group.dataset.scoreAnnotation='harmony';group.dataset.annotationBar=String(index+barOffset);group.dataset.harmonyOnset=String(change.onset);
-       const top=(view==='tab'?tab:stave).getYForLine(0),label=change.name;
+       const top=(view==='tab'?tab:stave).getYForLine(0),label=compactChordLabel(change.name);
        const lines=changes.length===1?(etude.harmony?.[index]?harmonyLines[index]:[label]):[label];
        group.dataset.harmonyText=label;
        const text=document.createElementNS('http://www.w3.org/2000/svg','text');
        text.style.cssText='font:bold 14px Arial;fill:#111;stroke:none';
        const at=measure.findIndex(e=>e.onset===change.onset);
-       const labelX=changes.length===1?x+35:start+geometry.inset+(geometry.positions?.[at]??change.onset*geometry.tickScale);
+       const labelX=changes.length===1&&change.onset===0?x+35:start+geometry.inset+(geometry.positions?.[at]??change.onset*geometry.tickScale);
        lines.forEach((line,i)=>{const span=document.createElementNS(text.namespaceURI,'tspan');span.setAttribute('x',String(labelX));span.setAttribute('y',String(top-24-(view==='tab'?0:headroom+upperSpace)-(lines.length-1-i)*18));span.textContent=line+(i<lines.length-1?' ':'');text.append(span);});
        group.append(text);context.closeGroup();
       }
@@ -455,7 +461,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     for(const list of [notes,tabs])list.forEach((note,i)=>{const node=noteElement(note);if(node){node.dataset.scoreBar=index;node.dataset.scoreEvent=i;node.dataset.rhythmEvents=index+':'+i;node.dataset.rhythmRole='note';if(list===notes&&measure[i].rhythmSlash)node.dataset.rhythmSlash='true';if(list===tabs&&!measure[i].rest)node.dataset.rhythmTouch='tab';}});
     measure.forEach((event,i)=>{
       const px=tabs[i].getAbsoluteX(),py=tabPickingPosition==='above'?tab.getYForLine(0)-(tabRhythm&&tabBeamPosition==='above'?((measure.some(e=>e.tuplet)?70:48)+2*(TAB_LINE_SPACING-13)):(measure.some(e=>e.palmMute)?36:14)):tab.getYForLine(stringCount-1)+(tabRhythm&&tabBeamPosition!=='above'?((measure.some(e=>e.tuplet)?72:56)+2*(TAB_LINE_SPACING-13)):25),svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
-      const text=[event.pickStroke==='down'?'Π':event.pickStroke==='up'?'V':'',...(event.tones??[event]).map(n=>[!etude.chordShapes?.[index]&&n.finger?`L${n.finger}`:'',n.rightFinger??''].filter(Boolean).join('/'))].filter(Boolean).join(' ');
+      const text=event.pickStroke==='down'?'Π':event.pickStroke==='up'?'V':'';
       if(text){const pickGroup=context.openGroup('fretiva-tab-view');pickGroup.setAttribute('data-picking-position',tabPickingPosition);const label=document.createElementNS(ns,'text');Object.entries({x:tabs[i].getStemX(),y:py+(tabPickingPosition==='below'&&measure.some(e=>e.technique==='H'||e.technique==='P')?12:0),'text-anchor':'middle',class:'tabPickingLabel'}).forEach(([k,v])=>label.setAttribute(k,String(v)));label.style.cssText='font:600 11px Arial,sans-serif;fill:#111;stroke:#111;stroke-width:.15;paint-order:stroke fill';label.textContent=text;label.dataset.rhythmEvents=index+':'+i;label.dataset.rhythmRole='picking';pickGroup.append(label);context.closeGroup();}
       if(editor&&event.pickStroke){const hit=document.createElementNS(ns,'rect');Object.entries({x:px-10,y:py-17,width:24,height:26,class:'etudeEditorHit etudePickHit fretiva-tab-view','data-event':i,'data-string':(event.tones??[event])[0].string,'data-mode':'tab','data-cursor-x':px-12,'data-cursor-y':py-17,fill:'transparent'}).forEach(([k,v])=>hit.setAttribute(k,v));svg.append(hit);}
     });
@@ -475,7 +481,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       const svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg',x=tabs[i].getStemX(),ys=(event.tones??[event]).map(t=>tab.getYForLine(t.string-1)),top=Math.min(...ys),bottom=Math.max(...ys);
       const path=(d,kind)=>{const node=document.createElementNS(ns,'path');Object.entries({d,fill:'none',stroke:'#171717','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-linecap':'round',class:`fretiva-tab-view ${kind}`,'pointer-events':'none'}).forEach(([k,v])=>node.setAttribute(k,v));node.dataset.rhythmEvents=index+':'+i;svg.append(node);};
       if(event.vibrato){let d=`M ${x-7} ${top-(event.palmMute&&ys.includes(tab.getYForLine(0))?36:15)}`;for(let n=0;n<3;n++)d+=' q 1.5 -2 3 0 q 1.5 2 3 0';path(d,'tabVibrato');}
-      if(event.arpeggio&&ys.length>1){const digits=Math.max(...(event.tones??[event]).map(t=>String(t.fret??'x').length)),ax=x-(digits>1?16:11);let d=`M ${ax} ${top-5}`;for(let y=top-5;y<bottom+5;y+=8)d+=' q -4 2 0 4 q 4 2 0 4';path(d,'tabArpeggio');const ay=event.arpeggio==='up'?top-8:bottom+10,sign=event.arpeggio==='up'?1:-1;path(`M ${ax-4} ${ay+sign*5} L ${ax} ${ay} L ${ax+4} ${ay+sign*5}`,'tabArpeggioArrow');}
+      if(event.arpeggio&&ys.length>1){const ax=x-tabArpeggioInset(event);let d=`M ${ax} ${top-5}`;for(let y=top-5;y<bottom+5;y+=8)d+=' q -4 2 0 4 q 4 2 0 4';path(d,'tabArpeggio');const ay=event.arpeggio==='up'?top-8:bottom+10,sign=event.arpeggio==='up'?1:-1;path(`M ${ax-4} ${ay+sign*5} L ${ax} ${ay} L ${ax+4} ${ay+sign*5}`,'tabArpeggioArrow');}
     });
     const palmMuteObstacles=drawPalmMute(element.querySelector('svg'),measure,view==='staff'?notes:tabs,view==='staff'?stave:tab,{staff:view==='staff',headroom,tabRhythm,bar:index});
     const expressionObstacles=[...drawExtendedTechniques(element.querySelector('svg'),measure,tabs,tab,{tab:true,bar:index,right:x+w}),...drawExtendedTechniques(element.querySelector('svg'),measure,notes,stave,{tab:false,bar:index,right:x+w})];
@@ -540,6 +546,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       const geometry=document.createElementNS('http://www.w3.org/2000/svg','g');
       geometry.dataset.playbackBar=String(index);geometry.dataset.left=String(x);geometry.dataset.width=String(w);
       geometry.dataset.row=String(placement.row);
+      if(lines.pageBreaks?.includes(etude.document?.measures[index]?.id))geometry.dataset.sourcePageBreak='true';
       // Follow the full engraved system, including chord names and upper annotations.
       geometry.dataset.rowTop=String(rowTop);geometry.dataset.rowBottom=String(rowTop+rowHeight);
       geometry.dataset.top=String((view==='tab'?tab:stave).getYForLine(0)-12-headroom);
@@ -635,7 +642,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   // visible notation; blank slots and the hidden staff do not reserve space.
   for(const item of navigation){
     const {notes,tabs,measure,beams,tuplets,top,x,first,start,measureNumberX}=item;
-    const obstacles=[...(item.palmMuteObstacles??[]),{x:measureNumberX-8,y:top-(first?36:24),width:16,height:14}];
+    const obstacles=[...(item.palmMuteObstacles??[]),{x:measureNumberX-8,y:top-(first&&view!=='tab'?36:24),width:16,height:14}];
     if(view==='tab')for(const node of svg.querySelectorAll(`.etudeTabRhythm[data-score-bar="${item.index-barOffset}"]>*,.tabRests[data-score-bar="${item.index-barOffset}"]>*,.tabPickingLabel[data-rhythm-events^="${item.index-barOffset}:"],.vf-scoreTieConnection[data-rhythm-events^="${item.index-barOffset}:"] .vf-fretiva-tab-view path`)){
       const b=node.getBBox(),matrix=svg.getScreenCTM().inverse().multiply(node.getScreenCTM());
       const a=new DOMPoint(b.x,b.y).matrixTransform(matrix),z=new DOMPoint(b.x+b.width,b.y+b.height).matrixTransform(matrix);
@@ -649,7 +656,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
         const ys=tabs[i].getYs(),left=tabs[i].getAbsoluteX();
         obstacles.push({x:left,y:Math.min(...ys)-11,width:tabs[i].getGlyphWidth(),height:Math.max(...ys)-Math.min(...ys)+22});
         if(event.vibrato)obstacles.push({x:left-8,y:Math.min(...ys)-22,width:32,height:18});
-        if(event.arpeggio){const digits=Math.max(...(event.tones??[event]).map(t=>String(t.fret??'x').length));obstacles.push({x:tabs[i].getStemX()-(digits>1?20:15),y:Math.min(...ys)-14,width:8,height:Math.max(...ys)-Math.min(...ys)+28});}
+        if(event.arpeggio)obstacles.push({x:tabs[i].getStemX()-tabArpeggioInset(event)-4,y:Math.min(...ys)-14,width:8,height:Math.max(...ys)-Math.min(...ys)+28});
         if(event.technique&&tabs[i+1])obstacles.push({x:left,y:top-25,width:tabs[i+1].getAbsoluteX()-left+15,height:23});
       }else{
         const b=notes[i].getBoundingBox(),hasAccidental=notes[i].getModifiers().some(m=>m.getCategory()==='Accidental'),y=hasAccidental?Math.min(b.getY()-3,Math.min(...notes[i].getYs())-16):b.getY()-3;obstacles.push({x:b.getX(),y,width:b.getW(),height:b.getY()+b.getH()+3-y});
@@ -726,7 +733,8 @@ export function renderCachedScore(element, etude, options = {}) {
 
 function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false,paginatedDesktop=false,paginatedMobile=false,pageHeader,pageFooter }) {
   const language=useLanguage();
-  const rhythmStates=useMemo(()=>rhythmTimeline(practiceRange?{...etude,practiceRange}:etude),[etude,practiceRange]);
+  const route=playPosition?.route;
+  const rhythmStates=useMemo(()=>rhythmTimeline(practiceRange?{...etude,practiceRange}:etude,route),[etude,practiceRange,route]);
   const ref = useRef(null);
   const positionRef=useRef(playPosition);positionRef.current=playPosition;
   const drawPositionRef=useRef(null);

@@ -7,6 +7,7 @@ test('practice-only changes preserve the PDF bytes without exporting rehearsal m
  const blob=new Blob(['%PDF-test'],{type:'application/pdf'});
  const record={title:'Example.pdf',bpm:120,barMap:[{number:1}],practiceOrder:[1,1],pageEdits:{1:{crop:null,notes:[],cuts:[],strokes:[]}}};
  assert.equal(await exportEditedPdf(record,blob),blob);
+ assert.equal(await exportEditedPdf({...record,repeatSettings:{mode:'range',start:1,end:1,marks:{}}},blob),blob);
  assert.equal(pdfExportFilename(record.title),'Example.pdf');
  assert.equal(hasPdfPageEdits(null),false);
  assert.equal(hasPdfPageEdits({1:{margins:{top:0,right:0,bottom:0,left:0}}}),false);

@@ -1,0 +1,293 @@
+{
+  "description": "Independent randomized ReportLab engravings. No personal score data; these counts are lower bounds, not claims about arbitrary input accuracy.",
+  "cases": [
+    {
+      "id": "mixed-431-native",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-431-scan",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-431-blur",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-431-tilt",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-432-native",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 49,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-432-scan",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 48,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-432-blur",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 42,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-432-tilt",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-433-native",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 51,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-433-scan",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 51,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-433-blur",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 46,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-433-tilt",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 51,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-434-native",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-434-scan",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-434-blur",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-434-tilt",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-731-native",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-731-scan",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-731-blur",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-731-tilt",
+      "expectedNotes": 45,
+      "expectedBars": 5,
+      "correct": 45,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-732-native",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 49,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-732-scan",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 48,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-732-blur",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 44,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-732-tilt",
+      "expectedNotes": 49,
+      "expectedBars": 5,
+      "correct": 46,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-733-native",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 51,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-733-scan",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 51,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-733-blur",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 49,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-733-tilt",
+      "expectedNotes": 51,
+      "expectedBars": 5,
+      "correct": 51,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-734-native",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-734-scan",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-734-blur",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    },
+    {
+      "id": "mixed-734-tilt",
+      "expectedNotes": 50,
+      "expectedBars": 5,
+      "correct": 50,
+      "exactRhythmBars": 5,
+      "detectedBars": 5,
+      "wrong": 0
+    }
+  ]
+}

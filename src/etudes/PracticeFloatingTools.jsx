@@ -5,11 +5,12 @@ import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {BackingLoopDragContext,BackingLoopFoldContext} from '../components/BackingLoopDragContext.js';
 import PracticePopover from './PracticePopover.jsx';
+import DesktopPracticeDock from './DesktopPracticeDock.jsx';
 import PracticeCountInControl from './PracticeCountInControl.jsx';
 import {createPortal} from 'react-dom';
 import PracticeBeatDots from './PracticeBeatDots.jsx';
 import {useEffect,useLayoutEffect,useRef,useState,useCallback} from 'react';
-import {GripHorizontal, Settings2, Play, Pause, Square, AudioLines, X, ChevronLeft, ChevronRight, Timer, Volume2, VolumeX, Music2} from 'lucide-react';
+import {Menu, GripHorizontal, Settings2, Play, Pause, Square, AudioLines, X, ChevronLeft, ChevronRight, Timer, Volume2, VolumeX, Music2} from 'lucide-react';
 import BackingLoop from '../components/BackingLoop.jsx';
 import MetronomeSettingsPanel from '../components/MetronomeSettingsPanel.jsx';
 import MetronomeVolumeControl from '../components/MetronomeVolumeControl.jsx';
@@ -22,10 +23,15 @@ import './practiceLayout.css';
 // Only handles capture pointers; the score and all controls retain native gestures.
 function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bottomPinned=false,initialPosition=null,defaultPosition=null,movableBottom=false,safeBottom=0,enabled=true) {
   const tablet=useTabletLayout();
+  const bottomAnchored=bottomPinned&&movableBottom&&!tablet;
+  // Store the user's distance from the bottom, never a clamped screen Y.
+  // Safari changes visualViewport.height while its address bar scrolls away.
+  const bottomGap=useRef(null);
+  if(bottomGap.current===null){try{bottomGap.current=Math.max(0,Number(localStorage.getItem(key+'-bottom-gap'))||0);}catch{bottomGap.current=0;}}
   const ref=useRef(null), gesture=useRef(null), moved=useRef(false);
   useEffect(()=>()=>{if(gesture.current?.frame)cancelAnimationFrame(gesture.current.frame);},[]);
   const [position,setPosition]=useState(()=>{if(initialPosition)return initialPosition;try{const p=JSON.parse(localStorage.getItem(key));return Number.isFinite(p?.x)&&Number.isFinite(p?.y)?p:defaultPosition;}catch{return defaultPosition;}});
-  const clamp=p=>{
+  const clamp=(p,viewportUpdate=false)=>{
     const viewport=window.visualViewport, left=viewport?.offsetLeft??0,top=viewport?.offsetTop??0;
     const width=viewport?.width??innerWidth,height=viewport?.height??innerHeight;
     const sidebar=document.documentElement.dataset.rifflabLayout==='desktop'&&!document.fullscreenElement?document.querySelector('.desktopSidebar')?.getBoundingClientRect():null;
@@ -46,6 +52,7 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
         ?Math.max(left+8,Math.min(p?.x??centerX,Math.max(left+8,left+width-panelWidth-8)))
         :centerX;
       next.y=movableBottom?Math.max(top+12,Math.min(p?.y??maxY,maxY)):maxY;
+      if(bottomAnchored&&viewportUpdate)next.y=Math.max(top+12,maxY-bottomGap.current);
     }
     const toolbar=document.querySelector('.etudePracticeLayout.is-focus .etudeViewTools')?.getBoundingClientRect();
     if(!edge&&toolbar&&next.x<toolbar.right+8&&next.x+(rect?.width??290)>toolbar.left&&next.y<toolbar.bottom+8)next.y=Math.min(maxY,toolbar.bottom+8);
@@ -55,14 +62,15 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
   useLayoutEffect(()=>{
     if(!enabled||!ref.current)return;
     // Activity may detach the ref before React evaluates a queued resize update.
-    const update=()=>ref.current&&!dock&&setPosition(p=>{if(!ref.current)return p;const n=clamp(p);return p?.x===n.x&&p?.y===n.y?p:n;});
+    const update=()=>ref.current&&!dock&&setPosition(p=>{if(!ref.current)return p;const n=clamp(p,true);return p?.x===n.x&&p?.y===n.y?p:n;});
     update();const observer=new ResizeObserver(update);observer.observe(ref.current);
     window.addEventListener('resize',update);window.visualViewport?.addEventListener('resize',update);window.visualViewport?.addEventListener('scroll',update);
     return()=>{observer.disconnect();window.removeEventListener('resize',update);window.visualViewport?.removeEventListener('resize',update);window.visualViewport?.removeEventListener('scroll',update);};
   },[avoidPanel,dock,bottomPinned,movableBottom,safeBottom,enabled,tablet]);
 
-  useEffect(()=>{if(position&&(!bottomPinned||movableBottom))try{localStorage.setItem(key,JSON.stringify(position));}catch{}},[key,position,bottomPinned,movableBottom]);
-  const finish=e=>{const g=gesture.current;if(g?.frame)cancelAnimationFrame(g.frame);if(g?.next){ref.current.style.translate='';setPosition(g.next);}const capture=g?.capture;gesture.current=null;if(capture?.hasPointerCapture(e.pointerId))capture.releasePointerCapture(e.pointerId);};
+  useEffect(()=>{if(position&&!bottomAnchored&&(!bottomPinned||movableBottom))try{localStorage.setItem(key,JSON.stringify(position));}catch{}},[key,position,bottomPinned,movableBottom,bottomAnchored]);
+  const rememberBottom=p=>{if(bottomAnchored){bottomGap.current=Math.max(0,clamp(null).y-p.y);try{localStorage.setItem(key+'-bottom-gap',String(bottomGap.current));}catch{}}};
+  const finish=e=>{const g=gesture.current;if(g?.frame)cancelAnimationFrame(g.frame);if(g?.next){ref.current.style.translate='';rememberBottom(g.next);setPosition(g.next);}const capture=g?.capture;gesture.current=null;if(capture?.hasPointerCapture(e.pointerId))capture.releasePointerCapture(e.pointerId);};
   return {ref,style:{left:position?.x??8,top:position?.y??100},handle:{
     onPointerDown:e=>{if(e.button!==0||gesture.current)return;
       // A selection can span the score and both floating panels. Cancel the
@@ -79,7 +87,7 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
     onLostPointerCapture:finish,
     onPointerUp:finish,onPointerCancel:e=>{moved.current=true;finish(e);},
     onClickCapture:e=>{if(moved.current&&e.detail!==0){e.preventDefault();e.stopPropagation();}moved.current=false;},
-    onKeyDown:e=>{const delta={ArrowLeft:[-16,0],ArrowRight:[16,0],ArrowUp:[0,-16],ArrowDown:[0,16]}[e.key];if(delta){e.preventDefault();e.stopPropagation();setPosition(p=>clamp({x:p.x+(edge?0:delta[0]),y:p.y+delta[1]}));}},
+    onKeyDown:e=>{const delta={ArrowLeft:[-16,0],ArrowRight:[16,0],ArrowUp:[0,-16],ArrowDown:[0,16]}[e.key];if(delta){e.preventDefault();e.stopPropagation();const next=clamp({x:position.x+(edge?0:delta[0]),y:position.y+delta[1]});rememberBottom(next);setPosition(next);}},
   }};
 }
 
@@ -107,7 +115,7 @@ function FloatingMetronome({model,panelOpen,onHeight}) {
 function EtudeRemote({controls:c,model,mobile,onHeight,fixed=false}){
   useLanguage();
  const tablet=useTabletLayout();
- const dock=Boolean(model.layout.focus&&model.layout.viewport.width>model.layout.viewport.height&&model.hudTarget);
+ const dock=Boolean(!tablet&&model.layout.focus&&model.layout.viewport.width>model.layout.viewport.height&&model.hudTarget);
  const tabletPanel=tablet&&mobile&&!dock;
  const floating=useFloatingPosition(mobile?'riff-etude-remote-mobile-position':'riff-etude-remote-position',false,false,dock||tabletPanel,mobile&&!dock,null,null,mobile);
  const settingsButton=useRef(null),bpmButton=useRef(null),volumeButton=useRef(null),[popup,setPopup]=useState(null);
@@ -117,6 +125,7 @@ function EtudeRemote({controls:c,model,mobile,onHeight,fixed=false}){
  const remote=<section {...panelDrag} ref={floating.ref} style={dock||tabletPanel?undefined:floating.style} className={"etudeFloatingMetro etudeSessionWidget etudeRemote"+(mobile?"":" etudeRemote--desktop")+(dock?" etudeHudRemote":mobile?" etudeRemote--mobileBottom":"")+(tabletPanel?" etudeRemote--tabletPanel":"")} aria-label={translateUi("etudes.scoreMetronome")}>
  <div className="etudeRemoteBeats" {...(!dock&&!tabletPanel?{onKeyDown:floating.handle.onKeyDown,tabIndex:0,role:"group","aria-label":ko["etudes.moveMetronomeDragOrUseArrowKeys"]}:{})}><PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/>{c.countingIn?<span className="practiceCountInStatus" role="status"><Translation id="pdf.countIn"/></span>:model.followMode!=='off'&&<span className="practiceCurrentBar" aria-label={translateUi("etudes.elapsedBars")}>{(model.playPosition?.bar??model.startBar??0)+1}/{model.selected?.measures.length??1}<Translation id="app.bar" /></span>}<span>{c.meter.join('/')}</span>{!fixed&&<button type="button" aria-label={translateUi("etudes.closeMetronome")} onClick={model.minimizeMetro}><X aria-hidden="true"/></button>}</div>
  <div className={"etudeRemoteControls"+(mobile?" etudeRemoteControls--scoreSound":"")}><button type="button" ref={bpmButton} className="etudeRemoteBpm" aria-label={'BPM '+c.bpm+translateUi("etudes.adjustment")} aria-expanded={popup==='bpm'} onClick={()=>setPopup(p=>p==='bpm'?null:'bpm')}><strong>{c.bpm}</strong><small><Translation id="originalUi.bpm" /></small></button><button type="button" className="etudePracticeStart" aria-label={c.playing?translateUi("app.pause"):c.paused?translateUi("etudes.resumePractice"):translateUi("app.startPractice")} disabled={c.disabled} onClick={c.playing?c.onPause:c.paused?c.onResume:c.onStart}>{c.playing?<Pause/>:<Play/>}</button><button type="button" className="etudePracticeStop" aria-label={translateUi("app.stopApp")} disabled={!c.playing&&!c.paused} onClick={c.onStop}><Square/></button><button type="button" ref={volumeButton} aria-label={translateUi("components.metronomeVolume")} aria-expanded={popup==='volume'} onClick={()=>setPopup(p=>p==='volume'?null:'volume')}>{c.click?<Volume2/>:<VolumeX/>}</button><button type="button" className="etudeRemoteScoreSound" aria-label={translateUi("etudes.scoreSound")} title={translateUi("etudes.scoreSound")} aria-pressed={Boolean(c.sound&&model.followMode!=='off')} disabled={model.pdfMode||model.followMode==='off'} onClick={c.onSound}><Music2 size={17} aria-hidden="true"/>{!mobile&&<span className="etudeRemoteScoreSoundLabel"><Translation id="etudes.scoreSound" /></span>}<span className="etudeRemoteScoreSoundState">{c.sound&&model.followMode!=='off'?'ON':'OFF'}</span></button><button type="button" ref={settingsButton} aria-label={translateUi("etudes.detailedMetronomeSettings")} aria-expanded={popup==='settings'} onClick={()=>setPopup(p=>p==='settings'?null:'settings')}><Settings2/></button></div>
+ {tabletPanel&&<button type="button" className="tabletPracticeAppMenu" aria-label={translateUi("app.openMenu")} onClick={model.onOpenMenu}><Menu/><span><Translation id="app.menu"/></span></button>}
  {popup&&<PracticePopover anchor={popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton} onClose={close} width={popup==='volume'?94:330} label={popup==='settings'?translateUi("etudes.metronomeSettings"):popup==='volume'?translateUi("components.metronomeVolume"):translateUi("etudes.adjustBpm")}>{popup==='volume'?<div className="etudeVerticalVolume"><MetronomeVolumeControl className="etudeVerticalVolumeControl" label={translateUi("audioStudio.volume")}/><button type="button" aria-label={translateUi("etudes.muteClick")} aria-pressed={!c.click} onClick={c.onClickSound}>{c.click?<Volume2 aria-hidden="true"/>:<VolumeX aria-hidden="true"/>}</button></div>:popup==='bpm'?<><label><Translation id="etudes.practiceBpm" /><input type="number" aria-label={translateUi("etudes.practiceBpm")} min="30" max="240" value={c.bpm} onChange={e=>c.onBpm(e.target.value)}/></label><div className="etudeTempoQuick">{[-10,-1,1,10].map(d=><button type="button" key={d} onClick={()=>c.onBpm(c.bpm+d)}>{d>0?'+':''}{d}</button>)}</div></>:<><MetronomeSettingsPanel renderOption={o=>o?.label??o?.longLabel??''} fields={[
  {id:'meter',label:ko["app.meter"],value:c.meter.join('/'),disabled:!model.setMeterOverride,options:TIME_SIGNATURE_OPTIONS,onChange:v=>model.setMeterOverride?.(v.split('/').map(Number))},
  {id:'subdivision',label:ko["app.subdivision"],value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
@@ -206,10 +215,12 @@ export function PracticeBackingPanel({mobile,scope='etude',open:controlledOpen,o
 }
 export default function PracticeFloatingTools({model,mobile,practiceControls}) {
  const [localOpen,setLocalOpen]=useState(false),[metroHeight,setMetroHeight]=useState(150);
- const fixedMetro=Boolean(mobile&&model.layout.focus&&model.layout.viewport.landscape);
+ const tablet=useTabletLayout();
+ const fixedMetro=Boolean(tablet||mobile&&model.layout.focus&&model.layout.viewport.landscape);
  const toolsVisible=fixedMetro||model.toolsVisible;
  const open=practiceControls?model.backingOpen:localOpen;
  const setOpen=value=>{if(practiceControls){model.setBackingOpen(value);if(value)model.setTipsOpen(false);}else setLocalOpen(value);};
+ if(!mobile&&practiceControls)return model.desktopDockTarget?createPortal(<DesktopPracticeDock model={model} controls={practiceControls}/>,model.desktopDockTarget):null;
  return <>{practiceControls&&!fixedMetro&&model.metroMinimized&&!toolsVisible&&<div className="etudeFloatingTheme"><MovableEdgeTab scope={model.scope??'etude'} kind="metro" playing={practiceControls.playing} onOpen={()=>{model.setMetroMinimized(false);model.setToolsVisible(true);}}/></div>}{practiceControls?(toolsVisible&&(model.compactTools?<EtudeRemote controls={practiceControls} model={model} mobile={mobile} fixed={fixedMetro} onHeight={setMetroHeight}/>:<FloatingPractice controls={practiceControls} model={model} panelOpen={open} onHeight={setMetroHeight}/>)):<FloatingMetronome model={model} panelOpen={open} onHeight={setMetroHeight}/>}<PracticeBackingPanel mobile={mobile} scope={model.scope??'etude'} triggerTarget={practiceControls?model.backingTarget:null} open={open} onOpenChange={setOpen} clearance={practiceControls&&!toolsVisible?0:metroHeight}/></>;
 }
 
@@ -233,3 +244,5 @@ function PracticeRepeatControls({model}){
   </div>
  </fieldset>;
 }
+
+import './tabletPracticeDock.css';

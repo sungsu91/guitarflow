@@ -1,0 +1,9 @@
+.desktopGuitarArrangement{width:min(780px,calc(100vw - 48px));max-height:calc(100dvh - 48px);border:1px solid #d6cbbd;border-radius:16px;padding:0;background:#faf8f4;color:#352e26;box-shadow:0 22px 70px #0004}
+.desktopGuitarArrangement::backdrop{background:#18151077}
+.desktopGuitarArrangement[open]{display:flex;flex-direction:column}
+.desktopGuitarArrangement header,.desktopGuitarArrangement footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;flex-shrink:0}
+.desktopGuitarArrangement h2{margin:5px 0}.desktopGuitarArrangement main{overflow:auto;padding:0 24px 18px;min-height:0}
+.desktopGuitarArrangement fieldset{border:1px solid #d6cbbd;border-radius:9px;margin:18px 0;padding:14px}.desktopGuitarArrangement label{display:block;margin:8px 0}.desktopGuitarArrangement select,.desktopGuitarArrangement input[type=number]{display:block;box-sizing:border-box;width:100%;padding:9px;margin-top:5px}
+.desktopArrangementFields{display:grid;grid-template-columns:1fr 1fr;gap:16px}.desktopArrangementLimits{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.desktopGuitarArrangement button{padding:10px 16px;min-height:42px}.desktopGuitarArrangement footer{border-top:1px solid #d6cbbd;justify-content:flex-end}.desktopGuitarArrangement p,.desktopGuitarArrangement li{line-height:1.6}.desktopGuitarArrangement [role=alert]{color:#a33122}
+.etudeEditor .desktopGuitarArrangement label:has(input[type=radio]),.etudeEditor .desktopGuitarArrangement label:has(input[type=checkbox]){display:flex;flex-direction:row;align-items:center;gap:10px;min-height:36px}
+.etudeEditor .desktopGuitarArrangement input[type=radio],.etudeEditor .desktopGuitarArrangement input[type=checkbox]{display:inline-block;flex:0 0 18px;width:18px;height:18px;min-height:18px;padding:0;margin:0;box-shadow:none;accent-color:#70543c}

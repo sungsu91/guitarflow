@@ -1,5 +1,5 @@
 import {useLayoutEffect,useRef,useState} from 'react';
-import {ArrowUpToLine,ChevronLeft,ChevronRight} from 'lucide-react';
+import {ChevronsLeft,ChevronLeft,ChevronRight,ChevronsRight} from 'lucide-react';
 import {useLanguage} from '../i18n/react.jsx';
 import './mobileScorePages.css';
 
@@ -55,8 +55,10 @@ export default function MobileScorePageNav({root,revision,onNavigate,scoreId}) {
   view.scrollTo({top:0,behavior:view.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
  };
  return <nav ref={nav} className="mobileScorePageNav" aria-label={label('악보 페이지 이동','Score page navigation')}>
+  <button type="button" aria-label={label('페이지 처음으로','Back to first page')} title={label('페이지 처음으로','Back to first page')} disabled={!count} onClick={first}><ChevronsLeft size={18} aria-hidden="true"/></button>
   <button type="button" aria-label={label('이전 악보 페이지','Previous score page')} disabled={current<=1} onClick={()=>move(-1)}><ChevronLeft size={18}/></button>
-  <div className="mobileScorePagePosition"><output aria-label={label('현재 악보 페이지','Current score page')}>{current} / {Math.max(1,count)}<small>{label('페이지','pages')}</small></output><button className="mobileScoreFirstPage" type="button" aria-label={label('페이지 처음으로','Back to first page')} title={label('페이지 처음으로','Back to first page')} disabled={!count} onClick={first}><ArrowUpToLine size={17} aria-hidden="true"/></button></div>
+  <output aria-label={label('현재 악보 페이지','Current score page')}>{current} / {Math.max(1,count)}</output>
   <button type="button" aria-label={label('다음 악보 페이지','Next score page')} disabled={!count||current>=count} onClick={()=>move(1)}><ChevronRight size={18}/></button>
+  <button type="button" aria-label={label('페이지 마지막으로','Go to last page')} title={label('페이지 마지막으로','Go to last page')} disabled={!count||current>=count} onClick={()=>{onNavigate?.();scrollToPage(count-1);}}><ChevronsRight size={18} aria-hidden="true"/></button>
  </nav>;
 }

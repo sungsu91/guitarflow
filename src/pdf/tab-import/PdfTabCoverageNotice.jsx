@@ -1,4 +1,5 @@
 import {t} from '../../i18n/core.js';
-export default function PdfTabCoverageNotice({summary}){
-  return <>{Boolean(summary?.pagesWithoutTab?.length)&&<p className="pdfTabCoverageNotice" role="status">{t('editor.pdfMissingPages',{value1:summary.pagesWithoutTab.join(', ')})}</p>}{Boolean(summary?.barCountMismatches?.length)&&<p className="pdfTabCoverageNotice" role="status">{t('editor.sourceBarCountReview',{value1:summary.barCountMismatches.map(m=>`${m.page} / ${m.staff}`).join(', ')})}</p>}</>;
+export default function PdfTabCoverageNotice({summary,showPhotoRecovery=false}){
+  const incomplete=summary?.incompletePhotoPages??[];
+  return <>{Boolean(incomplete.length)&&<p className="pdfTabCoverageNotice" role="alert">{t('editor.photoIncompleteRecovery',{value1:incomplete.map(p=>p.page).join(', ')})}</p>}{Boolean(summary?.pagesWithoutTab?.length)&&<p className="pdfTabCoverageNotice" role="status">{t('editor.pdfMissingPages',{value1:summary.pagesWithoutTab.join(', ')})}</p>}{Boolean(summary?.barCountMismatches?.length)&&<p className="pdfTabCoverageNotice" role="status">{t('editor.sourceBarCountReview',{value1:summary.barCountMismatches.map(m=>`${m.page} / ${m.staff}`).join(', ')})}</p>}{showPhotoRecovery&&Boolean(summary?.correctedPhotoPages?.length)&&<p className="notationReviewNotice">{t('editor.photoRecoveryReview')}</p>}</>;
 }

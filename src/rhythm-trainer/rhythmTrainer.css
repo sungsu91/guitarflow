@@ -186,12 +186,12 @@ html body:has(.app:is(.theme-brand,.theme-dark) .rt-workspace) .rt-overlay .rt-o
 }
 .rt-preset-groups { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
 .rt-preset-groups button { flex: 1 0 auto; padding: 7px 8px; font-size: 11px; }
-html body .rt-dialog .rt-preset-groups button[aria-selected="true"] { background: #526479; border-color: #91a4b9; color: #fff; }
+html body :is(.rt-dialog,.rt-beat-editor) .rt-preset-groups button[aria-selected="true"] { background: #526479; border-color: #91a4b9; color: #fff; }
 .rt-beat-presets button span { display: block; padding: 0 7px 8px; font-size: 10px; line-height: 1.5; }
 .rt-beat-presets { max-height: 250px; overflow-y: auto; }
 .rt-tie-option { font-size: 12px; }
 /* Presets are notation cards, not the app's horizontal icon/text buttons. */
-html body .rt-dialog .rt-beat-presets > button {
+html body :is(.rt-dialog,.rt-beat-editor) .rt-beat-presets > button {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -200,9 +200,9 @@ html body .rt-dialog .rt-beat-presets > button {
   min-width: 0;
   padding: 0;
 }
-.rt-dialog .rt-beat-presets .rt-preview { width: 100%; flex: none; }
-.rt-dialog .rt-beat-presets .rt-measure { width: 100%; height: 58px; }
-.rt-dialog .rt-beat-presets button span { white-space: normal; text-align: center; }
+:is(.rt-dialog,.rt-beat-editor) .rt-beat-presets .rt-preview { width: 100%; flex: none; }
+:is(.rt-dialog,.rt-beat-editor) .rt-beat-presets .rt-measure { width: 100%; height: 58px; }
+:is(.rt-dialog,.rt-beat-editor) .rt-beat-presets button span { white-space: normal; text-align: center; }
 .rt-library-filters { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px 16px 4px; }
 .rt-library-filters label { display:flex; flex-direction:column; gap:5px; font-size:11px; color:var(--rt-muted); }
 .rt-library-filters select { width:100%; min-width:0; padding:8px; border:1px solid var(--rt-border); border-radius:7px; background:var(--rt-bg); color:var(--rt-text); font:inherit; }
@@ -424,5 +424,16 @@ html body .app .rt-workspace .rt-pack-favorite[aria-pressed="true"] {color:#b779
 .rt-meter-context{display:block;flex:none;padding:2px 10px 5px;color:var(--rt-muted);font-size:11px;line-height:1.4;}
 .rt-note-actions { border-top:1px solid var(--rt-border); margin-top:12px; padding-top:4px; }
 .rt-note-actions > div { display:flex; flex-wrap:wrap; gap:6px; }
-.rt-dialog .rt-note-actions label { margin:0; display:flex; gap:4px; font-size:11px; }
-.rt-dialog .rt-note-actions select { padding:6px 3px; }
+:is(.rt-dialog,.rt-beat-editor) .rt-note-actions label { margin:0; display:flex; gap:4px; font-size:11px; }
+:is(.rt-dialog,.rt-beat-editor) .rt-note-actions select { padding:6px 3px; }
+
+/* Shared beat controls can live in the score sheet or the core workspace. */
+.rt-beat-editor {font-size:13px;}
+.rt-beat-editor label {display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0;}
+.rt-beat-editor small {display:block;color:var(--rt-muted,#677889);font-size:11px;line-height:1.5;margin:10px 0;}
+.rt-beat-editor .rt-tie-option > span {display:grid;gap:3px;}
+.rt-beat-editor .rt-tie-option small {margin:0;font-size:10px;}
+.rt-beat-editor input[type="checkbox"] {flex:none;width:18px;height:18px;accent-color:var(--rt-note-active,#789b8a);}
+.rt-beat-editor .rt-note-actions label {margin:0;}
+.rt-beat-editor .rt-note-actions select {font:inherit;max-width:100%;}
+.rt-beat-editor .rt-score {background:var(--rt-paper,var(--rt-bg));color:var(--rt-ink,var(--rt-text));}

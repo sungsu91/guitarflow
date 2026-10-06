@@ -1,0 +1,31 @@
+[
+  {
+    "id": "lick",
+    "file": "lick.png",
+    "page": "https://commons.wikimedia.org/wiki/File:The_Lick_E_Minor_(tabs).png",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/The_Lick_E_Minor_%28tabs%29.png",
+    "author": "Dreamy Jazz; cropped by Hyacinth",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "sha256": "554b7642062c99b470d4d11cf17a6e97064f49b42c3bd3f0f00bd0ba0e23f13d"
+  },
+  {
+    "id": "picking",
+    "file": "picking.pdf",
+    "page": "https://commons.wikimedia.org/wiki/File:Zupf-_Picking-_und_Fingerstyle.pdf",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Zupf-_Picking-_und_Fingerstyle.pdf",
+    "author": "Mjchael",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5/",
+    "sha256": "b2d0370cf47c00aa00c9e7542b32cae7b8f67b0ef2c3c00de41e4b79bdb189b7"
+  },
+  {
+    "id": "carcassi",
+    "file": "carcassi.pdf",
+    "page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=13",
+    "url": "https://www.mutopiaproject.org/ftp/CarcassiM/O60/carcassi-op60-01/carcassi-op60-01-a4.pdf",
+    "author": "Matteo Carcassi; typeset by Jeff Covey",
+    "license": "Public domain",
+    "sha256": "f64ea0a78ec0a9b4592cb02560b0b0cd24e111e4f175d0608c29bb3c96d1243e"
+  }
+]

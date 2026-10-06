@@ -118,7 +118,7 @@ function ShooterSpritePet({ skin, mobile, horizontal, ...props }) {
     return () => observer.disconnect();
   }, [tablet]);
   // Canvas resolution, drag bounds and artwork use the same rendered size.
-  const size = tablet ? tabletSize : mobile ? 64 : 80;
+  const size = tablet ? tabletSize : 64;
   const layout = getPetLayoutKey(mobile, horizontal);
   const drag = usePetPlacement({ skinId: skin.id, rootRef, handleRef, size, mobile, horizontal,
     position: preferences.positions[layout],

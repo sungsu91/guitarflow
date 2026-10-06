@@ -26,7 +26,7 @@ test("scale training keeps five boxes and adds shared root positions to the exis
   assert.match(appSource, /id: "root-2"/);
 });
 
-test("mobile scale picker removes visible field labels and enlarges dropdown text", () => {
+test("phone scale picker removes field labels while tablet and desktop retain them", () => {
   assert.match(polishCss, /Scale \/ pentatonic mobile picker/);
   assert.match(polishCss, /grid-template-rows: 34px !important/);
   assert.match(polishCss, /height: 44px !important;[\s\S]*?min-height: 44px !important;[\s\S]*?max-height: 44px !important;/);
@@ -34,9 +34,9 @@ test("mobile scale picker removes visible field labels and enlarges dropdown tex
   assert.match(polishCss, /\.scaleDetailSelect \{[\s\S]*?grid-column: 3 !important;[\s\S]*?grid-row: 1 !important;/);
   assert.match(polishCss, /grid-template-columns: 58px minmax\(0, 1fr\) 64px 48px !important/);
   assert.match(appSource, /showLabel = true/);
-  assert.match(appSource, /label="키"[\s\S]*?showLabel=\{!isMobileLayout\}/);
-  assert.match(appSource, /label="스케일"[\s\S]*?showLabel=\{!isMobileLayout\}/);
-  assert.match(appSource, /label=\{selectedScaleDetailLabel\}[\s\S]*?showLabel=\{!isMobileLayout\}/);
+  assert.match(appSource, /label="키"[\s\S]*?showLabel=\{!isMobileLayout \|\| isTabletLayout\}/);
+  assert.match(appSource, /label="스케일"[\s\S]*?showLabel=\{!isMobileLayout \|\| isTabletLayout\}/);
+  assert.match(appSource, /label=\{selectedScaleDetailLabel\}[\s\S]*?showLabel=\{!isMobileLayout \|\| isTabletLayout\}/);
   assert.doesNotMatch(polishCss, /> \.metronomeSelectLabel \{/);
   assert.match(polishCss, /\.metronomeSelectButton\.metronomeSelectButton[\s\S]*?padding: 0 4px 0 6px !important;/);
   assert.match(polishCss, /font-size: 12px !important;[\s\S]*?font-weight: 950 !important;/);

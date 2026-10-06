@@ -1,5 +1,7 @@
 import {MEASURE_ROW_OPTIONS} from './measureLayout.js';
-import {Timer,Star,Printer,BookOpen} from 'lucide-react';
+import {Star,Printer,BookOpen,PanelLeftClose,PanelLeftOpen} from 'lucide-react';
+import {useState} from 'react';
+import './desktopPracticeDock.css';
 import {t} from '../i18n/core.js';
 import {useLanguage} from '../i18n/react.jsx';
 import ScoreWorkspaceActions from './ScoreWorkspaceActions.jsx';
@@ -7,10 +9,12 @@ import PlaybackBarSelect from './PlaybackBarSelect.jsx';
 
 // Desktop owns its arrangement; the session and score renderer remain shared.
 export default function DesktopPracticeLayout({model,picker,storage,zoom,onZoom,onRowCount,onPrint,printLabel,tips,children}) {
- useLanguage();
+ const language=useLanguage();
+ const [railOpen,setRailOpen]=useState(true);
+ const railLabel=language==='ko'?'연습 도구':'Practice tools';
  return <>
-  <aside className="desktopPracticeRail" aria-label={t('etudes.scoreToolbar')}>
-   <h1>{t('score.practiceRoom')}</h1>
+  {railOpen?<aside className="desktopPracticeRail" aria-label={t('etudes.scoreToolbar')}>
+   <div className="desktopPracticeRailHeading"><h1>{t('score.practiceRoom')}</h1><button type="button" aria-label={railLabel+' '+(language==='ko'?'접기':'collapse')} aria-expanded={true} onClick={()=>setRailOpen(false)}><PanelLeftClose size={17}/></button></div>
    {picker}
    {!model.pdfMode&&<section className="desktopPracticeGroup" aria-label={t('etudes.scoreView')}>
     <h2>{t('etudes.scoreView')}</h2>
@@ -20,8 +24,6 @@ export default function DesktopPracticeLayout({model,picker,storage,zoom,onZoom,
     <label className="desktopPracticeField"><span>{t('etudes.practicePosition')}</span><PlaybackBarSelect aria-label={t('etudes.scorePlaybackBar')} bar={model.playPosition?.bar??0} count={model.selected.measures.length} barLabel={t('app.bar')} onChange={bar=>model.controller.current?.seek({bar,event:0})}/></label>
    </section>}
    <section className="desktopPracticeGroup desktopPracticeButtons" aria-label={t('etudes.scoreToolbar')}>
-    <button type="button" data-ui="metronome" aria-label={t('menu.metronome')} aria-pressed={model.toolsVisible||model.metroMinimized} onClick={()=>{model.setTipsOpen(false);model.toggleMetro();}}><Timer size={17}/>{t('menu.metronome')}</button>
-    <span className="etudeBackingToggleMount" ref={model.setBackingTarget}/>
     {tips&&<button type="button" className="etudeTipToggle" aria-expanded={model.tipsOpen} onClick={()=>model.setTipsOpen(v=>!v)}><BookOpen size={17}/>{t('originalUi.tip')}</button>}
    </section>
    <section className="desktopPracticeGroup" aria-label={t('score.actions')}>
@@ -31,10 +33,13 @@ export default function DesktopPracticeLayout({model,picker,storage,zoom,onZoom,
    </section>
    {storage&&<footer className="desktopPracticeStorage">{storage}</footer>}
    <div className="etudeHudMetroMount etudeFloatingTheme" ref={model.setHudTarget}/>
-  </aside>
+  </aside>:<aside className="desktopPracticeRailHandle"><button type="button" aria-label={railLabel+' '+(language==='ko'?'열기':'expand')} aria-expanded={false} onClick={()=>setRailOpen(true)}><PanelLeftOpen size={18}/><span>{railLabel}</span></button></aside>}
+  <div className="desktopPracticeColumn">
   <div className="desktopPracticeReader">
    {!model.pdfMode&&model.toggleFavorite&&<button type="button" className="etudeFavoriteToggle desktopPracticeFavorite" aria-label={t(model.isFavorite?'etudes.removeFromFavorites':'etudes.addToFavorites')} title={`${model.selected.document?.title??model.selected.english??model.selected.title} · ${t(model.isFavorite?'etudes.removeFromFavorites':'etudes.addToFavorites')}`} aria-pressed={model.isFavorite} onClick={model.toggleFavorite}><Star size={22} aria-hidden="true" fill={model.isFavorite?'currentColor':'none'}/></button>}
    {children}
+  </div>
+  <div className="desktopPracticeDockMount etudeFloatingTheme" ref={model.setDesktopDockTarget}/>
   </div>
  </>;
 }

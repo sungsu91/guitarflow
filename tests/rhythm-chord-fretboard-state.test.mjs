@@ -127,7 +127,7 @@ test("rhythm storage binds its local editor snapshot to save, load and playback"
   ]);
 
   assert.match(appSource, /fretboard: stage3StorageFretboardEditorRef\.current\?\.getSnapshot/);
-  assert.match(appSource, /entry\?\.fretboard \? entry\.fretboard : fallbackFretboard/);
+  assert.match(appSource, /resolveChordFretboardSnapshot\(\s*entry\?\.fretboard,\s*fallbackFretboard/);
   assert.match(appSource, /fretboardSignature: getChordFretboardSignature\(fretboard\)/);
   assert.match(appSource, /applyStage3StorageChordSelection\("C", "natural", "major", "none"\)/);
   assert.match(appSource, /setStage3StorageChordIds\(\[\]\)/);

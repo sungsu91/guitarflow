@@ -10,14 +10,14 @@ export function tripletProgress(document,session){
  return {indices,count:indices.filter(i=>!isBlankEvent(events[i])).length};
 }
 // A new rhythm consumes a modifier; chord strings and fret digits retain timing.
-export function inputRhythm(document,cursor,{selectedDuration,dottedMode='off',tupletMode='off',session=null},kind,value){
+export function inputRhythm(document,cursor,{selectedDuration,dottedMode='off',tupletMode='off',tupletCount=3,session=null},kind,value){
  const original=document.measures[cursor.bar].events[cursor.event],fresh=isBlankEvent(original);
  if(tupletMode==='active'&&session&&original.tuplet?.groupId!==session.groupId)throw Error(ko["etudes.selectTheNextEmptyNoteInTheTripletCurrentlyBeingEntered"]);
  let next=document;
- if(!fresh&&tupletMode==='active'&&!session&&!original.tuplet)next=ensureTriplet(next,cursor,selectedDuration);
+ if(!fresh&&tupletMode==='active'&&!session&&!original.tuplet)next=ensureTriplet(next,cursor,selectedDuration,tupletCount);
  if(fresh){
   if(tupletMode==='active'){
-   next=ensureTriplet(next,cursor,selectedDuration);
+   next=ensureTriplet(next,cursor,selectedDuration,tupletCount);
   }else if(!original.tuplet){
    next=setEventDuration(next,cursor,selectedDuration);
    if(dottedMode!=='off')next=setDotted(next,cursor,true);
@@ -26,10 +26,11 @@ export function inputRhythm(document,cursor,{selectedDuration,dottedMode='off',t
  next=kind==='pitch'?patchEvent(next,cursor.bar,cursor.event,e=>({...e,rest:false,blank:false})):kind==='rest'?setRestWithDuration(next,cursor,selectedDuration):kind==='mute'?enterMutedTone(next,cursor,selectedDuration):enterFretWithDuration(next,cursor,value,selectedDuration);
  const event=next.measures[cursor.bar].events[cursor.event];
  const nextSession=tupletMode==='active'&&event.tuplet?{bar:cursor.bar,groupId:event.tuplet.groupId}:session;
- const progress=tripletProgress(next,nextSession);
- return {document:next,session:nextSession,dottedMode:fresh&&dottedMode==='one-shot'?'off':dottedMode,tupletMode:progress.count===3?'off':tupletMode,completed:tupletMode==='active'&&progress.count===3};
+ const progress=tripletProgress(next,nextSession),complete=progress.count===(event.tuplet?.actualNotes??tupletCount);
+ return {document:next,session:nextSession,dottedMode:fresh&&dottedMode==='one-shot'?'off':dottedMode,tupletMode:complete?'off':tupletMode,completed:tupletMode==='active'&&complete};
 }
-export function rhythmInputLabel(duration,dottedMode,tupletMode,count){
+export function rhythmInputLabel(duration,dottedMode,tupletMode,count,total=3){
+ if(tupletMode==='active'&&total===6)return formatMessage(ko["etudes.tupletEntryProgress"],{total,count});
  if(tupletMode==='active')return count?formatMessage(ko["etudes.tripletValue3"], { value1: count }):ko["etudes.tripletEntryFirstNote"];
  return formatMessage(ko["etudes.valueValueNoteValue"], { value1: dottedMode!=='off'?ko["etudes.dotted"]:'', value2: duration==='1'?ko["etudes.whole"]:duration+ko["etudes.fractionSuffix"], value3: dottedMode==='locked'?ko["etudes.fixed"]:'' });
 }

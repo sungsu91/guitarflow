@@ -14,8 +14,8 @@ function connection(a,b){
 }
 // Written onsets/durations are authoritative. Beams and ornaments add no time.
 // Visits break links at repeat jumps; simultaneous voices never accumulate time.
-export function rhythmTimeline(score){
- const slots=playbackSlots(score,scoreBarOrder(score));
+export function rhythmTimeline(score,route){
+ const slots=playbackSlots(score,scoreBarOrder(score,route));
  const events=slots.map(s=>({...s,note:score.measures[s.bar][s.event]??{rest:true},key:key(s),incoming:[],outgoing:[]}));
  const starts=new Map();for(const e of events){if(!starts.has(e.tick))starts.set(e.tick,[]);starts.get(e.tick).push(e);}
  for(const a of events){

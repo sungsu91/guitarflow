@@ -89,3 +89,39 @@ test('repeat can be disabled without a restart and natural completion advances t
   await player.play();
   assert.equal(sources[1].offset, 0);
 });
+
+test('scheduled backing starts at the supplied shared-clock origin with no leading trim', async () => {
+ const {context,player,sources}=fixture();
+ await player.play(15);
+ assert.equal(sources[0].startTime,15);
+ assert.equal(sources[0].offset,0);
+ context.currentTime=12;assert.equal(player.currentTime,0);
+ player.loop=true;assert.equal(player.currentTime,0);
+ context.currentTime=15.25;assert.equal(player.currentTime,.25);
+ player.dispose();
+});
+test('stopping during count-in cancels a future backing source', async () => {
+ const {context,player,sources}=fixture();
+ await player.play(15);context.currentTime=12;player.pause();
+ assert.equal(sources[0].stopped,true);assert.equal(player.currentTime,0);
+ context.currentTime=20;assert.equal(player.currentTime,0);player.dispose();
+});
+
+test('seeking during count-in preserves the scheduled backing start', async () => {
+ const {context,player,sources}=fixture();
+ await player.play(15);context.currentTime=12;player.currentTime=3;
+ assert.equal(sources[0].stopped,true);
+ assert.equal(sources[1].startTime,15);
+ assert.equal(player.currentTime,3);
+ context.currentTime=15.25;assert.equal(player.currentTime,3.25);player.dispose();
+});
+
+test('seeking to the end of non-looping playback completes instead of restarting', async () => {
+ const {player,sources,ended}=fixture();
+ await player.play();player.currentTime=24;
+ assert.equal(player.paused,true);
+ assert.equal(player.currentTime,24);
+ assert.equal(sources.length,1);
+ assert.equal(ended(),1);
+ await player.play();assert.equal(sources[1].offset,0);player.dispose();
+});

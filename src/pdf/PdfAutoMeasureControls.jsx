@@ -1,4 +1,4 @@
-import {Translation} from '../i18n/react.jsx';
+import {Translation,useLanguage} from '../i18n/react.jsx';
 import {t,localizeUi} from '../i18n/core.js';
 import {useEffect,useRef} from 'react';
 
@@ -19,12 +19,14 @@ function Actions({analysis,progress,disabled,onAnalyse,onCancel,onApply}){
   <button type="button" onClick={onCancel}><Translation id="common.cancel" /></button>
  </>;
 }
-export function PdfMeasureConfirmation({action,hasBars,onConfirm,onCancel}){
+export function PdfMeasureConfirmation({action,hasBars,hasRepeatSettings=false,onConfirm,onCancel}){
+ const language=useLanguage();
  const ref=useRef(null);
  useEffect(()=>{ref.current.showModal();},[]);
  return <dialog ref={ref} className="pdfDialog" aria-label={t(action==='reset'?'pdf.resetMeasureAreas':'pdf.autoDetect')} onCancel={e=>{e.preventDefault();onCancel();}}>
   <h2>{t(action==='reset'?'pdf.resetMeasureAreas':'pdf.autoDetect')}</h2>
   <p>{t(action==='reset'?'pdf.resetMeasuresConfirm':hasBars?'pdf.autoDetectReplaceConfirm':'pdf.autoDetectConfirm')}</p>
+  {hasRepeatSettings&&<p>{language==='ko'?'새 마디 영역을 적용하면 반복 구간과 추가한 반복기호도 초기화됩니다.':'Applying new measure regions also clears practice loops and added repeat symbols.'}</p>}
   <footer><button type="button" autoFocus onClick={onCancel}><Translation id="common.cancel"/></button><button type="button" onClick={onConfirm}><Translation id={action==='reset'?'app.reset':'pdf.startAnalysis'}/></button></footer>
  </dialog>;
 }

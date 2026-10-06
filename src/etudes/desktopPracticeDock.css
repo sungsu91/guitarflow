@@ -1,0 +1,255 @@
+/* Only desktop-specific components opt into this layout. */
+.desktopPracticeColumn{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.desktopPracticeColumn>.desktopPracticeReader{flex:1;min-height:0;overflow:hidden}
+.desktopPracticeDockMount{flex:0 0 auto;min-width:0;position:relative;z-index:4}
+.etudePracticeLayout--rail:has(>.desktopPracticeRailHandle){grid-template-columns:36px minmax(0,1fr)}
+.desktopPracticeRailHeading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
+.desktopPracticeRailHeading h1{font-size:19px;margin:0}
+.desktopPracticeRailHeading button{padding:6px;min-height:30px}
+.desktopPracticeRailHandle{border:1px solid var(--theme-border-control);border-radius:9px;background:var(--theme-surface);padding:5px 0}
+.desktopPracticeRailHandle button{display:flex;align-items:center;gap:10px;flex-direction:column;width:100%;padding:6px 3px;background:transparent;border:0;color:var(--theme-text)}
+.desktopPracticeRailHandle span{writing-mode:vertical-rl;font-size:11px;letter-spacing:.1em}
+html body .app .desktopPracticeDock{background:var(--theme-surface);color:var(--theme-text);border:1px solid var(--theme-border-control);border-radius:10px;overflow:hidden;font-size:12px}
+html body .app .desktopPracticeDock :where(.desktopDockToolbar,.desktopDockMetro,.desktopDockFolded) button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:30px;min-width:0;padding:4px 7px;font-size:12px;font-family:inherit;line-height:1.2;border:1px solid var(--theme-border-control);border-radius:7px;background:var(--theme-surface);color:var(--theme-text);white-space:nowrap;box-shadow:none}
+html body .app .desktopPracticeDock button:disabled{opacity:.4;cursor:default}
+html body .app .desktopPracticeDock button:focus-visible{outline:2px solid var(--theme-accent);outline-offset:2px}
+html body .app .desktopPracticeDock button:hover:not(:disabled){background:var(--theme-bg-soft)}
+.desktopDockToolbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:5px 10px;border-bottom:1px solid var(--theme-border-control)}
+.desktopDockPanels{display:grid;grid-template-columns:minmax(0,1fr);align-items:center}
+.has-backing>.desktopDockPanels{grid-template-columns:repeat(2,minmax(0,1fr))}
+.desktopDockMetro{width:100%;max-width:520px;justify-self:center;padding:10px 12px;box-sizing:border-box;min-width:0}
+.desktopDockBeatLine{display:flex;align-items:center;justify-content:center;gap:18px;min-height:28px}
+.desktopDockBeatInfo{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--theme-text-muted);white-space:nowrap}
+html body .app .desktopPracticeDock .etudeBeatRow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:0;padding:0;max-width:65%}
+html body .app .desktopPracticeDock .etudeBeat{display:flex;gap:0;padding:3px;min-height:24px;font-size:0;border:0;background:transparent}
+html body .app .desktopPracticeDock .etudeBeat i{display:block;width:18px;height:18px;border-radius:50%;border:1px solid var(--theme-border-control);background:var(--theme-surface);box-sizing:border-box}
+html body .app .desktopPracticeDock .etudeBeat.is-downbeat i{border-color:var(--theme-accent)}
+html body .app .desktopPracticeDock .etudeBeat.is-on i{background:var(--theme-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--theme-accent) 18%,transparent)}
+.desktopDockTempo{display:flex;align-items:center;justify-content:center;gap:6px;margin:4px 0}
+html body .app .desktopPracticeDock .desktopDockBpm{border:0;background:transparent;gap:4px;padding:1px 5px}
+.desktopDockBpm strong{font-size:30px;font-variant-numeric:tabular-nums;line-height:1.2}
+.desktopDockBpm small{font-size:9px;align-self:flex-end;margin-bottom:5px}
+.desktopDockTransport,.desktopDockPlayGroup{display:flex;align-items:center;justify-content:center;gap:4px}
+.desktopDockTransport{flex-wrap:wrap;row-gap:6px}
+html body .app .desktopPracticeDock .desktopDockPlay{width:40px;height:40px;min-height:40px;border-radius:50%;padding:0;background:var(--theme-accent);border-color:var(--theme-accent);color:var(--theme-text-inverse,var(--theme-surface))}
+html body .app .desktopPracticeDock .desktopDockIcon{border-color:transparent;padding:4px;width:29px;height:29px;min-height:29px;background:transparent}
+html body .app .desktopPracticeDock :is(.desktopDockCountIn,.desktopDockScoreSound){background:transparent;border:0;padding:4px 2px;font-size:11px;gap:4px}
+.desktopDockCountIn small,.desktopDockScoreSound small{font-size:8px;color:var(--theme-text-muted)}
+.desktopDockCountIn[aria-pressed=true] small,.desktopDockScoreSound[aria-pressed=true] small{color:var(--theme-accent)}
+.desktopDockBacking{border-left:1px solid var(--theme-border-control);padding:8px;box-sizing:border-box;min-width:0}
+html body .app .desktopDockBacking .backingLoopPanel{width:100%;min-width:0;max-width:none;margin:0;padding:6px;box-sizing:border-box}
+html body .app .desktopDockBacking .backingLoopMiniPlayer--desktop{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 9px auto;gap:2px;padding:6px 8px}
+html body .app .desktopDockBacking .backingLoopTrackInfo{grid-row:1;grid-column:1;min-width:0}
+html body .app .desktopDockBacking .backingLoopProgress{grid-row:2;grid-column:1}
+html body .app .desktopDockBacking .backingLoopPlayerBar{grid-row:3;grid-column:1;justify-content:center;flex-wrap:wrap}
+html body .app .desktopDockBacking .backingLoopMainControls{margin-top:5px}
+.desktopDockFolded{display:flex;align-items:center;gap:7px;padding:5px 10px}
+html body .app .desktopPracticeDock .desktopDockReopen{margin-left:auto;border-color:var(--theme-accent)}
+@media(max-width:1200px){.desktopDockBeatLine{gap:8px}.desktopDockBeatInfo{font-size:10px;gap:4px}.desktopDockMetro{padding:8px}.desktopDockTransport{gap:2px}html body .app .desktopPracticeDock .etudeBeatRow{gap:4px}html body .app .desktopPracticeDock .desktopDockScoreSound{font-size:10px}}
+/* Existing player surfaces use an important cascade layer. Keep these
+   geometry overrides in that layer and confined to the new desktop dock. */
+@layer rhythm-surfaces {
+ /* Flat desktop controls: one quiet surface, with emphasis reserved for play. */
+ html body #root .app .desktopPracticeDock :is(.desktopDockToolbar,.desktopDockMetro,.desktopDockFolded) button{
+  background:transparent!important;background-image:none!important;border:1px solid color-mix(in srgb,var(--studio-border) 65%,transparent)!important;
+  box-shadow:none!important;text-shadow:none!important;transform:none!important;
+  border-radius:5px!important;color:var(--studio-text)!important;
+ }
+ html body #root .app .desktopPracticeDock :is(.desktopDockToolbar,.desktopDockMetro,.desktopDockFolded) button::before,
+ html body #root .app .desktopPracticeDock :is(.desktopDockToolbar,.desktopDockMetro,.desktopDockFolded) button::after{background:none!important;box-shadow:none!important;border:0!important}
+ html body #root .app .desktopPracticeDock :is(.desktopDockToolbar,.desktopDockMetro,.desktopDockFolded) button:hover:not(:disabled){background:color-mix(in srgb,var(--studio-accent) 10%,transparent)!important}
+ html body #root .app .desktopPracticeDock .desktopDockTempo{gap:5px}
+ html body #root .app .desktopPracticeDock .desktopDockTempo>button:not(.desktopDockBpm){width:32px;color:var(--studio-muted)!important}
+ html body #root .app .desktopPracticeDock .desktopDockToolbar button{font-size:11px;color:var(--studio-muted)!important}
+ html body #root .app .desktopPracticeDock .desktopDockTap{font-size:10px;letter-spacing:.08em;color:var(--studio-muted)!important}
+ html body #root .app .desktopPracticeDock .desktopDockFolded .desktopDockPlay{
+  background:var(--studio-accent)!important;color:var(--studio-surface)!important;border-radius:50%!important;
+ }
+ html body #root .app .desktopDockBacking .backingLoopPanel.backingLoopPanel--desktop{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;
+  padding:5px!important;gap:5px!important;margin:0!important;box-sizing:border-box!important;
+ }
+ html body #root .app .desktopDockBacking .backingLoopPanel .backingLoopMiniPlayer--desktop{
+  grid-column:1!important;grid-row:1!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  grid-template-columns:minmax(0,1fr)!important;grid-template-rows:31px 14px minmax(36px,auto)!important;
+  height:auto!important;min-height:94px!important;box-sizing:border-box!important;
+ }
+ html body #root .app .desktopDockBacking .backingLoopPanel .backingLoopMainControls{
+  grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  width:100%!important;min-width:0!important;height:32px!important;gap:0!important;margin:0!important;
+ }
+ html body #root .app .desktopDockBacking .backingLoopPanel .backingLoopMainControls button{min-width:0!important;height:32px!important;min-height:32px!important;padding:3px!important;gap:4px!important}
+ html body #root .app .desktopDockBacking .backingLoopPanel .backingLoopPlayerBar{
+  height:auto!important;min-height:36px!important;flex-wrap:wrap!important;gap:4px!important;min-width:0!important;
+ }
+ html body #root .app .desktopDockBacking .backingLoopPanel .backingLoopTrackInfo{min-width:0!important;padding-right:0!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .desktopDockPlay{
+  background:var(--studio-accent,#896638)!important;color:var(--studio-surface,#fcf8f0)!important;
+  border-color:var(--studio-accent,#896638)!important;border-radius:50%!important;
+ }
+ html body #root .app .desktopPracticeDock .desktopDockMetro :is(.desktopDockCountIn,.desktopDockScoreSound,.desktopDockIcon){background:transparent!important;box-shadow:none!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro :is(.desktopDockCountIn,.desktopDockScoreSound){padding:6px!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat{border-color:transparent!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat.is-on i{background:var(--theme-accent)!important}
+}
+
+/* One compact instrument strip, with a shared rhythm line above its controls. */
+.desktopPracticeDockMount{container-type:inline-size}
+.desktopPracticeDock .desktopDockMetro{display:grid;grid-template-columns:200px auto;justify-content:center;align-items:center;gap:8px 16px;max-width:720px;padding:12px 20px}
+.desktopPracticeDock .desktopDockBeatLine{grid-column:1/-1;justify-content:center;padding-bottom:6px;border-bottom:1px solid color-mix(in srgb,var(--studio-border) 40%,transparent)}
+.desktopPracticeDock .desktopDockTransport{display:flex;flex-wrap:nowrap;gap:6px}
+.desktopPracticeDock .desktopDockPlayGroup{gap:5px}
+.desktopPracticeDock.has-backing .desktopDockMetro{grid-template-columns:minmax(0,1fr);gap:6px;padding:10px 12px}
+.desktopPracticeDock.has-backing .desktopDockTransport{flex-wrap:wrap}
+@container(max-width:650px){
+ .desktopPracticeDock .desktopDockMetro{grid-template-columns:minmax(0,1fr);gap:6px;padding:10px 12px}
+ .desktopPracticeDock .desktopDockTransport{flex-wrap:wrap}
+}
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm{display:grid!important;grid-template-columns:40px 72px 40px!important;justify-content:center!important;gap:8px!important;width:200px!important;max-width:100%!important;min-height:48px!important;padding:0!important;margin:0 auto!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeBpmAdjustGroup{display:flex!important;flex-direction:column!important;width:40px!important;min-width:0!important;border:1px solid color-mix(in srgb,var(--studio-border) 65%,transparent)!important;border-radius:5px!important;overflow:hidden!important;background:transparent!important;box-shadow:none!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm button{width:100%!important;height:23px!important;min-height:23px!important;padding:2px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeBpmAdjustDivider{display:block!important;width:100%!important;height:1px!important;background:color-mix(in srgb,var(--studio-border) 65%,transparent)!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeHeroBpmValue{display:flex!important;flex-direction:column-reverse!important;align-items:center!important;justify-content:center!important;gap:0!important;min-width:0!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeHeroBpmValue span{font-size:9px!important;letter-spacing:.12em!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeHeroBpmValue strong{font-size:32px!important;line-height:1.1!important}
+ html body #root .app .desktopPracticeDock .desktopDockToolbar button{border-color:transparent!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .desktopDockPlay{width:44px;height:44px;min-height:44px}
+}
+/* The score remains primary: the default player is a single compact row. */
+.desktopPracticeDock:not(.has-backing) .desktopDockMetro{display:flex;flex-wrap:nowrap;justify-content:center;max-width:none;padding:8px 12px;gap:14px}
+.desktopPracticeDock:not(.has-backing) .desktopDockBeatLine{border:0;padding:0;gap:8px;flex-shrink:0}
+.desktopPracticeDock:not(.has-backing) .desktopDockTransport{flex-wrap:nowrap;gap:4px;flex-shrink:0}
+.desktopPracticeDock .desktopDockToolbar{padding:1px 8px;border-bottom:0}
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockToolbar button{min-height:23px!important;padding:2px 5px!important;font-size:10px!important}
+ html body #root .app .desktopPracticeDock:not(.has-backing) .desktopDockSharedBpm{width:166px!important;grid-template-columns:32px 64px 32px!important;gap:5px!important;flex-shrink:0;min-height:40px!important;margin:0!important}
+ html body #root .app .desktopPracticeDock:not(.has-backing) .desktopDockSharedBpm .metronomeBpmAdjustGroup{width:32px!important}
+ html body #root .app .desktopPracticeDock:not(.has-backing) .desktopDockSharedBpm button{height:19px!important;min-height:19px!important;font-size:10px!important}
+ html body #root .app .desktopPracticeDock:not(.has-backing) .desktopDockSharedBpm .metronomeHeroBpmValue strong{font-size:27px!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .desktopDockPlay{width:34px!important;height:34px!important;min-height:34px!important}
+ html body #root .app .desktopPracticeDock:not(.has-backing) .etudeBeatRow{gap:2px;max-width:none}
+ html body #root .app .desktopPracticeDock:not(.has-backing) .etudeBeat i{width:12px;height:12px}
+ html body #root .app .desktopPracticeDock:not(.has-backing) .desktopDockBeatInfo{font-size:10px;gap:4px}
+}
+@container(max-width:760px){
+ .desktopPracticeDock:not(.has-backing) .desktopDockMetro{justify-content:flex-start;gap:10px;overflow-x:auto}
+}
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm::before,
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm::after{content:none!important;background:none!important;box-shadow:none!important}
+}
+/* Solo transport and panel actions share one row; no empty toolbar strip. */
+.desktopPracticeDock:not(.has-backing):not(.is-folded){display:flex;align-items:center}
+.desktopPracticeDock:not(.has-backing):not(.is-folded)>.desktopDockToolbar{order:2;flex:0 0 auto;padding:0 8px 0 4px}
+.desktopPracticeDock:not(.has-backing):not(.is-folded)>.desktopDockPanels{flex:1;min-width:0}
+.desktopPracticeDock:not(.has-backing):not(.is-folded) .desktopDockMetro{padding:6px 10px;gap:10px;justify-content:center;overflow-x:auto}
+@container(max-width:1050px){
+ .desktopPracticeDock:not(.has-backing):not(.is-folded)>.desktopDockToolbar{flex-direction:column;gap:0;padding:0 5px}
+ .desktopPracticeDock:not(.has-backing):not(.is-folded) .desktopDockMetro{justify-content:flex-start}
+}
+/* Match the BPM readout to the surrounding score transport, not a standalone card. */
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockMetro .desktopDockSharedBpm,
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeHeroBpmValue{background:none!important;background-image:none!important;box-shadow:none!important;text-shadow:none!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeHeroBpmValue strong{font-family:inherit!important;font-weight:600!important;font-style:normal!important;letter-spacing:-.03em!important;color:var(--studio-text)!important;font-variant-numeric:tabular-nums}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeHeroBpmValue span{font-family:inherit!important;font-weight:400!important;letter-spacing:.03em!important;color:var(--studio-muted)!important}
+ html body #root .app .desktopPracticeDock .desktopDockSharedBpm .metronomeBpmAdjustGroup{border-color:color-mix(in srgb,var(--studio-border) 65%,transparent)!important;background:transparent!important}
+}
+/* Score and transport share a frame; actions sit in the score's lower corner. */
+.desktopPracticeColumn{position:relative;border:1px solid var(--theme-border-control);border-radius:10px;overflow:hidden}
+.desktopPracticeColumn>.desktopPracticeReader{border:0!important;border-radius:0!important}
+html body .app .desktopPracticeColumn .desktopPracticeDock{border:0;border-top:1px solid var(--theme-border-control);border-radius:0;overflow:visible}
+.desktopPracticeDock .desktopDockToolbar,
+.desktopPracticeDock:not(.has-backing):not(.is-folded)>.desktopDockToolbar{position:absolute;right:8px;top:-28px;height:26px;display:flex;flex-direction:row;gap:4px;padding:0 4px;z-index:5;background:var(--theme-surface);border-radius:5px 5px 0 0}
+.desktopPracticeDock:not(.has-backing):not(.is-folded){display:block}
+/* Give the split player horizontal breathing room without adding height. */
+.desktopPracticeDock.has-backing .desktopDockMetro{max-width:none;padding-left:20px;padding-right:20px}
+.desktopPracticeDock.has-backing .desktopDockBeatLine{justify-content:space-between;gap:12px}
+.desktopPracticeDock.has-backing .desktopDockBeatInfo{margin-left:auto;gap:8px}
+.desktopPracticeDock.has-backing .desktopDockTransport{width:100%;justify-content:center;gap:10px}
+.desktopPracticeDock.has-backing .desktopDockPlayGroup{gap:8px}
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro .etudeBeatRow{gap:14px;max-width:none;flex-wrap:wrap}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro .etudeBeat i{width:22px;height:22px}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro .desktopDockTap{padding-left:12px!important;padding-right:12px!important}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro :is(.desktopDockCountIn,.desktopDockScoreSound){padding-left:10px!important;padding-right:10px!important}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockSharedBpm{width:240px!important;grid-template-columns:44px 88px 44px!important;gap:14px!important}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockSharedBpm .metronomeBpmAdjustGroup{width:44px!important}
+}
+@container(max-width:1000px){
+ .desktopPracticeDock.has-backing .desktopDockMetro{padding-left:10px;padding-right:10px}
+ .desktopPracticeDock.has-backing .desktopDockTransport{gap:4px}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro .etudeBeatRow{gap:5px}
+}
+/* Wide split view: tempo left, transport right, beats centered above both. */
+@container(min-width:1150px){
+ .desktopPracticeDock.has-backing .desktopDockMetro{grid-template-columns:200px minmax(0,1fr);column-gap:10px;row-gap:10px}
+ .desktopPracticeDock.has-backing .desktopDockBeatLine{position:relative;grid-column:1/-1;justify-content:center;min-height:36px}
+ .desktopPracticeDock.has-backing .desktopDockBeatInfo{position:absolute;right:0;margin:0}
+ .desktopPracticeDock.has-backing .desktopDockTransport{justify-content:flex-end;gap:4px}
+ @layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockSharedBpm{width:200px!important;grid-template-columns:36px 76px 36px!important;gap:10px!important;margin:0!important}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockSharedBpm .metronomeBpmAdjustGroup{width:36px!important}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro :is(.desktopDockCountIn,.desktopDockScoreSound,.desktopDockTap){padding-left:5px!important;padding-right:5px!important}
+ }
+}
+@container(max-width:1149px){
+ .desktopPracticeDock.has-backing .desktopDockBeatLine{display:grid;grid-template-columns:1fr auto 1fr;gap:4px}
+ .desktopPracticeDock.has-backing .desktopDockBeatLine>.etudeBeatRow{grid-column:2}
+ .desktopPracticeDock.has-backing .desktopDockBeatInfo{grid-column:3;justify-self:end}
+}
+.desktopDockSync{display:flex;align-items:center;justify-content:center;gap:10px;padding:5px 12px;font-size:11px;border-bottom:1px solid var(--theme-border-control)}
+.desktopDockSync label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.desktopDockSync input{accent-color:#438c88;margin:0}
+.desktopDockSync small{font-size:10px;color:var(--studio-muted)}
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat i{border-color:#82aaa5!important;background:transparent!important;box-shadow:none!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat.is-downbeat i{border-color:#438c88!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat.is-on i{background:#438c88!important;border-color:#438c88!important;box-shadow:0 0 0 3px #438c881c!important}
+}
+.desktopPracticeDock{position:relative}
+.desktopPracticeDock .desktopDockSync{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;padding:0;border:0;background:none}
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockSync>button{display:flex!important;align-items:center!important;justify-content:center!important;width:36px!important;height:32px!important;min-height:32px!important;padding:0!important;border:1px solid var(--studio-border)!important;border-radius:6px!important;background:var(--studio-surface)!important;background-image:none!important;box-shadow:none!important;color:var(--studio-muted)!important;font:inherit!important;font-size:11px!important;cursor:pointer!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button[aria-pressed=true]{background:#438c88!important;color:#fff!important;border-color:#438c88!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button:focus-visible{outline:2px solid #438c88!important;outline-offset:2px!important}
+}
+/* Larger beat markers and tempo shifted toward the transport controls. */
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro .etudeBeat i{width:28px!important;height:28px!important}
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockMetro .etudeBeatRow{gap:16px!important}
+}
+@container(min-width:1150px){
+ .desktopPracticeDock.has-backing .desktopDockMetro{grid-template-columns:minmax(200px,1fr) auto}
+ @layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock.has-backing .desktopDockSharedBpm{justify-self:end;margin:0!important}
+ }
+}
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockSync>button{flex-direction:column!important;gap:3px!important;width:38px!important;height:48px!important;min-height:48px!important;padding:4px 2px!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button>span{font-size:10px!important;line-height:1.2!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button>svg{width:16px!important;height:16px!important;flex:none!important}
+}
+/* Unboxed shared-play action at the divider. */
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockSync>button{border:0!important;border-radius:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;color:var(--studio-text,#332824)!important;font-weight:700!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button>span{font-weight:700!important;font-size:11px!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button>svg{stroke-width:2.6!important;fill:currentColor!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button[aria-pressed=true]{background:transparent!important;color:#347b77!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button:hover:not(:disabled){color:#347b77!important}
+}
+/* Warm pink beat indicators, matching the original metronome palette. */
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat i{border-color:#d5a0ac!important;background:transparent!important;box-shadow:none!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat.is-downbeat i{border-color:#bf788d!important}
+ html body #root .app .desktopPracticeDock .desktopDockMetro .etudeBeat.is-on i{background:#d58fa3!important;border-color:#bf788d!important;box-shadow:0 0 0 3px #d58fa31f!important}
+}
+/* The label sits above a quiet circular shared transport. */
+@layer rhythm-surfaces {
+ html body #root .app .desktopPracticeDock .desktopDockSync{background:var(--theme-surface,#faf7f1);padding:3px 2px;border-radius:20px}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button{height:52px!important;min-height:52px!important;gap:4px!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button>svg{box-sizing:border-box!important;width:32px!important;height:32px!important;padding:8px!important;border-radius:50%!important;background:var(--studio-selected,#eee3d6)!important;color:var(--studio-text,#594735)!important;stroke-width:2!important}
+ html body #root .app .desktopPracticeDock .desktopDockSync>button[aria-pressed=true]>svg{background:#438c88!important;color:white!important}
+}

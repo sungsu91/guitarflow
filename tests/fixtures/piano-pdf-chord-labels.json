@@ -1,0 +1,20 @@
+{
+  "description": "Chord-name oracle transcribed from rendered original PDF chord bands, 2026-10-06. Labels only: this does not certify note OCR, rhythm, or change onsets.",
+  "now": {
+    "1": {"1":["Cmaj7","D","Em","Dsus4","D"],"4":["Cadd2","G","Cadd2"],"7":["Em","Cadd2","G"]},
+    "2": {"1":["Cadd2","Em","D","Cadd2","G/B"],"4":["Am","G/B","Cadd2","Bm7","Am7","Gadd2/B"],"7":["C","D","G","D","Cadd2"]},
+    "3": {"1":["Em","D","Cadd2","G","D"],"4":["Cadd2","Em","D","C"],"7":["Csus2","G","D","Cmaj7","Em","D"]},
+    "4": {"1":["Cadd2","G","D","Cadd2"],"4":["Em","D","Cadd2","G","D"],"7":["Cadd2","Em","D","C"],"10":["Am","G/B","Cadd2","Bm7","Am7","G/B"]},
+    "5": {"1":["C","D","G","D","Cadd2"],"4":["Em","D","Cadd2","G","D"],"7":["Cadd2","Em","D","C"]},
+    "6": {"1":["G","D","Cadd2","Em","D"],"4":["Cadd2","G","D","Cadd2"],"7":["Em","D","C","D/C","Cadd2","Cmaj7"]},
+    "7": {"1":["G","C"],"4":["Em","Dsus4","D","Cadd2"]}
+  },
+  "into-the-light": {
+    "1": {"1":["N.C."],"4":["Fm","Db","Ab","Eb"],"7":["Fm","Db","Ab","Eb","Fm","Db"]},
+    "2": {"1":["Ab","Eb","Fm","Db","Ab","Eb"],"4":["Fm","Db","Ab","Eb","Fm","Db"],"7":["Ab","Eb","Fm","Db","Ab","Eb"],"10":["Fm","Db","Ab","Eb","Db","Fm"]}
+  },
+  "doremi": {
+    "1": {"1":["Db","Eb","Ab","Cm","Db","Eb","Ab"],"4":["Db","Eb","Fm","Ab","Db","Eb","Ab"],"7":["Db","Ab/C"]},
+    "2": {"1":["Bbm7","Ab"],"4":["Ab","Bbm","Cm","Dbadd2","Ab/C"],"7":["Bbm7","Eb7","Ab"]}
+  }
+}

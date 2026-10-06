@@ -1,0 +1,89 @@
+/* The artwork has one measured transparent canvas; each layout owns its sizing. */
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--desktop:has([data-instrument-skin-pack="fl-custom-heritage-v1"]) {
+  min-height: 144px;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--mobile:has([data-instrument-skin-pack="fl-custom-heritage-v1"]) {
+  min-height: 122px;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--desktop
+  > .shooterGuitarPickerItem:has([data-instrument-skin-pack="fl-custom-heritage-v1"]) {
+  grid-template-rows: 108px 17px !important;
+  padding: 8px 4px 6px !important;
+  gap: 3px !important;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--mobile
+  > .shooterGuitarPickerItem:has([data-instrument-skin-pack="fl-custom-heritage-v1"]) {
+  grid-template-rows: 86px 15px !important;
+  padding: 8px 4px 6px !important;
+  gap: 3px !important;
+}
+
+html body img[data-instrument-skin-pack="fl-custom-heritage-v1"] {
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--desktop
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fl-custom-heritage-v1"] {
+  width: auto !important;
+  height: 108px !important;
+  max-width: 100% !important;
+  max-height: 108px !important;
+  object-fit: contain !important;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarSkinCard--mobile
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fl-custom-heritage-v1"] {
+  width: auto !important;
+  height: 86px !important;
+  max-width: 100% !important;
+  max-height: 86px !important;
+  object-fit: contain !important;
+}
+
+html body .desktopLayout .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fl-custom-heritage-v1"] {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+html body .desktopLayout .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fl-custom-heritage-v1"] .guitarPlayerAsset.guitarAssetImage {
+  bottom: 0 !important;
+  width: auto !important;
+  height: 137px !important;
+  max-width: none !important;
+  max-height: 137px !important;
+  object-fit: contain !important;
+}
+
+html body .desktopLayout .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fl-custom-heritage-v1"] .guitarPlayerMuzzle {
+  top: 3px !important;
+}
+
+html.shooterCanonicalMobile body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fl-custom-heritage-v1"] {
+  width: 57px !important;
+  height: 127px !important;
+}
+
+html.shooterCanonicalMobile body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fl-custom-heritage-v1"] .guitarPlayerAsset.guitarAssetImage {
+  bottom: 0 !important;
+  width: auto !important;
+  height: 152px !important;
+  max-width: none !important;
+  max-height: 152px !important;
+  object-fit: contain !important;
+}
+
+html.shooterCanonicalMobile body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fl-custom-heritage-v1"] .guitarPlayerMuzzle {
+  top: -22px !important;
+}

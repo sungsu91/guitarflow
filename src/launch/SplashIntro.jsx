@@ -24,6 +24,16 @@ export default function SplashIntro({
 }) {
   useLanguage();
   const mobile = useSyncExternalStore(subscribeLayout, getIsMobileLayout, () => false);
+  // iOS may expand the visible viewport during first load. Keep the mobile
+  // composition at its first painted height; only rotation starts a new frame.
+  const [stageSize,setStageSize]=useState(()=>({width:window.innerWidth,height:window.innerHeight}));
+  useEffect(()=>{
+    if(!mobile)return;
+    const resize=()=>setStageSize(size=>Math.abs(window.innerWidth-size.width)>1
+      ?{width:window.innerWidth,height:window.innerHeight}:size);
+    window.addEventListener('resize',resize);
+    return()=>window.removeEventListener('resize',resize);
+  },[mobile]);
   const [phase, setPhase] = useState('entering');
   const completedRef = useRef(false);
   const completeExit = useCallback(() => {
@@ -76,7 +86,7 @@ export default function SplashIntro({
       onAnimationEnd={event => {
         if (phase === 'exiting' && event.target === event.currentTarget && event.animationName === 'launchBackdropOut') completeExit();
       }}
-      style={{ '--launch-exit-ms': `${exitMs}ms` }}
+      style={{ '--launch-exit-ms': `${exitMs}ms`, '--launch-stage-height': `${stageSize.height}px` }}
     >
       <Layout progress={normalizedProgress} ready={phase !== 'entering'} statusText={statusText ? localizeUi(statusText) : t('launch.preparingMusic')} />
     </section>

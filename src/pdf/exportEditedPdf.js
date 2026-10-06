@@ -1,6 +1,8 @@
 import {ANNOTATION_COLORS,FULL_PAGE,pageCrop,projectRect} from './pdfAnnotations.js';
 import {isCutPoint,pageVisibleHeight,retainedBands} from './pdfGapCuts.js';
 import {canvasSize} from './pdfModel.js';
+import {expandPdfBars} from './pdfBarRows.js';
+import {pdfRepeatShapes,drawPdfRepeatShapes} from './pdfRepeatDrawing.js';
 
 export const pdfExportFilename=title=>`${String(title||'Score').replace(/\.pdf$/i,'')}.pdf`;
 
@@ -12,7 +14,7 @@ export function hasPdfPageEdits(pageEdits={}){
 }
 
 // Use the same original-page coordinates and cut projection as the score viewer.
-// Practice bar maps, highlights and playback controls never enter this canvas.
+ // Practice bar maps, highlights and playback controls never enter this canvas.
 export function drawPdfAnnotations(context,edit,crop,width,height){
  const originalWidth=width/crop.width;
  const point=(x,y)=>{const p=projectRect({x,y,width:0,height:0},crop);return [p.x*width,p.y*height];};
@@ -50,7 +52,8 @@ export function drawPdfAnnotations(context,edit,crop,width,height){
 
 export async function exportEditedPdf(record,blob,{onProgress=()=>{}}={}){
  // Unedited documents keep their original vector quality and bytes.
- if(!hasPdfPageEdits(record.pageEdits))return blob;
+ const bars=expandPdfBars(record.barMap??[]),marks=record.repeatSettings?.marks;
+ if(!hasPdfPageEdits(record.pageEdits)&&!bars.some(b=>Object.keys(marks?.[b.number]??{}).length))return blob;
  const [{loadPdfTask},{jsPDF}]=await Promise.all([import('./pdfRenderer.js'),import('jspdf')]);
  await document.fonts?.ready;
  const task=loadPdfTask(new Uint8Array(await blob.arrayBuffer()));
@@ -75,6 +78,7 @@ export async function exportEditedPdf(record,blob,{onProgress=()=>{}}={}){
      }
     }
     drawPdfAnnotations(flattened.getContext('2d'),edit,crop,flattened.width,flattened.height);
+    drawPdfRepeatShapes(flattened.getContext('2d'),pdfRepeatShapes(bars,marks,number,crop,flattened.width,flattened.height));
     const orientation=width>height?'landscape':'portrait';
     if(!output){output=new jsPDF({unit:'pt',format:[width,height],orientation,compress:true});output.setProperties({title:record.title||'Score'});}
     else output.addPage([width,height],orientation);

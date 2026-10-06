@@ -17,7 +17,8 @@ export function loadTabPdf(data,signal,{timeout=60000}={}){
   raw.addEventListener('error',event=>{event.preventDefault();rejectFailure(Error('PDF 분석 엔진을 불러오지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.'));close();});
   raw.addEventListener('messageerror',()=>{rejectFailure(Error('PDF 분석 응답을 읽지 못했습니다. 다시 시도해 주세요.'));close();});
   signal?.addEventListener('abort',abort,{once:true});
-  try{worker=new PDFWorker({port:raw});task=loadPdfTask(data,{worker});}catch(error){close();throw error;}
+  // OCR needs original image samples, not browser-dependent native downscaling.
+  try{worker=new PDFWorker({port:raw});task=loadPdfTask(data,{worker,analysis:true});}catch(error){close();throw error;}
   const wait=async promise=>{
     let timer;
     try{return await abortable(Promise.race([promise,failure,new Promise((_,reject)=>{timer=setTimeout(()=>{reject(Error('PDF 분석 응답 시간이 초과되었습니다. 다시 시도해 주세요.'));close();},timeout);})]),signal);}

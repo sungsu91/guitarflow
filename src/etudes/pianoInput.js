@@ -71,7 +71,7 @@ export function movePianoHand(document,cursor,hand){
  if(source.tuplet&&!same)throw Error(ko["etudes.enterAMatchingTripletRhythmOnTheDestinationStaffBeforeMovingThe"]);
  if(!same&&overlap.some(e=>e.tuplet))throw Error(ko["etudes.thisOverlapsATripletOnTheDestinationStaff"]);
  if(same&&overlap[0].notes.some(n=>n.midi===tone.midi))throw Error(ko["etudes.theSamePitchAlreadyExistsAtThisPositionOnTheDestinationStaff"]);
- const silence=(start,end)=>{const result=[];for(const duration of ['1','2','4','8','16','32'])while(start+ticksOf({duration})<=end){result.push({...blankEvent(start,duration),voice:hand});start+=ticksOf({duration});}if(start!==end)throw Error(ko["etudes.checkTheRhythmicBoundariesOnTheDestinationStaff"]);return result;};
+ const silence=(start,end)=>{const result=[];for(const duration of ['1','2','4','8','16','32','64'])while(start+ticksOf({duration})<=end){result.push({...blankEvent(start,duration),voice:hand});start+=ticksOf({duration});}if(start!==end)throw Error(ko["etudes.checkTheRhythmicBoundariesOnTheDestinationStaff"]);return result;};
  const targetEvent=same?{...overlap[0],rest:false,blank:false,notes:[...overlap[0].notes,{...tone,hand}]}:{...blankEvent(source.onset,source.duration),voice:hand,dotted:source.dotted,rest:false,blank:false,notes:[{...tone,hand}]};
  const replaced=same?[targetEvent]:[...silence(overlap[0].onset,source.onset),targetEvent,...silence(end,overlap.at(-1).onset+ticksOf(overlap.at(-1)))];
  const notes=source.notes.filter(n=>n.id!==tone.id),events=sortPianoEvents([...m.events.filter(e=>!overlap.includes(e)).map(e=>e.id===source.id?{...e,notes,rest:!notes.length,blank:!notes.length}:e),...replaced]);

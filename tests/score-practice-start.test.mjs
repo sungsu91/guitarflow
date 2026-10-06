@@ -7,6 +7,7 @@ import {scoreTimeline,guitarVoiceTimeline,voicesFrom} from '../src/etudes/scoreP
 import {playbackSlots,slotAtTick,seekTick} from '../src/etudes/scorePlaybackPosition.js';
 import {performedMeasures,practiceClicks} from '../src/etudes/scoreMeters.js';
 import {practiceCountIn} from '../src/etudes/practiceCountIn.js';
+import {playbackRoute,playbackCycles} from '../src/etudes/scorePlaybackMode.js';
 
 async function startPractice(sound,repeatCount=1,{countIn=false,from}={}){
  const source=fs.readFileSync(new URL('../src/etudes/ScorePlayback.jsx',import.meta.url),'utf8');
@@ -15,7 +16,7 @@ async function startPractice(sound,repeatCount=1,{countIn=false,from}={}){
  const calls=[],audio={currentTime:0},score=originalGuitarPieces[0],token={current:0},session={current:null};
  let timer,pulse;
  const context={countIn,practiceCountIn,score,bpm:score.bpm,repeatCount,practice:true,dock:false,optionalSound:true,practiceRange:null,startAt:{bar:0,event:0},instrument:'clean-guitar',voiceSettings:{current:{sound,volume:1}},session,token,pending:{current:null},trailing:{current:null},metroOptions:{},BACKING_TRANSPORT_LOOKAHEAD_SECONDS:.15,
-  scoreTimeline,guitarVoiceTimeline,voicesFrom,playbackSlots,slotAtTick,seekTick,performedMeasures,practiceClicks,
+  scoreTimeline,guitarVoiceTimeline,voicesFrom,playbackSlots,slotAtTick,seekTick,performedMeasures,practiceClicks,playbackRoute,playbackCycles,
   stop(){token.current++;},onBeforePlay:undefined,resumeSharedAudioContext:async()=>audio,prepareScoreInstrument:async()=>null,
   warmGuitarPhrase(ctx,voice,index){calls.push({type:'warm',index});ctx.currentTime+=.04;},
   metro:{async start(options){calls.push({type:'clock',time:audio.currentTime,options});return {origin:audio.currentTime+.06+(options.leadIn?.duration??0),countInOrigin:audio.currentTime+.06};},stop(){}},

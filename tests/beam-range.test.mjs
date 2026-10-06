@@ -32,7 +32,7 @@ test('reject rests, empty slots, gaps and invalid ranges without mutations',()=>
 });
 test('beam editing never creates or merges triplets',()=>{
  let d=ensureTriplet(createBlankDocument(),{bar:0,event:0});for(let i=0;i<3;i++)d=enterFret(d,{bar:0,event:i,string:6},5);
- assert.throws(()=>setBeamRange(d,range(0,1),'join'),/3연음/);
+ assert.throws(()=>setBeamRange(d,range(0,1),'join'),/연음/);
  const joined=setBeamRange(d,range(0,2),'join');assert.deepEqual(joined.measures[0].events.map(e=>e.tuplet),d.measures[0].events.map(e=>e.tuplet));
  assert.deepEqual(scoreTimeline(compileDocumentV2(joined).score),scoreTimeline(compileDocumentV2(d).score));
 });

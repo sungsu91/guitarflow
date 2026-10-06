@@ -1,0 +1,16 @@
+.tabletShooterVideoMap { background: #19242c; }
+.tabletShooterVideoMapPoster,
+.tabletShooterVideoMapVideo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  /* The arena never exceeds the wide source's ratio, so cover preserves
+     the full vertical composition, including the floor under the player. */
+  object-fit: cover;
+  object-position: center;
+}
+.tabletShooterVideoMapVideo { opacity: 0; }
+.tabletShooterVideoMapVideo[data-ready="true"] { opacity: 1; }

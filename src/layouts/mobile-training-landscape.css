@@ -99,12 +99,59 @@
     }
   }
 
-  /* Reserve real space for both settings rows before placing the backing player. */
+  /* Keep the player's full action row. Short landscape viewports scroll this
+     control column instead of shrinking its grid track and clipping buttons. */
   html body #root .app.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
     .scaleBlockTrainingPanel .referenceStandaloneMetronomeDeck {
-    grid-template-rows: minmax(106px, 1fr) 106px 163px !important;
+    grid-template-rows: minmax(100px, 1fr) 98px 163px !important;
     gap: 4px !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
+  }
+
+  html[data-rifflab-device="mobile"] body #root .app.landscapePlayFocus .scaleBlockTrainingPanel {
+    & .referenceStandaloneMetronomeControl .rhythmSettings {
+      grid-template-rows: repeat(2, 38px) !important;
+      gap: 4px 6px !important;
+    }
+    & .referenceStandaloneMetronomeControl .rhythmSettingTrigger {
+      height: 38px !important;
+      min-height: 38px !important;
+    }
+    & .referenceMetronomeHeroCard {
+      grid-template-rows: minmax(0, 1fr) 36px !important;
+    }
+    & .referenceMetronomeHeroCard > .metronomeBpmAdjustGroup,
+    & .referenceMetronomeHeroCard > .metronomeHeroBpmValue {
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      padding: 0 !important;
+    }
+    & .referenceMetronomeHeroCard > .metronomeBpmAdjustGroup {
+      grid-template-rows: minmax(26px, 1fr) 1px minmax(26px, 1fr) !important;
+    }
+    & .referenceMetronomeActionPanel {
+      align-self: stretch !important;
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 0 8px 2px !important;
+    }
+    & .referenceMetronomeActionPanel > button {
+      height: 32px !important;
+      min-height: 32px !important;
+    }
+    & .referenceMetronomeHeroCard .metronomeHeroBpmValue > strong {
+      font-size: clamp(38px, 12dvh, 56px) !important;
+    }
+    & .scalePickerPanel.referenceScalePicker {
+      grid-template-columns: minmax(42px, .65fr) minmax(0, 1.65fr) minmax(54px, .85fr) 64px !important;
+      gap: 4px !important;
+      overflow: visible !important;
+    }
+    & .scalePickerPanel.referenceScalePicker > * {
+      min-width: 0 !important;
+      width: 100% !important;
+    }
   }
 }

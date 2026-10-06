@@ -2,6 +2,7 @@ import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 import {normalizeInstrumentDocument} from './scoreInstruments.js';
 import {isFretted,scoreInstrument,validScoreTuning} from './scoreInstruments.js';
+import {minimumFrettingFingers} from './frettingFeasibility.js';
 
 export const HARMONICS={3:31,4:28,5:24,7:19,9:28,12:12,16:28,19:19,24:24};
 // All existing instrument profiles support 0–24 in the editor. This is the
@@ -15,6 +16,11 @@ export function tuningPresets(instrument){const t=scoreInstrument(instrument).tu
  {id:'half-down',label:ko["etudes.halfStepDown"],tuning:t.map(n=>n-1)},
  {id:'whole-down',label:ko["etudes.wholeStepDown"],tuning:t.map(n=>n-2)},
  ...(instrument==='guitar'||!instrument?[{id:'drop-d',label:'Drop D',tuning:t.map((n,i)=>i===5?n-2:n)}]:[]),
+ ...(instrument==='guitar'?[
+  {id:'guitar-7',label:ko['editor.guitar7Tuning'],tuning:[...t,35]},
+  {id:'guitar-7-drop-a',label:ko['editor.guitar7DropA'],tuning:[...t,33]},
+ ]:[]),
+ ...(instrument==='ukulele'?[{id:'low-g',label:'Low-G',tuning:[69,64,60,55]}]:[]),
  ...(instrument==='bass'?[
   {id:'bass-5',label:ko['editor.bass5Tuning'],tuning:[...t,23]},
   {id:'bass-5-half-down',label:ko['editor.bass5HalfDown'],tuning:[...t,23].map(n=>n-1)},
@@ -34,7 +40,7 @@ export function assignTab(d,notes,neighbors=[]){
  const choices=notes.map(n=>n.locked?(n.unplaced?[]:[{string:n.string,fret:n.fret}]):tabCandidates(d,n.midi));
  const order=notes.map((_,i)=>i).sort((a,b)=>choices[a].length-choices[b].length);
  let best=null,bestCost=Infinity,visits=0;const chosen=[],used=new Set();
- function search(at,cost){if(++visits>60000||cost>=bestCost)return;if(at===order.length){best=[...chosen];bestCost=cost;return;}
+ function search(at,cost){if(++visits>60000||cost>=bestCost)return;if(at===order.length){if(minimumFrettingFingers(chosen)>4)return;best=[...chosen];bestCost=cost;return;}
   const i=order[at],n=notes[i];for(const c of choices[i]){if(used.has(c.string))continue;
    const stopped=[...chosen.filter(Boolean),c].filter(p=>p.fret>0).map(p=>p.fret);if(stopped.length&&(Math.max(...stopped)-Math.min(...stopped)>5||new Set(stopped).size>4))continue;
    const outside=preference.mode==='range'&&(c.fret<preference.min||c.fret>preference.max);

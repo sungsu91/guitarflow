@@ -64,9 +64,16 @@
   width:min(49%,calc(100% - 340px))!important;max-width:none!important;
   height:calc(100dvh - 150px)!important;aspect-ratio:auto!important;
  }
+ /* Scale the complete skin around its base so guitar, aura and floor stay aligned. */
+ .desktopLayout .shooterArena--desktopPortrait:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab)>.guitarPlayer {
+  --shooter-player-scale:1.25;
+  transform:translateX(-50%) scale(var(--shooter-player-scale))!important;
+  transform-origin:50% 100%!important;
+ }
+ .desktopLayout .shooterArena .shooterPetCompanion {width:68px!important;height:68px!important}
  .dsPlayfieldGuide {position:absolute;inset:0 0 auto;pointer-events:none;z-index:0;background:linear-gradient(90deg,#b6dcff09,transparent 15%,transparent 85%,#b6dcff09);mask-image:linear-gradient(transparent,#000 13%,#000);border-inline:1px solid #c7ddf52b;box-sizing:border-box}
  .dsLifeLine {position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#edc49b88 20%,#edc49b88 80%,transparent);box-shadow:0 0 9px #eeb58b44}
- .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCenterStatus--startMenu {left:50%!important;top:59%!important;width:min(280px,85%)!important;max-width:85%!important;transform:translateX(-50%)!important;overflow:visible!important}
+ .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterCenterStatus--startMenu {left:50%!important;top:min(59%,calc(100% - 296px))!important;width:min(280px,85%)!important;max-width:85%!important;transform:translateX(-50%)!important;overflow:visible!important}
  .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanel {display:flex!important;flex-direction:column!important;width:100%!important;min-height:0!important;overflow:visible!important}
  .desktopLayout .shooterPanel:has(>.desktopShooterMaps) .shooterStartPanel {gap:8px!important}
  html body .desktopLayout .shooterArena .dsStartActionButton {

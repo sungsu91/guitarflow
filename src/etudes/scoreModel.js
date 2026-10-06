@@ -5,9 +5,10 @@ import ko from "../i18n/locales/ko.js";
 import {chordDiagramErrors} from './scoreChordDiagram.js';
 import {slidePairs} from './slidePairs.js';
 import {soundingMidi,maxFret,HARMONICS} from './scoreTuning.js';
-import {measureMeters,validScoreMeter} from './scoreMeters.js';
+import {measureMeters,meterTicks,validScoreMeter} from './scoreMeters.js';
 import {SCORE_INSTRUMENTS,normalizeInstrumentDocument,scoreInstrument,isFretted,validateInstrumentMidi,validStringCount,validScoreTuning} from './scoreInstruments.js';
 import {repeatIssues} from './scoreRepeats.js';
+import {normalizeImportedScoreTitle} from './importedScoreTitle.js';
 export const NATURAL_HARMONICS=HARMONICS;
 import {TUNING, NATURAL, MAJOR, MINOR, spellMidi} from './notationData.js';
 export function midiAtStaffStep(step,key='C',instrument='guitar') {
@@ -17,7 +18,7 @@ export function midiAtStaffStep(step,key='C',instrument='guitar') {
 export const TICKS=480;
 export const newId=(kind='id')=>`${kind}-${globalThis.crypto.randomUUID()}`;
 export const ticksOf=event=>1920/Number(event.duration)*(event.dotted?1.5:1)*(event.tuplet?event.tuplet.normalNotes/event.tuplet.actualNotes:1);
-export function tupletGroups(events){const groups=[];let group=[];for(let i=0;i<events.length;i++){const t=events[i].tuplet,previous=events[group.at(-1)]?.tuplet;if(!t||group.length===3||previous?.groupId!==t.groupId){if(group.length)groups.push(group);group=[];}if(t)group.push(i);}if(group.length)groups.push(group);return groups;}
+export function tupletGroups(events){const groups=[];let group=[];for(let i=0;i<events.length;i++){const t=events[i].tuplet,previous=events[group.at(-1)]?.tuplet;if(!t||group.length===previous?.actualNotes||previous?.groupId!==t.groupId){if(group.length)groups.push(group);group=[];}if(t)group.push(i);}if(group.length)groups.push(group);return groups;}
 export const isBlankEvent=e=>e.blank===true&&e.rest&&e.notes.length===0;
 export const blankEvent=(onset=0,duration='4')=>({id:newId('event'),onset,duration,rest:true,blank:true,technique:null,notes:[]});
 export const blankMeasure=(meter=[4,4])=>({id:newId('bar'),chord:null,harmony:null,events:Array.from({length:meter[0]},(_,i)=>blankEvent(i*1920/meter[1],String(meter[1])))});
@@ -25,7 +26,7 @@ export const blankMeasure=(meter=[4,4])=>({id:newId('bar'),chord:null,harmony:nu
 // remain safe for the retained form controls. Preserve unreadable files verbatim.
 export const hasEditableShape=d=>Boolean(d&&typeof d.id==='string'&&['title','english','purpose'].every(k=>typeof d[k]==='string')&&Array.isArray(d.tuning)&&validStringCount(d.instrument,d.tuning.length)&&Array.isArray(d.meter)&&d.meter.length===2&&Array.isArray(d.tips)&&Array.isArray(d.measures)&&d.measures.length&&d.measures.every(m=>m&&Array.isArray(m.events)&&m.events.length&&(!m.chord||(Array.isArray(m.chord.frets)&&Array.isArray(m.chord.fingers)))&&m.events.every(e=>e&&Array.isArray(e.notes)&&e.notes.every(n=>n&&typeof n==='object'))));
 export function upgradeDocument(input) {
- const d=normalizeInstrumentDocument(structuredClone(input));
+ const d=normalizeImportedScoreTitle(normalizeInstrumentDocument(structuredClone(input)));
  if(d.version===2)return d;
  if(d.version!==1||d.format!=='fretiva.etude')throw Error(ko["etudes.thisScoreFileIsNotSupported"]);
  d.version=2;d.id=`copy-${d.templateId}`;d.origin={templateId:d.templateId,revision:1};d.kind='user';d.meter=[4,4];d.tuning=[...TUNING];d.keySignature='C';
@@ -34,7 +35,7 @@ export function upgradeDocument(input) {
 }
 export function createBlankDocument(){return {format:'fretiva.etude',version:2,id:newId('score'),templateId:'custom',kind:'user',origin:null,viewSettings:{tabRhythm:true,notationView:'tab'},title:translateUi("etudes.newScore"),english:'Untitled Study',purpose:translateUi("etudes.manuallyEnteredScore"),tips:[],bpm:60,meter:[4,4],keySignature:'C',instrument:'guitar',tuning:[...TUNING],measures:[blankMeasure()]};}
 export function copyDocument(source){const d=structuredClone(source);d.id=newId('score');d.kind='user';d.title=translateUi("etudes.valueCopy", { value1: d.title });return d;}
-export function cloneMeasures(measures){const result=structuredClone(measures),ids=new Map(),groups=new Map();result.forEach(m=>{m.id=newId('bar');m.events.forEach(e=>{const old=e.id;e.id=newId('event');ids.set(old,e.id);e.notes.forEach(n=>{n.id=newId('tone');});});});result.forEach(m=>m.events.forEach(e=>{if(e.tieTo)e.tieTo=ids.get(e.tieTo)??`outside-copy:${e.tieTo}`;if(e.slurTo)e.slurTo=ids.get(e.slurTo)??null;if(e.tuplet?.groupId){const old=e.tuplet.groupId;if(!groups.has(old))groups.set(old,newId('tuplet'));e.tuplet.groupId=groups.get(old);}}));return result;}
+export function cloneMeasures(measures){const result=structuredClone(measures),ids=new Map(),groups=new Map();result.forEach(m=>{m.id=newId('bar');m.events.forEach(e=>{const old=e.id;e.id=newId('event');ids.set(old,e.id);e.notes.forEach(n=>{n.id=newId('tone');});});});result.forEach(m=>m.events.forEach(e=>{if(e.tieTo)e.tieTo=ids.get(e.tieTo)??`outside-copy:${e.tieTo}`;for(const n of e.notes)if(n.pianoTieTo)n.pianoTieTo=ids.get(n.pianoTieTo)??`outside-copy:${n.pianoTieTo}`;if(e.slurTo)e.slurTo=ids.get(e.slurTo)??null;if(e.tuplet?.groupId){const old=e.tuplet.groupId;if(!groups.has(old))groups.set(old,newId('tuplet'));e.tuplet.groupId=groups.get(old);}}));return result;}
 export function cloneMeasure(m){return cloneMeasures([m])[0];}
 export function patchEvent(d,bar,index,patch){const measures=[...d.measures],events=[...measures[bar].events];events[index]=typeof patch==='function'?patch(events[index]):{...events[index],...patch};measures[bar]={...measures[bar],events};return {...d,measures};}
 // Structural sharing for the retained properties panel, which mutates a clone.
@@ -74,11 +75,11 @@ function compileBar(bar,d) {
  const errors=[],issues=[],events=[];let end=0;
  if(bar.pdfImport?.needsReview||bar.events.some(e=>e.pdfImport?.status==='unresolved'))issues.push(bar.pdfImport?.source?.notation?'오선보 변환 결과를 원본과 대조해 주세요.':'PDF TAB 미확정 입력 또는 리듬을 검토해 주세요.');
  const capacity=d.meter[0]*1920/d.meter[1];
- if(!Array.isArray(bar.events)||!bar.events.length||bar.events.length>64)return {errors:[ko["etudes.eachBarNeeds164NotesOrRests"]],issues,events};
+ if(!Array.isArray(bar.events)||!bar.events.length||bar.events.length>96)return {errors:[ko["etudes.eachBarNeeds164NotesOrRests"]],issues,events};
  for(const e of bar.events){
-  if(!e.id||!['1','2','4','8','16','32'].includes(e.duration)||!Number.isInteger(e.onset)||e.onset<0||!Array.isArray(e.notes)||e.notes.length>128){errors.push(ko["etudes.checkNoteIdsOnsetsDurationsAndSimultaneousNotes"]);continue;}
+  if(!e.id||(!['1','2','4','8','16','32'].includes(e.duration)&&!(e.duration==='64'&&isBlankEvent(e)))||!Number.isInteger(e.onset)||e.onset<0||!Array.isArray(e.notes)||e.notes.length>128){errors.push(ko["etudes.checkNoteIdsOnsetsDurationsAndSimultaneousNotes"]);continue;}
   if(e.dotted!=null&&(typeof e.dotted!=='boolean'||(e.dotted&&Boolean(e.tuplet))))errors.push(ko["etudes.dottedNotesAndTripletsCannotBeAppliedTogether"]);
-  if(e.tuplet&&(e.tuplet.actualNotes!==3||e.tuplet.normalNotes!==2||!['8','16'].includes(e.duration)))errors.push(formatMessage(ko["etudes.valueSupportedTupletsAre32EighthOrSixteenthNoteTriplets"], { value1: e.id }));
+  if(e.tuplet&&(!((e.tuplet.actualNotes===3&&e.tuplet.normalNotes===2)||(e.tuplet.actualNotes===6&&e.tuplet.normalNotes===4))||!['4','8','16','32'].includes(e.duration)||typeof e.tuplet.groupId!=='string'||!e.tuplet.groupId))errors.push(formatMessage(ko["etudes.valueSupportedTupletsAre32EighthOrSixteenthNoteTriplets"], { value1: e.id }));
   if(e.onset!==end)issues.push(formatMessage(ko["etudes.valueValueStartsOnBeatValue"], { value1: e.id, value2: e.onset<end?ko["etudes.overlapsThePreviousNote"]:ko["etudes.unfilledBeat"], value3: e.onset/TICKS }));
   if(e.sustainTicks!=null&&(!isFretted(d.instrument)||!Number.isInteger(e.sustainTicks)||e.sustainTicks<=0||e.onset+e.sustainTicks>capacity))errors.push('Sustain must end within the written bar.');
   if(e.dampAtEnd!=null&&typeof e.dampAtEnd!=='boolean')errors.push('Check the note release setting.');
@@ -106,7 +107,7 @@ function compileBar(bar,d) {
   for(const key of ['bend','ghost','grace'])if(e[key]!=null)issues.push(formatMessage(ko["etudes.valueDisplayAndPlaybackOfValueAreNotCurrentlySupportedInputData"], { value1: e.id, value2: key }));
   events.push({...e,...(tones[0]??{string:1,fret:0,midi:d.tuning[0]??60,pitch:pitchForMidi(d.tuning[0]??60,d.keySignature,undefined,d.instrument)}),id:e.id,...(tones.length>1||d.instrument==='drums'&&tones.length?{tones}:{}),rest:Boolean(e.rest),duration:e.duration,technique:e.technique??null});
  }
- for(const group of tupletGroups(bar.events)){const first=bar.events[group[0]];if(group.length!==3||group.some((index,j)=>bar.events[index].duration!==first.duration||bar.events[index].onset!==first.onset+j*ticksOf(first)))errors.push(ko["etudes.tripletsMustConsistOfThreeConsecutivePositionsOfEqualDuration"]);}
+ for(const group of tupletGroups(bar.events)){const first=bar.events[group[0]];if(group.length!==first.tuplet.actualNotes||group.some((index,j)=>bar.events[index].tuplet.actualNotes!==first.tuplet.actualNotes||bar.events[index].tuplet.normalNotes!==first.tuplet.normalNotes||bar.events[index].duration!==first.duration||bar.events[index].onset!==first.onset+j*ticksOf(first)))errors.push(ko["etudes.tripletsMustConsistOfThreeConsecutivePositionsOfEqualDuration"]);}
  for(const group of tupletGroups(bar.events)){if(group.some(i=>isBlankEvent(bar.events[i])))issues.push(formatMessage(ko["etudes.beatValueIncompleteTripletGroup"], { value1: Math.floor(bar.events[group[0]].onset/TICKS)+1 }));}
  if(end!==capacity)issues.push(formatMessage(ko["etudes.barLengthValueValueBeatsValue"], { value1: end/TICKS, value2: capacity/TICKS, value3: end>capacity?ko["etudes.tooLong"]:ko["etudes.tooShort"] }));
  if(bar.chord&&(!Array.isArray(bar.chord.frets)||bar.chord.frets.length!==d.tuning.length||bar.chord.frets.some(f=>f!==null&&(!Number.isInteger(f)||f<0||f>24))||typeof bar.chord.name!=='string'))errors.push(ko["etudes.checkTheChordDiagramNameAndFretForEachString"]);
@@ -116,7 +117,7 @@ function compileBar(bar,d) {
  const result={errors,issues,events};cache.set(bar,{context,result});return result;
 }
 export function compileDocumentV2(d,base={}) {
- d=normalizeInstrumentDocument(d);
+ d=normalizeImportedScoreTitle(normalizeInstrumentDocument(d));
  const errors=[],issues=[];
  if(!isFretted(d?.instrument)&&d?.capo)errors.push(ko["etudes.aCapoCannotBeAppliedToKeyboardOrDrumScores"]);
  if(d?.capo!=null&&(!Number.isInteger(d.capo)||d.capo<0||d.capo>Math.min(12,maxFret(d))))errors.push(ko["etudes.checkTheCapoRange"]);
@@ -134,6 +135,12 @@ export function compileDocumentV2(d,base={}) {
  const slurEvents=d.measures.flatMap(m=>m.events),slurPositions=new Map(slurEvents.map((e,i)=>[e.id,i]));
  slurEvents.forEach((e,i)=>{if(!e.slurTo)return;const end=slurPositions.get(e.slurTo);if(end===undefined||end<=i||slurEvents.slice(i,end+1).some(n=>n.rest))issues.push(ko["etudes.checkTheSlurSStartingAndEndingNotes"]);});
  const meters=measureMeters(d);
+ for(const [bar,m] of d.measures.entries())for(const [i,e] of m.events.entries())for(const n of e.notes){
+  if(n.pianoTieTo==null)continue;
+  const next=m.events.slice(i+1).find(p=>p.voice===e.voice),target=next??d.measures[bar+1]?.events.find(p=>p.voice===e.voice);
+  const contiguous=next?next.onset===e.onset+ticksOf(e):target?.onset===0&&e.onset+ticksOf(e)===meterTicks(meters[bar]);
+  if(d.instrument!=='piano'||typeof n.pianoTieTo!=='string'||!target||target.id!==n.pianoTieTo||e.rest||target.rest||!target.notes.some(p=>p.midi===n.midi)||!contiguous)errors.push(`${bar+1}마디 피아노 지속음의 연결 음높이·위치를 확인해 주세요.`);
+ }
  for(const meter of meters)if(!validScoreMeter(meter))errors.push(ko["etudes.checkTheBarSTimeSignature"]);
  if(errors.length)return {score:null,errors,issues};
  const ids=new Set(),measures=d.measures.map((m,i)=>{for(const id of [m.id,...m.events.flatMap(e=>[e.id,...e.notes.map(n=>n.id)])]){if(!id||ids.has(id))errors.push(formatMessage(ko["etudes.barValueMissingOrDuplicateIdentifier"], { value1: i+1 }));ids.add(id);}const result=compileBar(m,{...d,meter:meters[i]});errors.push(...result.errors.map(s=>formatMessage(ko["etudes.barValueValue"], { value1: i+1, value2: s })));issues.push(...result.issues.map(s=>formatMessage(ko["etudes.barValueValue"], { value1: i+1, value2: s })));return result.events;});

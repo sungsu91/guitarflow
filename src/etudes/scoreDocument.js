@@ -59,11 +59,11 @@ function compileLegacyDocument(document,base) {
   } else if(m?.harmony) {
    try{parseChord(m.harmony);harmony.push(m.harmony);}catch{fail(formatMessage(ko["etudes.valueCheckTheChordName"], { value1: prefix }));}
   }
-  if(!Array.isArray(m?.events)||m.events.length<1||m.events.length>64){fail(formatMessage(ko["etudes.valueEnter164NotesOrRests"], { value1: prefix }));continue;}
+  if(!Array.isArray(m?.events)||m.events.length<1||m.events.length>96){fail(formatMessage(ko["etudes.valueEnter164NotesOrRests"], { value1: prefix }));continue;}
   const events=[];
   for(const [i,event] of m.events.entries()) {
    const position=formatMessage(ko["etudes.valueItemValue"], { value1: prefix, value2: i+1 });
-   if(!['1','2','4','8','16'].includes(event?.duration)){fail(formatMessage(ko["etudes.valueChooseANoteDuration"], { value1: position }));continue;}
+   if(!['1','2','4','8','16','32'].includes(event?.duration)){fail(formatMessage(ko["etudes.valueChooseANoteDuration"], { value1: position }));continue;}
    if(typeof event.rest!=='boolean'){fail(formatMessage(ko["etudes.valueCheckTheRestSetting"], { value1: position }));continue;}
    if(event.technique!==null&&!['H','P','S'].includes(event.technique)){fail(formatMessage(ko["etudes.valueChooseHPOrSl"], { value1: position }));continue;}
    if(event.rest) {

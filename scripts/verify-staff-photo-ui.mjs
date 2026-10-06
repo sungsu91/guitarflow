@@ -16,9 +16,9 @@ try{
  await page.getByRole('button',{name:'뒤로',exact:true}).click();assert.match((await order.locator('option').allTextContents())[0],/페이지_2/);await page.getByRole('button',{name:'앞으로',exact:true}).click();
  await page.setViewportSize({width:1440,height:1000});await page.locator('.desktopPdfTabImport').waitFor();assert.equal(await order.locator('option').count(),2);await page.setViewportSize({width:440,height:956});await page.locator('.mobilePdfTabImport').waitFor();
  await page.screenshot({path:`${out}/batch-preview.png`});
- const start=Date.now();await page.getByRole('button',{name:'사진 전체 분석',exact:true}).click();
+ const start=Date.now();await page.getByRole('button',{name:'분석하기',exact:true}).click();
  await page.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:300000});
- assert.equal(await page.getByRole('button',{name:'사진 전체 분석',exact:true}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'분석하기',exact:true}).count(),0);
  await page.screenshot({path:`${out}/batch-result.png`});
  await page.getByRole('button',{name:'제작실에서 열기',exact:true}).click();await page.locator('.mobilePdfTabReview').waitFor({timeout:60000});
  const document=Object.values((await readBrowserScoreLibrary(page)).records)[0].document;

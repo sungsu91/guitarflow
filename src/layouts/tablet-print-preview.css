@@ -1,0 +1,225 @@
+/* Screen-only workspace geometry; A4 page dimensions and export stay shared. */
+@layer tablet-print-preview {
+  @media screen {
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog {
+      width: min(100%, 1280px) !important;
+      max-width: 1280px !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      min-height: 0 !important;
+      padding: 16px !important;
+      gap: 0 !important;
+      overflow: hidden !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog > header {
+      min-height: 52px !important;
+      padding-bottom: 12px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog > header h2 {
+      font-size: 20px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog > .rt-dialog-body {
+      display: flex !important;
+      flex-direction: column !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      gap: 12px !important;
+      overflow: hidden !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay :is(.rt-print-controls,.rt-pdf-filename,.rt-print-edit) {
+      flex: 0 0 auto !important;
+      margin: 0 !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-controls {
+      gap: 12px !important;
+      align-items: center !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-controls > button {
+      flex: 0 0 auto !important;
+      min-width: 128px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-mobile-hint {
+      flex: 1 1 240px !important;
+      margin: 0 !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-edit {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      align-content: start !important;
+      align-self: stretch !important;
+      gap: 10px 16px !important;
+      padding: 12px !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-field {
+      min-width: 0 !important;
+      margin: 0 !important;
+      gap: 6px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-field:first-child,
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-display-actions {
+      grid-column: 1 / -1 !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay :is(.rt-print-field-heading,.rt-print-display-actions) {
+      min-height: 28px !important;
+      gap: 10px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay :is(.rt-print-field-heading > label,.rt-print-display-actions > label) {
+      font-size: 15px !important;
+      line-height: 1.4 !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-display-actions > label {
+      min-height: 36px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay :is(.rt-print-controls,.rt-pdf-filename,.rt-print-edit,.rt-print-navigation,header) button,
+    html[data-rifflab-device="tablet"] .print-preview-overlay :is(.rt-pdf-filename,.rt-print-edit,.rt-print-navigation) :is(input:not([type="checkbox"]),select) {
+      min-height: 48px !important;
+      font-size: 16px !important;
+      line-height: 1.4 !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-edit textarea {
+      height: 64px !important;
+      min-height: 64px !important;
+      max-height: 120px !important;
+      font-size: 16px !important;
+      line-height: 1.4 !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-edit input[type="checkbox"] {
+      width: 24px !important;
+      height: 24px !important;
+      min-height: 24px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-preview {
+      flex: 1 1 0 !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-navigation {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      align-items: center !important;
+      gap: 6px 16px !important;
+      padding: 10px 12px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-page-controls {
+      width: 100% !important;
+      max-width: 480px !important;
+      gap: 12px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-page-controls select {
+      width: 100% !important;
+      text-align: center !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-preview-hint {
+      margin: 0 !important;
+      font-size: 14px !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-gesture-hint {
+      grid-column: 1 / -1 !important;
+      margin: 0 !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-navigation:has(.rt-print-position-actions) > :is(.rt-print-page-controls,.rt-print-preview-hint) {
+      grid-column: 1 / -1 !important;
+      max-width: none !important;
+    }
+
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-scroll {
+      flex: 1 1 0 !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      padding: 12px !important;
+      touch-action: pan-y;
+    }
+  }
+
+  /* Full-width portrait tablets have room for one compact metadata row. */
+  @media screen and (orientation: portrait) and (min-width: 700px) {
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-edit {
+      grid-template-columns: 1.2fr 1fr 1fr !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-field:first-child {
+      grid-column: auto !important;
+    }
+  }
+
+  @media screen and (orientation: landscape) and (min-width: 900px) {
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog > .rt-dialog-body {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) clamp(280px, 27vw, 340px) !important;
+      grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+      gap: 12px 16px !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-preview {
+      grid-column: 1 !important;
+      grid-row: 1 / -1 !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-controls {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-pdf-filename {
+      grid-column: 2 !important;
+      grid-row: 2 !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-edit {
+      grid-column: 2 !important;
+      grid-row: 3 !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      align-self: start !important;
+      overflow: auto !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog-body > [role="alert"] {
+      grid-column: 2 !important;
+      grid-row: 4 !important;
+    }
+  }
+
+  @media screen and (max-width: 599px), screen and (max-height: 600px) {
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog {
+      padding: 12px !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-dialog > .rt-dialog-body {
+      overflow: auto !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-edit {
+      max-height: 32dvh !important;
+      overflow: auto !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-preview {
+      min-height: 300px !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-page-controls {
+      gap: 6px !important;
+    }
+    html[data-rifflab-device="tablet"] .print-preview-overlay .rt-print-navigation {
+      column-gap: 8px !important;
+    }
+  }
+}

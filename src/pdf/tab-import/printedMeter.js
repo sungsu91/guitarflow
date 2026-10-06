@@ -6,7 +6,7 @@ export function findPrintedMeter(ink,width,staff){
  const g=staff.spacing,first=Math.min(...staff.candidates.filter(c=>!c.nonFretSymbol).map(c=>c.cx));
  const left=Math.ceil(staff.x+g*1.7),right=Math.floor(Math.min(first-g*.8,staff.x+g*6));
  if(right-left<g*.7)return null;
- const middle=(staff.lines[0]+staff.lines[5])/2;
+ const middle=(staff.lines[0]+staff.lines.at(-1))/2;
  const pixel=(x,y)=>{
   if(!ink[y*width+x])return 0;
   const line=staff.lines.find(line=>Math.abs(y-line)<=Math.ceil(staff.thickness/2));

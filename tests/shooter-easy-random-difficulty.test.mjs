@@ -53,8 +53,9 @@ test("easy random announces its range only in the shared 3-2-1 count-in", () => 
   assert.doesNotMatch(appSource, /getShooterEasyRandomScenarioStep/);
 });
 
-test("easy random is the deployment default while tutorial easy remains selectable", () => {
-  assert.match(appSource, /const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES\.EASY_RANDOM/);
+test("voice is the deployment default while both guitar easy modes remain selectable", () => {
+  assert.match(appSource, /const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES\.VOICE/);
+  assert.match(appSource, /id: SHOOTER_DIFFICULTIES\.EASY_RANDOM/);
   assert.match(appSource, /useState\(DEFAULT_SHOOTER_DIFFICULTY\)/);
   assert.match(appSource, /useRef\(DEFAULT_SHOOTER_DIFFICULTY\)/);
   assert.match(appSource, /id: SHOOTER_DIFFICULTIES\.EASY, label: "쉬움"/);

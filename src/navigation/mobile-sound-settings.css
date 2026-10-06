@@ -1,0 +1,39 @@
+/* Phone and tablet presentation is isolated from the desktop popover. */
+html body #root #utility-menu-panel .utilitySoundPanel.mobileSoundSettings {
+  --sound-range-height: 44px;
+  margin: 12px 0 0 !important; padding: 0 !important; overflow: hidden;
+  border: 1px solid var(--sound-line) !important; border-radius: 20px !important;
+  background: var(--sound-surface) !important; color: var(--sound-ink) !important; box-shadow: none !important;
+}
+html body #root #utility-menu-panel .mobileSoundSettings .utilitySoundDetails {
+  margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+html body #root #utility-menu-panel .mobileSoundSettings .utilitySoundDetails > .mobileSoundSettingsHeader {
+  display: flex !important; align-items: center !important; gap: 10px !important;
+  min-height: 82px !important; margin: 0 !important; padding: 18px 16px !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+html body #root #utility-menu-panel .mobileSoundSettings .mobileSoundSettingsChevron {
+  flex: 0 0 18px; margin-left: auto; color: var(--sound-muted);
+}
+html body #root #utility-menu-panel .mobileSoundSettings .utilitySoundDetails[open] .mobileSoundSettingsChevron { transform: rotate(180deg); }
+html body #root #utility-menu-panel .mobileSoundSettings .utilitySoundSliders {
+  display: block !important; margin: 0 !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+html body #root #utility-menu-panel .mobileSoundSettings .mobileSoundSettingsControls { padding: 0 18px 16px; }
+html body #root #utility-menu-panel .mobileSoundSettings .soundSettingsGroup { gap: 8px; }
+html body #root #utility-menu-panel .mobileSoundSettings .soundSettingsFooter { padding: 14px 16px; gap: 10px; }
+html body #root #utility-menu-panel .mobileSoundSettings .soundSettingsFooter button { min-height: 44px !important; }
+@layer tablet-readability {
+  /* Tablet navigation uses important layer rules, so its sound header override
+     belongs in that layer too instead of fighting it with selector weight. */
+  html[data-rifflab-device="tablet"] body #root #utility-menu-panel .mobileSoundSettings .mobileSoundSettingsHeader { padding: 20px !important; min-height: 90px !important; }
+}
+html[data-rifflab-device="tablet"] body #root #utility-menu-panel .mobileSoundSettings .mobileSoundSettingsControls { padding: 0 22px 20px; }
+html[data-rifflab-device="tablet"] body #root #utility-menu-panel .mobileSoundSettings .soundSettingsFooter { padding: 16px 20px; }
+@media (max-width: 360px) {
+  html body #root #utility-menu-panel .mobileSoundSettings .soundSettingsMark { flex-basis: 30px; width: 30px; height: 34px; border-radius: 10px; }
+  html body #root #utility-menu-panel .mobileSoundSettings .soundSettingsHeading strong { font-size: 15px !important; }
+  html body #root #utility-menu-panel .mobileSoundSettings .soundSettingsFooter { gap: 8px; padding-inline: 12px; }
+}

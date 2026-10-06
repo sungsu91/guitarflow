@@ -12,6 +12,7 @@ import { RIVER_MAP_SKIN } from "./skins/river.js";
 import { THREE_D_LAB_MAP_SKIN } from "./skins/threeDLab.js";
 import { MOONLIT_ROOFTOP_MAP_SKIN } from "./skins/moonlitRooftop.js";
 import { STORM_CLOISTER_MAP_SKIN } from "./skins/stormCloister.js";
+import { hasTabletMapComposition, resolveShooterMapForLayout } from "./tabletMapPresentation.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   MOONLIT_ROOFTOP_MAP_SKIN,
@@ -48,22 +49,24 @@ export function getNextShooterMapId(currentMapId) {
 
 export function getShooterMapsForLayout(
   isMobileLayout = true,
-  { includeMobileOnly = false, isPortraitLayout = true } = {},
+  layoutOptions = {},
 ) {
   return LAYERED_SHOOTER_MAP_SKINS.filter(
-    (map) => isShooterMapAvailableForLayout(map, isMobileLayout, {
-      includeMobileOnly,
-      isPortraitLayout,
-    }),
-  );
+    (map) => isShooterMapAvailableForLayout(map, isMobileLayout, layoutOptions),
+  ).map((map) => resolveShooterMapForLayout(map, layoutOptions));
 }
 
 export function isShooterMapAvailableForLayout(
   map,
   isMobileLayout = true,
-  { includeMobileOnly = false, isPortraitLayout = true } = {},
+  { includeMobileOnly = false, isPortraitLayout = true, isTabletLayout = false } = {},
 ) {
-  if (map?.portraitOnly && !isPortraitLayout) return false;
+  if (isTabletLayout && !hasTabletMapComposition(map)) return false;
+  const presentation = resolveShooterMapForLayout(map, { isTabletLayout });
+  if (presentation?.portraitOnly && !isPortraitLayout) return false;
+  // Phones keep their rotate-to-play flow. Tablets only offer maps playable
+  // in the current viewport, including split view.
+  if (isTabletLayout && map?.landscapeOnly && isPortraitLayout) return false;
   return !map?.mobileOnly || isMobileLayout || includeMobileOnly;
 }
 

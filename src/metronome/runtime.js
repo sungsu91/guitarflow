@@ -105,7 +105,7 @@ export function advanceMetronomeRuntime(previousState, elapsedMs, configuration 
       trackerBarLimitReached = true;
       next.trackerBarLimitReached = true;
       if (configuration.trackerBarResetWhenReached) {
-        next.trackerBars = 0;
+        next.trackerBars = configuration.trackerBarStopWhenReached ? 0 : next.trackerBars % trackerBarLimit;
         next.trackerBarLimitReached = false;
       }
     }
@@ -118,11 +118,12 @@ export function advanceMetronomeRuntime(previousState, elapsedMs, configuration 
   if (trackerMode === "timer" && trackerTimerTotalMs > 0) {
     if (next.trackerElapsedMs >= trackerTimerTotalMs && !next.trackerTimerLimitReached) {
       trackerTimerLimitReached = true;
-      next.trackerElapsedMs = trackerTimerTotalMs;
       next.trackerTimerLimitReached = true;
       if (configuration.trackerTimerResetWhenReached) {
-        next.trackerElapsedMs = 0;
+        next.trackerElapsedMs = configuration.trackerTimerStopWhenReached ? 0 : next.trackerElapsedMs % trackerTimerTotalMs;
         next.trackerTimerLimitReached = false;
+      } else {
+        next.trackerElapsedMs = trackerTimerTotalMs;
       }
     }
   } else {

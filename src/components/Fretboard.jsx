@@ -20,15 +20,8 @@ import {
   normalizeLickTechnique,
 } from "../music/lickTechniques";
 import { CHROMATIC_NOTES, NOTE_INDEX } from "../music/noteNotation.js";
-
-const STANDARD_TUNING = [
-  { stringNumber: 1, pitch: "E4" },
-  { stringNumber: 2, pitch: "B3" },
-  { stringNumber: 3, pitch: "G3" },
-  { stringNumber: 4, pitch: "D3" },
-  { stringNumber: 5, pitch: "A2" },
-  { stringNumber: 6, pitch: "E2" },
-];
+import { VIEWER_PROFILES } from '../fretboard/instruments.js';
+const STANDARD_TUNING = VIEWER_PROFILES['guitar-6'].tuning;
 
 const NOTE_COLORS = {
   C: { fill: "#38bdf8", text: "#03131f" },
@@ -126,10 +119,10 @@ function buildFretNumbers(start, end) {
   return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
 
-function buildGeneratedNotes({ fretRange, selectedNotes, showOnlySelected }) {
+function buildGeneratedNotes({ fretRange, selectedNotes, showOnlySelected, tuning }) {
   const [start, end] = normalizeFretRange(fretRange);
   const selected = new Set(selectedNotes ?? []);
-  return STANDARD_TUNING.flatMap((stringInfo) => {
+  return tuning.flatMap((stringInfo) => {
     const openMidi = pitchToMidi(stringInfo.pitch);
     return buildFretNumbers(start, end).map((fretNumber) => {
       const pitch = midiToPitch(openMidi + fretNumber);
@@ -192,6 +185,7 @@ function Fretboard({
   showOnlySelected = true,
   showStringNames = true,
   stringStates = {},
+  tuning = STANDARD_TUNING,
   tabSteps = [],
   notation = "notes",
   onBarreCreate,
@@ -201,6 +195,7 @@ function Fretboard({
   onNotePress,
 }) {
   useLanguage();
+  const stringCount = tuning.length;
   const [deleteTargetKey, setDeleteTargetKey] = useState("");
   const [barreDeleteTargetKey, setBarreDeleteTargetKey] = useState("");
   const [barreDraft, setBarreDraft] = useState(null);
@@ -214,7 +209,7 @@ function Fretboard({
   const visualStartFret = Math.max(1, startFret);
   const visualEndFret = Math.max(visualStartFret, endFret);
   const fretNumbers = buildFretNumbers(visualStartFret, visualEndFret);
-  const renderNotes = notes ?? buildGeneratedNotes({ fretRange, selectedNotes, showOnlySelected });
+  const renderNotes = notes ?? buildGeneratedNotes({ fretRange, selectedNotes, showOnlySelected, tuning });
   const isTabMode = notation === "tab";
   const preparedTabSteps = isTabMode ? prepareLickTabSteps(tabSteps) : [];
   const tabConnections = isTabMode ? buildLickTabConnections(preparedTabSteps) : [];
@@ -361,7 +356,7 @@ function Fretboard({
       || fret <= 0
       || !Number.isInteger(fromString)
       || fromString < 1
-      || fromString > 6
+      || fromString > stringCount
       || (event.pointerType === "mouse" && event.button !== 0)
       || event.target?.closest?.(".fretboardNoteDeleteButton, .fretboardBarreDeleteButton")
     ) return;
@@ -533,6 +528,7 @@ function Fretboard({
         setBarreDeleteTargetKey("");
       } : undefined}
       style={{
+        "--fretboard-string-count": stringCount,
         "--fret-count": isTabMode ? tabSlotCount : Math.max(1, visualEndFret - visualStartFret + 1),
         "--fret-slot-count": isTabMode ? tabSlotCount : fretNumbers.length,
         "--lick-step-count": tabSlotCount,
@@ -554,8 +550,8 @@ function Fretboard({
             <i key={isTabMode ? `step-${item.tabId}` : `fret-grid-slot-${index}`} />
           ))}
         </div>
-        <div className="fretboardStrings">
-          {STANDARD_TUNING.map((stringInfo) => {
+        <div className="fretboardStrings" style={{ gridTemplateRows: `repeat(${stringCount}, 1fr)` }}>
+          {tuning.map((stringInfo) => {
             const stringState = stringStates[stringInfo.stringNumber];
             const openNote = openNotesByString.get(stringInfo.stringNumber);
             const openLabel = openNote?.label ?? openNote?.noteName ?? getPitchClass(openNote?.pitch);
@@ -644,8 +640,8 @@ function Fretboard({
               role={editable ? "button" : undefined}
               style={{
                 "--fretboard-x-ratio": getXRatio(fret),
-                "--fretboard-barre-top": (topString - 0.5) / 6,
-                "--fretboard-barre-height": (bottomString - topString + 1) / 6,
+                "--fretboard-barre-top": (topString - 0.5) / stringCount,
+                "--fretboard-barre-height": (bottomString - topString + 1) / stringCount,
               }}
               tabIndex={editable ? 0 : undefined}
             >
@@ -662,8 +658,8 @@ function Fretboard({
               className="fretboardBarre fretboardBarre--preview"
               style={{
                 "--fretboard-x-ratio": getXRatio(barreDraft.fret),
-                "--fretboard-barre-top": (topString - 0.5) / 6,
-                "--fretboard-barre-height": (bottomString - topString + 1) / 6,
+                "--fretboard-barre-top": (topString - 0.5) / stringCount,
+                "--fretboard-barre-height": (bottomString - topString + 1) / stringCount,
               }}
             />
           );
@@ -682,7 +678,7 @@ function Fretboard({
               style={{
                 "--fretboard-tab-left-ratio": leftRatio,
                 "--fretboard-tab-width-ratio": widthRatio,
-                "--fretboard-tab-y-ratio": (Number(connection.from.stringNumber) - 0.5) / 6,
+                "--fretboard-tab-y-ratio": (Number(connection.from.stringNumber) - 0.5) / stringCount,
               }}
             >
               <i />
@@ -712,7 +708,7 @@ function Fretboard({
               key={step.tabId}
               style={{
                 "--fretboard-tab-x-ratio": getTabXRatio(step.tabIndex),
-                "--fretboard-tab-y-ratio": isRest ? 0.5 : (Number(step.stringNumber) - 0.5) / 6,
+                "--fretboard-tab-y-ratio": isRest ? 0.5 : (Number(step.stringNumber) - 0.5) / stringCount,
               }}
             >
               <b><span>{displayValue}</span></b>
@@ -733,7 +729,7 @@ function Fretboard({
             </span>
           );
         })}
-        {editable && !isTabMode ? STANDARD_TUNING.flatMap((stringInfo) => fretNumbers.map((fretNumber) => {
+        {editable && !isTabMode ? tuning.flatMap((stringInfo) => fretNumbers.map((fretNumber) => {
           const positionKey = `${stringInfo.stringNumber}-${fretNumber}`;
           if (occupiedPositions.has(positionKey)) return null;
           const position = getEditablePosition(stringInfo, fretNumber);
@@ -752,7 +748,7 @@ function Fretboard({
               onPointerUp={finishBarreGesture}
               style={{
                 "--fretboard-x-ratio": getXRatio(fretNumber),
-                "--fretboard-y-ratio": (stringInfo.stringNumber - 0.5) / 6,
+                "--fretboard-y-ratio": (stringInfo.stringNumber - 0.5) / stringCount,
               }}
               type="button"
             />
@@ -789,7 +785,7 @@ function Fretboard({
               role={onNotePress || editable ? "button" : undefined}
               style={{
                 "--fretboard-x-ratio": getXRatio(Number(note.fretNumber)),
-                "--fretboard-y-ratio": (Number(note.stringNumber) - 0.5) / 6,
+                "--fretboard-y-ratio": (Number(note.stringNumber) - 0.5) / stringCount,
                 ...getNoteStyle(noteName),
               }}
               tabIndex={onNotePress || editable ? 0 : undefined}
@@ -832,7 +828,7 @@ function Fretboard({
               onClick={(event) => deleteEditableBarre(event, barre)}
               style={{
                 "--fretboard-x-ratio": getXRatio(fret),
-                "--fretboard-y-ratio": (topString - 0.5) / 6,
+                "--fretboard-y-ratio": (topString - 0.5) / stringCount,
                 "--fretboard-barre-delete-offset-x": getXRatio(fret) > 0.82 ? "-23px" : "23px",
               }}
               type="button"

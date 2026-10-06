@@ -14,6 +14,7 @@ import {
   removeChordFretboardNote,
 } from "../rhythm/chordFretboardState.js";
 import Fretboard from "./Fretboard";
+import { getViewerProfile } from '../fretboard/instruments.js';
 
 const EDITABLE_FRETBOARD_SELECTION = Object.freeze(["__editable-chord-note__"]);
 
@@ -75,6 +76,7 @@ const EditableChordFretboard = memo(forwardRef(function EditableChordFretboard({
 
   return (
     <Fretboard
+      tuning={getViewerProfile(draft.instrumentProfileId).tuning}
       barres={draft.barres}
       className={className}
       editable

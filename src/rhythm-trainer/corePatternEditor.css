@@ -1,0 +1,55 @@
+.rt-core-editor {flex:1;min-width:0;min-height:0;overflow:hidden;background:var(--rt-bg);color:var(--rt-text);}
+.rt-core-heading,.rt-core-settings-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.rt-core-heading {margin-bottom:12px;}
+.rt-core-overview-actions {display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
+.rt-core-editor .rt-backing-target {margin:0;}
+.rt-core-editor .rt-backing-target button {font-size:11px;padding:6px 8px;}
+.rt-core-editor h2 {margin:0;font-size:16px;line-height:1.4;}
+.rt-core-heading label {display:flex;align-items:center;gap:8px;font-size:12px;white-space:nowrap;}
+.rt-core-editor select {font:inherit;background:var(--rt-bg);color:inherit;border:1px solid var(--rt-border);border-radius:6px;padding:6px;}
+.rt-core-paper {border:1px solid var(--rt-border);border-top:3px solid var(--rt-note-active,#b78b60);border-radius:8px;background:var(--rt-paper,#fff);overflow:hidden;}
+.rt-core-paper > .rt-score {display:block;padding:8px;margin:0;}
+.rt-core-editor .rt-core-paper .rt-measure {display:block;width:100%;height:clamp(90px,14dvh,140px);}
+.rt-core-settings {display:flex;flex-direction:column;min-width:0;min-height:0;}
+.rt-core-settings-heading {flex:none;padding:12px 14px;}
+.rt-core-settings-heading > .rt-primary {flex:none;min-width:64px;font-size:12px;}
+.rt-core-settings-body {min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 14px max(20px,env(safe-area-inset-bottom));}
+.rt-core-settings .rt-beat-presets {max-height:none;overflow:visible;}
+/* Only the settings body scrolls; focusing a low control must not pan the app. */
+html body #root main.app.app.app:has(> .rt-workspace > .rt-core-editor) {overflow:clip!important;}
+.rt-workspace:has(> .rt-core-editor) {overflow:clip;}
+@layer tablet-layout {
+ .tabletLayout main.app:not(.mobileNavigationSurface):has(> .rt-tablet > .rt-core-editor) {height:100dvh!important;min-height:0!important;overflow:clip!important;}
+}
+
+/* Touch layouts keep the score visible above settings, in one continuous surface. */
+.rt-core-editor--mobile {display:flex;flex-direction:column;}
+.rt-core-mobile-score {flex:none;padding:12px 14px;}
+.rt-core-editor--mobile > .rt-core-settings {flex:1;border-top:1px solid var(--rt-border);}
+.rt-core-editor--mobile .rt-core-settings-heading h2 {font-size:14px;}
+.rt-core-editor--mobile .rt-beat-navigation > button {min-height:40px;}
+.rt-core-editor--mobile .rt-preset-groups {gap:4px;}
+.rt-core-editor--mobile .rt-preset-groups button {padding:7px 5px;min-height:40px;}
+
+/* Desktop owns the two-column composition; it does not change touch layouts. */
+.rt-core-editor--desktop {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+.rt-core-desktop-score {min-width:0;overflow:auto;padding:28px clamp(20px,2.5vw,40px);}
+.rt-core-editor--desktop > .rt-core-settings {border-left:1px solid var(--rt-border);}
+.rt-core-editor--desktop .rt-core-settings-heading {padding:24px 24px 12px;}
+.rt-core-editor--desktop .rt-core-settings-body {padding:0 24px 28px;}
+.rt-core-editor--desktop .rt-core-paper .rt-measure {height:clamp(140px,22dvh,220px);}
+
+.rt-tablet .rt-core-mobile-score {padding:20px 24px;}
+.rt-tablet .rt-core-settings-heading {padding:16px 24px;}
+.rt-tablet .rt-core-settings-body {padding-inline:24px;}
+.rt-tablet .rt-core-editor button,.rt-tablet .rt-core-editor select {min-height:44px;}
+.rt-tablet .rt-core-settings .rt-beat-presets {grid-template-columns:repeat(3,minmax(0,1fr));}
+@media (max-width:699px) {
+ .rt-tablet .rt-core-settings .rt-beat-presets {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media (orientation:landscape) and (max-height:600px) {
+ .rt-core-mobile-score {padding:6px 14px;}
+ .rt-core-editor--mobile .rt-core-heading {margin-bottom:4px;}
+ .rt-core-editor--mobile .rt-core-paper .rt-measure {height:58px;}
+ .rt-core-editor--mobile .rt-core-settings-heading {padding-block:6px;}
+}

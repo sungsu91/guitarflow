@@ -19,7 +19,7 @@ export function copyGripToNext(d,c){
  const next=nextEntry(d,c);
  if(next.cursor.bar===c.bar&&next.cursor.event===c.event)throw Error(ko["etudes.thereIsNoNextInputPositionCheckTheBarLengthAndThe"]);
  const target=next.document.measures[next.cursor.bar].events[next.cursor.event];
- if(!['1','2','4','8','16'].includes(target.duration))throw Error(ko["etudes.chooseTheNextPositionSNoteDurationFirstItsCurrentDurationDoes"]);
+ if(!['1','2','4','8','16','32'].includes(target.duration))throw Error(ko["etudes.chooseTheNextPositionSNoteDurationFirstItsCurrentDurationDoes"]);
  const notes=source.notes.map(n=>({...structuredClone(n),id:newId('tone'),dead:Boolean(n.dead??source.dead)}));
  const timed=setEventDuration(next.document,next.cursor,source.duration,Boolean(source.dotted));
  const document=patchEvent(disconnectIncoming(timed,next.cursor),next.cursor.bar,next.cursor.event,{...cleared,notes,rest:false,blank:false});

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {parseStaffTokens as parseVerifiedCrop} from '../src/omr/staffTokens.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE);
 const name=process.env.STAFF_SCORE_NAME??'Let_It_Be(코드)',out=process.env.STAFF_REGRESSION_OUTPUT??'artifacts/let-it-be-ocr/live';
 await mkdir(out,{recursive:true});
@@ -40,13 +41,27 @@ try{
  const sameRow=(a,b)=>a.pdfImport.source.page===b.pdfImport.source.page&&a.pdfImport.source.staff===b.pdfImport.source.staff;
  for(const [i,m] of result.before.measures.entries()){const beforeRow=result.before.measures.filter(b=>sameRow(m,b)),afterRow=result.after.measures.filter(b=>sameRow(m,b)),next=afterRow[beforeRow.indexOf(m)];if(beforeRow.length!==afterRow.length)continue;if(m.pdfImport.rhythmVerified&&!m.events.some(e=>e.notes.length>1)&&!next.events.some(e=>e.rhythmSlash)){
   const shape=b=>b.events.map(e=>({rest:e.rest,blank:e.blank,duration:e.duration,dotted:!!e.dotted,onset:e.onset,pitches:e.notes.map(n=>n.source.writtenMidi)}));
-  assert.deepEqual(shape(next),shape(m),`previously complete bar ${i+1}`);
+  if(m.events.length===1&&m.events[0].duration==='1'&&JSON.stringify(shape(next))!==JSON.stringify(shape(m))){
+   const system=result.systems.find(s=>s.page===m.pdfImport.source.page&&s.staff===m.pdfImport.source.staff);
+   const retry=system?.measureRetry?.attempts.find(a=>a.measure===beforeRow.indexOf(m)+1);
+   assert(retry?.accepted&&retry.raw.length>=2,'a whole-note correction requires two bounded crop readings');
+   assert.equal(next.events.length,1);assert.equal(next.events[0].duration,'1');
+   assert(retry.raw.slice(-2).every(raw=>parseVerifiedCrop(raw,{key:system.key}).measures[0].events[0].notes[0].midi===next.events[0].notes[0].source.writtenMidi));
+  }else assert.deepEqual(shape(next),shape(m),`previously complete bar ${i+1}`);
  }
  }
  if(name.startsWith('Let_It_Be')){
+  assert.equal(result.stats.after.completeRhythm,62,'all previously recovered bars, including printed triplets, remain complete');
   const shape=b=>b.events.map(e=>[e.notes[0]?.source.writtenMidi,e.duration,!!e.dotted]);
   assert.deepEqual(shape(result.after.measures[8]),[[67,'16',false],[67,'8',true],[69,'8',false],[72,'16',false],[67,'16',false],[67,'16',false],[67,'8',true],[72,'16',false],[74,'8',true]]);
   assert.deepEqual(shape(result.after.measures[9]),[[74,'16',false],[76,'8',true],[76,'8',true],[74,'16',false],[74,'16',false],[72,'16',false],[72,'8',false],[72,'4',false]]);
+ }
+ if(name==='일어나(코드)'){
+  assert.equal(result.after.measures.length,49);
+  for(const [bar,midi] of [[8,71],[16,64],[32,76],[41,76]]){
+   const m=result.after.measures[bar-1];assert.equal(m.events.length,1);assert.equal(m.events[0].duration,'1');
+   assert.equal(m.events[0].notes[0].source.writtenMidi,midi,`source-checked whole note ${bar}`);assert.equal(m.harmony,'Em');
+  }
  }
  assert.deepEqual(errors,[]);
  const report={passed:true,name,seconds:(Date.now()-start)/1000,...result.stats,retriedSystems:result.systems.filter(s=>s.retry).map(s=>({page:s.page,staff:s.staff,acceptedMeasures:s.retry.acceptedMeasures})),errors};

@@ -1,7 +1,7 @@
 import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 export const SCORE_INSTRUMENTS = Object.freeze({
-  guitar: {label:'Guitar', tuning:[64,59,55,50,45,40], clef:'treble', octaveShift:1, staffBottom:30},
+  guitar: {label:'Guitar', tuning:[64,59,55,50,45,40], stringCounts:[6,7], clef:'treble', octaveShift:1, staffBottom:30},
   bass: {label:ko["tuner.bass"], tuning:[43,38,33,28], stringCounts:[4,5], minOpenMidi:21, clef:'bass', octaveShift:1, staffBottom:18},
   ukulele: {label:ko["tuner.ukulele"], tuning:[69,64,60,67], clef:'treble', octaveShift:0, staffBottom:30},
   piano: {label:ko["etudes.piano"], tuning:[], clef:'treble', octaveShift:0, staffBottom:30, kind:'keys', minMidi:0, maxMidi:127},

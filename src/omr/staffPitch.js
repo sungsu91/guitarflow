@@ -6,7 +6,7 @@ import {assignTab,soundingMidi} from '../etudes/scoreTuning.js';
 export const STAFF_GUITAR_OCTAVE_SHIFT=-12*scoreInstrument('guitar').octaveShift;
 
 export function staffPitchRepairState(document){
-  if(document.instrument!=='guitar'||document.pdfTabImport?.notation?.octaveShift!==0)return null;
+  if(document.instrument!=='guitar'||document.pdfTabImport?.notation?.octaveShift!==0||document.pdfTabImport?.notation?.pitchConvention)return null;
   let count=0,edited=0;
   for(const measure of document.measures)for(const event of measure.events){
     if(!event.pdfImport?.source?.notation)continue;

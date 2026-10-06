@@ -7,6 +7,7 @@ const appSource = (await readFile(new URL("../src/App.jsx", import.meta.url), "u
 const panelSource = await readFile(new URL("../src/rhythm/SharedAccompanimentPanel.jsx", import.meta.url), "utf8");
 const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
 const desktopNavigationSource = await readFile(new URL("../src/navigation/DesktopSidebarNavigation.jsx", import.meta.url), "utf8");
+const mobileSoundSettingsSource = await readFile(new URL("../src/navigation/MobileSoundSettings.jsx", import.meta.url), "utf8");
 const metronomeControlSource = await readFile(new URL("../src/components/MetronomeVolumeControl.jsx", import.meta.url), "utf8");
 const etudeMetronomeSource = await readFile(new URL("../src/etudes/useEtudeMetronome.js", import.meta.url), "utf8");
 
@@ -65,7 +66,7 @@ test("mini chord recommendations remain editable while rhythm training keeps its
     "</section>",
   );
   const mobileUtilitySource = getSourceRange(
-    '<section className="utilitySoundPanel"',
+    '<MobileSoundSettings>',
     '<button\n                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"',
   );
 
@@ -118,7 +119,8 @@ test("menu owns sound and rhythm entry while the rhythm dialog contains no dupli
     "function MiniChordRhythmSettingsDialog",
     "function MiniChordArrangementEditorDialog",
   );
-  assert.match(appSource, /<strong>사운드 및 리듬 설정<\/strong>/);
+  assert.match(appSource, /<MobileSoundSettings>/);
+  assert.match(mobileSoundSettingsSource, /<strong>사운드 및 리듬 설정<\/strong>/);
   assert.match(appSource, /className="utilityRhythmSettingsButton"/);
   assert.match(rhythmDialogSource, /리듬 사용자 설정/);
   assert.doesNotMatch(rhythmDialogSource, /miniChordRhythmSoundRow|기본 볼륨|onSoundToggle/);

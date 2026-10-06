@@ -4,11 +4,15 @@ import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {
   AudioLines,
   CircleHelp,
+  Drum,
   Gamepad2,
   Grid3X3,
+  Guitar,
   Music2,
   Moon,
   Radio,
+  Piano,
+  RotateCcw,
   Settings,
   Sun,
   Timer,
@@ -157,14 +161,22 @@ export default function DesktopSidebarNavigation({
           <DesktopSoundSettings activeKey={activeKey}>
             {(close) => (
             <div className="desktopSidebarSoundControls">
+              <div className="desktopSoundSettingsScroll">
               {inputControls}
-              <MetronomeVolumeControl className="desktopSidebarSoundRow" />
-              <GrooveVolumeControl className="desktopSidebarSoundRow" />
+              <section className="soundSettingsGroup" aria-label={translateUi("soundSettings.rhythmGuide")}>
+              <h3 className="soundSettingsGroupTitle"><Translation id="soundSettings.rhythmGuide" /></h3>
+              <MetronomeVolumeControl className="desktopSidebarSoundRow" icon={Timer} />
+              <GrooveVolumeControl className="desktopSidebarSoundRow" icon={AudioLines} />
+              </section>
+              <section className="soundSettingsGroup" aria-label={translateUi("soundSettings.backingInstruments")}>
+              <h3 className="soundSettingsGroupTitle"><Translation id="soundSettings.backingInstruments" /></h3>
               {backingVolumeControls.map((control) => {
                 const value = getBackingVolumeValue(control.id);
+                const Icon = control.id === "drum" ? Drum : control.id === "bass" ? Guitar : Piano;
                 return (
                   <label className="desktopSidebarSoundRow" key={control.id}>
                     <span>
+                      <Icon size={16} aria-hidden="true" />
                       <strong>{localizeUi(control.label)}</strong>
                       <b data-backing-volume-value>{value}</b>
                     </span>
@@ -180,11 +192,15 @@ export default function DesktopSidebarNavigation({
                       onKeyUp={(event) => commitBackingVolumeInput(control.id, event)}
                       onPointerUp={(event) => commitBackingVolumeInput(control.id, event)}
                       step="1"
+                      style={{ "--sound-volume": `${value}%` }}
                       type="range"
                     />
                   </label>
                 );
               })}
+              </section>
+              </div>
+              <footer className="desktopSoundSettingsFooter soundSettingsFooter">
               <button
                 className="desktopSidebarSubAction"
                 disabled={accompanimentControlsDisabled}
@@ -197,7 +213,9 @@ export default function DesktopSidebarNavigation({
                 disabled={accompanimentControlsDisabled}
                 onClick={onResetSound}
                 type="button"
-              ><Translation id="app.resetSound" /></button>
+                aria-label={translateUi("app.resetSound")}
+              ><RotateCcw size={14} aria-hidden="true" /><Translation id="soundSettings.reset" /></button>
+              </footer>
             </div>
             )}
           </DesktopSoundSettings>

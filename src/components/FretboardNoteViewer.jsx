@@ -34,6 +34,7 @@ export const FretboardNoteViewerBoard = memo(function FretboardNoteViewerBoard({
   notes,
   onNotePress,
   store,
+  tuning,
 }) {
   const { accidentalPreference, noteFilter } = useFretboardNoteViewerSnapshot(store);
   const selectedNotes = useMemo(
@@ -49,6 +50,7 @@ export const FretboardNoteViewerBoard = memo(function FretboardNoteViewerBoard({
 
   return (
     <Fretboard
+      tuning={tuning}
       dragToPlay={dragToPlay}
       className={`viewerSharedFretboard allNotes ${noteFilter !== ALL_FRETBOARD_NOTES ? "noteFilterActive" : ""}`}
       fretRange={fretRange}

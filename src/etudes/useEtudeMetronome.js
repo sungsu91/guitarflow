@@ -37,7 +37,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
     }
     heldPosition.current=-1;setPaused(false);setPlaying(false);setCountingIn(false); setBeat(-1); setTick(-1);
   }, []);
-  const start = useCallback(async ({beatOffset=0,durationSeconds=Infinity,clicks=null,cycleSeconds=0,cycleOffset=0,repeatCount=1,leadIn=null}={}) => {
+  const start = useCallback(async ({beatOffset=0,durationSeconds=Infinity,clicks=null,cycleSeconds=0,cycleOffset=0,repeatCount=1,leadIn=null,onScheduledStart}={}) => {
     stop();
     const request = token.current;
     try {
@@ -95,6 +95,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
         setBeat(preparing?(context.currentTime<countInOrigin?-1:Math.min(leadIn.meter[0]-1,Math.floor((context.currentTime-countInOrigin)/leadIn.step))):step < 0 ? -1 : step % config.current.beatsPerBar); setTick(step);
         s.frame = requestAnimationFrame(paint);
       };
+      onScheduledStart?.({context,origin,countInOrigin});
       schedule(); s.timer = setInterval(schedule, 25); paint(); setPlaying(true); setError('');
       return {context,origin,countInOrigin};
     } catch (e) { stop(); setError(e.message); }

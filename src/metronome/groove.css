@@ -237,6 +237,13 @@ html body .app.app.app.app.app .grooveResetDialog > div { display:flex; justify-
 html body .app.app.app.app.app .grooveResetDialog button { min-width:76px!important; min-height:40px!important; padding:8px 14px!important; background:var(--groove-control,#211b13)!important; color:var(--groove-text,#f6e8c4)!important; border:1px solid var(--groove-border,#75603b)!important; border-radius:6px; }
 .grooveToneTrigger{width:100%;min-width:0;height:34px;display:flex;align-items:center;justify-content:space-between;gap:2px;font-size:11px!important;padding:3px!important}
 .grooveToneTrigger[aria-expanded=true]{outline:1px solid var(--groove-text,#8d7145);outline-offset:1px}
+/* Keep the open desktop source highlighted while choosing a sound. */
+html body #root .desktopLayout .app .grooveToneTrigger:is(:hover,[aria-expanded=true]){
+ background:color-mix(in srgb,var(--groove-text,#8d7145) 12%,var(--groove-control,#fffaf3))!important;
+ border-color:var(--groove-text,#8d7145)!important;
+ box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--groove-text,#8d7145) 18%,transparent)!important;
+}
+html body #root .desktopLayout .app .grooveToneTrigger[aria-expanded=true]:not(:focus-visible){outline:none!important}
 .grooveTonePopup{position:fixed;z-index:12000;overflow:auto;overscroll-behavior:contain;padding:7px;box-sizing:border-box;border:1.5px solid var(--groove-border,#92764c);border-radius:9px;background:var(--groove-surface,#faf6ef);color:var(--groove-text,#342c25);box-shadow:0 4px 16px #0003,0 0 0 1px #92764c33}
 .grooveToneChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
 .grooveToneChoice{display:flex;min-width:0}

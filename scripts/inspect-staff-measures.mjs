@@ -3,7 +3,7 @@ const {chromium}=await import(process.env.PLAYWRIGHT_MODULE),out=process.env.STA
 const pageNumber=Number(process.env.STAFF_PAGE??2),targets=process.argv.slice(2).map(s=>s.split(':').map(Number)),variants=(process.env.STAFF_MEASURE_VARIANTS??'expanded,padded').split(',');
 const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
 try{
- const page=await browser.newPage();await page.route('**/__staff-measures',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><input type="file">'}));await page.goto('http://127.0.0.1:5174/__staff-measures');await page.locator('input').setInputFiles(`C:/Users/User/Desktop/sheet music/Let_It_Be(코드)_페이지_${pageNumber}.jpg`);
+ const page=await browser.newPage();await page.route('**/__staff-measures',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><input type="file">'}));await page.goto('http://127.0.0.1:5174/__staff-measures');await page.locator('input').setInputFiles(`C:/Users/User/Desktop/sheet music/${process.env.STAFF_SCORE_NAME??'Let_It_Be(코드)'}_페이지_${pageNumber}.jpg`);
  await page.exposeFunction('record',async r=>{await writeFile(`${out}/${r.id}.png`,Buffer.from(r.png.split(',')[1],'base64'));delete r.png;await writeFile(`${out}/${r.id}.json`,JSON.stringify(r,null,2));console.log(JSON.stringify(r));});
  await page.evaluate(async({targets,variants,pageNumber})=>{
   const {loadTabImage,drawTabImage}=await import('/src/pdf/tab-import/imageTabSource.js');const {cropNotationSystems}=await import('/src/omr/staffSystems.js');const {chordRegions}=await import('/src/pdf/tab-import/chordGeometry.js');const {createStaffOmrClient}=await import('/src/omr/staffOmrClient.js');

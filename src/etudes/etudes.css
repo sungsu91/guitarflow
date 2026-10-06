@@ -91,7 +91,7 @@
   color: #111 !important;
 }
 
-.etudeNotation svg :is(text, path, line, rect) {
+.etudeNotation svg :is(text, path, line, rect):not([visibility="hidden"]) {
   visibility: visible;
 }
 

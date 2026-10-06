@@ -30,6 +30,7 @@ function HudItem({ children, label, meta = "" }) {
 const DesktopHorizontalBattleView = memo(function DesktopHorizontalBattleView({
   bestScore = 0,
   currentPitch,
+  voiceMessage = "",
   currentScore = 0,
   difficultyLabel,
   judgment,
@@ -75,7 +76,7 @@ const DesktopHorizontalBattleView = memo(function DesktopHorizontalBattleView({
       <div className="desktopHorizontalBattleHud" aria-label={translateUi("shooter.desktopNoteShooterStatus")}>
         <HudItem label="TARGET" meta={targetPitch || "WAITING"}>{localizeUi(targetLabel || "—")}</HudItem>
         {mobileLandscape ? (
-          <HudItem label="SIGNAL" meta={translateUi("shooter.playedNote")}>{currentPitch || "—"}</HudItem>
+          <HudItem label="SIGNAL" meta={voiceMessage || translateUi("shooter.playedNote")}>{currentPitch || "—"}</HudItem>
         ) : (
           <>
             <HudItem label="BEST" meta="HIGH SCORE">{Number(bestScore || 0).toLocaleString()}</HudItem>
@@ -109,6 +110,7 @@ const DesktopHorizontalBattleView = memo(function DesktopHorizontalBattleView({
 });
 
 export const DesktopHorizontalBattleControls = memo(function DesktopHorizontalBattleControls({
+  voiceMode = false,
   difficultyLabel,
   difficultyLocked,
   helpLevel,
@@ -139,7 +141,7 @@ export const DesktopHorizontalBattleControls = memo(function DesktopHorizontalBa
       ) : <button aria-disabled={difficultyLocked} disabled={difficultyLocked} onClick={onDifficulty} type="button">
         <Gauge aria-hidden="true" size={15} /><Translation id="shooter.difficulty" />{localizeUi(difficultyLabel)}
       </button>}
-      {mobileLandscape ? (
+      {!voiceMode && (mobileLandscape ? (
         <label className="desktopHorizontalSelectControl">
           <CircleHelp aria-hidden="true" size={13} />
           <span><Translation id="shooter.hints" />{helpLevel === 0 ? "OFF" : helpLevel}</span>
@@ -150,7 +152,7 @@ export const DesktopHorizontalBattleControls = memo(function DesktopHorizontalBa
         </label>
       ) : <button onClick={() => onHelpChange((helpLevel + 1) % 3)} type="button">
         <CircleHelp aria-hidden="true" size={15} /><Translation id="shooter.hints" />{helpLevel === 0 ? "OFF" : helpLevel}
-      </button>}
+      </button>)}
       {!mobileLandscape ? <button onClick={onSkin} type="button">
         <Guitar aria-hidden="true" size={16} /><Translation id="shooter.changeSkin" /></button> : null}
       <button onClick={onMap} type="button" aria-label={translateUi("app.changeMap")}>

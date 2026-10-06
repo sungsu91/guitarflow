@@ -1,0 +1,142 @@
+/* Tablet overlays have their own reading and touch dimensions. Keep the
+   shared controls, saved selections and phone/desktop presentation intact. */
+@layer tablet-dialogs {
+  .tabletOptionSelect { display: block; min-width: 0; }
+  .tabletOptionSelect > button { display: flex !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; min-height: 52px !important; padding: 10px 14px !important; font-size: 17px !important; }
+  .tabletOptionDialog { width: min(560px,calc(100vw - 40px)) !important; max-height: calc(100dvh - 64px) !important; margin: auto !important; padding: 16px !important; border-radius: 16px !important; border: 1px solid var(--rt-line,#bdab8b) !important; background: var(--rt-panel,#faf6ee) !important; color: var(--rt-ink,#362f27) !important; box-sizing: border-box; }
+  .tabletOptionDialog::backdrop { background: #17130f88; }
+  .tabletOptionDialog[open] { display: flex !important; flex-direction: column; gap: 12px; }
+  .tabletOptionDialog header { display: flex !important; align-items: center !important; justify-content: space-between !important; flex-shrink: 0; }
+  .tabletOptionDialog header strong { font-size: 22px !important; }
+  .tabletOptionDialog header button { width: 48px !important; height: 48px !important; padding: 10px !important; }
+  .tabletOptionDialog [role="listbox"] { display: grid !important; grid-template-columns: minmax(0,1fr) !important; width: 100% !important; max-width: none !important; padding: 0 !important; background: transparent !important; box-sizing: border-box; gap: 6px; overflow: auto; min-height: 0; }
+  .tabletOptionDialog [role="option"] { display: flex !important; width: 100% !important; max-width: none !important; justify-content: space-between !important; align-items: center !important; min-height: 52px !important; padding: 12px 16px !important; font-size: 18px !important; text-align: left; }
+  .tabletOptionDialog [role="option"][aria-selected="true"] { background: var(--rt-soft,#ece1c6) !important; border-color: var(--rt-accent,#a77b2e) !important; font-weight: 700; }
+  .tabletOptionDialog :is(button,[role="option"]):focus-visible { outline: 2px solid #b48e44 !important; outline-offset: -3px; }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectMenu {
+    height: auto !important;
+    width: var(--riff-dropdown-width) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: var(--riff-dropdown-max-height) !important;
+    padding: 12px !important; gap: 8px !important;
+    overflow: auto !important; box-sizing: border-box !important;
+  }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectOption {
+    height: auto !important; min-height: 52px !important; max-height: none !important;
+    padding: 12px 14px !important; font-size: 18px !important; line-height: 1.45 !important;
+    white-space: normal !important;
+  }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectOptionText { gap: 6px !important; }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectOptionText > span { font-size: 18px !important; line-height: 1.45 !important; }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectOptionDescription {
+    font-size: 16px !important; line-height: 1.5 !important;
+    white-space: normal !important; overflow: visible !important; text-overflow: clip !important;
+  }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-light) .metronomeSelectPortal .metronomeSelectOptionDescription { color: #68543f !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .metronomeSelectPortal .metronomeSelectOptionDescription { color: #dcc9a6 !important; }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectSectionLabel {
+    min-height: 32px !important; padding-block: 6px !important; gap: 12px !important;
+    font-size: 14px !important; line-height: 1.4 !important;
+  }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectSectionLabel :is(strong,span) { font-size: 14px !important; }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectOptionTabs { gap: 8px !important; height: auto !important; }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectOptionTabs button {
+    min-height: 48px !important; height: auto !important; padding: 10px 12px !important; font-size: 17px !important;
+  }
+  html[data-rifflab-device="tablet"] .metronomeSelectPortal .metronomeSelectOptionTabs button span { font-size: 17px !important; }
+
+  html[data-rifflab-device="tablet"] .backingLoopDialogLayer {
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    padding: 24px !important; overflow: auto !important;
+  }
+  html[data-rifflab-device="tablet"] .backingLoopDialogLayer > [role="dialog"] {
+    position: relative !important; inset: auto !important;
+    width: min(760px,100%) !important; max-width: 100% !important;
+    height: auto !important; max-height: calc(100dvh - 48px) !important;
+  }
+  html[data-rifflab-device="tablet"] .backingLoopDialog {
+    box-sizing: border-box !important; width: 100% !important; height: auto !important;
+    max-height: calc(100dvh - 48px) !important; padding: 22px !important; gap: 16px !important;
+    overflow: auto !important; align-content: start !important;
+  }
+  html[data-rifflab-device="tablet"] .backingLoopDialog :is(button,input:not([type="checkbox"]),select) {
+    min-height: 48px !important; height: auto !important; font-size: 16px !important; line-height: 1.4 !important;
+  }
+  html[data-rifflab-device="tablet"] .backingLoopDialogHeading strong { font-size: 22px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] .backingLoopDialog :is(p,small,label,.backingLoopDialogHeading span) { font-size: 15px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .backingLoopDialogHeading > button { flex-basis: 48px !important; width: 48px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopDialog svg { width: 20px !important; height: 20px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistNavigation { flex-wrap: wrap !important; gap: 8px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistNavigation button { padding: 10px 14px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistItems { max-height: min(440px,42dvh) !important; gap: 8px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistItem { grid-template-columns: 44px minmax(0,1fr) repeat(4,44px) !important; gap: 6px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistItemCheck input { width: 22px !important; height: 22px !important; min-height: 22px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistItemSelect span { font-size: 16px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistItemSelect small { font-size: 14px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistSaveForm { gap: 10px !important; }
+  html[data-rifflab-device="tablet"] .backingLoopPlaylistDialog :is(.backingLoopEmptyState,.backingLoopPlaylistActions > span,.backingLoopPlaylistSelectionTools > span,.backingLoopPlaylistNow) { font-size: 15px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .backingGrooveMini { padding: 14px !important; gap: 12px !important; }
+  html[data-rifflab-device="tablet"] .backingGrooveMini > header strong { font-size: 19px !important; }
+  html[data-rifflab-device="tablet"] .backingGrooveMiniGrid { max-height: min(440px,40dvh) !important; gap: 10px !important; }
+  html[data-rifflab-device="tablet"] .backingGrooveMiniRow { min-height: 60px !important; }
+  html[data-rifflab-device="tablet"] .backingGrooveMiniPick span { font-size: 16px !important; white-space: normal !important; }
+  html[data-rifflab-device="tablet"] .backingGrooveMini .backingGrooveMiniPreview { width: 48px !important; flex-basis: 48px !important; min-width: 48px !important; }
+  html[data-rifflab-device="tablet"] .backingGrooveMini > footer span { font-size: 15px !important; }
+  html[data-rifflab-device="tablet"] .miniChordRhythmSettingsParts { gap: 14px !important; }
+  html[data-rifflab-device="tablet"] .miniChordRhythmSettingsParts > section { padding: 14px !important; }
+  html[data-rifflab-device="tablet"] .miniChordRhythmSettingsParts header strong { font-size: 18px !important; }
+  html[data-rifflab-device="tablet"] .miniChordRhythmPresetCards button b { font-size: 17px !important; text-align: center !important; }
+  html[data-rifflab-device="tablet"] .miniChordRhythmPresetCards button { justify-content: center !important; min-height: 52px !important; }
+  html[data-rifflab-device="tablet"] .miniChordGrooveDialogLayer > [role="dialog"] { width: min(1040px,100%) !important; }
+  html[data-rifflab-device="tablet"] .miniChordDrumPortraitGrid { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 14px !important; }
+  html[data-rifflab-device="tablet"] .miniChordDrumEditorTitle strong { font-size: 21px !important; }
+  html[data-rifflab-device="tablet"] .miniChordDrumEditorTitle small { font-size: 14px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .miniChordDrumEditorTitle > span { font-size: 14px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .miniChordDrumPortraitBeatHeading :is(strong,span) { font-size: 16px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] :is(.miniChordDrumPortraitRow,.miniChordDrumPortraitStepHeader) { grid-template-columns: 64px repeat(4,minmax(0,1fr)) !important; }
+  html[data-rifflab-device="tablet"] :is(.miniChordDrumPortraitRow > span,.miniChordDrumPortraitRow > strong,.miniChordDrumPortraitStepHeader > span,.miniChordDrumPortraitStepHeader > b) { font-size: 14px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] .miniChordDrumEditorTopbarActions > button { min-width: 48px !important; }
+
+  html[data-rifflab-device="tablet"] .etudePickerDialog.is-mobile {
+    width: min(880px,calc(100vw - 40px)) !important; max-width: calc(100vw - 40px) !important;
+    height: min(1000px,calc(100dvh - 64px)) !important; max-height: calc(100dvh - 64px) !important;
+    font-size: 16px !important;
+  }
+  html[data-rifflab-device="tablet"] .etudePickerDialog :is(button,input) { min-height: 48px !important; height: auto !important; font-size: 16px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog header { padding: 16px 20px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog h2 { font-size: 22px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog header button { width: auto !important; min-width: 48px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerCategories { padding: 4px 16px 12px !important; gap: 6px !important; max-height: 160px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerCategories button { padding: 8px 12px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerSearch { margin: 12px 16px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerResults { padding: 0 16px 16px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerGrid { gap: 12px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerCard { min-height: 108px !important; padding: 14px !important; gap: 10px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerCard strong { font-size: 17px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog :is(.etudePickerCard small,.etudePickerDifficultyHeading,footer span) { font-size: 15px !important; }
+  html[data-rifflab-device="tablet"] .etudePickerDialog footer { padding: 14px 20px !important; }
+
+  html[data-rifflab-device="tablet"] .rt-overlay:not(.print-preview-overlay) .rt-dialog:not(.rt-print-dialog) { padding: 20px !important; }
+  html[data-rifflab-device="tablet"] .rt-overlay:not(.print-preview-overlay) .rt-dialog-body { gap: 16px !important; font-size: 17px !important; }
+  html[data-rifflab-device="tablet"] .rt-overlay:not(.print-preview-overlay) .rt-dialog-body > label { min-height: 52px !important; gap: 16px !important; font-size: 17px !important; }
+  html[data-rifflab-device="tablet"] .rt-overlay:not(.print-preview-overlay) .rt-dialog :is(button,select,input:not([type="checkbox"])) { min-height: 48px !important; font-size: 17px !important; }
+  html[data-rifflab-device="tablet"] .rt-overlay:not(.print-preview-overlay) .rt-dialog input[type="checkbox"] { width: 24px !important; height: 24px !important; min-height: 24px !important; }
+  html[data-rifflab-device="tablet"] .rt-overlay:not(.print-preview-overlay) .rt-dialog :is(p,small) { font-size: 15px !important; line-height: 1.5 !important; }
+  html[data-rifflab-device="tablet"] .tabletOptionDialog { background: var(--rt-bg,#faf6ee) !important; color: var(--rt-text,#362f27) !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .tabletOptionDialog { background: #211c13 !important; color: #f4e5c3 !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .tabletOptionDialog [role="option"][aria-selected="true"] { background: #514020 !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .etudePickerDialog { background: #211c13 !important; color: #f4e5c3 !important; border-color: #685533 !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .etudePickerDialog :is(button,input) { color: #f4e5c3 !important; background: #2c251a !important; border-color: #685533 !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .etudePickerDialog .etudePickerCard strong { color: #f4e5c3 !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .etudePickerDialog :is(small,.etudePickerDifficultyHeading,footer span) { color: #d0bb93 !important; }
+  html[data-rifflab-device="tablet"] body:has(main.app.theme-brand) .etudePickerDialog :is(.etudePickerSearch,.etudePickerCard[aria-pressed="true"],button[aria-pressed="true"]) { background: #46371e !important; color: #f9dc98 !important; }
+  @media (max-width: 599px) {
+    html[data-rifflab-device="tablet"] .miniChordDrumPortraitGrid { grid-template-columns: minmax(0,1fr) !important; }
+    html[data-rifflab-device="tablet"] .backingLoopDialogLayer { padding: 12px !important; }
+    html[data-rifflab-device="tablet"] .backingLoopDialogLayer > [role="dialog"] { max-height: calc(100dvh - 24px) !important; }
+    html[data-rifflab-device="tablet"] .backingLoopDialog { padding: 14px !important; max-height: calc(100dvh - 24px) !important; }
+    html[data-rifflab-device="tablet"] .backingLoopPlaylistItem { grid-template-columns: 32px minmax(0,1fr) repeat(4,40px) !important; gap: 4px !important; }
+    html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerGrid { grid-template-columns: minmax(0,1fr) !important; }
+    html[data-rifflab-device="tablet"] .etudePickerDialog .etudePickerCard { min-height: 96px !important; }
+  }
+}

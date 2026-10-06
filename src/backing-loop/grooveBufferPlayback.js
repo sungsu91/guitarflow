@@ -53,18 +53,20 @@ export function createGrooveBufferPlayback({ context, buffer, output, level = 1,
     get currentTime() { return position(); },
     set currentTime(value) {
       const playing = Boolean(source);
+      const resumeAt = Math.max(context.currentTime, startedAt);
       stopSource();
       offset = clampTime(value);
-      if (playing) player.play();
+      if (playing && offset >= duration && !looping) onEnded?.();
+      else if (playing) player.play(resumeAt);
     },
     get loop() { return looping; },
     set loop(value) {
       offset = position();
-      startedAt = context.currentTime;
+      startedAt = Math.max(startedAt, context.currentTime);
       looping = Boolean(value);
       if (source) source.loop = looping;
     },
-    async play() {
+    async play(when = context.currentTime) {
       if (disposed) throw new Error('Backing player has been disposed');
       if (source) return;
       if (offset >= duration) offset = 0;
@@ -82,7 +84,7 @@ export function createGrooveBufferPlayback({ context, buffer, output, level = 1,
         next.disconnect();
         onEnded?.();
       };
-      startedAt = context.currentTime;
+      startedAt = Math.max(context.currentTime, Number(when) || 0);
       source = next;
       next.start(startedAt, offset);
     },

@@ -2,7 +2,7 @@
 .utilityMenuSurface { --menu-bg:linear-gradient(155deg,#FBF8F3 0%,#F5ECE7 100%); --menu-surface:linear-gradient(165deg,#FFFCF7 0%,#F5E8E3 100%); --menu-title:#292521; --menu-muted:#6D655D; --menu-accent:#49382C; --menu-border:#DCC8C1; --menu-tile:#EFE2DB; --menu-selected:linear-gradient(150deg,#F6EAE2,#E9D5CC); --menu-shadow:0 2px 8px rgba(45,35,25,.05); }
 .utilityMenuSurface.theme-brand { --menu-bg:#171612; --menu-surface:#242119; --menu-title:#F3EDE1; --menu-muted:#BFB6A6; --menu-accent:#EAC780; --menu-border:#433B2C; --menu-tile:#342D21; --menu-selected:#332D21; --menu-shadow:0 2px 8px rgba(0,0,0,.18); }
 html body #root .utilityMenuSurface { display:contents !important; }
-html body #root .utilityMenuSurface > .utilityMenuLayer { position:fixed !important; inset:0 !important; z-index:100300 !important; transform:none !important; }
+html body #root .utilityMenuSurface > .utilityMenuLayer { position:fixed !important; inset:0 !important; z-index:100300 !important; transform:none !important; box-sizing:border-box; padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left)); }
 html body #root .utilityMenuSurface .utilityMenuDim { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; background:rgba(16,15,13,.38) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border:0 !important; border-radius:0 !important; }
 html body #root #utility-menu-panel {
   position:absolute !important; inset:auto max(0px,env(safe-area-inset-right)) calc(max(10px,env(safe-area-inset-bottom)) + 76px) auto !important;
@@ -95,7 +95,14 @@ html body #root .utilityMenuSurface > .utilityMenuLayer { z-index:100300 !import
 html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary) { max-height:none !important; grid-template-areas:none !important; grid-template-rows:auto !important; }
 html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary) > * { grid-area:auto !important; }
 /* Mobile menu: one panel, independently scrolling features, persistent footer. */
-html body #root #utility-menu-panel { display:block !important; width:min(calc(100vw - 24px),380px) !important; right:max(12px,env(safe-area-inset-right)) !important; bottom:max(12px,env(safe-area-inset-bottom)) !important; height:min(860px,calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom)))) !important; max-height:calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom))) !important; }
+html body #root #utility-menu-panel {
+  display:block !important; width:min(calc(100vw - 24px),380px) !important;
+  top:var(--utility-menu-top,auto) !important;
+  right:var(--utility-menu-right,max(12px,env(safe-area-inset-right))) !important;
+  bottom:var(--utility-menu-bottom,calc(var(--mobile-nav-height,76px) + 24px)) !important;
+  height:min(860px,var(--utility-menu-available-height,calc(100dvh - 112px))) !important;
+  max-height:var(--utility-menu-available-height,calc(100dvh - 112px)) !important;
+}
 html body #root #utility-menu-panel .utilityMenuMain { height:100%; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; }
 html body #root #utility-menu-panel .utilityMenuActions { display:flex; gap:2px; }
 html body #root #utility-menu-panel .utilityMenuHeader { min-height:58px; padding:4px 10px 4px 18px !important; }
@@ -126,7 +133,8 @@ html body #root #utility-menu-panel .utilitySettingsBody .utilityThemePanel { pa
 html body #root #utility-menu-panel .utilitySettingsBody .utilitySoundDetails > summary { background:transparent !important; border:0 !important; box-shadow:none !important; padding:12px 0 !important; }
 html body #root #utility-menu-panel .utilitySoundSliders { min-width:0; }
 html body #root #utility-menu-panel .utilitySoundSliders input { max-width:100%; min-width:0; }
-@media (max-height:500px) { html body #root #utility-menu-panel { bottom:12px !important; height:calc(100dvh - 24px) !important; max-height:calc(100dvh - 24px) !important; } }
+/* Keep a range drag on the control, including small vertical finger movement. */
+html body #root #utility-menu-panel .utilitySoundSliders input[type="range"] { touch-action:none; }
 html body #root #utility-menu-panel .utilityMenuFooter { position:relative; }
 html body #root #utility-menu-panel .utilityShareMenu { min-width:0; border-left:1px solid var(--menu-border); color:var(--menu-title); }
 html body #root #utility-menu-panel .utilityShareMenu > summary { min-height:60px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; list-style:none; cursor:pointer; font-size:12px; font-weight:700; }
@@ -140,12 +148,6 @@ html body #root #utility-menu-panel .utilityCategoryTabs button { border:0 !impo
 html body #root #utility-menu-panel .utilityCategoryTabs button[aria-selected=true] { border-bottom-color:var(--menu-accent) !important; background:color-mix(in srgb,var(--menu-tile) 45%,transparent) !important; color:var(--menu-accent) !important; }
 html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuItemInstagram { background:transparent !important; }
 html body #root #utility-menu-panel .utilityMenuFooter .utilityMenuInstagramIcon svg { color:var(--menu-accent) !important; stroke:currentColor !important; }
-/* Keep the existing ivory surfaces; soften only the white-theme volume rails. */
-html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range] { appearance:none !important; -webkit-appearance:none !important; background:transparent !important; border:0 !important; box-shadow:none !important; accent-color:#998477 !important; }
-html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-webkit-slider-runnable-track { height:5px !important; background:#ded3cb !important; border:0 !important; box-shadow:none !important; }
-html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-webkit-slider-thumb { appearance:none !important; -webkit-appearance:none !important; width:16px !important; height:16px !important; margin-top:-5.5px !important; background:#998477 !important; border:2px solid #fffaf6 !important; border-radius:50% !important; box-shadow:0 1px 3px #6754491a !important; }
-html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-moz-range-track { height:5px !important; background:#ded3cb !important; border:0 !important; border-radius:999px !important; }
-html body #root .utilityMenuSurface.theme-light #utility-menu-panel .utilitySoundSliderRow input[type=range]::-moz-range-thumb { width:12px !important; height:12px !important; background:#998477 !important; border:2px solid #fffaf6 !important; border-radius:50% !important; box-shadow:0 1px 3px #6754491a !important; }
 /* Refresh is the final settings action, aligned to the bottom when space allows. */
 html body #root #utility-menu-panel .utilitySettingsBody { display:flex; flex-direction:column; }
 html body #root #utility-menu-panel .utilitySettingsBody > * { flex-shrink:0; }

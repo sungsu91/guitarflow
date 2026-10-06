@@ -10,7 +10,7 @@
   width: 100%;
   height: 100%;
   max-width: none;
-  object-fit: cover;
+  object-fit: var(--mobile-map-fit, cover);
   object-position: var(--mobile-map-position, center);
 }
 

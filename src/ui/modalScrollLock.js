@@ -33,9 +33,17 @@ export function lockDocumentScroll() {
 // Prevent rubber-band gestures from moving the page when a modal's scroller ends.
 export function containModalTouch(modal) {
   let last;
-  const start = event => { const touch = event.touches[0]; last = touch && {x:touch.clientX,y:touch.clientY}; };
+  let nativeRangeGesture = false;
+  const start = event => {
+    const touch = event.touches[0];
+    last = touch && {x:touch.clientX,y:touch.clientY};
+    nativeRangeGesture = event.target instanceof Element
+      && Boolean(event.target.closest('input[type="range"]:not(:disabled)'));
+  };
   const move = event => {
-    if (!last || event.touches.length !== 1) return;
+    // Native ranges own their drag. Canceling touchmove leaves taps working but
+    // stops the thumb from following a finger inside a scroll-locked dialog.
+    if (nativeRangeGesture || !last || event.touches.length !== 1) return;
     const touch = event.touches[0], dx = last.x-touch.clientX, dy = last.y-touch.clientY;
     last = {x:touch.clientX,y:touch.clientY};
     const vertical = Math.abs(dy) >= Math.abs(dx), delta = vertical ? dy : dx;

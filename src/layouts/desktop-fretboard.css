@@ -1,5 +1,66 @@
 /* Chord navigation stays inside the instrument column, as in the original
    desktop composition. Mobile keeps its existing markup and styles. */
+/* Keep voicing notes beside the chord name, inside the existing heading. */
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+  .viewerMapHeader--chord {
+  container: viewer-chord-heading / inline-size;
+}
+
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+  .viewerControlPanel--chord .viewerChordHeader--withVoicing {
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-areas: "identity voicing actions" "hint voicing actions" !important;
+  gap: 3px 10px !important;
+}
+
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+  .viewerChordHeader--withVoicing > .viewerChordIdentity {
+  grid-area: identity !important;
+}
+
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+  .viewerChordHeader--withVoicing > .chordVoicingOmissions {
+  grid-area: voicing !important;
+  align-self: center;
+  margin: 0;
+  gap: 2px;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+  word-break: keep-all;
+}
+
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+  .viewerChordHeader--withVoicing > .viewerSwipeHint {
+  grid-area: hint !important;
+}
+
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+  .viewerChordHeader--withVoicing > .viewerChordHeaderActions {
+  grid-area: actions !important;
+}
+
+@container viewer-chord-heading (max-width: 440px) {
+  html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+    .viewerChordHeader--withVoicing > .viewerChordIdentity {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
+}
+
+@container viewer-chord-heading (max-width: 340px) {
+  html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+    .viewerControlPanel--chord .viewerChordHeader--withVoicing {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    grid-template-areas: "identity voicing" "hint voicing" "actions voicing" !important;
+  }
+  html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app
+    .viewerChordHeader--withVoicing > .viewerChordHeaderActions {
+    justify-content: flex-start !important;
+  }
+}
+
 @media (min-width: 1024px) {
 html[data-rifflab-layout="desktop"] body .desktopLayout .desktopWorkspaceContent > main.app.app.app:has(> .fretboardViewerPanel) {
     width: 100%;

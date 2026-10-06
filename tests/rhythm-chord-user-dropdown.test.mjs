@@ -142,8 +142,8 @@ test("desktop rhythm practice keeps the fretboard near the progression and opens
   const userPicker = appSource.slice(recommendedEnd, userEnd);
 
   assert.ok(recommendedStart >= 0 && recommendedEnd > recommendedStart && userEnd > recommendedEnd);
-  assert.match(recommendedPicker, /dropdownDirection=\{!isMobileLayout \|\| landscapePlayFocus \? "down" : "up"\}/);
-  assert.match(userPicker, /dropdownDirection=\{!isMobileLayout \|\| landscapePlayFocus \? "down" : "up"\}/);
+  assert.match(recommendedPicker, /dropdownDirection=\{!isMobileLayout \|\| isTabletLayout \|\| landscapePlayFocus \? "down" : "up"\}/);
+  assert.match(userPicker, /dropdownDirection=\{!isMobileLayout \|\| isTabletLayout \|\| landscapePlayFocus \? "down" : "up"\}/);
   assert.match(
     desktopCss,
     /> \.chordTransitionPanel \.stageChordSharedFretboard \{[\s\S]*?grid-row: 3;[\s\S]*?align-self: stretch;/,
@@ -495,7 +495,7 @@ test("saved progressions preserve and restore each chord fingering region", asyn
 
   assert.match(appSource, /function getChordEntryPositionId\(entry\)/);
   assert.match(appSource, /positionId: stage3StorageChordPosition/);
-  assert.match(appSource, /positionLabel: typeof entry === "object" && entry\.positionLabel/);
+  assert.match(appSource, /positionLabel: typeof storedMetadata === "object" && storedMetadata\.positionLabel/);
   assert.match(appSource, /notes: position\?\.notes \?\? chord\.notes/);
   assert.match(appSource, /barres: position\?\.barres \?\? chord\.barres/);
   assert.match(appSource, /chordPracticeFretboardView[\s\S]*chordPracticeCurrent\.visibleFrets/);
@@ -539,7 +539,7 @@ test("rhythm chord fretboard removes root-note playback highlighting and keeps s
   assert.match(appSource, /notes=\{chordPracticeFretboardView\.notes\}/);
   assert.match(appSource, /stringStates=\{chordPracticeFretboardView\.stringStates\}/);
   assert.match(appSource, /selectedNotes=\{STAGE3_STATIC_FRETBOARD_SELECTION\}/);
-  assert.match(appSource, /id: `transition-string-\$\{note\.stringNumber\}`/);
+  assert.match(appSource, /id: `transition-string-\$\{note\.stringNumber\}-fret-\$\{note\.fretNumber\}`/);
   assert.match(appSource, /id: `transition-barre-\$\{index\}`/);
   const stage3FretboardStart = appSource.lastIndexOf("<Fretboard", appSource.indexOf("barres={chordPracticeFretboardView.barres}"));
   const stage3FretboardEnd = appSource.indexOf("/>", stage3FretboardStart);

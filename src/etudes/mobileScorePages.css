@@ -9,16 +9,10 @@ html body main.app .mobileScorePageStack > .etudeSheet.mobileScorePage {
 }
 .mobileScorePageNumber {position:absolute;bottom:10px;left:10px;right:10px;text-align:center;color:#686868;font:11px/16px Arial,sans-serif}
 html body main.app .mobileScorePageNav {
- position:sticky;top:0;z-index:12;display:flex;align-items:center;justify-content:space-between;gap:8px;
+ position:sticky;top:0;z-index:12;display:flex;align-items:center;justify-content:space-between;gap:4px;
  box-sizing:border-box;min-height:44px;margin-bottom:8px;padding:3px 5px;border:1px solid var(--theme-border-control,#d9d4cc);
  border-radius:6px;background:var(--theme-surface,#fffaf4);color:var(--theme-text,#302b24);
 }
 html body main.app .mobileScorePageNav button {display:grid!important;place-items:center;flex:none;width:40px!important;min-width:40px!important;min-height:36px!important;margin:0!important;padding:2px!important}
-.mobileScorePageNav output {display:flex;align-items:center;gap:6px;font-size:13px;font-variant-numeric:tabular-nums}
-.mobileScorePageNav output small {font-size:10px;color:inherit}
-.mobileScorePagePosition {flex:1;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px;min-width:0}
-.mobileScorePagePosition output {grid-column:2}
-html body main.app.app.app .mobileScorePageNav button.mobileScoreFirstPage {
- justify-self:start;border:0!important;background:transparent!important;box-shadow:none!important;transform:none!important;
-}
+.mobileScorePageNav output {flex:1;min-width:0;text-align:center;white-space:nowrap;font-size:13px;font-variant-numeric:tabular-nums}
 html body main.app .mobileScorePages .etudeReturnPosition {top:52px!important}

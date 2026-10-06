@@ -5,7 +5,7 @@ import {compileScoreDocument} from './scoreDocument.js';
 import brand from './assets/fretiva-lab-logo-print.png';
 import qr from './score-source-qr.png';
 import {SCORE_SOURCE_HANDLE,SCORE_SOURCE_URL} from './scoreSource.js';
-import {measureLayout} from './measureLayout.js';
+import {measureLayout,scoreLineSettings} from './measureLayout.js';
 import {slurSpans} from './slurs.js';
 import {measureChordCharts} from './measureChordCharts.js';
 import {PRINT_BOTTOM,PRINT_MARGIN} from '../printing/printGeometry.js';
@@ -50,12 +50,13 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
  const compiled=metadata?compileScoreDocument(metadata,undefined,{allowIncomplete:true}).score:null;
  // Paper engraving uses CSS pixels at physical A4 size, never the editor zoom.
  const paperWidth=sheet.clientWidth-parseFloat(win.getComputedStyle(sheet).paddingLeft)-parseFloat(win.getComputedStyle(sheet).paddingRight);
- const placements=compiled?measureLayout(metadata.measures,metadata.viewSettings?.measuresPerRow??1,metadata.viewSettings?.systemBreaks??[]):[];
+ const lines=scoreLineSettings(metadata);
+ const placements=compiled?measureLayout(metadata.measures,lines.perRow,lines.breaks):[];
  if(compiled){
   // Density must never override the document's explicit system layout.
   sections.forEach(section=>section.remove());sections.length=0;
   for(const placement of placements){
-   if(!sections[placement.row-1]){const section=doc.createElement('section');section.style.display='flex';sections.push(section);sheet.append(section);}
+   if(!sections[placement.row-1]){const section=doc.createElement('section');section.style.display='flex';if(lines.pageBreaks.includes(placement.id))section.dataset.sourcePageBreak='true';sections.push(section);sheet.append(section);}
    const cell=doc.createElement('div');cell.style.flex='none';sections[placement.row-1].append(cell);
   }
  }
@@ -115,6 +116,7 @@ export function renderScorePrint(main,container,view,metadata,initial,onPages) {
   sheets.forEach(paper=>paper.querySelector('.pageNumber')?.remove());
   sheet=pageAt(0);
   for(const section of sections){
+   if(section.dataset.sourcePageBreak==='true'&&sheet.querySelector('section'))sheet=pageAt(++pageIndex);
    section.style.width='100%';section.style.marginBottom=gap+'px';sheet.append(section);
    const bottom=section.offsetTop+section.offsetHeight;
    const limit=PRINT_BOTTOM;

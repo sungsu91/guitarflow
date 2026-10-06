@@ -167,6 +167,7 @@ html.app-is-launching::-webkit-scrollbar-track {
 .launchSplash__layout--desktop .launchSplash__footer { bottom: max(8%, env(safe-area-inset-bottom)); width: min(45%, 920px); }
 
 /* Mobile composition remains independently adjustable, including phone rotation. */
+.launchSplash__layout--mobile { height: var(--launch-stage-height, 100%); }
 .launchSplash__layout--mobile .launchSplash__header {
   top: max(5.1%, calc(env(safe-area-inset-top, 0px) + 18px));
   left: max(8.15%, env(safe-area-inset-left, 0px));

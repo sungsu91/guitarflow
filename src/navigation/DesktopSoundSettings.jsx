@@ -1,8 +1,9 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
-import { ChevronRight, Volume2, X } from 'lucide-react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { ChevronRight, SlidersHorizontal, Volume2, X } from 'lucide-react';
 import { Translation, useLanguage } from '../i18n/react.jsx';
 import { t } from '../i18n/core.js';
 import './desktop-sound-settings.css';
+import './sound-settings.css';
 
 export default function DesktopSoundSettings({ activeKey, children }) {
   useLanguage();
@@ -16,27 +17,46 @@ export default function DesktopSoundSettings({ activeKey, children }) {
     if (restoreFocus) trigger.current?.focus({ preventScroll: true });
   };
 
-  // Keep the panel beside the rail, even when its button is near the bottom.
+  const position = useCallback(() => {
+    const popup = panel.current;
+    const anchor = trigger.current;
+    if (!popup || !anchor || !popup.matches(':popover-open')) return;
+    const rail = anchor.closest('.desktopSidebar');
+    const viewport = window.visualViewport;
+    const leftEdge = viewport?.offsetLeft || 0;
+    const topEdge = viewport?.offsetTop || 0;
+    const rightEdge = leftEdge + (viewport?.width || innerWidth);
+    const bottomEdge = topEdge + (viewport?.height || innerHeight);
+    const railRect = rail.getBoundingClientRect();
+    const anchorRect = anchor.getBoundingClientRect();
+    const left = railRect.right + 10;
+    popup.style.width = `${Math.min(366, rightEdge - left - 12)}px`;
+    popup.style.maxHeight = `${bottomEdge - topEdge - 24}px`;
+    popup.style.left = `${left}px`;
+    popup.style.top = `${Math.max(topEdge + 12, Math.min(anchorRect.top, bottomEdge - popup.getBoundingClientRect().height - 12))}px`;
+  }, []);
+
+  const toggle = event => {
+    // The native toggle event is queued after opening and can arrive after paint.
+    // Show and measure in this click task so the first visible frame is positioned.
+    event.preventDefault();
+    const popup = panel.current;
+    if (popup.matches(':popover-open')) {
+      close();
+    } else {
+      popup.showPopover();
+      position();
+      setOpen(true);
+    }
+  };
+
+  // Keep the panel beside the rail while scrolling, resizing, or changing content.
   useLayoutEffect(() => {
     if (!open) return;
     const popup = panel.current;
     const anchor = trigger.current;
     const rail = anchor.closest('.desktopSidebar');
     const nav = anchor.closest('.desktopSidebarNav');
-    const position = () => {
-      const viewport = window.visualViewport;
-      const leftEdge = viewport?.offsetLeft || 0;
-      const topEdge = viewport?.offsetTop || 0;
-      const rightEdge = leftEdge + (viewport?.width || innerWidth);
-      const bottomEdge = topEdge + (viewport?.height || innerHeight);
-      const railRect = rail.getBoundingClientRect();
-      const anchorRect = anchor.getBoundingClientRect();
-      const left = railRect.right + 10;
-      popup.style.width = `${Math.min(320, rightEdge - left - 12)}px`;
-      popup.style.maxHeight = `${bottomEdge - topEdge - 24}px`;
-      popup.style.left = `${left}px`;
-      popup.style.top = `${Math.max(topEdge + 12, Math.min(anchorRect.top, bottomEdge - popup.getBoundingClientRect().height - 12))}px`;
-    };
     position();
     const observer = new ResizeObserver(position);
     observer.observe(popup);
@@ -52,7 +72,7 @@ export default function DesktopSoundSettings({ activeKey, children }) {
       window.visualViewport?.removeEventListener('resize', position);
       window.visualViewport?.removeEventListener('scroll', position);
     };
-  }, [open]);
+  }, [open, position]);
 
   useEffect(() => { panel.current?.hidePopover(); }, [activeKey]);
 
@@ -66,6 +86,7 @@ export default function DesktopSoundSettings({ activeKey, children }) {
         aria-controls={id}
         aria-haspopup="dialog"
         popoverTarget={id}
+        onClick={toggle}
       >
         <span className="desktopSidebarIcon" aria-hidden="true"><Volume2 size={18} /></span>
         <span className="desktopSidebarLabel"><Translation id="app.soundRhythm" /></span>
@@ -75,14 +96,17 @@ export default function DesktopSoundSettings({ activeKey, children }) {
         ref={panel}
         id={id}
         popover="auto"
-        className="desktopSoundSettingsPanel"
+        className="desktopSoundSettingsPanel soundSettings"
         role="dialog"
         aria-labelledby={`${id}-title`}
         onToggle={event => setOpen(event.newState === 'open')}
       >
         <header className="desktopSoundSettingsHeader">
-          <Volume2 size={18} aria-hidden="true" />
-          <strong id={`${id}-title`}><Translation id="app.soundRhythm" /></strong>
+          <span className="soundSettingsMark" aria-hidden="true"><SlidersHorizontal size={19} /></span>
+          <div className="soundSettingsHeading">
+            <small className="soundSettingsBrand">FRETIVA LAB</small>
+            <strong id={`${id}-title`}><Translation id="app.soundRhythm" /></strong>
+          </div>
           <button className="desktopSoundSettingsClose" type="button" aria-label={t('common.close')} onClick={() => close(true)}>
             <X size={18} aria-hidden="true" />
           </button>

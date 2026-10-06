@@ -6,7 +6,7 @@ import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
 import {useEffect,useRef,useState} from 'react';
-import {ChevronDown,FolderOpen,FolderPlus,Check,Star,X,Search,FilePlus2} from 'lucide-react';
+import {ChevronDown,FolderOpen,FolderPlus,Check,Star,X,Search,FilePlus2,Trash2} from 'lucide-react';
 import './etudePicker.css';
 
 export default function EtudePicker({model,mobile}) {
@@ -31,6 +31,14 @@ export default function EtudePicker({model,mobile}) {
  const toggle=key=>setSelection(old=>old.includes(key)?old.filter(k=>k!==key):[...old,key]);
  const organize=operation=>{try{model.organize(operation);setManageError('');}catch(e){setManageError(e.message);}};
  const applyAction=async action=>{
+  if(action.type==='delete-scores'){
+   for(const entry of action.entries){
+    await model.manageScore('delete',entry);
+    setSelection(old=>old.filter(key=>key!==entry.key));
+    setPicked(old=>old===entry.key?null:old);
+   }
+   return;
+  }
   if(action.type==='rename-score'||action.type==='delete-score'){await model.manageScore(action.type==='rename-score'?'rename':'delete',action.entry,action.name);if(action.type==='delete-score'){setPicked(null);setSelection([]);}}
   else {const id=action.id??crypto.randomUUID();model.organize({...action,id});if(action.type==='create')setCategory('folder:'+id);if(action.type==='remove')setCategory(ko['app.all']);if(action.type==='move')setSelection([]);}
  };
@@ -41,21 +49,22 @@ export default function EtudePicker({model,mobile}) {
  return <div className="etudeSelect" key={key}><span>{localizeUi(label)}</span><button type="button" className={"etudePickerTrigger"+(active?" is-current-score":"")} aria-label={localizeUi(label)} aria-current={active?'true':undefined} aria-haspopup="dialog" title={active?current.title:undefined} onClick={e=>open(key,e)}><span>{active?current.title:localizeUi(value)}</span><FolderOpen size={18} aria-hidden="true"/></button></div>;
  })}</div>
  {tab&&<dialog ref={dialog} className={`etudePickerDialog ${mobile?'is-mobile':'is-desktop'}`} aria-label={translateUi("etudes.chooseScore")} onCancel={e=>{e.preventDefault();close();}} onClick={e=>{if(e.target===e.currentTarget){const r=e.currentTarget.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close();}}}>
- <header><h2><Translation id="etudes.chooseScore" /></h2><button type="button" className="etudePickerEdit" aria-label={translateUi("score.organize")} aria-pressed={managing} disabled={!model.folderData} onClick={()=>{setManaging(v=>!v);setSelection([]);}}><Translation id={managing?"common.done":"common.edit"}/></button><button type="button" aria-label={translateUi("etudes.closeScorePicker")} onClick={close}><X size={22}/></button></header>
+ <header><h2><Translation id="etudes.chooseScore" /></h2><button type="button" aria-label={translateUi("etudes.closeScorePicker")} onClick={close}><X size={22}/></button></header>
  <nav className="etudePickerTabs" aria-label={translateUi("etudes.scoreList")}>{[['types',ko["app.chooseAPracticeCategory"]],['saved',ko["app.savedScores"]]].map(([key,label])=><button key={key} type="button" aria-pressed={tab===key} onClick={()=>{setTab(key);setSelection([]);setCategory(ko["app.all"]);setPicked(null);}}>{localizeUi(label)}</button>)}</nav>
  <label className="etudePickerSearch"><Search size={16}/><input autoFocus type="search" aria-label={translateUi("etudes.searchScores")} placeholder={translateUi("etudes.searchScores")} value={query} onChange={e=>setQuery(e.target.value)}/></label>
- <nav className="etudePickerCategories" aria-label={translateUi("etudes.filterScores")}>
+ <div className="etudePickerFilterRow"><nav className="etudePickerCategories" aria-label={translateUi("etudes.filterScores")}>
  {[ko["app.all"],ko["etudes.favorites"]].map(type=><button type="button" key={type} aria-pressed={category===type} onClick={()=>{setCategory(type);setPicked(null);setSelection([]);}}>{localizeUi(type)}</button>)}
  {tab==='saved'&&<button type="button" aria-pressed={category==='file:pdf'} onClick={()=>{setCategory('file:pdf');setPicked(null);setSelection([]);}}><Translation id="etudes.savedPdfTab"/></button>}
  {folders.map(f=><button type="button" key={f.id} aria-pressed={folder?.id===f.id} onClick={()=>{setCategory('folder:'+f.id);setPicked(null);setSelection([]);}}><FolderOpen size={14}/>{f.name}</button>)}
  <button type="button" disabled={!model.folderData} onClick={()=>setAction({type:'create'})}><FolderPlus size={14}/><Translation id="pdf.newFolder"/></button>
  {(tab==='types'?types:[]).map(type=><button type="button" key={type} aria-pressed={category===type} onClick={()=>{setCategory(type);setPicked(null);setSelection([]);}}>{localizeUi(type)}</button>)}
- </nav>
+ </nav><button type="button" className="etudePickerEdit" aria-label={translateUi("score.organize")} aria-pressed={managing} disabled={!model.folderData} onClick={()=>{setManaging(v=>!v);setSelection([]);}}><Translation id={managing?"common.done":"common.edit"}/></button></div>
  {managing&&<div className="etudePickerManage" role="group" aria-label={translateUi("score.organize")}>
  <button type="button" onClick={()=>setSelection(visible.map(e=>e.key))}><Translation id="app.selectAll"/></button>
  <button type="button" disabled={!keys.length} onClick={()=>setAction({type:'move',keys})}><Translation id="score.moveFolder"/> ({keys.length})</button>
  <button type="button" disabled={!keys.length} onClick={()=>organize({type:'favorite',keys,value:!selected.every(e=>model.favorites[e.key])})}><Star size={14}/><Translation id="etudes.favorites"/>{keys.length?(selected.every(e=>model.favorites[e.key])?' −':' +'):''}</button>
- {selected.length===1&&selected[0].saved&&<><button type="button" onClick={()=>setAction({type:'rename-score',entry:selected[0],name:selected[0].title})}><Translation id="audioStudio.rename"/></button><button type="button" onClick={()=>setAction({type:'delete-score',entry:selected[0]})}><Translation id="pdf.deleteScore"/></button></>}
+ {selected.length===1&&selected[0].saved&&<button type="button" onClick={()=>setAction({type:'rename-score',entry:selected[0],name:selected[0].title})}><Translation id="audioStudio.rename"/></button>}
+ {tab==='saved'&&<button type="button" className="etudePickerDelete" disabled={!selected.length} onClick={()=>setAction({type:'delete-scores',entries:selected.filter(entry=>entry.saved)})}><Trash2 size={14}/><Translation id="app.deleteSelected"/> ({selected.length})</button>}
  {folder&&<><button type="button" onClick={()=>setAction({type:'rename',id:folder.id,name:folder.name})}><Translation id="pdf.renameFolder"/></button><button type="button" onClick={()=>setAction({type:'remove',id:folder.id,name:folder.name})}><Translation id="pdf.deleteFolder"/></button></>}
  </div>}
  {manageError&&<p role="alert">{manageError}</p>}

@@ -2,6 +2,7 @@ import {scheduleScoreExpressions,maximumBend} from './scoreExpressions.js';
 import {getStringBuffer,PLUCK_VARIANTS} from "./pluckedString.js";
 import { AUDIO_BUS_IDS, getAudioBusInput } from "./audioBus.js";
 import {guitarFingerParts} from './guitarArticulation.js';
+import { getInstrumentPosition } from '../fretboard/instruments.js';
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -105,33 +106,35 @@ export function getCleanGuitarVoiceProfile(position = {}) {
  * Resolve sound from physical guitar positions. A stale pitch/name stored on a
  * note can never change the result: string + fret are the source of truth.
  */
-export function getPlayableGuitarPositions(notes = [], stringStates = {}) {
+export function getPlayableGuitarPositions(notes = [], stringStates = {}, tuning = null) {
+  const resolve = (string, fret) => tuning ? getInstrumentPosition(tuning, string, fret) : getGuitarPitchAtPosition(string, fret);
   const positionsByString = new Map();
   (Array.isArray(notes) ? notes : []).forEach((note) => {
     const stringNumber = Number(note?.stringNumber ?? note?.string);
     const fretNumber = Number(note?.fretNumber ?? note?.fret);
     if (String(stringStates?.[stringNumber] ?? "").toLowerCase() === "x") return;
     if (positionsByString.has(stringNumber)) return;
-    const position = getGuitarPitchAtPosition(stringNumber, fretNumber);
+    const position = resolve(stringNumber, fretNumber);
     if (position) positionsByString.set(stringNumber, position);
   });
   Object.entries(stringStates ?? {}).forEach(([stringNumberValue, state]) => {
     if (String(state).toLowerCase() !== "o") return;
     const stringNumber = Number(stringNumberValue);
     if (positionsByString.has(stringNumber)) return;
-    const openPosition = getGuitarPitchAtPosition(stringNumber, 0);
+    const openPosition = resolve(stringNumber, 0);
     if (openPosition) positionsByString.set(stringNumber, openPosition);
   });
   return [...positionsByString.values()].sort((a, b) => b.stringNumber - a.stringNumber);
 }
 
 export function getGuitarStrumVoices(notes = [], {
+  tuning = null,
   humanizeSeed = 0,
   stringStates = {},
   strumSeconds = 0,
   velocityVariation = 0,
 } = {}) {
-  const positions = getPlayableGuitarPositions(notes, stringStates);
+  const positions = getPlayableGuitarPositions(notes, stringStates, tuning);
   const delay = clamp(Number(strumSeconds) || 0, 0, 0.08);
   const variation = clamp(Number(velocityVariation) || 0, 0, 0.2);
   const seed = Math.round(Number(humanizeSeed) || 0);
@@ -259,7 +262,7 @@ function schedulePluck(
   }
   lowCut.type = "highpass";
   if(phrase)scheduleScoreExpressions(source,phrase,when);
-  lowCut.frequency.setValueAtTime(48, when);
+  lowCut.frequency.setValueAtTime(Math.min(48, position.frequency * 0.65), when);
   lowCut.Q.setValueAtTime(0.58, when);
   tone.type = "lowpass";
   tone.frequency.setValueAtTime(
@@ -359,6 +362,7 @@ export function warmGuitarPhrase(audio,phrase,offset=0){
  * Karplus-Strong plucked-string voice.
  */
 export function playGuitarPositions(audio, notes, {
+  tuning = null,
   attackSeconds = 0.007,
   duration = 1.7,
   humanizeSeed = null,
@@ -372,6 +376,7 @@ export function playGuitarPositions(audio, notes, {
     ? nextStrumHumanizeSeed()
     : humanizeSeed;
   const voices = getGuitarStrumVoices(notes, {
+    tuning,
     humanizeSeed: resolvedHumanizeSeed,
     stringStates,
     strumSeconds,

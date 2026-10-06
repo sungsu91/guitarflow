@@ -41,3 +41,14 @@
 }
 
 }
+
+@layer desktop-metronome-space {
+ html body .desktopLayout .app .stage3StandaloneBpmActionPanel {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr)) 100px!important;gap:0!important;
+ }
+ html body .desktopLayout .app .stage3StandaloneBpmActionPanel>button {
+  width:100%!important;min-width:0!important;white-space:nowrap!important;
+ }
+ html body .desktopLayout .app .stage3StandaloneBpmActionPanel .metronomeHeroActionText {white-space:nowrap!important}
+ html body .desktopLayout .app .stage3StandaloneBpmActionPanel .metronomeHeroCountInButton {grid-column:4!important;justify-self:end!important}
+}

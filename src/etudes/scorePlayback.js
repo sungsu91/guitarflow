@@ -4,10 +4,10 @@ import {scoreBarOrder} from './scoreRepeats.js';
 import {ticksOf} from './scoreModel.js';
 import {rolledChordAttack} from '../audio/guitarArticulation.js';
 // All times use sounding MIDI (the guitar staff is engraved one octave higher).
-export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {playEmptyScore=false} = {}) {
+export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {playEmptyScore=false,...route} = {}) {
   const events = [], pending = new Map(), passes = new Map();
   let offset = 0, writtenEnd = 0;
-  const order=scoreBarOrder(score);
+  const order=scoreBarOrder(score,route);
   for (const {visit,bar,meter} of performedMeasures(score,order)) {
     const measure=score.measures[bar];
     const pass=passes.get(bar)??0;passes.set(bar,pass+1);
@@ -28,7 +28,7 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
         pending.delete(key);
         // A tie may not bridge a gap, change string/pitch, or sustain a dead note.
         const prior = candidate && !(tone.dead??e.dead) && !candidate.dead && Math.abs(candidate.start + candidate.duration - start) < 1e-6 ? candidate : null;
-        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, ...(score.instrument==='drums'?{drumTechnique:tone.drumTechnique,drumArticulation:tone.drumArticulation,beatSeconds:60/bpm*(e.tuplet?2/3:1),writtenDuration:e.duration}:{}), fret:tone.fret, string:tone.string, voice:e.voice, start:toneStart, duration:0, technique:null,letRing:Boolean(e.letRing),expressions:[]};
+        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, ...(score.instrument==='drums'?{drumTechnique:tone.drumTechnique,drumArticulation:tone.drumArticulation,beatSeconds:60/bpm*(e.tuplet?e.tuplet.normalNotes/e.tuplet.actualNotes:1),writtenDuration:e.duration}:{}), fret:tone.fret, string:tone.string, voice:e.voice, start:toneStart, duration:0, technique:null,letRing:Boolean(e.letRing),expressions:[]};
         const velocity=e.velocityByPass?.[Math.min(pass,e.velocityByPass.length-1)]??e.velocity;
         if(!prior&&velocity!==undefined)note.velocity=velocity;
         if(!prior&&roll)note.roll=roll;
@@ -40,7 +40,8 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
         note.duration += prior?duration:toneDuration;
         note.technique = e.technique ?? null;
         if (!prior) events.push(note);
-        if (e.tieTo) pending.set(`${e.tieTo}:${tone.string}:${tone.midi}`, note);
+        const tieTo=e.tieTo??(score.instrument==='piano'?tone.pianoTieTo:null);
+        if (tieTo) pending.set(`${tieTo}:${tone.string}:${tone.midi}`, note);
       }
       sequential = onset + beats * 480;
     }
@@ -54,8 +55,8 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
 
 // Connect only adjacent notes on the same physical string. Other strings keep
 // independent voices; an unrelated chord tone never inherits a pitch ramp.
-export function guitarVoiceTimeline(score, bpm = score.bpm) {
-  const timeline = scoreTimeline(score, bpm), voices = [], last = new Map();
+export function guitarVoiceTimeline(score, bpm = score.bpm, route = {}) {
+  const timeline = scoreTimeline(score, bpm, true, route), voices = [], last = new Map();
   const spans=slurSpans(score.measures);
   const rests=performedMeasures(score,timeline.order).flatMap(({bar,barStart})=>{
     let next=0;

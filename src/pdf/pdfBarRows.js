@@ -52,6 +52,7 @@ export function setPdfBarBeats(barMap,number,beats){
  });
 }
 export function normalizePdfBarEntry(row){
+ if(row.staves){const staves=Array.isArray(row.staves)?row.staves.filter(s=>s&&Number.isFinite(s.top)&&Number.isFinite(s.height)&&s.top>=0&&s.height>0&&s.top+s.height<=1.001&&Number.isInteger(s.lines)&&s.lines>=1&&s.lines<=8).slice(0,16):[];row={...row,staves};}
  if(row.count==null)return row;
  const count=Math.max(1,Math.min(4,Math.floor(Number(row.count)||1)));
  return {...row,count,...(row.barEdges?{barEdges:pdfBarEdges({...row,count})}:{}),...(row.beatCounts?{beatCounts:Array.from({length:count},(_,i)=>Math.max(1,Math.min(32,Number(row.beatCounts[i])||row.beats)))}:{})};

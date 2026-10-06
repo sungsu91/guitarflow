@@ -1,0 +1,50 @@
+/* Instrument .instrumentDropdownTriggerors occupy the first cell of the existing mode tab bar. */
+html body #root .viewerModeTabs.viewerModeTabs--instruments {
+  grid-template-columns: auto repeat(2, minmax(0, 1fr)) !important;
+}
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app > .desktopFretboardViewer.fretboardViewerPanel .viewerModeTabs.viewerModeTabs--instruments,
+html[data-rifflab-layout="desktop"] body #root .desktopLayout main.app.app.app > .desktopFretboardViewer.fretboardViewerPanel .desktopTheoryNavigation .viewerModeTabs.viewerModeTabs--instruments {
+  grid-template-columns: auto repeat(2, minmax(0, 1fr)) !important;
+}
+.viewerInstrumentControls {
+  display: flex; align-items: center; gap: 5px;
+  min-width: 0; height: 100%; margin: 0; padding: 0;
+}
+html body #root .viewerInstrumentControls .instrumentDropdownTrigger {
+  box-sizing: border-box; height: 100%; min-height: 0; max-height: 44px;
+  width: 98px; min-width: 0; max-width: 100%; margin: 0;
+  padding: 4px 8px; border: 1px solid var(--theme-border, #756c604d);
+  border-radius: 8px; color: var(--theme-text, #ded8cd); background-color: var(--theme-panel, #292721);
+  font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+html body #root .viewerInstrumentControls .instrumentDropdownTrigger:last-child { width: 73px; padding-right: 4px; }
+html body #root .viewerInstrumentControls--mobile .instrumentDropdownTrigger { width: 82px; padding-left: 5px; font-size: 11px; }
+html body #root .viewerInstrumentControls--mobile .instrumentDropdownTrigger:last-child { width: 60px; }
+html body #root .viewerModeTabs.viewerModeTabs--instruments:has(.viewerInstrumentControls--mobile) {
+  grid-template-columns: auto repeat(3, minmax(0, 1fr)) !important;
+  gap: 3px !important;
+}
+html body #root .viewerModeTabs--instruments:has(.viewerInstrumentControls--mobile) > button {
+  padding-right: 2px !important; padding-left: 2px !important; font-size: 11px !important;
+}
+html body #root .viewerInstrumentControls--tablet .instrumentDropdownTrigger { width: 112px; font-size: 14px; }
+html body #root .viewerInstrumentControls--tablet .instrumentDropdownTrigger:last-child { width: 80px; }
+@layer tablet-layout {
+  html body #root .tabletLayout .viewerModeTabs.viewerModeTabs--instruments {
+    grid-template-columns: auto repeat(2, minmax(0, 1fr)) !important;
+  }
+  @media (max-width: 799px) {
+    /* A stacked workbench needs a definite height for its size container. */
+    html body #root .tabletLayout .tabletChordViewer .viewerMapCard--chord .viewerFretboardGestureSurface {
+      flex: 0 0 auto !important;
+      height: clamp(240px, 44vw, 340px) !important;
+    }
+  }
+}
+
+.fretboardComponent .fretboardStrings { grid-template-rows: repeat(var(--fretboard-string-count, 6), 1fr); }
+.viewerSharedFretboard .fretboardStringRow:nth-child(7) > i { height: 2.2px !important; }
+html body #root .chordCatalogPanel .chordMiniSharedFretboard .fretboardGrid {
+  top: calc(var(--fretboard-board-top) + var(--fretboard-board-height) / (var(--fretboard-string-count, 6) * 2)) !important;
+  height: calc(var(--fretboard-board-height) * (var(--fretboard-string-count, 6) - 1) / var(--fretboard-string-count, 6)) !important;
+}

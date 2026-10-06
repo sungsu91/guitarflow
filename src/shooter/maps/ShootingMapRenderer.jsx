@@ -1,5 +1,6 @@
 import MapSkinRenderer from "./MapSkinRenderer.jsx";
 import MobileVideoMapRenderer from "./MobileVideoMapRenderer.jsx";
+import TabletVideoMapRenderer from "./TabletVideoMapRenderer.jsx";
 import Pseudo3DRenderer from "../pseudo3d/Pseudo3DRenderer.jsx";
 import ThreeDLabHorizontalRenderer from "../threed/ThreeDLabHorizontalRenderer.jsx";
 
@@ -18,6 +19,9 @@ export default function ShootingMapRenderer({
   ...mapSkinProps
 }) {
   if (cameraBackground) return null;
+  if (skin?.tabletComposition) {
+    return <TabletVideoMapRenderer {...mapSkinProps} skin={skin} />;
+  }
   if (skin?.renderer === 'ambient-video' && mapSkinProps.layout === 'mobile') {
     return <MobileVideoMapRenderer {...mapSkinProps} skin={skin} />;
   }

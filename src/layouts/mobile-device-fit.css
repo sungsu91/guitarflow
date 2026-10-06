@@ -1,0 +1,57 @@
+/* Phone viewport chrome and safe areas; desktop/tablet compositions are separate. */
+@layer rhythm-surfaces {
+  html[data-rifflab-device="mobile"] body #root main.app.viewport-portrait:is(.metronomeMode,.practiceMode) {
+    padding-top: calc(var(--app-safe-top) + 10px) !important;
+  }
+
+  html[data-rifflab-device="mobile"] body #root main.app.landscapePlayFocus.metronomeMode
+    .standaloneMetronomeControl {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    & > .metronomeOptions {
+      flex: none !important;
+      height: auto !important;
+      min-height: 0 !important;
+    }
+    & .rhythmSettings {
+      grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr) !important;
+      grid-template-rows: repeat(2,38px) !important;
+      gap: 4px 6px !important;
+    }
+    & .rhythmSetting { gap: 4px !important; }
+    & .rhythmSetting--meter { grid-area: 1 / 1 !important; }
+    & .rhythmSetting--subdivision { grid-area: 2 / 1 !important; }
+    & :is(.rhythmSetting--accent,.rhythmSetting--tone) { grid-area: 1 / 2 !important; }
+    & .rhythmSetting--weak { grid-area: 2 / 2 !important; }
+    & .rhythmSettingLabel { font-size: 10px !important; }
+    & .rhythmSettingTrigger {
+      width: 0 !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      padding: 4px !important;
+      font-size: 12px !important;
+    }
+  }
+
+  html[data-rifflab-device="mobile"] body #root main.app.landscapePlayFocus.theme-brand
+    .firstPositionTrainingPanel {
+    & .referenceTrainingMainRow::before {
+      border-color: var(--studio-border) !important;
+      background: var(--studio-surface) !important;
+      box-shadow: none !important;
+    }
+    & .referenceTrainingMainRow > .referenceBeatMetronomeStrip {
+      border-color: var(--studio-border) !important;
+      background: var(--studio-surface) !important;
+      box-shadow: none !important;
+    }
+    & .referenceTrainingBoard .trainingNoteGuideToggle {
+      border-color: var(--studio-border) !important;
+      background: var(--studio-selected) !important;
+      color: var(--studio-text) !important;
+      box-shadow: none !important;
+    }
+  }
+}

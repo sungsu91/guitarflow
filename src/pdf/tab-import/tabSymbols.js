@@ -52,7 +52,7 @@ export function findBlockRests(ink,width,staff,measure,candidates){
 }
 
 function hasStemlessDot(ink,width,staff,x){
- const g=staff.spacing,bottom=staff.lines[5],points=[];
+ const g=staff.spacing,bottom=staff.lines.at(-1),points=[];
  for(let y=Math.ceil(bottom+g*1.8);y<=bottom+g*2.8;y++)for(let at=Math.ceil(x+g*.15);at<=x+g*.9;at++)if(ink[y*width+at])points.push({x:at,y});
  if(points.length<3)return false;
  const xs=points.map(p=>p.x),ys=points.map(p=>p.y),w=Math.max(...xs)-Math.min(...xs)+1,h=Math.max(...ys)-Math.min(...ys)+1;
@@ -69,18 +69,28 @@ export function attachNativeTabSymbols(ink,width,staff,{rhythmicPage=false}={}){
         for(const c of candidates)if(c.cx>=r.x-g*.15&&c.cx<=r.x+g*1.15&&c.cy>=staff.lines[2]-g*.15&&c.cy<=staff.lines[3]+g*.2)c.nonFretSymbol='repeat-slash';
         return true;
       }
-      if(candidates.some(c=>Math.abs(c.cx-r.x)<g*.4))return true;
+      if(r.tieContinuation||candidates.some(c=>Math.abs(c.cx-r.x)<g*.4))return true;
       if(r.direction===1&&isTabRepeatSlash(ink,width,staff,r.x)){r.repeatPrevious=true;r.method='tab-repeat-slash';return true;}
       return !staff.nativeText;
     });
     // A detached compact dot to the right of the stem end is augmentation,
     // not an eighth flag. It must have white space separating it from the stem.
-    for(const r of m.rhythm)if(r.direction===1&&(staff.nativeText||r.repeatPrevious)){
+    for(const r of m.rhythm)if(r.direction===1){
       const points=[],center=r.beamCount?Math.max(...r.beamYs)-g*.5:r.y;
-      for(let y=Math.round(center-g*.25);y<=center+g*.25;y++)for(let x=Math.round(r.x+g*.25);x<=r.x+g*.7;x++)if(ink[y*width+x])points.push({x,y});
+      // Unbeamed dots may sit slightly above the stem end. Cropping their
+      // upper half made a dotted quarter look like a compact eighth flag.
+      for(let y=Math.round(center-g*(r.beamCount ? .25 : .65));y<=center+g*.25;y++)for(let x=Math.round(r.x+g*.25);x<=r.x+g*.7;x++)if(ink[y*width+x])points.push({x,y});
       if(points.length<3)continue;
       const xs=points.map(p=>p.x),ys=points.map(p=>p.y),w=Math.max(...xs)-Math.min(...xs)+1,h=Math.max(...ys)-Math.min(...ys)+1;
-      if(w>=g*.12&&w<=g*.38&&h>=g*.12&&h<=g*.38&&points.length/(w*h)>.45){if(!r.beamCount)r.duration='4';r.dotted=true;r.method='dotted-stem';}
+      // The complete dot must be separated from the stem by white columns.
+      // Looking only inside the dot box mistakes the end of a small flag for it.
+      let whiteGap=0;
+      for(let x=Math.ceil(r.x+g*.1);x<Math.min(...xs);x++){
+        let occupied=false;for(let y=Math.min(...ys);y<=Math.max(...ys);y++)occupied||=Boolean(ink[y*width+x]);
+        if(!occupied)whiteGap++;
+      }
+      if(whiteGap<Math.max(1,g*.08))continue;
+      if(w>=g*.12&&w<=g*.45&&h>=g*.12&&h<=g*.45&&points.length/(w*h)>.45){if(!r.beamCount)r.duration='4';r.dotted=true;r.method='dotted-stem';}
     }
     if(staff.nativeText)for(const rest of findEighthRests(ink,width,staff,m,candidates))m.rhythm.push(rest);
     for(const rest of findBlockRests(ink,width,staff,m,candidates))m.rhythm.push(rest);
@@ -92,7 +102,7 @@ export function attachNativeTabSymbols(ink,width,staff,{rhythmicPage=false}={}){
       // Stemless single chord in rhythmic TAB. A number-only TAB page has no
       // rhythm evidence, and must never acquire whole notes from this rule.
       const x=candidates.reduce((n,c)=>n+c.cx,0)/candidates.length,dotted=hasStemlessDot(ink,width,staff,x);
-      if(candidates.length>=2||dotted)m.rhythm=[{x,y:staff.lines[5],duration:'1',...(dotted?{dotted:true}:{}),confidence:.96,method:dotted?'dotted-stemless-note-in-rhythmic-tab':'stemless-chord-in-rhythmic-tab'}];
+      if(candidates.length>=2||dotted)m.rhythm=[{x,y:staff.lines.at(-1),duration:'1',...(dotted?{dotted:true}:{}),confidence:.96,method:dotted?'dotted-stemless-note-in-rhythmic-tab':'stemless-chord-in-rhythmic-tab'}];
     }
   }
 }

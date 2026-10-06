@@ -11,7 +11,13 @@ export const BUILTIN_CURRICULUM_VERSION=2;
 export function resizeFoundation(pattern,length) {
  const count=Math.max(1,Math.min(16,Math.round(length)));
  const row=Array.from({length:pattern.meter},(_,i)=>clone(pattern.core[i%pattern.core.length]));
- return repairTies({...pattern,measures:Array.from({length:count},()=>clone(row)),stages:Array(count).fill('foundation'),measureRepeats:Array(count).fill(false)});
+ // Copies can contain hand-edited bars. Changing the practice length must not
+ // regenerate those bars or erase their repeats and cross-bar ties.
+ return repairTies({...pattern,
+  measures:Array.from({length:count},(_,i)=>clone(pattern.measures[i]||row)),
+  stages:Array.from({length:count},(_,i)=>pattern.stages?.[i]||'foundation'),
+  measureRepeats:Array.from({length:count},(_,i)=>!!pattern.measureRepeats?.[i]),
+ });
 }
 export function builtinPacks(language='ko') {
  return PACK_FAMILIES.flatMap(([family])=>LEVELS.flatMap(([level,ko,en])=>

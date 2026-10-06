@@ -1,0 +1,31 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {analysisToDocument} from '../src/pdf/tab-import/scoreAdapter.js';
+import {summarizeAnalysis} from '../src/pdf/tab-import/recognition.js';
+import {compileDocumentV2} from '../src/etudes/scoreModel.js';
+import {scoreTimeline} from '../src/etudes/scorePlayback.js';
+import {arrangeGuitar} from '../src/etudes/arrangement/arrangeGuitar.js';
+import {gripFeasible} from '../src/etudes/arrangement/voicing.js';
+const out='artifacts/chord-piano-followup-20261006/now-page1-verified';await mkdir(out,{recursive:true});
+const result=JSON.parse(await readFile('artifacts/chord-piano-followup-20261006/piano-wide-heads/now-p1-grand.json'));
+assert(!result.error,result.error);const pages=[result.analysis],target={instrument:'piano',tuning:[],notationPitch:'concert'};
+const doc=analysisToDocument({fileName:'NOW-piano-page1.pdf',target,pages,summary:summarizeAnalysis(pages)});
+const compiled=compileDocumentV2(doc);assert.deepEqual(compiled.errors,[]);assert.equal(doc.measures.length,10);
+const audio=scoreTimeline(compiled.score,60).events.map(n=>({midi:n.midi,start:n.start,duration:n.duration,voice:n.voice}));
+// Independently transcribed from the rendered original first page. The common
+// tied syncopation has nine printed chords and eight actual attacks.
+const rhythm=[[0,1],[1,.75],[1.75,.5],[2.25,.25],[2.5,.5],[3,.5],[3.5,.25],[3.75,.25]];
+const chord=(pitches,bar,voice,timing=rhythm)=>timing.flatMap(([t,duration])=>pitches.map(midi=>({midi,start:(bar-1)*4+t,duration,voice})));
+const firstRight=[[71,0,.5],[69,.5,.5],[64,1,.5],[71,1.5,1],[64,2.5,.5],[71,3,.5],[69,3.5,4.5],[69,8,.5],[67,8.5,.5],[62,9,.5],[69,9.5,1],[62,10.5,.5],[66,11,1]].map(([midi,start,duration])=>({midi,start,duration,voice:'right'}));
+const right=[...firstRight,...[[62,0,4],[64,0,4],[67,0,2],[69,2,2]].map(([midi,t,duration])=>({midi,start:12+t,duration,voice:'right'})),...chord([62,64,67,74],5,'right',[[0,4]]),...[[59,62,67],[62,64,67],[55,59,64],[62,64,67],[59,62,67]].flatMap((p,i)=>chord(p,6+i,'right'))];
+const bar3Chords=[[52,55,59],[52,55,59],[50,55,57],[50,55,57],[50,55,57],[50,54,57],[50,54,57],[50,54,57]];
+const left=[...chord([48,52,55,59],1,'left'),...chord([50,54,57],2,'left'),...rhythm.flatMap(([t,duration],i)=>bar3Chords[i].map(midi=>({midi,start:8+t,duration,voice:'left'}))),...chord([48,52,55],4,'left',[[0,1],[1,.75],[1.75,.5],[2.25,.25],[2.5,.5],[3,.5],[3.5,.5]]),...chord([48,55,60],5,'left',[[0,4]]),...[[43,50],[48,55],[40,47],[48,55],[43,50]].flatMap((p,i)=>chord(p,6+i,'left'))];
+assert.deepEqual(audio.filter(n=>n.voice==='right'),right,'right-hand attacks/releases vs original page');
+assert.deepEqual(audio.filter(n=>n.voice==='left'),left,'left-hand attacks/releases vs original page');
+const expectedMelody=[...firstRight.map(({midi,start,duration})=>[midi,start,duration]),[67,12,2],[69,14,2],[74,16,4],...[67,67,64,67,67].flatMap((midi,i)=>rhythm.map(([t,d])=>[midi,20+i*4+t,d]))];
+const before=structuredClone(doc),arrangement=arrangeGuitar(doc),arranged=compileDocumentV2(arrangement.document);assert.deepEqual(arranged.errors,[]);assert.deepEqual(doc,before);assert.deepEqual(arrangement.document.guitarArrangement.sourceDocument,doc);
+const performed=scoreTimeline(arranged.score,60).events;
+assert.deepEqual(performed.filter(n=>n.voice==='melody').map(n=>[n.midi,n.start,n.duration]),expectedMelody);
+for(const t of new Set(performed.flatMap(n=>[n.start,n.start+n.duration])))assert(gripFeasible(performed.filter(n=>n.start<=t+1e-8&&n.start+n.duration>t+1e-8)),`sounding grip at ${t}`);
+await writeFile(`${out}/result.json`,JSON.stringify({source:'NOW.pdf page 1 only',recognitionMs:result.ms,verifiedBars:10,verifiedPianoAttacks:audio.length,melodyAttacks:expectedMelody.length,document:doc,arrangement,audio,expectedMelody},null,2));
+console.log(JSON.stringify({pass:true,verifiedBars:10,pianoAttacks:audio.length,guitarMelodyAttacks:expectedMelody.length,sourcePreserved:true,physicalGrips:true,harmony:doc.measures.map(m=>m.harmonyChanges)}));

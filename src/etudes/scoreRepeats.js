@@ -2,6 +2,7 @@ import { formatMessage } from "../i18n/format.js";
 import ko from "../i18n/locales/ko.js";
 import {repeatStructure,navigationIssues,navigationOrder} from './scoreNavigation.js';
 import {validateMiniChordRepeatEdit} from '../mini-chord/notationValidation.js';
+import {practicePlaybackRange} from './scorePlaybackMode.js';
 
 export const repeatMarks=score=>score.document?.measures??score.repeatMarks??[];
 
@@ -42,8 +43,10 @@ export function setScoreRepeat(document,bar,action) {
 
 // Expand playback visits only. Written measures, IDs, onsets and durations stay
 // untouched. Repeat endings and navigation share the same performed route.
-export function scoreBarOrder(score) {
- if(score.practiceRange){const {start,end}=score.practiceRange;if(Number.isInteger(start)&&Number.isInteger(end)&&start>=0&&end>=start&&end<score.measures.length)return Array.from({length:end-start+1},(_,i)=>start+i);}
+export function scoreBarOrder(score,{mode='score',startBar=0}={}) {
+ const range=practicePlaybackRange(score);
+ if(range)return Array.from({length:range.end-range.start+1},(_,i)=>range.start+i);
+ if(mode==='linear'){const start=Math.max(0,Math.min(score.measures.length-1,Math.floor(startBar)));return Array.from({length:score.measures.length-start},(_,i)=>start+i);}
  const marks=repeatMarks(score),issues=repeatIssues(marks);
  if(issues.length)throw Error(issues[0]);
  return navigationOrder(score.measures.map((_,i)=>marks[i]??{}),repeatStructure(marks).blocks);

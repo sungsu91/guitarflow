@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {detectPracticeMeasures,practiceMeasureMap,mergePracticeDetections} from '../src/pdf/autoMeasures.js';
 import {practiceOrder,barAtTick} from '../src/pdf/pdfModel.js';
 import {movePdfRow,removePdfRow} from '../src/pdf/pdfBarRows.js';
+import {binaryPage,detectBarlines} from '../src/pdf/tab-import/geometry.js';
 function raster(staves){const width=1000,height=800,rgba=new Uint8ClampedArray(width*height*4).fill(255);const ink=(x,y)=>{for(let c=0;c<3;c++)rgba[(y*width+x)*4+c]=0;};for(const {top,count,bars,right=900} of staves){for(let i=0;i<count;i++)for(let x=80;x<=right;x++)ink(x,top+i*12);for(const x of bars)for(let y=top;y<=top+(count-1)*12;y++)ink(x,y);for(let y=top+12;y<top+36;y++)ink(400,y);}return {rgba,width,height,page:1};}
 for(const count of [4,5,6,7,8])test(`${count}-line staff: unequal measures, stems excluded, normalized coordinates`,()=>{const result=detectPracticeMeasures(raster([{top:100,count,bars:[80,250,570,900]}]));assert.equal(result.systems.length,1);assert.equal(result.measures.length,3);assert.deepEqual(result.measures.map(m=>m.x),[.08,.25,.57]);assert.ok(result.measures.every(m=>m.confidence===.98&&m.y>=0&&m.y+m.height<=1));});
 function connect(image,x,top,bottom){for(let y=top;y<=bottom;y++)for(let c=0;c<3;c++)image.rgba[(y*image.width+x)*4+c]=0;}
@@ -141,4 +142,38 @@ test('an alternate render can recover a shared system without counting its parts
  const primary={page:1,systems:[row(1,.1,.06),row(2,.2,.06),row(3,.5,.06)],measures:[1,2,3].map(system=>({system,x:.08,width:.82,confidence:.98}))};
  const secondary={page:1,systems:[row(1,.1,.16,2)],measures:[{system:1,x:.08,y:.1,width:.82,height:.16,confidence:.98}]};
  const result=mergePracticeDetections(primary,secondary);assert.equal(result.systems.length,2);assert.equal(result.measures.length,2);assert.equal(result.systems[0].staffCount,2);assert.equal(result.measures[1].system,2);
+});
+
+function fill(image,left,top,right,bottom){for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++)for(let c=0;c<3;c++)image.rgba[(y*image.width+x)*4+c]=0;}
+function crossingNote(image,x,top,{down=false,head=true,beam=true}={}){
+ const bottom=top+48;connect(image,x,top,bottom);
+ const center=x+(down?6:-6),cy=down?top:bottom;
+ if(head)for(let dy=-4;dy<=4;dy++)for(let dx=-7;dx<=7;dx++)if(dx*dx/49+dy*dy/16<=1)fill(image,center+dx,cy+dy,center+dx,cy+dy);
+ if(beam)fill(image,down?x-35:x,down?bottom-4:top,down?x:x+35,down?bottom:top+4);
+}
+for(const down of [false,true])test(`a ${down?'downward':'upward'} beamed stem reaching both outer staff rules is not a barline`,()=>{
+ const image=raster([{top:100,count:5,bars:[80,570,900]}]);crossingNote(image,320,100,{down});
+ // The generic TAB detector stays unchanged; only practice layout applies
+ // notehead/beam evidence to this otherwise plausible full-height column.
+ const staff={x:80,y:100,width:820,height:48,spacing:12,thickness:1,lines:[100,112,124,136,148]};
+ assert.ok(detectBarlines(binaryPage(image.rgba,1000,800),1000,staff).bars.includes(320));
+ const result=detectPracticeMeasures(image);assert.equal(result.measures.length,2);assert.deepEqual(result.systems[0].barlines,[.08,.57,.9]);
+});
+for(const part of ['head','beam'])test(`a real boundary with only a nearby ${part} remains a boundary`,()=>{
+ const image=raster([{top:100,count:5,bars:[80,320,570,900]}]);crossingNote(image,320,100,{head:part==='head',beam:part==='beam'});
+ const result=detectPracticeMeasures(image);assert.equal(result.measures.length,3);assert.ok(result.systems[0].barlines.includes(.32));
+});
+test('a ruled open staff start and a visible right boundary establish its first measure',()=>{
+ const result=detectPracticeMeasures(raster([{top:100,count:5,bars:[400,650,900]}]));
+ assert.equal(result.measures.length,3);assert.equal(result.measures[0].x,.08);assert.equal(result.measures[0].confidence,.98);
+});
+test('a very short final open staff with only a final double bar is one last measure',()=>{
+ const result=detectPracticeMeasures(raster([{top:100,count:5,bars:[400,650,900]},{top:300,count:5,right:190,bars:[187,190]}]));
+ assert.equal(result.systems.length,2);assert.equal(result.measures.length,4);
+ const last=result.measures.at(-1);assert.equal(last.x,.08);assert.equal(last.width,.11);assert.equal(last.confidence,.98);
+ assert.deepEqual(practiceMeasureMap([result],[4,4]).map(m=>m.number),[1,2,3,4]);
+});
+test('a short ruled shape without a closing bar is not promoted to a final measure',()=>{
+ const result=detectPracticeMeasures(raster([{top:100,count:5,bars:[400,650,900]},{top:300,count:5,right:190,bars:[]}]));
+ assert.equal(result.systems.length,1);assert.equal(result.measures.length,3);
 });

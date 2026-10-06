@@ -11,8 +11,31 @@ export function audibleContextTime(context,now=performance.now()) {
 }
 // Schedule compiled event onsets directly; tuplets need no integer-tick approximation.
 export class RhythmTransport {
-  constructor(context, output, onFrame) {this.ctx=context;this.output=output;this.onFrame=onFrame;this.sources=new Set();this.tick=0;this.running=false;}
-  configure(pattern) {const running=this.running;const tick=this.position();this.stop();this.pattern=pattern;this.beatTicks=beatTicks(pattern);this.events=timeline(pattern);this.total=playbackTicks(pattern);this.tick=tick>=this.total?tick%this.total:tick;if(running)this.start(false);}
+  constructor(context, output, onFrame) {this.ctx=context;this.output=output;this.onFrame=onFrame;this.sources=new Set();this.sourceStarts=new WeakMap();this.tick=0;this.running=false;}
+  configure(pattern) {
+    const previous=this.pattern;
+    const sameAudio=previous&&['bpm','meter','meterDenominator','tone','click','measures','measureRepeats'].every(key=>previous[key]===pattern[key]);
+    if(sameAudio){
+      // Loop/count-in and metadata changes do not restart the audio clock.
+      // Rebase a later loop to its current pass so OFF finishes that pass.
+      if(this.running&&previous.loop&&!pattern.loop){
+        const cycle=Math.max(0,Math.floor(this.position()/this.total))*this.total;
+        this.anchorTick-=cycle;this.next-=cycle;
+        if(Number.isFinite(this.lastAudibleTick))this.lastAudibleTick-=cycle;
+        const end=this.anchorTime+(this.total-this.anchorTick)*secondsPerTick(pattern);
+        for(const source of this.sources)if(this.sourceStarts.get(source)>=end-1e-9){
+          try{source.stop();}catch{} source.disconnect();this.sources.delete(source);
+        }
+      }else if(this.running&&!previous.loop&&pattern.loop){
+        // The old non-looping lookahead may have passed the end silently.
+        this.next=Math.min(this.next,this.total);
+      }
+      if(!this.running&&this.tick>=this.total)this.tick%=this.total;
+      this.pattern=pattern;
+      return;
+    }
+    const running=this.running;const tick=this.position();this.stop();this.pattern=pattern;this.beatTicks=beatTicks(pattern);this.events=timeline(pattern);this.total=playbackTicks(pattern);this.tick=tick>=this.total?tick%this.total:tick;if(running)this.start(false);
+  }
   position() {return this.running?Math.max(this.lastAudibleTick??this.anchorTick,this.audiblePosition()):this.tick;}
   audiblePosition() {return this.anchorTick+Math.max(0,audibleContextTime(this.ctx)-this.anchorTime)/secondsPerTick(this.pattern);}
   start(count=true) {if(this.running)return; if(count&&this.tick<=0&&this.pattern.countIn)this.tick=-(this.pattern.meter+1)*this.beatTicks;this.anchorTick=this.tick;this.anchorTime=this.ctx.currentTime+.045;this.next=this.tick;this.lastAudibleTick=this.tick;this.running=true;this.onFrame(this.tick,true,false);if(this.tick<0){
@@ -48,14 +71,14 @@ export class RhythmTransport {
     const source=this.ctx.createBufferSource(),gain=this.ctx.createGain();source.buffer=buffer;
     const rate=this.beatTone==='voice'?Math.max(1,Math.max(...this.beatBuffers.map(item=>item.duration))/(60/this.pattern.bpm*.85)):1;
     source.playbackRate.value=rate;gain.gain.setValueAtTime(this.beatTone==='voice'?.75:.45,when);
-    source.connect(gain);gain.connect(this.output);this.sources.add(source);
+    source.connect(gain);gain.connect(this.output);this.sources.add(source);this.sourceStarts.set(source,when);
     source.onended=()=>{this.sources.delete(source);source.disconnect();gain.disconnect();};
     source.start(when);source.stop(when+buffer.duration/rate);
   }
   sound(when,tone,accent=false) {const c=this.ctx;const gain=c.createGain();gain.connect(this.output);const duration=tone==='mute'?.035:tone==='clap'?.1:.055;gain.gain.setValueAtTime(tone==='click'?.10:tone==='mute'?.18:.28,when);gain.gain.exponentialRampToValueAtTime(.0001,when+duration);let source;
     if(tone==='clap'||tone==='rim'||tone==='mute'){source=c.createBufferSource();const b=c.createBuffer(1,Math.ceil(c.sampleRate*duration),c.sampleRate);const d=b.getChannelData(0);let smooth=0;for(let i=0;i<d.length;i++){const noise=Math.random()*2-1;smooth=.65*smooth+.35*noise;d[i]=tone==='mute'?smooth:noise*(tone==='rim'?Math.sin(i*1.7):1);}source.buffer=b;}
     else {source=c.createOscillator();source.type=tone==='click'?'sine':'triangle';source.frequency.setValueAtTime(tone==='click'?(accent?1800:1300):760,when);}
-    source.connect(gain);this.sources.add(source);source.onended=()=>{this.sources.delete(source);source.disconnect();gain.disconnect();};source.start(when);source.stop(when+duration);
+    source.connect(gain);this.sources.add(source);this.sourceStarts.set(source,when);source.onended=()=>{this.sources.delete(source);source.disconnect();gain.disconnect();};source.start(when);source.stop(when+duration);
   }
   dispose(){this.stop();}
 }

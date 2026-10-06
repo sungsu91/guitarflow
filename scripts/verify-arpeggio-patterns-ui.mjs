@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {createBlankDocument,blankMeasure} from '../src/etudes/scoreModel.js';
+import {ARPEGGIO_PATTERNS} from '../src/etudes/arpeggioPattern.js';
 import {readBrowserScoreLibrary} from './read-browser-score-library.mjs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE);
 const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
@@ -34,7 +35,7 @@ try{
    await page.goto(`${origin}/#etudes`,{waitUntil:'networkidle'});await page.locator('.launchSplash').waitFor({state:'detached',timeout:60000});await open();
    await page.locator('[data-mobile-tool-toggle="picking"]').click();const panel=page.locator('#mobile-tool-picking');
    await panel.getByRole('button',{name:'아르페지오',exact:true}).click();
-   assert.equal(await panel.getByLabel('반주 패턴',{exact:true}).locator('option').count(),7);
+   assert.equal(await panel.getByLabel('반주 패턴',{exact:true}).locator('option').count(),ARPEGGIO_PATTERNS.length);
    assert.equal(await panel.getByLabel('음표 길이',{exact:true}).count(),0);
    assert.match(await panel.locator('.arpeggioPreview').innerText(),/5 → 3 → 1 → 3/);
    await panel.getByLabel('아르페지오 적용 범위',{exact:true}).selectOption('all');
@@ -46,6 +47,10 @@ try{
    await page.getByRole('button',{name:'다시 실행',exact:true}).click();assert.deepEqual(await engraving(),after);
    let stored=await save();
    assert.deepEqual(stored.measures.map(m=>m.events.map(e=>e.notes[0].string)),[5,6,4,5].map(b=>[b,3,1,3,b,3,1,3]));
+   await panel.getByLabel('반주 패턴',{exact:true}).selectOption('bass-3-pinch12-3');
+   assert.match(await panel.locator('.arpeggioPreview').innerText(),/5 → 3 → \(1\+2\) → 3/);
+   await panel.getByRole('button',{name:'반주 패턴 적용',exact:true}).click();stored=await save();
+   assert.deepEqual(stored.measures.map(m=>m.events.map(e=>e.notes.map(n=>n.string))),[5,6,4,5].map(b=>[[b],[3],[1,2],[3],[b],[3],[1,2],[3]]));
    await panel.getByLabel('반주 패턴',{exact:true}).selectOption('bass-slap');
    assert.equal(await panel.getByLabel('음표 길이',{exact:true}).count(),0);
    await panel.getByRole('button',{name:'반주 패턴 적용',exact:true}).click();stored=await save();
@@ -59,6 +64,7 @@ try{
    assert.deepEqual(stored.measures.map(m=>m.harmony),['C','G','D','Am']);assert.deepEqual(stored.measures[3],applied.measures[3]);
    for(const width of mobile?[390,360]:[1440,1024]){
     await page.setViewportSize({width,height:mobile?844:1000});
+    await panel.getByLabel('반주 패턴',{exact:true}).selectOption('bass-3-pinch12-3');
     await panel.getByLabel('반주 패턴',{exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:`${out}/${width}-controls.png`});
     const box=await panel.boundingBox();assert(box.x>=0&&box.x+box.width<=width+1,JSON.stringify(box));
     assert.equal(await panel.locator(mobile?'.desktopArpeggioControls':'.mobileArpeggioControls').count(),0);
@@ -88,7 +94,7 @@ try{
    await panel.getByRole('button',{name:'반주 패턴 적용',exact:true}).click();
    await save();const added=Object.values((await readBrowserScoreLibrary(page)).records).find(r=>r.document.id!==source.id).document;
    assert.deepEqual(added.measures[0].events.map(e=>e.notes[0].string),[5,3,1,3,5,3,1,3]);
-   assert.deepEqual(errors,[]);results.push({mobile,patterns:7,undoRedo:true,saveReload:true,newScore:true,invalidPatternBlocked:true,range:true,peak,errors});console.log(JSON.stringify(results.at(-1)));
+   assert.deepEqual(errors,[]);results.push({mobile,patterns:ARPEGGIO_PATTERNS.length,pinch12:true,undoRedo:true,saveReload:true,newScore:true,invalidPatternBlocked:true,range:true,peak,errors});console.log(JSON.stringify(results.at(-1)));
   }catch(error){await page.screenshot({path:`${out}/${mobile?'mobile':'desktop'}-error.png`});console.error((await page.locator('body').innerText()).slice(-9000));throw error;}finally{await page.close();}
  }
 }finally{await browser.close();await writeFile(`${out}/results.json`,JSON.stringify(results,null,2));}

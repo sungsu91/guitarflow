@@ -1,6 +1,6 @@
 import {validateBeat,units,tuplet,tupletGroups,writtenTicks,canSustain} from './rhythmMath.js';
 import {TIME_SIGNATURES,meterInfo,beatTicks} from './meter.js';
-import {expandEditorBeat,sustainedNotation} from './editorNotes.js';
+import {expandEditorBeat,sustainedNotation,editorTieState,releaseSustainedNotes} from './editorNotes.js';
 export const STORAGE_KEY = 'rifflab-rhythm-trainer-v1';
 export const note = (ticks, rest = false) => ({ ticks, rest });
 export const clone = value => JSON.parse(JSON.stringify(value));
@@ -63,8 +63,12 @@ export function replaceEditorBeat(pattern,measure,beat,value,{target='score',tie
  const row=target==='core'?(pattern.core??pattern.measures[0]):pattern.measures[measure];
  if(!cells||!row||beat<0||beat+cells.length>row.length)return null;
  const p=clone(pattern),next=clone(row);
- // The draft's old tie is controlled by the explicit checkbox.
- if(cells.length===1){cells[0].forEach(n=>delete n.tie);const following=target==='core'?row[beat+1]:pattern.measures.flat()[measure*pattern.meter+beat+1];if(tieNext&&canSustain(cells[0].at(-1))&&canSustain(following?.[0]))cells[0].at(-1).tie=true;}
+ releaseSustainedNotes(next,beat,cells.length);
+ // Internal long-note links encode duration; only the outgoing connection is
+ // controlled by the checkbox, including the end of a half/whole note.
+ if(cells.length===1)cells[0].forEach(n=>delete n.tie);
+ const last=cells.at(-1).at(-1);delete last.tie;
+ if(tieNext&&editorTieState(pattern,measure,beat,value,target).enabled)last.tie=true;
  next.splice(beat,cells.length,...cells);
  if(target==='core'){p.core=repairTies({measures:[next]}).measures[0];return p;}
  p.measures[measure]=next;return repairTies(p);

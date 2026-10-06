@@ -27,7 +27,7 @@
  .editorDesign .scoreChordNameDialog .chordTargetBar>div>button{flex:0 0 28px!important;width:28px!important;padding:3px!important}
  .editorDesign .scoreChordNameDialog .chordTargetBar select{flex:1 1 0!important;width:0!important;min-width:0!important;padding:3px!important}
 }
-/* This builder is part of the score workspace, directly below the score. */
-.editorDesign .scoreChordNameDialog,
+/* Mobile replaces the keypad; desktop opens above the scrollable workspace. */
+.editorDesign .scoreChordNameDialog.scoreChordDialog--desktop{position:fixed;inset:16px;margin:auto;width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px)}
 .editorDesign .scoreChordNameDialog.scoreChordDialog--mobile{position:relative;inset:auto;margin:0 auto;width:100%;max-width:760px;max-height:none;flex:none;box-shadow:0 2px 8px #21170f14}
-.scoreChordNameDialog::backdrop{background:transparent;backdrop-filter:none}
+.scoreChordNameDialog.scoreChordDialog--mobile::backdrop{background:transparent;backdrop-filter:none}

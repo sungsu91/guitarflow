@@ -1,6 +1,7 @@
 import {parseChordSymbol} from '../chords/chordSymbols.js';
 import {OPEN_CHORD_SHAPES} from './openChordStudies.js';
 import {effectiveTuning,maxFret} from './scoreTuning.js';
+import {minimumFrettingFingers} from './frettingFeasibility.js';
 
 const opens={...OPEN_CHORD_SHAPES,...Object.fromEntries(Object.entries({
  E:[0,2,2,1,0,0],A:[null,0,2,2,2,0],A7:[null,0,2,0,2,0],C7:[null,3,2,3,1,0],B7:[null,2,1,2,0,2],G7:[3,2,0,0,0,1],
@@ -11,6 +12,9 @@ const cache=new Map();
 // Prefer familiar open grips, then a compact low position. A slash bass is
 // mandatory; we never silently substitute a different named chord.
 export function shapeForChordName(document,name){
+ // These grips and their search are for six-string guitar. Other instruments
+ // still retain their chord names without entering the guitar grip search.
+ if((document.instrument??'guitar')!=='guitar'||document.tuning?.length!==6)return null;
  const symbol=parseChordSymbol(name);if(!symbol)return null;
  if(symbol.silent)return {name:symbol.name,silent:true};
  const tuning=effectiveTuning(document),limit=maxFret(document)-(document.capo??0),key=JSON.stringify([name,tuning,limit]);
@@ -33,11 +37,8 @@ export function shapeForChordName(document,name){
     // Extended grips may omit the perfect fifth, but keep defining tones.
     if(symbol.tones.some(pc=>!pcs.has(pc)&&!(symbol.tones.length>4&&pc===(symbol.pc+7)%12)))return;
     const pressed=frets.filter(f=>f>0),minimum=Math.min(...pressed),maximum=Math.max(0,...pressed);
-    const fingers=pressed.filter(f=>f!==minimum).length+(pressed.length?1:0);
+    const fingers=minimumFrettingFingers(frets.flatMap((fret,i)=>fret===null?[]:[{string:6-i,fret}]));
     if(fingers>4||pressed.length&&maximum-minimum>3)return;
-    // An open string inside a barre means each lowest-fret stop needs a finger.
-    const first=frets.indexOf(minimum),last=frets.lastIndexOf(minimum);
-    if(frets.slice(first,last+1).includes(0)&&pressed.length>4)return;
     const cost=maximum*2+pressed.reduce((a,b)=>a+b,0)*.15+(6-sounding.length)*.4;
     if(cost<bestCost){bestCost=cost;best={name:symbol.name,frets,fingers:Array(6).fill(null)};}
    };

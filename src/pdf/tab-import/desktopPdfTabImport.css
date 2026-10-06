@@ -5,8 +5,77 @@
 .pdfTabPageResults{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;padding:0}.pdfTabPageResults li{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #88705922}.pdfTabReviewBar label{display:flex;align-items:center;gap:6px}.pdfTabReviewBar select{font:inherit;padding:5px;border:1px solid #88705944;border-radius:5px;background:var(--panel,#faf8f5);color:inherit}
 .etudeEditor .pdfTabReviewBar label{flex-direction:row;white-space:nowrap}.etudeEditor .pdfTabReviewBar select{width:132px;min-width:132px;max-width:none}.pdfTabReviewBar small{margin-left:6px}
 .desktopPdfTabImport .pdfTabOpen:disabled{opacity:.65;cursor:wait}.pdfTabStorageNotice{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 16px;padding:10px 12px;border:1px solid #b78337;border-radius:8px;background:#fff4dd;color:#654818;font-size:13px}.pdfTabStorageNotice span{flex:1;min-width:220px}.pdfTabStorageNotice button{flex:none;padding:8px 12px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer}
+.desktopPhotoScanControls{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:16px}
 
 .pdfTabCoverageNotice{flex:0 0 100%;box-sizing:border-box;margin:8px 0;padding:8px 10px;border:1px solid #c39a5c;border-radius:8px;background:#fff4dd;color:#654818;font-size:12px;overflow-wrap:anywhere}
 .mobileScoreWorkspace>.pdfTabCoverageNotice{flex:none;max-height:15dvh;overflow:auto;margin:0 2px 4px}
 
 .desktopStaffPitchRepair{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 12px;border:1px solid #b78337;background:#fff4dd;color:#654818;font-size:13px}.desktopStaffPitchRepair button{min-height:36px}
+
+.desktopPdfTabImport[open]{display:flex;flex-direction:column;overflow:hidden}
+.desktopPdfTabImport>header,.desktopPdfTabImport>footer{flex:none}
+.desktopPdfTabImport>.desktopPdfTabBody{min-height:0;overflow:auto;overscroll-behavior:contain}
+.desktopPdfTabImport>footer{margin-top:14px;padding-top:14px;border-top:1px solid var(--conversion-border)}
+.desktopPdfTabImport .pdfImportTarget{display:grid;gap:2px;margin:10px 0;padding:10px 14px;border:1px solid var(--conversion-border);border-radius:8px;background:var(--conversion-selected)}
+.desktopPdfTabImport .pdfImportTarget span,.desktopPdfTabImport .pdfImportTarget small{font-size:12px;letter-spacing:0;color:var(--conversion-muted)}
+.desktopPdfTabImport .desktopImportTargetFields{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:14px;margin-bottom:6px}
+.desktopPdfTabImport .desktopImportTargetFields label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:13px;font-weight:600;color:var(--conversion-text)}
+.desktopPdfTabImport .desktopImportTargetFields select{box-sizing:border-box;width:100%;min-width:0;min-height:40px;padding:8px 10px;border:1px solid var(--conversion-border);border-radius:7px;background:var(--conversion-card);color:var(--conversion-text);font:inherit}
+.desktopPdfTabImport .desktopImportTargetFields select:focus-visible{outline:2px solid var(--conversion-accent);outline-offset:2px}
+.desktopPdfTabImport[data-has-photos=true] .staffImportOptions{margin:10px 0}
+.desktopPdfTabImport[data-has-photos=true] .scoreConversionChoices{margin-top:8px}
+.desktopPdfTabImport[data-has-photos=true] .scoreConversionChoice{padding:10px 14px}
+.desktopPdfTabImport[data-has-photos=true] .pdfTabFileButton{margin:8px 0;padding:10px 14px}
+
+/* Desktop spacing is independent of the mobile import dialog. */
+.desktopPdfTabImport{--conversion-surface:#faf8f5;--conversion-card:#fff;--conversion-text:#302a24;--conversion-muted:#766b5f;--conversion-border:#d7cec2;--conversion-accent:#795e47;--conversion-selected:#f0e8dc;background:var(--conversion-surface);color:var(--conversion-text);border-color:var(--conversion-border);color-scheme:light}
+:root[data-theme="classic-gold"] .desktopPdfTabImport{--conversion-surface:#201e1a;--conversion-card:#28251f;--conversion-text:#f4eee3;--conversion-muted:#c4b8a5;--conversion-border:#514839;--conversion-accent:#e5bc72;--conversion-selected:#393021;color-scheme:dark}
+.desktopPdfTabImport .staffImportOptions{min-width:0;margin:16px 0 22px;padding:0;border:0}
+.desktopPdfTabImport .pdfImportStep{display:flex;align-items:center;gap:9px;padding:0;color:var(--conversion-text);font-size:15px;font-weight:700;line-height:1.5}
+.desktopPdfTabImport .pdfImportStep>span{display:grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:var(--conversion-selected);color:var(--conversion-accent);font-size:13px}
+.desktopPdfTabImport .scoreConversionChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.desktopPdfTabImport .scoreConversionChoice{display:flex;flex-direction:column;gap:9px;min-width:0;padding:18px 16px;border:1px solid var(--conversion-border);border-radius:10px;background:var(--conversion-card);color:var(--conversion-text);text-align:left;cursor:pointer;transition:background-color .15s,border-color .15s}
+.desktopPdfTabImport .scoreConversionChoice[data-selected=true]{border-color:var(--conversion-accent);background:var(--conversion-selected);box-shadow:inset 0 0 0 1px var(--conversion-accent)}
+.desktopPdfTabImport .scoreConversionChoice:hover{border-color:var(--conversion-accent)}
+.desktopPdfTabImport .scoreConversionChoice:has(input:focus-visible){outline:2px solid var(--conversion-accent);outline-offset:3px}
+.desktopPdfTabImport .scoreConversionChoiceHeading{display:flex;align-items:center;gap:8px;font-size:16px;line-height:1.5}
+.desktopPdfTabImport .scoreConversionChoice input[type=radio]{appearance:auto;flex:0 0 18px;width:18px;height:18px;min-height:18px!important;max-height:18px;margin:0;padding:0!important;border:0!important;border-radius:50%;background:transparent!important;box-shadow:none!important;outline:none!important;accent-color:var(--conversion-accent);cursor:pointer}
+.desktopPdfTabImport .scoreConversionChoiceDescription{font-size:13px;line-height:1.6;color:var(--conversion-muted);word-break:keep-all;overflow-wrap:anywhere}
+.desktopPdfTabImport .scoreConversionHelp{margin:10px 0 0;color:var(--conversion-muted);font-size:12px;line-height:1.6}
+.desktopPdfTabImport .staffImportOptions:disabled{opacity:.6}
+.desktopPdfTabImport .pdfTabFileButton{margin:0;padding:16px;border-color:var(--conversion-border);background:var(--conversion-card);color:var(--conversion-text)}
+.desktopPdfTabImport .pdfTabFileButton+.pdfTabFileButton{margin-top:10px}
+.desktopPdfTabImport .pdfTabFileButton input{color:inherit}
+.desktopPdfTabImport header small{color:var(--conversion-muted)}
+.desktopPdfTabImport button{border-color:var(--conversion-border)}
+@media(prefers-reduced-motion:reduce){.desktopPdfTabImport .scoreConversionChoice{transition:none}}
+.desktopPdfTabImport .pdfTabActiveMode{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin:18px 0;padding:14px 16px;border-radius:8px;background:var(--conversion-selected);color:var(--conversion-text)}
+.desktopPdfTabImport .pdfTabActiveMode>span{font-size:12px;color:var(--conversion-muted)}
+.desktopPdfTabImport .pdfTabActiveMode>strong{font-size:16px}
+.desktopPdfTabImport .pdfTabActiveMode>p{flex-basis:100%;margin:3px 0 0;font-size:13px;color:var(--conversion-muted)}
+.desktopPdfTabImport .scoreConversionChoice[data-mode=grand]{grid-column:1/-1;padding:10px 16px}
+.desktopImportTargetFields .importSourcePitch,.desktopImportTargetFields .importPairedCheck{grid-column:1/-1}
+.desktopPdfTabImport .desktopImportTargetFields .importPairedCheck{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px}
+.desktopImportTargetFields .importPairedCheck input{width:16px;min-height:16px}
+.desktopImportTargetFields .importPairedCheck small{flex-basis:100%}
+.desktopImportPart { margin: 16px 0; padding: 14px; border: 1px solid var(--border, #8a8a8a); border-radius: 10px; }
+.desktopImportPart label { display: flex; align-items: center; gap: 16px; }
+.desktopImportPart select { min-height: 40px; max-width: 100%; }
+.desktopPdfTabImport .desktopTabPhotoAdd{margin-top:10px}
+.desktopImportSelectionHint{font-size:13px;color:var(--conversion-muted)}
+.desktopImportSelectedPdf{display:flex;align-items:center;gap:16px;padding:12px;margin:12px 0;border:1px solid var(--conversion-border);border-radius:8px;background:var(--conversion-card)}
+.desktopImportSelectedPdf>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.desktopImportSelectedPdf>button{flex:none}
+.desktopImportTargetFields .importSourcePitch small{font-weight:400;line-height:1.6}
+.desktopImportActivity{margin:20px 0 8px;padding:16px;border:1px solid var(--conversion-border);border-radius:10px;background:var(--conversion-card)}
+.desktopImportActivityHeading{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.desktopImportActivityHeading>strong{font-size:15px;color:var(--conversion-text)}
+.desktopImportElapsed{margin-left:auto;font-size:12px;font-variant-numeric:tabular-nums;color:var(--conversion-muted)}
+.desktopImportScanMarks{display:flex;gap:5px;padding:0 4px;overflow:hidden}
+.desktopImportScanMarks>i{width:11px;height:3px;border-radius:2px;background:var(--conversion-accent);animation:desktopImportScan 1.1s ease-in-out infinite}
+.desktopImportActivity>p{margin:12px 0;font-size:13px;overflow-wrap:anywhere;color:var(--conversion-muted)}
+.desktopImportProgressMeter{display:flex;align-items:center;gap:12px}
+.desktopImportProgressMeter progress{flex:1;min-width:0;width:auto;margin:0;accent-color:var(--conversion-accent)}
+.desktopImportProgressMeter>span{min-width:32px;text-align:right;font-variant-numeric:tabular-nums}
+@keyframes desktopImportScan{0%,100%{opacity:.25;transform:translateX(-3px)}45%{opacity:1;transform:translateX(3px)}}
+@media(prefers-reduced-motion:reduce){.desktopImportScanMarks>i{animation:none;opacity:.65}}

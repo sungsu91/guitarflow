@@ -1,6 +1,34 @@
 // Digital PDFs already contain exact characters. Keep their real positions;
 // never OCR a title/chord chart or infer a number from an entire page of text.
 import {isFretText,normalizeFretText} from './fretText.js';
+
+// PDF.js may combine a harmonic and its neighboring fret into one text item.
+// Split only a complete, space-separated token sequence whose glyph widths
+// are available elsewhere in the same PDF font; never assume bracket widths.
+function separateHarmonicText(items){
+  const atom=/^(?:\(<\d{1,2}>\)|<\d{1,2}>|[0-9Xx]{1,2})$/;
+  const widths=new Map();
+  for(const item of items)if(atom.test(item.str)&&item.height>0){
+    const key=item.fontName+'|'+item.str,values=widths.get(key)??[];
+    values.push(item.width/item.height);widths.set(key,values);
+  }
+  const ratios=new Map([...widths].map(([key,values])=>[key,values.sort((a,b)=>a-b)[Math.floor(values.length/2)]]));
+  return items.flatMap(item=>{
+    if(!item.str?.includes('<')||!item.str.includes(' ')||!item.transform||Math.abs(item.transform[1])+Math.abs(item.transform[2])>.01)return [item];
+    const tokens=item.str.split(/ +/),spaces=(item.str.match(/ /g)??[]).length;
+    if(tokens.some(token=>!atom.test(token)))return [item];
+    const sizes=tokens.map(token=>ratios.get(item.fontName+'|'+token)*item.height);
+    if(sizes.some(size=>!Number.isFinite(size)||size<=0))return [item];
+    const gap=(item.width-sizes.reduce((a,b)=>a+b,0))/spaces;
+    if(gap<0||gap>item.height*.65)return [item];
+    let offset=0,index=0;
+    return item.str.match(/ +|[^ ]+/g).flatMap(token=>{
+      if(token[0]===' '){offset+=token.length*gap;return [];}
+      const transform=[...item.transform],width=sizes[index++];transform[4]+=offset;offset+=width;
+      return [{...item,str:token,width,transform}];
+    });
+  });
+}
 export function hasRotatedTabText(content,viewport){
   const digits=content.items.filter(item=>/^[0-9Xx]{1,2}$/.test(item.str?.trim())&&item.transform);
   if(digits.length<8)return false;
@@ -15,18 +43,30 @@ export function projectPdfText(content,viewport){
   const widths=new Map();
   for(const i of content.items)if(/^\d$/.test(i.str)&&i.height>0){const values=widths.get(i.fontName)??[];values.push(i.width/i.height);widths.set(i.fontName,values);}
   const ratios=new Map([...widths].map(([font,values])=>[font,values.sort((a,b)=>a-b)[Math.floor(values.length/2)]]));
-  return content.items.flatMap(item=>{
+  return separateHarmonicText(content.items).flatMap(item=>{
     const text=item.str?.trim();
-    if(!text||!/^[0-9Xx ]+$/.test(item.str)||!item.transform||Math.abs(item.transform[1])+Math.abs(item.transform[2])>.01)return [];
+    const harmonicMatch=text?.match(/^(?:<(\d{1,2})>|\(<(\d{1,2})>\))$/),harmonic=harmonicMatch&&(harmonicMatch[1]??harmonicMatch[2]);
+    if(!text||!harmonic&&!/^[0-9Xx ]+$/.test(item.str)||!item.transform||Math.abs(item.transform[1])+Math.abs(item.transform[2])>.01)return [];
     const [x,baseline]=viewport.convertToViewportPoint(item.transform[4],item.transform[5]);
     const height=Math.abs(item.transform[3])*viewport.scale,width=item.width*viewport.scale;
     const make=(text,x,width)=>({text:normalizeFretText(text),x,y:baseline-height*.74,width,height:height*.74,cx:x+width/2,cy:baseline-height*.37,fontSize:height,font:item.fontName});
+    if(harmonic){
+      const digitWidth=height*(ratios.get(item.fontName)??.56)*harmonic.length;
+      if(width<digitWidth+height*.4||width>height*text.length)return [];
+      return [{...make(harmonic,x+(width-digitWidth)/2,digitWidth),harmonic:true}];
+    }
     if(item.str.includes(' ')){
       const ratio=ratios.get(item.fontName),digits=item.str.replaceAll(' ',''),spaces=item.str.length-digits.length;
-      if(!ratio||!/^[0-9Xx](?: +[0-9Xx])*$/.test(text))return [];
+      if(!ratio||!/^[0-9Xx]{1,2}(?: +[0-9Xx]{1,2})*$/.test(text))return [];
       const digitWidth=height*ratio,gap=(width-digits.length*digitWidth)/spaces;
+      // PDF.js sometimes appends positioning whitespace to a single numeral.
+      // Its width is not part of the fret (and may exceed a normal word space).
+      if(/^[0-9Xx]{1,2}$/.test(text)&&gap>=0){
+        const leading=item.str.length-item.str.trimStart().length;
+        return [make(text,x+leading*gap,digitWidth*text.length)];
+      }
       if(gap<0||gap>height*.5)return [];
-      let at=x;return [...item.str].flatMap(char=>{const pos=at;at+=char===' '?gap:digitWidth;return char===' '?[]:[make(char,pos,digitWidth)];});
+      let at=x;return item.str.match(/ +|[0-9Xx]+/g).flatMap(token=>{const pos=at,isSpace=token[0]===' ',w=token.length*(isSpace?gap:digitWidth);at+=w;return isSpace?[]:[make(token,pos,w)];});
     }
     if(text.length>2)return [];
     // Widely separated adjacent notes must not become one two-digit fret.
@@ -50,15 +90,18 @@ export function textFretsForStaff(glyphs,staff){
 }
 
 export function attachPrintedTuplets(staff,glyphs){
-  for(const measure of staff.measures){
-    const slots=measure.rhythm;
-    for(let i=0;i<slots.length-2;i++){
-      const group=slots.slice(i,i+3),a=group[0],b=group[1],c=group[2],g=staff.spacing;
-      if(!['8','16'].includes(a.duration)||group.some(s=>s.duration!==a.duration||s.tuplet)||Math.abs((b.x-a.x)-(c.x-b.x))>g*.3)continue;
-      const label=glyphs.find(t=>t.text==='3'&&Math.abs(t.cx-(a.x+c.x)/2)<g*.65&&t.cy>Math.max(...group.map(s=>s.y))+g*.3&&t.cy<Math.max(...group.map(s=>s.y))+g*2);
-      if(!label)continue;
-      const tuplet={actualNotes:3,normalNotes:2,groupId:`pdf-${staff.id}-${measure.index}-${i}`};
-      group.forEach(s=>{s.tuplet=tuplet;});i+=2;
-    }
+ for(const measure of staff.measures){
+  const slots=measure.rhythm,g=staff.spacing;
+  for(let i=0;i<slots.length-2;i++)for(const count of [3,6]){
+   const group=slots.slice(i,i+count),a=group[0],last=group.at(-1),direction=a.direction??1;
+   if(group.length!==count||!['4','8','16','32'].includes(a.duration)||group.some(s=>s.duration!==a.duration||s.tuplet||(s.direction??1)!==direction))continue;
+   const gaps=group.slice(1).map((s,j)=>s.x-group[j].x);
+   if(Math.max(...gaps)-Math.min(...gaps)>g*.6)continue;
+   const edge=direction===1?Math.max(...group.map(s=>s.y)):Math.min(...group.map(s=>s.y));
+   const label=glyphs.find(t=>t.text===String(count)&&Math.abs(t.cx-(a.x+last.x)/2)<g*.65&&direction*(t.cy-edge)>g*.3&&direction*(t.cy-edge)<g*2);
+   if(!label)continue;
+   const tuplet={actualNotes:count,normalNotes:count===6?4:2,groupId:`pdf-${staff.id}-${measure.index}-${i}`};
+   group.forEach(s=>{s.tuplet=tuplet;});i+=count-1;break;
   }
+ }
 }

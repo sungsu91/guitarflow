@@ -1,14 +1,10 @@
-import {
-  getGuitarMidiAtPosition,
-  getGuitarPitchAtPosition,
-} from "../audio/fretboardPreviewEngine.js";
+import { getInstrumentPosition, getViewerProfile } from '../fretboard/instruments.js';
 
 export const CHORD_FRETBOARD_SNAPSHOT_VERSION = 1;
 
-const GUITAR_STRING_NUMBERS = Object.freeze([1, 2, 3, 4, 5, 6]);
-const GUITAR_STRING_NUMBER_SET = new Set(GUITAR_STRING_NUMBERS);
 const MAX_EDITABLE_FRET = 24;
-const MAX_SNAPSHOT_NOTES = GUITAR_STRING_NUMBERS.length * (MAX_EDITABLE_FRET + 1);
+const stringNumbers = profile => profile.tuning.map(string => string.stringNumber);
+const hasString = (profile,number) => profile.tuning.some(string => string.stringNumber === number);
 
 function clampFret(value) {
   const fretNumber = Math.round(Number(value));
@@ -42,7 +38,7 @@ function normalizeVisibleFrets(value, notes = [], barres = []) {
   return [Math.max(0, minFret - 1), Math.min(MAX_EDITABLE_FRET, Math.max(maxFret, minFret + 3))];
 }
 
-function normalizeBarres(value) {
+function normalizeBarres(value, profile) {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 12).map((barre) => {
     const fret = clampFret(barre?.fret);
@@ -51,8 +47,8 @@ function normalizeBarres(value) {
     if (
       fret == null
       || fret === 0
-      || !GUITAR_STRING_NUMBER_SET.has(fromString)
-      || !GUITAR_STRING_NUMBER_SET.has(toString)
+      || !hasString(profile,fromString)
+      || !hasString(profile,toString)
     ) return null;
     return {
       fret,
@@ -63,11 +59,11 @@ function normalizeBarres(value) {
   }).filter(Boolean);
 }
 
-function normalizeNote(value, rootNote = "") {
+function normalizeNote(value, rootNote = "", profile = getViewerProfile()) {
   const stringNumber = Number(value?.stringNumber ?? value?.string);
   const fretNumber = clampFret(value?.fretNumber ?? value?.fret);
-  if (!GUITAR_STRING_NUMBER_SET.has(stringNumber) || fretNumber == null) return null;
-  const position = getGuitarPitchAtPosition(stringNumber, fretNumber);
+  if (!hasString(profile,stringNumber) || fretNumber == null) return null;
+  const position = getInstrumentPosition(profile.tuning,stringNumber,fretNumber);
   if (!position) return null;
   return {
     id: `saved-fretboard-s${stringNumber}-f${fretNumber}`,
@@ -82,20 +78,20 @@ function normalizeNote(value, rootNote = "") {
   };
 }
 
-function createOpenNotesFromStringStates(stringStates, notes, rootNote) {
+function createOpenNotesFromStringStates(stringStates, notes, rootNote, profile) {
   const occupiedPositions = new Set(notes.map((note) => getPositionKey(note.stringNumber, note.fretNumber)));
   return Object.entries(stringStates ?? {}).map(([stringNumberValue, state]) => {
     if (String(state).toLowerCase() !== "o") return null;
     const stringNumber = Number(stringNumberValue);
     if (occupiedPositions.has(getPositionKey(stringNumber, 0))) return null;
-    return normalizeNote({ stringNumber, fretNumber: 0 }, rootNote);
+    return normalizeNote({ stringNumber, fretNumber: 0 }, rootNote, profile);
   }).filter(Boolean);
 }
 
-function buildStringStates(sourceStates, notes) {
+function buildStringStates(sourceStates, notes, profile) {
   const stringsWithNotes = new Set(notes.map((note) => note.stringNumber));
   return Object.fromEntries(
-    GUITAR_STRING_NUMBERS
+    stringNumbers(profile)
       .filter((stringNumber) => {
         if (stringsWithNotes.has(stringNumber)) return false;
         return String(sourceStates?.[stringNumber] ?? "x").toLowerCase() === "x";
@@ -104,23 +100,25 @@ function buildStringStates(sourceStates, notes) {
   );
 }
 
-export function createChordFretboardSnapshot(source = {}, rootNote = "") {
+export function createChordFretboardSnapshot(source = {}, rootNote = "", instrumentProfile = null) {
+  const profile = instrumentProfile ?? getViewerProfile(source?.instrumentProfileId);
   const sourceNotes = Array.isArray(source?.notes) ? source.notes : [];
   const normalizedNotes = sourceNotes
-    .slice(0, MAX_SNAPSHOT_NOTES)
-    .map((note) => normalizeNote(note, rootNote))
+    .slice(0, profile.stringCount * (MAX_EDITABLE_FRET + 1))
+    .map((note) => normalizeNote(note, rootNote, profile))
     .filter(Boolean);
-  normalizedNotes.push(...createOpenNotesFromStringStates(source?.stringStates, normalizedNotes, rootNote));
+  normalizedNotes.push(...createOpenNotesFromStringStates(source?.stringStates, normalizedNotes, rootNote, profile));
 
   const uniqueNotes = [...new Map(
     normalizedNotes.map((note) => [getPositionKey(note.stringNumber, note.fretNumber), note]),
   ).values()].sort((a, b) => b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
-  const barres = normalizeBarres(source?.barres);
+  const barres = normalizeBarres(source?.barres, profile);
   return {
     version: CHORD_FRETBOARD_SNAPSHOT_VERSION,
+    ...(profile.id === 'guitar-6' ? {} : { instrumentProfileId: profile.id }),
     notes: uniqueNotes,
     barres,
-    stringStates: buildStringStates(source?.stringStates, uniqueNotes),
+    stringStates: buildStringStates(source?.stringStates, uniqueNotes, profile),
     visibleFrets: normalizeVisibleFrets(source?.visibleFrets ?? source?.fretRange, uniqueNotes, barres),
   };
 }
@@ -129,9 +127,16 @@ export function cloneChordFretboardSnapshot(source = {}, rootNote = "") {
   return createChordFretboardSnapshot(source, rootNote);
 }
 
+// A saved shape belongs to one tuning. Switching instruments uses the generated
+// shape without rewriting the saved original, so switching back restores edits.
+export function resolveChordFretboardSnapshot(saved, fallback, rootNote, profile) {
+  const sameInstrument = saved && (saved.instrumentProfileId ?? 'guitar-6') === profile.id;
+  return createChordFretboardSnapshot(sameInstrument ? saved : (fallback ?? {}), rootNote, profile);
+}
+
 export function addChordFretboardNote(source, stringNumber, fretNumber, rootNote = "") {
   const snapshot = createChordFretboardSnapshot(source, rootNote);
-  const nextNote = normalizeNote({ stringNumber, fretNumber }, rootNote);
+  const nextNote = normalizeNote({ stringNumber, fretNumber }, rootNote, getViewerProfile(snapshot.instrumentProfileId));
   if (!nextNote) return snapshot;
   if (snapshot.notes.some((note) => getPositionKey(note.stringNumber, note.fretNumber) === getPositionKey(stringNumber, fretNumber))) {
     return snapshot;
@@ -164,13 +169,14 @@ export function addChordFretboardBarre(
 ) {
   const snapshot = createChordFretboardSnapshot(source, rootNote);
   const fret = clampFret(fretNumber);
+  const profile = getViewerProfile(snapshot.instrumentProfileId);
   const fromString = Number(fromStringNumber);
   const toString = Number(toStringNumber);
   if (
     fret == null
     || fret === 0
-    || !GUITAR_STRING_NUMBER_SET.has(fromString)
-    || !GUITAR_STRING_NUMBER_SET.has(toString)
+    || !hasString(profile,fromString)
+    || !hasString(profile,toString)
     || fromString === toString
   ) return snapshot;
 
@@ -226,14 +232,15 @@ export function getChordFretboardSignature(source = {}) {
   const barres = snapshot.barres
     .map((barre) => `${barre.fret}:${barre.fromString}:${barre.toString}`)
     .join(",");
-  return `${notes}|${barres}`;
+  return `${snapshot.instrumentProfileId ? `${snapshot.instrumentProfileId}|` : ''}${notes}|${barres}`;
 }
 
 export function getChordFretboardMidiVoicing(source = {}) {
   const snapshot = createChordFretboardSnapshot(source);
+  const profile = getViewerProfile(snapshot.instrumentProfileId);
   return [...new Set(
     snapshot.notes
-      .map((note) => getGuitarMidiAtPosition(note.stringNumber, note.fretNumber))
+      .map((note) => getInstrumentPosition(profile.tuning,note.stringNumber,note.fretNumber)?.midi)
       .filter(Number.isFinite),
   )].sort((a, b) => a - b);
 }

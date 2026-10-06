@@ -12,6 +12,17 @@ export function scorePlaybackReadiness(document,compiled){
   if(!compiled?.score||compiled.errors.length)return {allowed:false,preview:false};
   if(!compiled.issues?.length)return {allowed:true,preview:false};
   if(!hasImportedTab(document))return {allowed:false,preview:false};
+  if(document.instrument==='piano'){
+    // Concurrent hands are valid voices, not overlapping TAB columns. Let
+    // the existing piano compiler validate each voice after removing only
+    // OCR review flags. Incomplete timing/pitches still block playback.
+    const copy={...document,measures:document.measures.map(bar=>{
+      const {pdfImport,...clean}=bar;
+      return {...clean,events:bar.events.map(event=>{const {pdfImport,...note}=event;return note;})};
+    })};
+    const checked=compileDocumentV2(copy),allowed=Boolean(checked.score)&&!checked.errors.length&&!checked.issues.length;
+    return {allowed,preview:allowed};
+  }
   const meters=measureMeters(document),copy={...document,measures:[]},mutedMeasures=[];
   for(const [i,bar] of document.measures.entries()){
     const events=[],capacity=meterTicks(meters[i]);let at=0,end=0;
@@ -24,7 +35,7 @@ export function scorePlaybackReadiness(document,compiled){
     if(overfull)mutedMeasures.push(i);
     const fill=end=>{
       while(at<end){
-        const duration=['1','2','4','8','16','32'].find(d=>1920/Number(d)<=end-at);
+        const duration=['1','2','4','8','16','32','64'].find(d=>1920/Number(d)<=end-at);
         if(!duration)return false;
         events.push({...blankEvent(at,duration),...(overfull?{blank:false}:{})});at+=1920/Number(duration);
       }

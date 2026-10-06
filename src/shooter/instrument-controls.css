@@ -1,0 +1,83 @@
+.shooterInstrumentSelect { display: grid; gap: 6px; min-width: 0; }
+.shooterInstrumentSelect .instrumentDropdownTrigger { width: 100%; min-width: 0; min-height: 40px; color: inherit; font: inherit; }
+.shooterInstrumentHud { display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; height: 40px; pointer-events: auto; }
+.shooterInstrumentHud:has(.shooterHintCheckbox) { grid-template-columns: minmax(0,1fr) 40px; }
+html body #root main.app.app.app.app.shooterMode .shooterInstrumentSelect--hud {
+  position: relative; display: block; width: 100%; height: 100%; min-width: 0; margin: 0;
+  color: #f4ce82; border-left: 1px solid #f4ce8233;
+}
+html body #root main.app.app.app.app.shooterMode .shooterInstrumentSelect--hud > span {
+  position: absolute; top: 4px; left: 6px; z-index: 1; pointer-events: none;
+  font-size: 8px; line-height: 1; color: #f4ce82 !important;
+}
+html body #root main.app.app.app.app.shooterMode .shooterInstrumentSelect--hud .instrumentDropdownTrigger {
+  display: block; appearance: none; color-scheme: dark; box-sizing: border-box;
+  width: 100%; max-width: 100%; min-width: 0; height: 100%; min-height: 0; margin: 0;
+  padding: 12px 6px 2px 6px; border: 0 !important; border-radius: 0;
+  background: transparent !important; color: #f4ce82 !important; box-shadow: none !important;
+  font-size: 12px; font-weight: 700; line-height: 1.2;
+}
+.shooterInstrumentSelect--hud .instrumentDropdownTrigger:disabled { opacity: .6; }
+html body #root main.app.app.app.app.shooterMode .shooterHintCheckbox {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-width: 0; width: 100%; height: 100%; margin: 0; padding: 0; cursor: pointer;
+  border-left: 1px solid #f4ce8233; color: #f4ce82;
+}
+html body #root main.app.app.app.app.shooterMode .shooterHintCheckbox > span { font-size: 8px; line-height: 1; color: #f4ce82 !important; }
+html body #root main.app.app.app.app.shooterMode .shooterHintCheckbox input {
+  appearance: auto; color-scheme: dark; accent-color: #dcb368; flex: 0 0 auto;
+  width: 15px; height: 15px; min-width: 15px; min-height: 15px; margin: 0; padding: 0; cursor: pointer;
+}
+.shooterInstrumentHud :is(.instrumentDropdownTrigger,input):focus-visible { outline: 2px solid #f4ce82; outline-offset: -2px; }
+
+/* Instrument dropdown and hint checkbox share the existing HUD space. */
+html body #root main.app.app.app.app.shooterMode .mobileShooterPrimaryHudRow.shooterInstrumentHudRow {
+  grid-template-columns: minmax(64px, .85fr) minmax(132px, 1.65fr) 40px 36px 40px !important;
+}
+html body #root main.app.app.app.app.shooterMode .shooterInstrumentHudRow > :is(.mobileShooterDifficultyControl, .mobileShooterSolfegeHud, .mobileShooterMicHud, .shooterRecordingEntrySlot) { width: 100% !important; min-width: 0 !important; }
+html body #root main.app.app.app.app.shooterMode .shooterInstrumentHudRow:not(:has(.shooterRecordingEntrySlot)) {
+  grid-template-columns: minmax(64px,1fr) minmax(132px,1.65fr) 48px 48px !important;
+}
+
+@layer tablet-shooter {
+  .tabletLayout .mobileShooterPrimaryHudRow.shooterInstrumentHudRow {
+    grid-template-columns: minmax(108px,1fr) minmax(210px,1.8fr) 80px 88px 80px !important;
+    grid-template-rows: 64px !important; height: 64px !important;
+  }
+  .tabletLayout .shooterInstrumentHud { height: 64px !important; }
+  .tabletLayout .shooterInstrumentHud:has(.shooterHintCheckbox) { grid-template-columns: minmax(0,1fr) 56px !important; }
+  .tabletLayout .shooterInstrumentSelect--hud .instrumentDropdownTrigger { font-size: 18px !important; padding: 18px 8px 4px 10px !important; }
+  .tabletLayout .shooterInstrumentSelect--hud > span { top: 8px !important; left: 10px !important; font-size: 12px !important; }
+  .tabletLayout .shooterHintCheckbox > span { font-size: 12px !important; }
+  .tabletLayout .shooterHintCheckbox input { width: 20px !important; height: 20px !important; min-width: 20px !important; min-height: 20px !important; }
+  .tabletLayout .shooterPanel:has(.shooterInstrumentHudRow) { --tablet-shooter-hud-height: 120px; }
+  @media (max-width: 759px) {
+    .tabletLayout .mobileShooterPrimaryHudRow.shooterInstrumentHudRow { grid-template-columns: minmax(78px,.85fr) minmax(166px,1.8fr) 54px 56px 54px !important; gap: 4px !important; }
+    .tabletLayout .shooterInstrumentSelect--hud .instrumentDropdownTrigger { font-size: 15px !important; }
+    .tabletLayout .shooterInstrumentHud:has(.shooterHintCheckbox) { grid-template-columns: minmax(0,1fr) 42px !important; }
+    .tabletLayout .mobileShooterPrimaryHudRow.shooterInstrumentHudRow :is(.mobileShooterSolfegeHud span, .shooterRecordingHudButton span, .mobileShooterMicHud b) { font-size: 12px !important; }
+    .tabletLayout .shooterInstrumentHudRow .mobileShooterSolfegeHud > b { gap: 2px !important; }
+    .tabletLayout .shooterInstrumentHudRow .mobileShooterMicHud > span { gap: 3px !important; }
+    .tabletLayout .shooterInstrumentHudRow :is(.mobileShooterMicHud, .shooterRecordingHudButton) { padding-inline: 3px !important; }
+    .tabletLayout .mobileShooterPrimaryHudRow.shooterInstrumentHudRow svg { width: 16px !important; height: 16px !important; }
+  }
+  @media (max-width: 479px) {
+    .tabletLayout .mobileShooterPrimaryHudRow.shooterInstrumentHudRow { grid-template-columns: minmax(62px,.85fr) minmax(144px,1.8fr) 40px 40px 40px !important; }
+    .tabletLayout .shooterInstrumentSelect--hud .instrumentDropdownTrigger { font-size: 13px !important; }
+    .tabletLayout .shooterInstrumentHudRow :is(.mobileShooterSolfegeHud span,.shooterRecordingHudButton span,.mobileShooterMicHud b) { font-size: 12px !important; }
+  }
+}
+
+@layer desktop-scene {
+  .desktopLayout .dsSession > .shooterInstrumentSelect {
+    display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: 6px !important;
+    color: var(--ds-muted) !important;
+  }
+  .desktopLayout .dsSession > .shooterInstrumentSelect .instrumentDropdownTrigger {
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    padding: 7px 4px 7px 8px !important; font-size: 12px !important;
+  }
+  .desktopLayout .dsSession > .shooterInstrumentSelect > span {
+    color: var(--ds-muted) !important; font-size: 12px !important;
+  }
+}

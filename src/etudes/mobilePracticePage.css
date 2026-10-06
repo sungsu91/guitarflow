@@ -10,7 +10,10 @@
   html[data-rifflab-device="tablet"] .pdfStudio.pdfStudio--mobile {
     --practice-page-bottom: var(--mobile-nav-clearance, 132px);
   }
-  html[data-rifflab-device="mobile"] main.app:has(> .pdfStudio--mobile) {
+  /* Prepared score screens remain mounted inside React Activity. Only the
+     visible score page may replace the bottom navigation clearance; a hidden
+     reader must not pull other modes' final controls behind the fixed rail. */
+  html[data-rifflab-device="mobile"] main.app:has(> .pdfStudio--mobile:not([style*="display: none"])) {
     padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
     row-gap: 0 !important;
   }
@@ -27,13 +30,10 @@
     flex: 0 0 auto !important; box-sizing: border-box !important;
     height: var(--practice-page-height) !important; min-height: 240px !important; max-height: none !important;
   }
+  /* Keep native scrolling available when a drag starts horizontally, on a
+     control, or while zoomed. The touch router handles header-first movement
+     without changing overflow (and the browser's scroll target) mid-gesture. */
   html[data-rifflab-layout="mobile"] .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) :is(.etudeScoreViewport,.pdfScoreStage > .pdfViewport) {
     overscroll-behavior-y: auto !important;
-  }
-  /* Hidden overflow still permits the shared playback controller to seek.
-     Native vertical swipes go to the outer page until its header is gone. */
-  html[data-rifflab-layout="mobile"] .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeScoreViewport[data-page-scroll="intro"],
-  html[data-rifflab-layout="mobile"] .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .pdfPractice:not(.pdfPractice--editing) .pdfScoreStage:not(.is-fullscreen) > .pdfViewport[data-page-scroll="intro"] {
-    overflow-y: hidden !important;
   }
 }

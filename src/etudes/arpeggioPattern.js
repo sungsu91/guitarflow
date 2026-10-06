@@ -7,6 +7,7 @@ import {effectiveTuning,maxFret} from './scoreTuning.js';
 
 export const ARPEGGIO_PATTERNS=[
  {id:'bass-313',label:'editor.arpBass313',steps:['bass',3,1,3],duration:'8'},
+ {id:'bass-3-pinch12-3',label:'editor.arpBass3Pinch123',steps:['bass',3,[1,2],3],duration:'8'},
  {id:'bass-323',label:'editor.arpBass323',steps:['bass',3,2,3],duration:'8'},
  {id:'bass-321',label:'editor.arpBass321',steps:['bass',3,2,1],duration:'8'},
  {id:'bass-3212313',label:'editor.arpBass3212313',steps:['bass',3,2,1,2,3,1,3],duration:'8'},
@@ -48,7 +49,10 @@ export function planArpeggio(d,{start=0,end=start,pattern='bass-313'}={}){
   });
   const cells=Array.from({length:count},(_,i)=>{
    const grip=grips.filter(c=>c.onset<=i*step).at(-1);
-   return {...grip.steps[i%spec.steps.length],shape:grip.shape,onset:i*step};
+   // A new chord starts at Bass even when it changes off the old cycle's
+   // boundary. In 4/4 a two-beat pattern repeats twice for one chord, once
+   // for each chord when the changes are at beats 1 and 3.
+   return {...grip.steps[(i-grip.onset/step)%spec.steps.length],shape:grip.shape,onset:i*step};
   });
   return {bar,capacity,count,duration,step,shape:grips[0].shape,steps:grips[0].steps,changes,cells,repeats:count/spec.steps.length};
  });

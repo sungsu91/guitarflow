@@ -245,11 +245,11 @@ export default function useBackingLoop(ownerMode = "") {
     }
   }, []);
 
-  const ensurePlaybackAudioGraph = useCallback(async () => {
+  const ensurePlaybackAudioGraph = useCallback(async (scheduled = false) => {
     const audio = audioRef.current;
     if (!audio) return null;
     const currentRecording = recordingRef.current;
-    if (currentRecording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE) {
+    if (currentRecording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE || scheduled || groovePlaybackRef.current) {
       const generation = playbackGenerationRef.current;
       const context = await resumeSharedAudioContext();
       if (!context) throw new Error('Web Audio is unavailable');
@@ -260,7 +260,7 @@ export default function useBackingLoop(ownerMode = "") {
         audio.pause();
         disconnectMediaElementFromBus(audio);
         const player = createGrooveBufferPlayback({
-          context, buffer, output: getAudioBusInput(AUDIO_BUS_IDS.GROOVE, context),
+          context, buffer, output: getAudioBusInput(currentRecording.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE ? AUDIO_BUS_IDS.GROOVE : AUDIO_BUS_IDS.BACKING, context),
           level: backingVolumeRef.current, onEnded: () => playbackEndedRef.current?.(),
         });
         player.blob = currentRecording.blob;
@@ -386,11 +386,13 @@ export default function useBackingLoop(ownerMode = "") {
     playbackGenerationRef.current += 1;
     const audio = getPlaybackAudio();
     if (audio) {
-      setCurrentTimeMs(Math.max(0, audio.currentTime * 1000));
+      const pausedAt = Math.max(0, audio.currentTime);
+      setCurrentTimeMs(pausedAt * 1000);
       fadeThen(() => {
         audio.pause();
+        audio.currentTime = pausedAt;
         audioGraphRef.current?.setTransportLevel(1, { immediate: true });
-        setCurrentTimeMs(Math.max(0, audio.currentTime * 1000));
+        setCurrentTimeMs(pausedAt * 1000);
       });
     }
     clearPlaybackTimer();
@@ -1687,6 +1689,7 @@ export default function useBackingLoop(ownerMode = "") {
         title,
       });
       if (!mountedRef.current) return;
+      recordingRef.current = savedRecording;
       setRecording(savedRecording);
       setEditSourceRecording(savedRecording);
       setEditSourceAudioData(recordingAudioData);
@@ -1789,6 +1792,7 @@ export default function useBackingLoop(ownerMode = "") {
       return;
     }
     if (options.autoplay !== false) setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
+    return loaded;
   }, [dialog, loadRecording, selectedPlaylistItemId]);
 
   const applyGroovePack = useCallback((itemId) => {
@@ -1894,6 +1898,28 @@ export default function useBackingLoop(ownerMode = "") {
     playAdjacentPlaylistItem("previous");
   }, [currentTimeMs, playAdjacentPlaylistItem, recording?.blob]);
   const playNextPlaylistItem = useCallback(() => playAdjacentPlaylistItem("next"), [playAdjacentPlaylistItem]);
+
+  const prepareSynchronizedPlayback = useCallback(async () => {
+    if (["armed","recording","requesting","processing","trimming","applying","saving","loading"].includes(phaseRef.current)) throw new Error('백킹 작업이 끝난 후 재생해 주세요.');
+    stopPlayback();
+    if (!recordingRef.current?.blob) {const loaded = await playPlaylistItem(undefined, {autoplay:false});if(loaded)recordingRef.current=loaded;}
+    if (!recordingRef.current?.blob) throw new Error('백킹 음원을 먼저 선택해 주세요.');
+    const graph = await ensurePlaybackAudioGraph(true);
+    const player = groovePlaybackRef.current;
+    if (!graph || !player) throw new Error('백킹을 준비하지 못했습니다.');
+    const generation = playbackGenerationRef.current;
+    player.currentTime = 0;
+    return ({context,origin}) => {
+      if (generation !== playbackGenerationRef.current || !modeActiveRef.current || player !== groovePlaybackRef.current) throw new Error('백킹 재생이 취소되었습니다.');
+      if (context !== graph.context) throw new Error('오디오 시계가 일치하지 않습니다.');
+      const lease = claimBackingPlayback(() => interruptPlaybackRef.current?.());
+      playbackLeaseRef.current = lease;
+      player.loop = shouldLoopBackingTrack(playlistStateRef.current.playbackMode,Boolean(playlistPlaybackRef.current.playlistId),playlistPlaybackRef.current.itemIds?.length);
+      graph.setTransportLevel(1,{immediate:true});
+      void player.play(origin);
+      setPhaseImmediate('playing');
+    };
+  }, [stopPlayback,playPlaylistItem,ensurePlaybackAudioGraph,setPhaseImmediate]);
 
   const togglePlayerPlayback = useCallback(() => {
     const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
@@ -2244,6 +2270,7 @@ export default function useBackingLoop(ownerMode = "") {
     toggleBackingMute,
     toggleLibraryRecordingSelection,
     togglePlayerPlayback,
+    prepareSynchronizedPlayback,
     togglePlaylistDrawer,
     togglePlaylistPlayback,
     togglePlaylistShuffle,

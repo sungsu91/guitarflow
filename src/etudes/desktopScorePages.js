@@ -12,7 +12,7 @@ export function paginateScoreRows(rows,{scale=1,height=DESKTOP_SCORE_PAGE_HEIGHT
   for(let first=0;first<rows.length;){
     const available=height-(pages.length?0:heading);
     let last=first;
-    while(last+1<rows.length&&(rows[last+1].end-rows[first].start)*scale<=available)last++;
+    while(last+1<rows.length&&!rows[last+1].pageBreak&&(rows[last+1].end-rows[first].start)*scale<=available)last++;
     const start=rows[first].start,end=rows[last].end;
     pages.push({start,end,first,last,scale:Math.min(scale,available/Math.max(1,end-start))});
     first=last+1;
@@ -32,7 +32,7 @@ function createScorePages(source,{mobile=false,pageWidth=DESKTOP_SCORE_WIDTH}={}
   for(const bar of source.querySelectorAll('[data-playback-bar]')){
     const row=Number(bar.dataset.row);
     barRows.set(bar.dataset.playbackBar,row);
-    if(!groups.has(row))groups.set(row,{row,top:Number(bar.dataset.rowTop)});
+    if(!groups.has(row))groups.set(row,{row,top:Number(bar.dataset.rowTop),pageBreak:bar.dataset.sourcePageBreak==='true'});
   }
   const systems=[...groups.values()].sort((a,b)=>a.top-b.top);
   const inverse=source.getScreenCTM().inverse();

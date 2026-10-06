@@ -1,0 +1,111 @@
+/* Shared theme tokens and control primitives; platform shells live separately. */
+.soundSettings {
+  --sound-surface: var(--riff-surface-panel-raised);
+  --sound-ink: var(--riff-text-strong);
+  --sound-muted: var(--riff-text-muted);
+  --sound-line: var(--riff-divider);
+  --sound-accent: var(--riff-gold-primary);
+  --sound-track: color-mix(in srgb, var(--sound-accent) 17%, var(--theme-surface));
+  --sound-tint: var(--theme-accent-muted);
+  --sound-action: color-mix(in srgb, var(--sound-accent) 30%, var(--riff-gold-selected));
+  --sound-action-text: var(--theme-text-inverse);
+}
+.app.theme-light .soundSettings { --sound-accent: var(--theme-mode-accent); }
+
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsMark {
+  display: grid; place-items: center; flex: 0 0 38px; width: 38px; height: 38px;
+  border-radius: 12px; background: var(--sound-tint); color: var(--sound-accent);
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsHeading {
+  display: grid; gap: 4px; min-width: 0;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsBrand {
+  color: var(--sound-accent) !important; font-size: 10px !important; font-weight: 650 !important; line-height: 1.2 !important; letter-spacing: .16em !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsHeading strong {
+  margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; color: var(--sound-ink) !important;
+  font-size: 17px !important; font-weight: 650 !important; line-height: 1.45 !important; letter-spacing: -.035em !important; word-break: keep-all;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsGroup {
+  display: grid; gap: 12px; min-width: 0; padding: 0; margin: 0; border: 0; background: transparent;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsGroup + .soundSettingsGroup {
+  margin-top: 18px;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsGroupTitle {
+  margin: 0 0 2px; padding: 14px 0 0; border: 0; border-top: 1px solid var(--sound-line);
+  color: var(--sound-muted); font-size: 11px; font-weight: 550; line-height: 1.4; letter-spacing: .035em;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(.desktopSidebarSoundRow, .utilitySoundSliderRow) {
+  display: grid !important; gap: 2px !important; min-width: 0 !important; margin: 0 !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(.desktopSidebarSoundRow, .utilitySoundSliderRow) > span {
+  display: flex !important; align-items: center !important; justify-content: initial !important; gap: 8px !important;
+  color: var(--sound-ink) !important; background: transparent !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(.desktopSidebarSoundRow, .utilitySoundSliderRow) strong {
+  color: var(--sound-ink) !important; font-size: 13px !important; font-weight: 600 !important; line-height: 1.5 !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(.desktopSidebarSoundRow, .utilitySoundSliderRow) > span > svg {
+  flex: 0 0 16px; width: 16px !important; height: 16px !important; color: var(--sound-muted) !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(.desktopSidebarSoundRow, .utilitySoundSliderRow) b {
+  display: inline-flex !important; align-items: baseline !important; gap: 2px !important; min-width: 0 !important; height: auto !important;
+  margin-left: auto !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; color: var(--sound-ink) !important; box-shadow: none !important;
+  font-size: 14px !important; font-weight: 500 !important; line-height: 1.5 !important; font-variant-numeric: tabular-nums;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(.desktopSidebarSoundRow, .utilitySoundSliderRow) b::after {
+  content: '%'; color: var(--sound-muted); font-size: 10px; font-weight: 400;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) input[type="range"] {
+  display: block !important; appearance: none !important; -webkit-appearance: none !important;
+  width: 100% !important; height: var(--sound-range-height, 32px) !important; min-height: 0 !important;
+  margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; accent-color: var(--sound-accent) !important;
+  touch-action: none; cursor: pointer;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) input[type="range"]::-webkit-slider-runnable-track {
+  height: 5px !important; border: 0 !important; border-radius: 99px !important; box-shadow: none !important;
+  background: linear-gradient(to right, var(--sound-accent) 0 var(--sound-volume), var(--sound-track) var(--sound-volume) 100%) !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) input[type="range"]::-webkit-slider-thumb {
+  appearance: none !important; -webkit-appearance: none !important; width: 18px !important; height: 18px !important;
+  margin-top: -6.5px !important; border: 3px solid var(--theme-surface-strong) !important; border-radius: 50% !important;
+  background: var(--sound-accent) !important; box-shadow: 0 1px 4px color-mix(in srgb, var(--sound-ink) 18%, transparent) !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) input[type="range"]::-moz-range-track {
+  height: 5px !important; border: 0 !important; border-radius: 99px !important; background: var(--sound-track) !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) input[type="range"]::-moz-range-progress {
+  height: 5px; border-radius: 99px; background: var(--sound-accent);
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) input[type="range"]::-moz-range-thumb {
+  width: 12px !important; height: 12px !important; border: 3px solid var(--theme-surface-strong) !important;
+  border-radius: 50% !important; background: var(--sound-accent) !important; box-shadow: none !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsFooter {
+  display: flex; flex: 0 0 auto; align-items: center; gap: 12px; border-top: 1px solid var(--sound-line); background: var(--sound-tint);
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsFooter button {
+  display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important;
+  width: auto !important; min-width: 0 !important; min-height: 42px !important; margin: 0 !important; padding: 9px 12px !important;
+  border: 0 !important; border-radius: 11px !important; box-shadow: none !important; transform: none !important;
+  color: var(--sound-ink) !important; font-size: 12px !important; font-weight: 600 !important; line-height: 1.4 !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsFooter :is(.desktopSidebarSubAction, .utilityRhythmSettingsButton) {
+  flex: 1; background: var(--sound-action) !important; color: var(--sound-action-text) !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsFooter :is(.desktopSidebarReset, .utilitySoundResetButton) {
+  flex: 0 0 auto; padding-inline: 0 !important; background: transparent !important; color: var(--sound-muted) !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsFooter svg {
+  flex-shrink: 0; width: 15px !important; height: 15px !important; color: inherit !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(button, input):focus-visible {
+  outline: 2px solid var(--sound-accent) !important; outline-offset: 3px !important;
+}
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(button, input):disabled {
+  opacity: .45 !important; cursor: not-allowed;
+}

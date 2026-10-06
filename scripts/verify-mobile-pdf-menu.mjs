@@ -43,7 +43,7 @@ try{
         await importer.getByRole('button',{name:'취소',exact:true}).click();
         await p.locator('[data-score-input]').press('7');
         await trigger.click();await p.getByRole('menuitem',{name:'불러오기(전환)',exact:true}).click();
-        await p.getByLabel('변환 방식',{exact:true}).selectOption('tab');
+        await p.getByRole('radio',{name:'TAB → TAB',exact:true}).check();
         await p.getByLabel('PDF·사진 선택',{exact:true}).setInputFiles('artifacts/pdf-tab-corpus/helvetica-native.pdf');
         await importer.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:180000});
         await p.screenshot({path:`${folder}/analysis-390.png`});
@@ -59,14 +59,14 @@ try{
         await p.screenshot({path:`${folder}/converted-390.png`});
         results.push({width,realImport:true,measures:4,frets:records[0].document.measures.flatMap(m=>m.events.flatMap(e=>e.notes)).length,dirtyRetry:true});
       }else if(width===440){
-        await p.getByLabel('변환 방식',{exact:true}).selectOption('tab');
+        await p.getByRole('radio',{name:'TAB → TAB',exact:true}).check();
         await p.getByLabel('PDF·사진 선택',{exact:true}).setInputFiles({name:'invalid.pdf',mimeType:'application/pdf',buffer:Buffer.from('not a PDF')});
         await importer.getByRole('alert').waitFor();
         await p.getByLabel('PDF·사진 선택',{exact:true}).setInputFiles('artifacts/pdf-tab-corpus/helvetica-110dpi.pdf');
         await importer.getByRole('button',{name:'분석 취소',exact:true}).click();assert.equal(await importer.count(),0);
         assert.equal(await p.locator('.etudeEditor').count(),1);
         await trigger.click();await p.getByRole('menuitem',{name:'불러오기(전환)',exact:true}).click();
-        await p.getByLabel('변환 방식',{exact:true}).selectOption('tab');
+        await p.getByRole('radio',{name:'TAB → TAB',exact:true}).check();
         await p.getByLabel('PDF·사진 선택',{exact:true}).setInputFiles('artifacts/pdf-tab-corpus/helvetica-110dpi.pdf');
         await importer.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor({timeout:180000});
         await importer.getByRole('button',{name:'제작실에서 열기',exact:true}).click();

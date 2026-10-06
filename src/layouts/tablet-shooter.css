@@ -8,6 +8,16 @@
     padding: 8px !important; gap: 8px !important;
   }
   .tabletLayout .shooterArena { top: var(--tablet-shooter-hud-height) !important; container-type: size; }
+  .tabletLayout .shooterPanel { container-type: size; }
+  .tabletLayout .shooterPanel:has(.shooterArena[data-tablet-map-composition="landscape"]) {
+    background: #080f14 !important;
+  }
+  /* In wide/short split views, limit the battlefield itself instead of
+     enlarging the background until its sky and floor disappear. */
+  .tabletLayout .shooterArena[data-tablet-map-composition="landscape"] {
+    width: min(100%,calc((100cqh - var(--tablet-shooter-hud-height)) * 16 / 9)) !important;
+    margin-inline: auto !important;
+  }
   .tabletLayout .mobileShooterPrimaryHudRow {
     display: grid !important;
     grid-template-columns: minmax(128px,1.25fr) minmax(240px,2fr) 88px 104px 88px !important;
@@ -139,6 +149,113 @@
   html[data-rifflab-device="tablet"] .shooterSettingsPopover h2 { font-size: 20px !important; }
   html[data-rifflab-device="tablet"] .shooterSettingsPopover h3 { font-size: 17px !important; }
   html[data-rifflab-device="tablet"] .shooterGuitarPickerGrid { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+
+  /* Tablet owns its window rather than inheriting the phone's tiny arena tray. */
+  html[data-rifflab-device="tablet"] .shooterGuitarPickerOverlay--tabletWindow {
+    place-items: center !important; padding: 24px !important;
+    background: #090c12a6 !important; backdrop-filter: blur(4px) !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow {
+    display: block !important; width: min(960px,calc(100vw - 48px)) !important;
+    height: min(1000px,calc(100dvh - 64px)) !important;
+    min-height: 0 !important; max-height: none !important; transform: none !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerModal {
+    width: 100% !important; height: 100% !important; max-height: 100% !important;
+    padding: 22px !important; gap: 16px !important; border-radius: 24px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerHeader {
+    padding: 0 0 14px !important; gap: 16px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerHeader strong { font-size: 26px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerHeader button {
+    flex: 0 0 52px !important; width: 52px !important; height: 52px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerHeader svg { width: 24px !important; height: 24px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterSkinTabs {
+    display: grid !important; grid-template-columns: repeat(5,minmax(0,1fr)) !important; gap: 8px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterSkinTabs button { min-height: 56px !important; font-size: 20px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterSkinPickerBody {
+    padding: 2px 10px 16px 2px !important; scrollbar-gutter: stable; scrollbar-width: auto;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapPickerGrid {
+    display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+    grid-auto-rows: auto !important; align-content: start !important;
+    gap: 16px !important; height: auto !important; min-height: 0 !important; overflow: visible !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapCard {
+    position: relative !important; display: grid !important; grid-column: auto !important; grid-row: auto !important;
+    grid-template-columns: minmax(0,1fr) !important; justify-content: stretch !important;
+    grid-template-rows: minmax(44px,auto) 200px !important; align-content: start !important;
+    width: 100% !important; height: auto !important; min-height: 258px !important; max-height: none !important;
+    aspect-ratio: auto !important; padding: 8px !important; gap: 6px !important; border-radius: 16px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapCard strong {
+    position: static !important; inset: auto !important; order: -1 !important;
+    display: grid !important; align-items: center !important;
+    padding: 0 6px !important; font-size: 20px !important; line-height: 1.4 !important;
+    white-space: normal !important; background: transparent !important; text-shadow: none !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterMapPreview,.shooterMapRandomPreview) {
+    position: relative !important; inset: auto !important; display: block !important;
+    width: 100% !important; height: 200px !important; min-height: 200px !important;
+    background-size: cover !important; background-position: center !important; border-radius: 10px !important;
+    transform: none !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapRandomPreview { display: grid !important; grid-template-columns: repeat(2,1fr) !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterMapLandscapeDivider,.shooterMapDevDivider) { grid-column: 1 / -1 !important; font-size: 16px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapCard.selected { outline: 3px solid #c79a46 !important; outline-offset: -3px; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapCard::before { content: none !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapCard strong { color: #f6e7c9 !important; }
+  html[data-rifflab-device="tablet"][data-theme="light"] .shooterSkinConfigurator--tabletWindow .shooterMapCard strong { color: #403322 !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapPreview {
+    max-width: none !important; aspect-ratio: auto !important; justify-self: stretch !important;
+    background-image: var(--shooter-map-image) !important; opacity: 1 !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterGuitarPickerGrid,.shooterSkinOptionGrid) { gap: 16px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerItem { grid-template-rows: 160px auto !important; min-height: 220px !important; padding: 12px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerAsset { width: 100% !important; height: 160px !important; max-height: 160px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterSkinOptionCard--pet,.shooterSkinOptionCard--pick) { grid-template-rows: 140px auto !important; min-height: 206px !important; padding: 12px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterPickPreview,.shooterPetPreview) { width: 130px !important; height: 130px !important; min-height: 130px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarCategoryTabs--mobile { flex-shrink: 0; gap: 8px !important; padding-top: 12px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterSkinOptionGrid--picks { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectSetPicker { display: grid !important; gap: 22px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterEffectSetLabel,.shooterSkinSectionHeader em) { font-size: 15px !important; line-height: 1.4 !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectSetColumn { grid-template-rows: minmax(24px,auto) auto auto !important; gap: 10px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectSetLabel { height: auto !important; min-height: 24px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectSetCard--aura {
+    grid-template-rows: 130px auto !important; height: 184px !important; min-height: 184px !important; padding: 10px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectSetCard--floor {
+    grid-template-rows: 100px auto !important; height: 154px !important; min-height: 154px !important; padding: 10px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectSetCard--aura .shooterEffectPreview { width: 140px !important; height: 130px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectSetCard--floor .shooterEffectPreview { width: 150px !important; height: 100px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectStandaloneTrack {
+    display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+    grid-auto-flow: row !important; grid-auto-columns: auto !important; width: 100% !important; gap: 14px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectStandaloneTrack > * {
+    width: 100% !important; min-width: 0 !important; height: 170px !important; min-height: 170px !important;
+    grid-template-rows: 110px auto !important; padding: 10px !important;
+  }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectStandaloneTrack :is(.shooterEffectPreview,.shooterGuitarCabinetPickerPreview) { width: 150px !important; height: 110px !important; }
+  html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterEffectPreviewLayer {
+    width: 120px !important; max-width: 100% !important; max-height: calc(100% - 20px) !important; bottom: 50% !important;
+    transform: translate(-50%,50%) !important;
+  }
+  @media (max-width: 850px) {
+    html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapPickerGrid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+    html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterSkinOptionGrid--picks,.shooterSkinOptionGrid--pets,.shooterEffectStandaloneTrack) { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  }
+  @media (max-width: 599px) {
+    html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow { width: calc(100vw - 24px) !important; }
+    html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerModal { padding: 12px !important; gap: 12px !important; }
+    html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterSkinTabs button { font-size: 16px !important; }
+    html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow .shooterMapCard { grid-template-rows: minmax(44px,auto) 160px !important; min-height: 218px !important; }
+    html[data-rifflab-device="tablet"] .shooterSkinConfigurator--tabletWindow :is(.shooterMapPreview,.shooterMapRandomPreview) { height: 160px !important; min-height: 160px !important; }
+  }
   .tabletLayout .mobileShooterPlayHelpTooltip { top: 192px !important; width: min(480px,calc(100% - 32px)) !important; }
 
   @media (max-width: 759px) {

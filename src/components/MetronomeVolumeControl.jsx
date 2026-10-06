@@ -4,13 +4,14 @@ import { t as translateUi } from "./../i18n/core.js";
 import { useLanguage } from "./../i18n/react.jsx";
 import { setMetronomeVolume, useMetronomeVolume } from "../audio/metronomeVolumeStore.js";
 
-export default function MetronomeVolumeControl({ className = "", label = ko["menu.metronome"] }) {
+export default function MetronomeVolumeControl({ className = "", label = ko["menu.metronome"], icon: Icon }) {
   useLanguage();
   const { volume } = useMetronomeVolume();
   const percentage = Math.round(volume * 100);
   return (
     <label className={className}>
       <span>
+        {Icon ? <Icon size={16} aria-hidden="true" /> : null}
         <strong>{localizeUi(label)}</strong>
         <b data-metronome-volume-value>{percentage}</b>
       </span>
@@ -21,6 +22,7 @@ export default function MetronomeVolumeControl({ className = "", label = ko["men
         min="0"
         onChange={(event) => setMetronomeVolume(event.currentTarget.valueAsNumber / 100)}
         step="1"
+        style={{ "--sound-volume": `${percentage}%` }}
         type="range"
         value={percentage}
       />

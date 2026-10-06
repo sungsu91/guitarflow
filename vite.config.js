@@ -5,6 +5,7 @@ import { writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { isTrustedLocalEditorRequest } from "./scripts/local-editor-request.mjs";
+import guitarSkinEditorPlugin from "./scripts/guitar-skin-editor.mjs";
 
 import { ABYSSAL_MOON_CATHEDRAL_ASSETS } from "./src/shooter/maps/assets/abyssalMoonCathedralAssets.js";
 import { COASTAL_COVE_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/coastalCoveAssets.js";
@@ -443,7 +444,7 @@ export default defineConfig({
   },
   preview: { headers: securityHeaders() },
   css: { postcss: { plugins: [mobileSurfaceCss()] } },
-  plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin()],
+  plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin(), guitarSkinEditorPlugin()],
 });
 
 // Keep local browser verification aligned with the headers served by Vercel.

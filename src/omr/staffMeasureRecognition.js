@@ -118,7 +118,10 @@ export async function refineStaffMeasures(omr,system,parsed,{signal}={}){
   for(const [i,bar] of parsed.measures.entries()){
     signal?.throwIfAborted();
     const ink={...system.measures[i],triplets:system.triplets??[]},base=anchorStaffMeasure(bar,ink);
-    if(complete(base)&&!ink.slashes.length&&!bar.events.some(e=>e.notes.length>1)){measures.push(base);continue;}
+    // A stemless whole note can have a wrong staff position while still
+    // totaling a full bar. Recheck its bounded crop, not the entire system.
+    const whole=bar.events.length===1&&bar.events[0].duration==='1'&&bar.events[0].notes.length===1;
+    if(complete(base)&&!whole&&!ink.slashes.length&&!bar.events.some(e=>e.notes.length>1)){measures.push(base);continue;}
     try{
       const readings=[];let chosen=null;
       for(const pad of [.5,2,1,2.5]){
@@ -128,13 +131,19 @@ export async function refineStaffMeasures(omr,system,parsed,{signal}={}){
         // The copied clef is context, not a new key/time change in this bar.
         const raw=result.text.replace(/\+keySignature-[^+]+/g,'').replace(/\+timeSignature-[^+]+/g,'');
         readings.push(parseStaffTokens(raw,{key:bar.key,meter:bar.meter}));
-        if(readings.length>=2){chosen=selectStaffMeasureReading(bar,readings,ink);if(chosen)break;}
+        if(readings.length>=2){
+          chosen=selectStaffMeasureReading(bar,readings,ink);
+          // A whole-note retry may correct its pitch, never invent extra
+          // notes/rests or replace the known duration to make a crop fit.
+          if(whole&&chosen&&(chosen.events.length!==1||chosen.events[0].duration!=='1'||chosen.events[0].notes.length!==1))chosen=null;
+          if(chosen)break;
+        }
       }
       attempts.push({measure:i+1,raw:readings.map(r=>r.raw),accepted:Boolean(chosen)});
-      if(chosen){accepted.push(i+1);measures.push(chosen);}else measures.push(base);
+      if(chosen){accepted.push(i+1);measures.push(chosen);}else measures.push(whole?{...base,events:base.events.map(e=>({...e,reviewReasons:['pitch']}))}:base);
     }catch(error){
       if(signal?.aborted||error.name==='AbortError')throw error;
-      measures.push(base);attempts.push({measure:i+1,error:'measure-retry-failed',accepted:false});
+      measures.push(whole?{...base,events:base.events.map(e=>({...e,reviewReasons:['pitch']}))}:base);attempts.push({measure:i+1,error:'measure-retry-failed',accepted:false});
     }
   }
   return {...parsed,measures,measureRetry:{acceptedMeasures:accepted,attempts}};

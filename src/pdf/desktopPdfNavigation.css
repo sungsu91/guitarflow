@@ -1,0 +1,13 @@
+.pdfBarNav.desktopPdfNavigation{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;flex-shrink:0;padding:5px 10px}
+.desktopPdfNavigation .desktopPdfMeasureNav{grid-column:1;grid-row:1;display:flex;align-items:center;gap:8px;justify-self:start;white-space:nowrap}
+.desktopPdfNavigation .desktopPdfMeasureButtons,.desktopPdfNavigation .desktopPdfPageNav{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.desktopPdfNavigation .desktopPdfPageNav{grid-column:2;grid-row:1;justify-self:center}
+.desktopPdfNavigation .desktopPdfMeasureButtons{font-size:13px}
+.desktopPdfNavigation .desktopPdfMeasurePosition{font-size:12px;color:var(--score-muted);font-variant-numeric:tabular-nums}
+.desktopPdfNavigation .desktopPdfPageNav>span{min-width:48px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+.pdfStudio .desktopPdfNavigation button{flex:none;width:32px;min-width:32px;min-height:36px;height:36px;padding:0;line-height:1}
+@media(max-width:1100px){
+ .desktopPdfNavigation .desktopPdfMeasureNav,.desktopPdfNavigation .desktopPdfMeasureButtons,.desktopPdfNavigation .desktopPdfPageNav{gap:4px}
+ .desktopPdfNavigation .desktopPdfMeasurePosition{font-size:11px}
+ .pdfStudio .desktopPdfNavigation button{width:28px;min-width:28px}
+}

@@ -22,7 +22,7 @@ export default function ScoreChordNameDialog({document:score,bar,onset=0,mobile,
  const {root,accidental,quality,extension}=selection;
  const originalName=score.measures[bar].harmonyChanges?.find(c=>c.onset===onset)?.name??score.measures[bar].harmony;
  const name=!nameEdited&&originalName?originalName:getChordNameFromParts(root,accidental,quality,extension);
- useEffect(()=>{const node=ref.current;node.show();close.current?.focus({preventScroll:true});return()=>node.close();},[]);
+ useEffect(()=>{const node=ref.current;if(mobile)node.show();else node.showModal();close.current?.focus({preventScroll:true});return()=>node.close();},[mobile]);
  const choose=(key,value)=>{setNameEdited(true);setSelection(s=>({...s,[key]:value,...(key==='quality'?{extension:normalizeChordExtensionForQuality(value,s.extension)}:{})}));};
  const category=quality==='minor'||quality==='dim'?'minor':'major';
  const extensions=CHORD_EXTENSION_OPTIONS.filter(item=>isChordExtensionAvailableForQuality(item,category)).map(item=>({id:item.id,quality:category,label:item.id==='none'?'기본':item.id==='maj7'?'M7':item.id==='maj9'?'M9':item.id==='maj11'?'M11':item.id==='maj13'?'M13':localizeUi(item.label)}));

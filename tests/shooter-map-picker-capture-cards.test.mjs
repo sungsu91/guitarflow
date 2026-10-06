@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { LAYERED_SHOOTER_MAP_SKINS } from "../src/shooter/maps/registry.js";
+import { LAYERED_SHOOTER_MAP_SKINS, getShooterMapsForLayout } from "../src/shooter/maps/registry.js";
 
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
 const styleSourceUrl = new URL("../src/style.css", import.meta.url);
@@ -79,7 +79,7 @@ test("map picker renders platform-sized full capture cards and a random montage"
       < appSource.indexOf("aria-pressed={shooterMapPreference === SHOOTER_RANDOM_MAP_ID}"),
     "the ordered map catalog must render before the random option",
   );
-  assert.match(appSource, /const shooterMapPickerOptions = isMobileLayout\s*\? LAYERED_SHOOTER_MAP_SKINS/);
+  assert.deepEqual(getShooterMapsForLayout(true), LAYERED_SHOOTER_MAP_SKINS);
   assert.deepEqual(
     LAYERED_SHOOTER_MAP_SKINS.map((map) => map.id),
     [

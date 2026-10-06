@@ -1,10 +1,10 @@
 import {useCallback,useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
-import {ChevronDown} from 'lucide-react';
+import {ChevronDown,SlidersHorizontal} from 'lucide-react';
 import {t} from '../i18n/core.js';
 import {useLanguage} from '../i18n/react.jsx';
 
-export default function MobilePdfMeasureSettings({hasBars,disabled,busy,onAnalyse,onReset}){
+export default function MobilePdfMeasureSettings({hasBars,disabled,busy,onAnalyse,onReset,compact=false}){
  useLanguage();
  const id=useId(),trigger=useRef(null),menu=useRef(null);
  const [open,setOpen]=useState(false),[position,setPosition]=useState(null);
@@ -36,8 +36,8 @@ export default function MobilePdfMeasureSettings({hasBars,disabled,busy,onAnalys
   }
  };
  const run=action=>{close(true);action();};
- return <div className="pdfMeasureSettings">
-  <button ref={trigger} type="button" className="pdfMeasureSettingsTrigger" aria-haspopup="menu" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>setOpen(v=>!v)} onKeyDown={e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();setOpen(true);}}}>{t('pdf.measureSettings')}<ChevronDown size={14} aria-hidden="true"/></button>
+ return <div className={'pdfMeasureSettings'+(compact?' pdfMeasureSettings--compact':'')}>
+  <button ref={trigger} type="button" className="pdfMeasureSettingsTrigger" aria-label={t('pdf.measureSettings')} title={t('pdf.measureSettings')} aria-haspopup="menu" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>setOpen(v=>!v)} onKeyDown={e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();setOpen(true);}}}>{compact?<SlidersHorizontal size={18} aria-hidden="true"/>:<>{t('pdf.measureSettings')}<ChevronDown size={14} aria-hidden="true"/></>}</button>
   {open&&createPortal(<div ref={menu} id={id} className="pdfMeasureSettingsMenu" role="menu" aria-label={t('pdf.measureSettings')} style={position??{visibility:'hidden'}} onKeyDown={keys}>
    <button type="button" role="menuitem" disabled={disabled||busy} onClick={()=>run(onAnalyse)}>{t('pdf.autoDetect')}</button>
    <button type="button" role="menuitem" disabled={disabled||!hasBars} onClick={()=>run(onReset)}>{t('pdf.resetMeasureAreas')}</button>

@@ -48,6 +48,47 @@ const fixture=(scale=1,text='3',confidence=.93)=>resolvePage({page:1,width:600*s
 test('matching reads at different source resolutions can confirm a fret without duplicating positions',()=>{
  const a=fixture(),b=fixture(2),before=JSON.stringify(a),r=combineZoomReadings(a,b);assert.equal(summarizeAnalysis([r]).confirmed,4);assert.equal(r.staffs[0].measures[0].slots.length,4);assert.equal(JSON.stringify(a),before);assert.equal(r.staffs[0].measures[0].source.pageWidth,600);assert.equal(r.staffs[0].measures[0].slots[0].x,80);
 });
+
+test('newly recovered bar boundaries cannot turn an ambiguous original digit into independent OCR evidence',()=>{
+ const original=fixture(1,'3',.99),zoom=fixture(2,'3',.99);
+ original.staffs[0].measures[0].boundaryEvidence='faint-rules';
+ original.staffs[0].candidates[0].ocr={text:'8',confidence:.93,agrees:true,alternatives:[{text:'2',confidence:.92}]};
+ zoom.staffs[0].candidates[0].ocr.text='8';
+ original.staffs[0].candidates[3].ocr.confidence=.2;
+ const base=resolvePage(original),snapshot=JSON.stringify(base),result=combineZoomReadings(base,zoom);
+ assert.equal(summarizeAnalysis([result]).confirmed,3);
+ assert(!result.staffs[0].measures[0].slots[0].notes.some(n=>n.status==='confirmed'));
+ assert.equal(result.staffs[0].measures[0].slots[3].notes[0].fret,3);
+ assert.equal(JSON.stringify(base),snapshot);
+ const established=structuredClone(base);delete established.staffs[0].measures[0].boundaryEvidence;
+ assert.equal(summarizeAnalysis([combineZoomReadings(established,zoom)]).confirmed,4,'existing zoom recovery remains unchanged outside recovered boundaries');
+ // A clear winner agreeing at both scales keeps the existing recovery path.
+ original.staffs[0].candidates[0].ocr.confidence=.99;
+ assert.equal(summarizeAnalysis([combineZoomReadings(resolvePage(original),zoom)]).confirmed,4);
+ original.staffs[0].candidates[0].ocr={text:'7',confidence:.92,agrees:true,alternatives:[{text:'1',confidence:.92}]};
+ original.staffs[0].candidates[0].sevenCap=true;zoom.staffs[0].candidates[0].sevenCap=true;zoom.staffs[0].candidates[0].ocr.text='7';
+ assert.equal(summarizeAnalysis([combineZoomReadings(resolvePage(original),zoom)]).confirmed,4,'a matching measured seven cap preserves the established recovery');
+ original.staffs[0].candidates[0].ocr.agrees=false;
+ assert.equal(summarizeAnalysis([combineZoomReadings(resolvePage(original),zoom)]).confirmed,4,'the clearer zoom crop plus the measured cap still resolves original OCR disagreement');
+ zoom.staffs[0].candidates[0].sevenCap=undefined;
+ assert.equal(summarizeAnalysis([combineZoomReadings(resolvePage(original),zoom)]).confirmed,3,'OCR text alone cannot substitute for missing stroke evidence');
+ original.staffs[0].candidates[0].parts=2;zoom.staffs[0].candidates[0].parts=2;
+ original.staffs[0].candidates[0].ocr={text:'1',confidence:.96,agrees:true,alternatives:[{text:'11',confidence:.94}]};
+ zoom.staffs[0].candidates[0].ocr={text:'11',confidence:.99,agrees:true,alternatives:[]};
+ assert.equal(summarizeAnalysis([combineZoomReadings(resolvePage(original),resolvePage(zoom))]).confirmed,4,'an invalid-length main reading cannot block a matching measured double digit');
+});
+
+test('reviewing a recovered-span digit preserves independently improved rest recognition in that bar',()=>{
+ const a=fixture(1,'3',.99),b=fixture(2,'3',.99);a.staffs[0].measures[0].boundaryEvidence='faint-rules';
+ a.staffs[0].candidates[0].ocr={text:'8',confidence:.93,agrees:true,alternatives:[{text:'2',confidence:.92}]};
+ b.staffs[0].candidates[0].ocr.text='8';
+ for(const p of [a,b])p.staffs[0].candidates.splice(1,1);
+ b.staffs[0].measures[0].rhythm[1].rest=true;
+ const result=combineZoomReadings(resolvePage(a),resolvePage(b)),bar=result.staffs[0].measures[0];
+ assert.equal(summarizeAnalysis([result]).confirmed,2);assert.equal(bar.slots[1].rest,true);
+ assert(!bar.slots[0].notes.some(n=>n.status==='confirmed'));
+ assert.equal(bar.slots.length,4);
+});
 test('zoom disagreement, layout mismatch and weaker enlarged readings never overwrite confirmed notes',()=>{
  const a=fixture(1,'3',.99),b=fixture(2,'8');assert.equal(combineZoomReadings(a,b).staffs[0].measures[0].slots[0].notes[0].fret,3);
  const incomplete=fixture(2);incomplete.staffs[0].candidates.pop();assert.equal(summarizeAnalysis([combineZoomReadings(a,incomplete)]).confirmed,4);

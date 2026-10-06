@@ -1,0 +1,48 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {pianoCropEdges} from '../src/omr/pianoCropEvidence.js';
+import {cropPianoMeasure,pianoHeaderWidth,recognizePianoStaff} from '../src/omr/pianoStaffRecognition.js';
+import {parsePianoTokens} from '../src/omr/pianoPolyphony.js';
+
+function fixture(){
+ const width=440,height=240,top=50,below=70,rgba=new Uint8ClampedArray(width*height*4).fill(255),extension=new Uint8ClampedArray(width*below*4).fill(255),pianoTop=new Uint8ClampedArray(width*top*4).fill(255);
+ const system={id:2,width,height,rect:{x:0,y:50},staff:{x:0,y:130,height:80,spacing:20,thickness:1,lines:[130,150,170,190,210]},rgba:rgba.buffer,extension:extension.buffer,extensionHeight:below,pianoTop:pianoTop.buffer,pianoTopHeight:top,pianoExtendedCrop:true,measures:[{x:0,width:200,stems:[]},{x:200,width:240,stems:[]}]};
+ const dot=(x,y)=>{const data=y<0?pianoTop:y<height?rgba:extension,yy=y<0?y+top:y<height?y:y-height;data.set([0,0,0,255],(yy*width+x)*4);};
+ return {system,dot};
+}
+test('only a continuous note stem crossing a crop edge authorizes expansion',()=>{
+ const {system,dot}=fixture();assert.deepEqual(pianoCropEdges(system,1),{top:false,bottom:false});
+ for(let y=4;y<=32;y++)dot(270,y);assert.deepEqual(pianoCropEdges(system,1),{top:true,bottom:false});
+ for(let y=218;y<=249;y++)dot(330,y);assert.deepEqual(pianoCropEdges(system,1),{top:true,bottom:true});
+ const short=fixture();for(let x=260;x<=280;x++)short.dot(x,10);assert.deepEqual(pianoCropEdges(short.system,1),{top:false,bottom:false},'a horizontal text stroke is insufficient');
+});
+test('ordinary piano crops stay byte-identical when extra source pixels are available',()=>{
+ const {system,dot}=fixture();for(let y=-35;y<290;y++){dot(270,y);dot(100,y);}
+ const original={...system,extension:system.extension.slice(0),pianoTop:undefined,pianoTopHeight:0};
+ for(const index of [0,1])for(const header of [null,130]){
+  const a=cropPianoMeasure(original,index,.5,header),b=cropPianoMeasure(system,index,.5,header);
+  assert.deepEqual(b,a);
+  const c=cropPianoMeasure(system,index,.5,header,{extended:'both'});
+  assert(c.height>b.height);assert(new Uint8Array(c.rgba).some(v=>v===0));
+ }
+});
+test('an uncut unsupported bar stops after the original three reads',async()=>{
+ const {system}=fixture();system.measures=system.measures.slice(0,1);let calls=0;
+ await assert.rejects(recognizePianoStaff({recognize:async()=>{calls++;return {text:'clef-G2+rest-half+barline'};}},system,{key:'C',meter:[4,4]},'clef-G2'),/부분 결과/);
+ assert.equal(calls,3);
+});
+test('cancel before an expanded retry does not start more model work',async()=>{
+ const {system,dot}=fixture();system.measures=system.measures.slice(1);for(let y=4;y<=32;y++)dot(270,y);let calls=0;const controller=new AbortController();
+ await assert.rejects(recognizePianoStaff({recognize:async()=>{if(++calls===3)controller.abort();return {text:'clef-G2+rest-half+barline'};}},system,{key:'C',meter:[4,4]},'clef-G2',{signal:controller.signal}),{name:'AbortError'});
+ assert.equal(calls,3);
+});
+test('a later ambiguous head does not cut a clearly located first attack header in half',()=>{
+ const {system,dot}=fixture();system.measures=[{x:0,width:440,stems:[]}];
+ const oval=(x,y)=>{for(let dy=-7;dy<=7;dy++)for(let dx=-11;dx<=11;dx++)if((dx/11)**2+(dy/7)**2<=1)dot(x+dx,y+dy);};
+ oval(220,110);
+ const parsed=parsePianoTokens('clef-G2+note-C5_quarter+note-D5_half.+barline');
+ const width=pianoHeaderWidth(system,parsed);assert(width>180&&width<210);
+ oval(170,100);
+ const earlier=parsePianoTokens('clef-G2+note-C5_half+note-D5_quarter+note-C5_quarter+barline');
+ assert.equal(pianoHeaderWidth(system,earlier),null,'ambiguous or earlier note ink cannot enter a guessed header');
+});

@@ -81,7 +81,8 @@ function retimeEvent(d,c,duration,dotted=false){
  const m=d.measures[c.bar],e=m?.events[c.event];if(!e)return d;
  if(e.duration===duration&&Boolean(e.dotted)===dotted)return d;
  if(e.tuplet)throw Error(ko["etudes.removeTheTripletGroupBeforeChangingTheDuration"]);
- const end=e.onset+ticksOf({duration,dotted}),capacity=d.meter[0]*1920/d.meter[1];
+ const meter=measureMeters(d)[c.bar];
+ const end=e.onset+ticksOf({duration,dotted}),capacity=meter[0]*1920/meter[1];
  if(end>capacity)throw Error(ko["etudes.thisNoteDurationExtendsBeyondTheEndOfTheBar"]);
  let stop=c.event+1,covered=Math.min(e.onset+ticksOf(e),m.events[stop]?.onset??capacity);
  // Empty time need not have a placeholder. Only an entered sound/rest or a
@@ -94,16 +95,16 @@ function retimeEvent(d,c,duration,dotted=false){
  covered=Math.max(end,Math.min(covered,m.events[stop]?.onset??capacity));
  const tail=[];let at=end;
  // Reuse this subdivision when shortening; split an overshot blank if needed.
- const values=['1','2','4','8','16','32'].filter(v=>Number(v)>=Number(duration));
+ const values=['1','2','4','8','16','32','64'].filter(v=>Number(v)>=Number(duration));
  for(const value of values)while(at+ticksOf({duration:value})<=covered){tail.push(blankEvent(at,value));at+=ticksOf({duration:value});}
  if(at!==covered)throw Error(ko["etudes.theSelectedDurationCannotBeUsedAtThisPosition"]);
  const changed={...e,duration};if(dotted)changed.dotted=true;else delete changed.dotted;
  const events=[...m.events.slice(0,c.event),changed,...tail,...m.events.slice(stop)];
- if(events.length>64)throw Error(ko["etudes.aBarCanContainUpTo64InputPositions"]);
+ if(events.length>96)throw Error(ko["etudes.aBarCanContainUpTo64InputPositions"]);
  return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};
 }
 export function setEventDuration(d,c,duration,dotted=false){
- if(!['1','2','4','8','16'].includes(String(duration)))throw Error(ko["etudes.thisNoteDurationIsNotSupported"]);
+ if(!['1','2','4','8','16','32'].includes(String(duration)))throw Error(ko["etudes.thisNoteDurationIsNotSupported"]);
  return retimeEvent(d,c,String(duration),dotted);
 }
 // Sequential TAB editing keeps the following entered notes in sequence. Unlike
@@ -111,14 +112,15 @@ export function setEventDuration(d,c,duration,dotted=false){
 // than leaving a hidden slot or overwriting the next sound.
 export function setEntryDuration(d,c,duration){
  if(!isFretted(d.instrument))return setEventDuration(d,c,duration);
- if(!['1','2','4','8','16'].includes(String(duration)))throw Error(ko["etudes.thisNoteDurationIsNotSupported"]);
+ if(!['1','2','4','8','16','32'].includes(String(duration)))throw Error(ko["etudes.thisNoteDurationIsNotSupported"]);
  const measure=d.measures[c.bar],event=measure.events[c.event];
  // Filling a vacant position must not pull an already entered later beat back.
  // Only changing an existing sound/rest is a sequential timing edit.
  if(vacant(event))return setEventDuration(d,c,duration);
  if(event.duration===String(duration)&&!event.dotted)return d;
  if(event.tuplet)throw Error(ko["etudes.removeTheTripletGroupBeforeChangingTheDuration"]);
- const delta=ticksOf({duration})-ticksOf(event),capacity=d.meter[0]*1920/d.meter[1];
+ const meter=measureMeters(d)[c.bar];
+ const delta=ticksOf({duration})-ticksOf(event),capacity=meter[0]*1920/meter[1];
  let last=measure.events.length-1;
  while(last>c.event&&vacant(measure.events[last]))last--;
  const following=measure.events.slice(c.event+1,last+1);
@@ -178,8 +180,8 @@ export function deleteTone(d,c){
 }
 export function moveFingering(d,c,direction){return patchEvent(d,c.bar,c.event,e=>{const tone=e.notes.find(n=>n.string===c.string);if(!tone)return e;const next=moveSamePitch(tone,direction,effectiveTuning(d));if(next.fret+(d.capo??0)>maxFret(d)||e.notes.some(n=>n!==tone&&n.string===next.string))return e;return {...e,notes:e.notes.map(n=>n===tone?next:n)};});}
 export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,blank:false,notes:[],technique:null,pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null,letRing:false,slideOut:null,slideIn:null});}
-export function durationStep(d,c,step){const values=['1','2','4','8','16'];const event=d.measures[c.bar].events[c.event];return setEventDuration(d,c,values[Math.max(0,Math.min(4,values.indexOf(event.duration)+step))]);}
-export function insertEvent(d,c,{duplicate=false,before=false}={}){const m=d.measures[c.bar],e=m.events[c.event];if(e.tuplet)throw Error(ko["etudes.beatsCannotBeInsertedInsideATripletGroup"]);if(m.events.length>=64)throw Error(ko["etudes.aBarCanContainUpTo64Beats"]);const length=ticksOf(e),at=c.event+(before?0:1),onset=e.onset+(before?0:length),added=duplicate?{...structuredClone(e),id:newId('event'),onset,notes:e.notes.map(n=>({...n,id:newId('tone')}))}:{...blankEvent(onset,e.duration),...(e.dotted?{dotted:true}:{})};const events=[...m.events.slice(0,at),added,...m.events.slice(at).map(n=>({...n,onset:n.onset+length}))];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
+export function durationStep(d,c,step){const values=['1','2','4','8','16','32'];const event=d.measures[c.bar].events[c.event];return setEventDuration(d,c,values[Math.max(0,Math.min(values.length-1,values.indexOf(event.duration)+step))]);}
+export function insertEvent(d,c,{duplicate=false,before=false}={}){const m=d.measures[c.bar],e=m.events[c.event];if(e.tuplet)throw Error(ko["etudes.beatsCannotBeInsertedInsideATripletGroup"]);if(m.events.length>=96)throw Error(ko["etudes.aBarCanContainUpTo64Beats"]);const length=ticksOf(e),at=c.event+(before?0:1),onset=e.onset+(before?0:length),added=duplicate?{...structuredClone(e),id:newId('event'),onset,notes:e.notes.map(n=>({...n,id:newId('tone')}))}:{...blankEvent(onset,e.duration),...(e.dotted?{dotted:true}:{})};const events=[...m.events.slice(0,at),added,...m.events.slice(at).map(n=>({...n,onset:n.onset+length}))];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
 // Dragging is an explicit local edit, never a rerun of fingering generation.
 // Destination slots retain their timing; occupied slots are never overwritten.
 export function moveTone(d,from,to){
@@ -202,7 +204,7 @@ export function moveTone(d,from,to){
  let next=patchEvent(d,from.bar,from.event,{notes:remaining,rest:!remaining.length,blank:!remaining.length,...(!remaining.length?{pickStroke:null}: {})});
  next=patchEvent(next,to.bar,to.event,{notes:[moved],rest:false,blank:false,pickStroke:source.pickStroke??null});return next;
 }
-export function splitEvent(d,c){const m=d.measures[c.bar],e=m.events[c.event];if(e.dotted)throw Error(ko["etudes.removeTheDottedEighthBeforeSplittingTheBeat"]);if(e.tuplet)throw Error(ko["etudes.removeTheTripletGroupBeforeSplittingTheBeat"]);if(Number(e.duration)>=16||m.events.length>=64)throw Error(ko["etudes.thisBeatCannotBeDividedFurther"]);if(e.tieTo||e.technique)throw Error(ko["etudes.removeTechniquesAndTiesBeforeSplittingConnectedBeats"]);const duration=String(Number(e.duration)*2),events=[...m.events.slice(0,c.event),{...e,duration},blankEvent(e.onset+ticksOf(e)/2,duration),...m.events.slice(c.event+1)];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
+export function splitEvent(d,c){const m=d.measures[c.bar],e=m.events[c.event];if(e.dotted)throw Error(ko["etudes.removeTheDottedEighthBeforeSplittingTheBeat"]);if(e.tuplet)throw Error(ko["etudes.removeTheTripletGroupBeforeSplittingTheBeat"]);if(Number(e.duration)>=32||m.events.length>=96)throw Error(ko["etudes.thisBeatCannotBeDividedFurther"]);if(e.tieTo||e.technique)throw Error(ko["etudes.removeTechniquesAndTiesBeforeSplittingConnectedBeats"]);const duration=String(Number(e.duration)*2),events=[...m.events.slice(0,c.event),{...e,duration},blankEvent(e.onset+ticksOf(e)/2,duration),...m.events.slice(c.event+1)];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
 export function applyPicking(d,{start=0,end=d.measures.length-1,pattern='alternate-down',skipLegato=true,restart='continuous'}={}){
  if(!['rhythm-auto','rhythm-8','rhythm-16','alternate-down','alternate-up','down','up','clear'].includes(pattern)||!['continuous','bar','beat','rest'].includes(restart))throw Error(ko["etudes.chooseAPickingPattern"]);
  const lo=Math.min(start,end),hi=Math.max(start,end),rhythmic=pattern.startsWith('rhythm-'),meters=measureMeters(d);let count=0,previous=null;
@@ -232,7 +234,7 @@ export function inputDigits(previous,key,location,time,windowMs=700){const combi
 
 // Only explicit continued entry appends a measure; browsing and picking do not.
 export function nextEntry(d,c){const next=cursorStep(d,c,1);if(next.bar!==c.bar||next.event!==c.event)return {document:d,cursor:next};
- const e=d.measures[c.bar].events[c.event],capacity=d.meter[0]*1920/d.meter[1];
+ const e=d.measures[c.bar].events[c.event],meter=measureMeters(d)[c.bar],capacity=meter[0]*1920/meter[1];
  if(e.onset+ticksOf(e)!==capacity||d.measures.length>=scoreMeasureLimit(d))return {document:d,cursor:c};
- return {document:{...d,measures:[...d.measures,blankMeasure(d.meter)]},cursor:{...c,bar:c.bar+1,event:0}};
+ return {document:{...d,measures:[...d.measures,blankMeasure(meter)]},cursor:{...c,bar:c.bar+1,event:0}};
 }

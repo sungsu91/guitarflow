@@ -1,6 +1,6 @@
 import ko from "../i18n/locales/ko.js";
 import {patchEvent,ticksOf} from './scoreModel.js';
-export const beamable=e=>Boolean(e&&!e.rest&&['8','16'].includes(e.duration));
+export const beamable=e=>Boolean(e&&!e.rest&&['8','16','32'].includes(e.duration));
 export function canJoinBeam(events,index){
  const before=events[index-1],event=events[index];
  return beamable(before)&&beamable(event)&&before.tuplet?.groupId===event.tuplet?.groupId&&(event.onset==null||before.onset==null||before.onset+ticksOf(before)===event.onset);
@@ -40,7 +40,7 @@ export function setBeamRange(document,{bar,start,end},action){
  }
  if(selected.some(e=>!beamable(e)))throw Error(ko["etudes.aSelectionContainingRestsGapsOrQuarterNotesOrLongerCannotBe"]);
  if(selected.some((e,i)=>i>0&&selected[i-1].onset+ticksOf(selected[i-1])!==e.onset))throw Error(ko["etudes.selectNotesWithNoGapsBetweenThem"]);
- if(selected.some(e=>e.tuplet)&&(!selected.every(e=>e.tuplet?.groupId===selected[0].tuplet?.groupId)||selected.length!==3))throw Error(ko["etudes.tripletBeamsCanOnlyBeEditedWithinTheirExistingThreeNoteGroup"]);
+ if(selected.some(e=>e.tuplet)&&(!selected.every(e=>e.tuplet?.groupId===selected[0].tuplet?.groupId)||selected.length!==selected[0].tuplet?.actualNotes))throw Error(ko["etudes.tripletBeamsCanOnlyBeEditedWithinTheirExistingThreeNoteGroup"]);
  let next=document;
  for(let i=first;i<=last;i++)next=setBeamBefore(next,{bar,event:i},action==='auto'?'auto':action==='break'||i===first?'break':'join');
  // Isolate the end too, including a range ending inside an automatic beat.

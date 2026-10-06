@@ -35,14 +35,14 @@ try{
   else{await page.getByRole('button',{name:'제작',exact:true}).click();await page.getByRole('button',{name:'PDF·사진에서 TAB 초안 생성',exact:true}).click();}
   const dialog=page.locator('.mobilePdfTabImport,.desktopPdfTabImport');
   assert.equal(await dialog.locator('input[capture]').count(),0);
-  await page.getByLabel('변환 방식',{exact:true}).selectOption('tab');
-  const picker=page.getByLabel(mobile?'PDF·사진 선택':'TAB 분석용 PDF·사진 선택',{exact:true});await picker.setInputFiles(`${fixtures}/${mobile?'sideways.png':'score.JPG'}`);
+  await page.getByRole('radio',{name:'TAB → TAB',exact:true}).check();
+  const picker=page.getByLabel('PDF·사진 선택',{exact:true});await picker.setInputFiles(`${fixtures}/${mobile?'sideways.png':'score.JPG'}`);
   await page.getByRole('img',{name:'악보 사진 미리보기'}).waitFor();
   if(mobile)await page.getByRole('button',{name:'90° 회전',exact:true}).click();
   if(width===390){await page.setViewportSize({width:1440,height:1000});await page.locator('.desktopPdfTabImport').waitFor();await page.getByRole('img',{name:'악보 사진 미리보기'}).waitFor();await page.setViewportSize({width,height:844});await page.locator('.mobilePdfTabImport').waitFor();}
   await page.screenshot({path:`${out}/${process.env.PHOTO_LABEL||'preview'}-${width}.png`});
   assert(await dialog.evaluate(node=>node.scrollWidth<=node.clientWidth+1),'dialog has no horizontal overflow');
-  await page.getByRole('button',{name:'사진 분석',exact:true}).click();
+  await page.getByRole('button',{name:'분석하기',exact:true}).click();
   try{await page.getByRole('heading',{name:'TAB 분석 완료',exact:true}).waitFor();}
   catch(error){await page.screenshot({path:`${out}/failure-${width}.png`});await writeFile(`${out}/failure-${width}.txt`,JSON.stringify({errors,text:await page.locator('body').innerText()},null,2));throw error;}
   await page.getByRole('button',{name:'제작실에서 열기',exact:true}).click();await page.locator(mobile?'.mobilePdfTabReview':'.pdfTabReviewBar').waitFor();

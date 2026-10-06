@@ -1,0 +1,57 @@
+[
+  {
+    "id": "lick-original",
+    "oracleEvents": 10,
+    "detectedBars": 2,
+    "correctNoteEvents": 10,
+    "correctRhythmEvents": 10,
+    "extraEvents": 0,
+    "failedPositions": {
+      "notes": [],
+      "rhythm": []
+    }
+  },
+  {
+    "id": "lick-raster",
+    "oracleEvents": 10,
+    "detectedBars": 2,
+    "correctNoteEvents": 10,
+    "correctRhythmEvents": 10,
+    "extraEvents": 0,
+    "failedPositions": {
+      "notes": [],
+      "rhythm": []
+    }
+  },
+  {
+    "id": "lick-compression",
+    "oracleEvents": 10,
+    "detectedBars": 2,
+    "correctNoteEvents": 10,
+    "correctRhythmEvents": 10,
+    "extraEvents": 0,
+    "failedPositions": {
+      "notes": [],
+      "rhythm": []
+    }
+  },
+  {
+    "id": "picking-pdf",
+    "oracleEvents": 27,
+    "detectedBars": 25,
+    "correctNoteEvents": 27,
+    "correctRhythmEvents": 21,
+    "extraEvents": 0,
+    "failedPositions": {
+      "notes": [],
+      "rhythm": [
+        "1:1",
+        "3:1",
+        "3:2",
+        "3:3",
+        "3:4",
+        "3:5"
+      ]
+    }
+  }
+]

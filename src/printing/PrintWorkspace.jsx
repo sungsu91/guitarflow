@@ -2,11 +2,12 @@ import React,{useEffect,useId,useRef,useState} from 'react';
 import {useLanguage} from '../i18n/react.jsx';
 import PrintPageNavigation from './PrintPageNavigation.jsx';
 import {exportPreviewPdf} from './exportPreviewPdf.js';
-import {pdfFilename,savePdf} from './savePdf.js';
+import {pdfFilename,savePdf,canChoosePdfFile,choosePdfFile} from './savePdf.js';
 
 export default function PrintWorkspace({mobile,root,title,description,description2='',showDescription=true,showDescription2=true,pageNumbers,onChange,pageCount,children,selector,controls,previewControls,positionControls,onPreviewPage,requestedPage,ready=true,previewError='',contentKey,interactionActive=false,positioningHint,positioningEnabled=true}) {
  const fieldId=useId(),language=useLanguage(),t=(ko,en)=>language==='ko'?ko:en;
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[progress,setProgress]=useState('');
+ const [savedNotice,setSavedNotice]=useState('');
  const [saveOpen,setSaveOpen]=useState(false),[filename,setFilename]=useState(''),[prepared,setPrepared]=useState(null);
  const operation=useRef(),[zoom,setZoom]=useState(.38),[page,setPage]=useState(0),[positioning,setPositioning]=useState(false);
  useEffect(()=>()=>operation.current?.abort(),[]);
@@ -15,18 +16,37 @@ export default function PrintWorkspace({mobile,root,title,description,descriptio
  // Discard a prepared file when its content or filename changes.
  useEffect(()=>{setPrepared(null);},[title,description,description2,showDescription,showDescription2,pageNumbers,pageCount,filename,contentKey]);
  const goToPage=index=>{const next=Math.max(0,Math.min(pageCount-1,index));setPage(next);const el=root.current,frame=el.querySelectorAll('[data-print-frame]')[next];if(frame)el.scrollTo({top:frame.offsetTop-12,behavior:'instant'});el.parentElement.scrollIntoView({block:'nearest',behavior:'instant'});};
- const syncPage=()=>{const el=root.current,threshold=el.scrollTop+Math.min(80,el.clientHeight*.25);const index=[...el.querySelectorAll('[data-print-frame]')].findIndex(frame=>frame.offsetTop+frame.offsetHeight>threshold);if(index>=0)setPage(index);};
+ const syncPage=()=>{
+  const el=root.current;
+  // A short final page cannot always reach the top of the preview viewport.
+  if(el.scrollHeight>el.clientHeight&&el.scrollHeight-el.scrollTop-el.clientHeight<=2){setPage(Math.max(0,pageCount-1));return;}
+  const threshold=el.scrollTop+Math.min(80,el.clientHeight*.25);
+  const index=[...el.querySelectorAll('[data-print-frame]')].findIndex(frame=>frame.offsetTop+frame.offsetHeight>threshold);
+  if(index>=0)setPage(index);
+ };
  useEffect(()=>{onPreviewPage?.(Math.min(page,Math.max(0,pageCount-1)));},[page,pageCount,onPreviewPage]);
  useEffect(()=>{if(requestedPage)goToPage(requestedPage.index);},[requestedPage]);
- async function generate(){
-  const controller=new AbortController();operation.current=controller;setBusy(true);setError('');setPrepared(null);
+ async function generate({chooseFile=false,name=pdfFilename(filename)}={}){
+  if(operation.current)return;
+  const controller=new AbortController();operation.current=controller;setBusy(true);setError('');setSavedNotice('');setPrepared(null);
+  let stage=chooseFile?'choose':'generate';
   try{
+   const fileHandle=chooseFile?await choosePdfFile(name):undefined;
+   controller.signal.throwIfAborted();if(chooseFile&&!fileHandle)return;
+   stage='generate';
    const blob=await exportPreviewPdf(root.current,{signal:controller.signal,onProgress:(n,total)=>setProgress(t(`PDF 생성 중 · ${n} / ${total}페이지`,`Creating PDF · ${n} / ${total} pages`))});
-   if(mobile)setPrepared({blob,name:pdfFilename(filename)});
-   else{await savePdf(blob,pdfFilename(filename));setSaveOpen(false);}
-  }catch(error){if(error.name!=='AbortError')setError(t('PDF를 만들지 못했습니다. 다시 시도해 주세요.','Could not create the PDF. Please try again.'));}
+   controller.signal.throwIfAborted();
+   if(mobile)setPrepared({blob,name});
+   else{stage='save';setProgress(t('파일 저장 중…','Saving file…'));await savePdf(blob,name,{fileHandle,signal:controller.signal});setSaveOpen(false);setSavedNotice(fileHandle?t(`${fileHandle.name} 저장 완료`,`Saved ${fileHandle.name}`):t('PDF 다운로드를 시작했습니다.','PDF download started.'));}
+  }catch(error){if(error.name!=='AbortError')setError(stage==='choose'?t('저장 창을 열지 못했습니다. PDF 저장을 다시 눌러 주세요.','Could not open the save dialog. Click Save PDF again.'):stage==='save'?t('파일을 저장하지 못했습니다. 저장 위치를 확인하고 다시 시도해 주세요.','Could not save the file. Check the save location and try again.'):t('PDF를 만들지 못했습니다. 다시 시도해 주세요.','Could not create the PDF. Please try again.'));}
   finally{if(operation.current===controller){operation.current=null;setBusy(false);setProgress('');}}
  }
+ const startSave=()=>{
+  if(operation.current)return;
+  setError('');setSavedNotice('');
+  if(!mobile&&canChoosePdfFile()){setSaveOpen(false);void generate({chooseFile:true,name:pdfFilename(title)});}
+  else{setFilename(title||'FRETIVA LAB');setSaveOpen(true);setPrepared(null);}
+ };
  async function save(){
   setBusy(true);setError('');
   try{if(await savePdf(prepared.blob,prepared.name,{mobile})){setPrepared(null);setSaveOpen(false);}}
@@ -35,7 +55,8 @@ export default function PrintWorkspace({mobile,root,title,description,descriptio
  }
  const disabled=busy||!ready||interactionActive;
  return <>
-  <div className="rt-print-controls" data-html2canvas-ignore="true">{controls?.(disabled)}{!mobile&&<button disabled={disabled} onClick={()=>window.print()}>{t('인쇄','Print')}</button>}<button disabled={disabled} onClick={()=>{setFilename(title||'FRETIVA LAB');setSaveOpen(true);setPrepared(null);}}>{t('PDF 저장','Save PDF')}</button>{mobile&&<p className="rt-print-mobile-hint">{positioningEnabled?t('미리보기에서 위치를 조절한 뒤 PDF를 저장하거나 공유하세요.','Adjust the preview, then save or share the PDF.'):t('미리보기를 확인한 뒤 PDF를 저장하거나 공유하세요.','Review the preview, then save or share the PDF.')}</p>}</div>
+  <div className="rt-print-controls" data-html2canvas-ignore="true">{controls?.(disabled)}{!mobile&&<button disabled={disabled} onClick={()=>window.print()}>{t('인쇄','Print')}</button>}<button disabled={disabled} aria-busy={busy} onClick={startSave}>{t('PDF 저장','Save PDF')}</button>{mobile&&<p className="rt-print-mobile-hint">{positioningEnabled?t('미리보기에서 위치를 조절한 뒤 PDF를 저장하거나 공유하세요.','Adjust the preview, then save or share the PDF.'):t('미리보기를 확인한 뒤 PDF를 저장하거나 공유하세요.','Review the preview, then save or share the PDF.')}</p>}</div>
+  {!mobile&&!saveOpen&&(busy||savedNotice)&&<div className="rt-pdf-save-status" data-html2canvas-ignore="true"><p role="status" aria-live="polite">{busy?progress||t('저장 위치를 선택해 주세요.','Choose where to save the PDF.'):savedNotice}</p>{busy&&<button type="button" onClick={()=>operation.current?.abort()}>{t('취소','Cancel')}</button>}</div>}
   {saveOpen&&<form className="rt-pdf-filename" data-html2canvas-ignore="true" onSubmit={event=>{event.preventDefault();prepared?save():generate();}}><label>{t('PDF 파일명','PDF filename')} <input autoFocus value={filename} maxLength={120} disabled={busy} onChange={event=>setFilename(event.target.value)} onFocus={event=>event.target.select()}/><span>.pdf</span></label><button type="button" onClick={()=>{operation.current?.abort();setSaveOpen(false);setPrepared(null);}}>{t('취소','Cancel')}</button><button type="submit" disabled={disabled||!filename.trim()}>{busy?t('생성 중…','Creating…'):prepared?t('저장·공유','Save or share'):mobile?t('PDF 만들기','Create PDF'):t('이 이름으로 저장','Save with this name')}</button>{prepared&&<p role="status">{t('PDF가 준비되었습니다. 저장·공유를 눌러 파일에 저장할 수 있습니다.','Your PDF is ready. Tap Save or share to save it to Files.')}</p>}{progress&&<p role="status" aria-live="polite">{progress}</p>}</form>}
   <div className="rt-print-edit" data-html2canvas-ignore="true">
    <div className="rt-print-field"><div className="rt-print-field-heading"><label htmlFor={fieldId+'-title'}>{t('출력 제목','Print title')}</label>{selector?.(disabled)}</div><input id={fieldId+'-title'} value={title} maxLength={200} disabled={disabled} onChange={event=>onChange({title:event.target.value})}/></div>

@@ -1,14 +1,19 @@
 import {expandPdfBars} from './pdfBarRows.js';
+import {pdfRepeatPlan} from './pdfRepeats.js';
 export function normalizedRect(start,end) {
  const x=Math.max(0,Math.min(1,start.x,end.x)),y=Math.max(0,Math.min(1,start.y,end.y));
  return {x,y,width:Math.min(1-x,Math.abs(end.x-start.x)),height:Math.min(1-y,Math.abs(end.y-start.y))};
 }
 export function practiceOrder(record) {
+ return practicePlan(record).order;
+}
+export function practicePlan(record) {
  const bars=expandPdfBars(record.barMap??[]),byNumber=new Map(bars.map(b=>[b.number,b]));
+ if(record.repeatSettings)return pdfRepeatPlan(bars,record.repeatSettings);
  const order=(record.practiceOrder?.length?record.practiceOrder:bars.map(b=>b.number)).map(n=>byNumber.get(n)).filter(Boolean);
  const start=Math.max(0,Math.min(order.length-1,(record.loopStart??1)-1));
  const end=Math.max(start,Math.min(order.length-1,(record.loopEnd??order.length)-1));
- return record.loop?order.slice(start,end+1):order;
+ return {order:record.loop?order.slice(start,end+1):order,loop:Boolean(record.loop),issues:[]};
 }
 export function barAtTick(order,tick,loop=false) {
  const total=order.reduce((n,b)=>n+b.beats,0);if(!total||tick<0)return null;

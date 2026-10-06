@@ -349,7 +349,7 @@
     {
       "id": "helvetica-noise",
       "correct": 37,
-      "exactRhythmBars": 3,
+      "exactRhythmBars": 4,
       "detectedBars": 4
     },
     {
@@ -360,7 +360,7 @@
     },
     {
       "id": "times-roman-200dpi",
-      "correct": 38,
+      "correct": 39,
       "exactRhythmBars": 4,
       "detectedBars": 4
     },
@@ -385,7 +385,7 @@
     {
       "id": "times-roman-noise",
       "correct": 37,
-      "exactRhythmBars": 3,
+      "exactRhythmBars": 4,
       "detectedBars": 4
     },
     {
@@ -421,7 +421,7 @@
     {
       "id": "courier-noise",
       "correct": 38,
-      "exactRhythmBars": 3,
+      "exactRhythmBars": 4,
       "detectedBars": 4
     },
     {
@@ -432,7 +432,7 @@
     },
     {
       "id": "helvetica-bold-200dpi",
-      "correct": 36,
+      "correct": 37,
       "exactRhythmBars": 4,
       "detectedBars": 4
     },
@@ -457,18 +457,18 @@
     {
       "id": "helvetica-bold-noise",
       "correct": 32,
-      "exactRhythmBars": 3,
+      "exactRhythmBars": 4,
       "detectedBars": 4
     },
     {
       "id": "faint-rhythm",
-      "correct": 36,
+      "correct": 39,
       "exactRhythmBars": 4,
       "detectedBars": 4
     },
     {
       "id": "upward-holdout",
-      "correct": 36,
+      "correct": 39,
       "exactRhythmBars": 4,
       "detectedBars": 4
     }

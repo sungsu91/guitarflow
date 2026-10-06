@@ -1,6 +1,14 @@
+import SharedBpmControls from './components/SharedBpmControls.jsx';
 import { SCALE_OPTIONS, getScaleDefinition, getLegacyScaleDefinition, getScalePatterns } from './fretboard/scaleCatalog.js';
 import { SCALE_ALL_POSITIONS, SCALE_OVERVIEW_MAX_FRET, buildScaleOverviewPositions } from './fretboard/scaleOverview.js';
 import FretboardViewerLayout from "./layouts/FretboardViewerLayout.jsx";
+import useViewerInstrument from './fretboard/useViewerInstrument.js';
+import { buildInstrumentNotes } from './fretboard/instruments.js';
+import { buildInstrumentScale, supportsInstrumentScalePosition } from './fretboard/instrumentScales.js';
+import { buildInstrumentChordPositions } from './fretboard/instrumentChords.js';
+import { buildInstrumentFirstPosition, buildInstrumentScalePractice } from './fretboard/instrumentPractice.js';
+import { MobileLearningInstrumentControls, TabletLearningInstrumentControls, DesktopLearningInstrumentControls } from './fretboard/LearningInstrumentControls.jsx';
+import TabletPracticeTitle from "./layouts/TabletPracticeTitle.jsx";
 import DesktopShooterMaps, {DesktopShooterLives,DesktopShooterMapGallery,DesktopShooterSkinButton,DesktopShooterStartButton,useDesktopShooterMap} from './shooter/DesktopShooterMaps.jsx';
 import DesktopNoteScaleViewer from "./layouts/DesktopNoteScaleViewer.jsx";
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
@@ -39,9 +47,15 @@ import { observeShooterNoteOn } from "./shooter/noteOn.js";
 import ShooterRecording from "./shooter/recording/ShooterRecording.jsx";
 import ShooterSpritePet from "./shooter/ShooterSpritePet.jsx";
 import ShooterPetControls from "./shooter/ShooterPetControls.jsx";
+import { ShooterInstrumentHud } from "./shooter/ShooterInstrumentControl.jsx";
+import { getShooterInstrumentNotes, getShooterInstrumentStep, getShooterInstrumentRound, getShooterInstrumentAnalysis } from "./shooter/instrumentTraining.js";
 import MobilePullToRefresh from "./layouts/MobilePullToRefresh.jsx";
 import { useLazyRef } from "./useLazyRef.js";
 import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
+import { HERITAGE_INSTRUMENT_PACK, HERITAGE_INSTRUMENT_PACK_IDS } from "./shooter/instruments/heritageInstrumentPack.js";
+import { STAGE_INSTRUMENT_PACK, STAGE_INSTRUMENT_PACK_IDS } from "./shooter/instruments/stageInstrumentPack.js";
+import deletedGuitarSkinIds from "./shooter/instruments/deletedGuitarSkins.json";
+import { DesktopGuitarSkinCard, MobileGuitarSkinCard } from "./shooter/instruments/GuitarSkinCard.jsx";
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Activity, startTransition, lazy, Suspense } from "react";
 import {
@@ -52,6 +66,7 @@ import {
   ChevronUp,
   CircleHelp,
   Columns2,
+  Drum,
   FolderOpen,
   Gamepad2,
   Grid3X3,
@@ -66,6 +81,7 @@ import {
   Music2,
   Moon,
   Pause,
+  Piano,
   Play,
   Radio,
   RotateCcw,
@@ -119,6 +135,7 @@ const RhythmTrainer = lazy(loadRhythmTrainer);
 const EtudeStudio = lazy(loadScoreStudio);
 import GrooveVolumeControl from "./components/GrooveVolumeControl.jsx";
 import MetronomeVolumeControl from "./components/MetronomeVolumeControl.jsx";
+import MobileSoundSettings from "./navigation/MobileSoundSettings.jsx";
 import {
   getMetronomeVolumeSnapshot,
   setMetronomeVolume,
@@ -140,6 +157,7 @@ import {
   AUDIO_TRANSPORT_START_LEAD_SECONDS,
   collectAudioTransportSteps,
   createAudioTransportCursor,
+  retimeAudioTransportCursor,
   getAudioTransportStepSeconds,
 } from "./audio/transportClock.js";
 import BrandHeader from "./components/BrandHeader";
@@ -169,6 +187,7 @@ import useChordProgressSweep from "./rhythm/useChordProgressSweep.js";
 import { getChordToneDescriptors, getChordToneNames } from "./chords/chordTheory.js";
 import {
   createChordFretboardSnapshot,
+  resolveChordFretboardSnapshot,
   getChordFretboardMidiVoicing,
   getChordFretboardSignature,
 } from "./rhythm/chordFretboardState.js";
@@ -224,6 +243,13 @@ import {
 import { NeonNote, NeonNoteBursts } from "./shooter/noteVfx/NeonNote.jsx";
 import { isNoteVfxPreviewRequested } from "./shooter/noteVfx/noteVfx.js";
 import ProgressSettings from "./shooter/ProgressSettings.jsx";
+import ShooterVoiceIntro from "./shooter/ShooterVoiceIntro.jsx";
+import {
+  SHOOTER_VOICE_DIFFICULTY_ID, SHOOTER_VOICE_NOTES, pickShooterVoiceNote,
+  getShooterVoiceNoteLabel, getShooterInputSource, detectShooterVoicePitch, getShooterVoiceGuidance,
+  createShooterVoiceJudgmentState, resetShooterVoiceJudgmentState,
+  releaseShooterVoiceJudgment, observeShooterVoiceFrame, commitShooterVoiceHit,
+} from "./shooter/voiceMode.js";
 import { SHOOTER_HARD_RANDOM_POSITIONS, scaleShooterProgressDuration, getShooterProgressRecovery, getShooterConcurrentTargetLimit, getShooterStreamInterval } from "./shooter/progressionSettings.js";
 import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
 import {
@@ -356,6 +382,7 @@ import {
   isShooterMapAvailableForLayout,
   isThreeDLabShooterMap,
 } from "./shooter/maps/registry";
+import { TABLET_DEFAULT_SHOOTER_MAP_ID, TABLET_MAP_DEFAULT_STORAGE_KEY, resolveShooterMapForLayout } from "./shooter/maps/tabletMapPresentation.js";
 import {
   DEFAULT_PSEUDO3D_SETTINGS,
   normalizePseudo3DSettings,
@@ -1046,7 +1073,7 @@ function makeGuitarNote({ pitch, stringNumber, fretNumber, lane, hint, group }) 
     fret: fretNumber,
     fretNumber,
     lane: normalizedLane,
-    frequency: NOTE_FREQUENCIES[pitch],
+    frequency: NOTE_FREQUENCIES[pitch] ?? getFrequencyFromMidi(pitchToMidi(pitch)),
     hint: hint ?? formatMessage(ko["app.value1Value2StringValue3Value4"], { value1: SOLFEGE[noteName] ?? noteName, value2: pitch, value3: stringNumber, value4: fretNumber === 0 ? ko["app.openString"] : formatMessage(ko["app.fretValue1"], { value1: fretNumber }) }),
     group,
   };
@@ -1613,8 +1640,11 @@ export function buildScaleBoxSetPractice(root = "C", typeId = "minor", familyId 
   };
 }
 
-function buildScaleTrainingPractice(root = "C", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, detailValue = 1, boxSetDirection = "ascending") {
+function buildScaleTrainingPractice(root = "C", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, detailValue = 1, boxSetDirection = "ascending", instrumentProfile = null) {
   if (isScaleLickFamilyId(familyId)) return buildScaleLickPractice(familyId, detailValue);
+  if (instrumentProfile && instrumentProfile.id !== 'guitar-6') {
+    return buildInstrumentScalePractice(instrumentProfile,root,getLegacyScaleDefinition(familyId,typeId).id,detailValue);
+  }
   if (detailValue === SCALE_BOX_SET_ID) return buildScaleBoxSetPractice(root, typeId, familyId, boxSetDirection);
   return buildScaleBlockPractice(root, typeId, familyId, detailValue);
 }
@@ -3452,12 +3482,18 @@ function getCompactFretRange(notes = [], barres = [], fallback = [0, 3], stringS
 const STAGE3_STATIC_FRETBOARD_SELECTION = Object.freeze(["__active-note-only__"]);
 
 const ChordMiniCard = memo(function ChordMiniCard({
-  chord,
+  chord: sourceChord,
+  profile,
   getChordStringState,
   onSelect,
   showDiagram,
   showChordFingeringGuide,
 }) {
+  const chord = useMemo(() => {
+    if (!showDiagram || !profile || profile.id === 'guitar-6') return sourceChord;
+    const position = buildInstrumentChordPositions(profile, sourceChord).position1;
+    return { ...sourceChord, notes: [], barres: [], ...position };
+  }, [sourceChord, profile, showDiagram]);
   const miniNotes = useMemo(
     () => chord.notes
       .filter((note) => Number(note.fretNumber) > 0)
@@ -3475,11 +3511,11 @@ const ChordMiniCard = memo(function ChordMiniCard({
   );
   const stringStates = useMemo(
     () => Object.fromEntries(
-      [1, 2, 3, 4, 5, 6]
+      (profile?.tuning ?? STANDARD_TUNING).map(string => string.stringNumber)
         .map((stringNumber) => [stringNumber, getChordStringState(chord, stringNumber)])
         .filter(([, state]) => state === "x" || state === "o"),
     ),
-    [chord, getChordStringState],
+    [chord, getChordStringState, profile],
   );
   const handleClick = useCallback(() => {
     onSelect(chord);
@@ -3495,6 +3531,7 @@ const ChordMiniCard = memo(function ChordMiniCard({
       <span>{chord.displayName}</span>
       {showDiagram ? (
         <Fretboard
+          tuning={profile?.tuning}
           barres={chord.barres ?? []}
           className="chordMiniSharedFretboard"
           fretRange={miniFretRange}
@@ -3513,6 +3550,7 @@ const ChordMiniCard = memo(function ChordMiniCard({
 });
 
 const ChordCatalogRow = memo(function ChordCatalogRow({
+  profile,
   desktopDraggable = false,
   getChordStringState,
   group,
@@ -3601,6 +3639,7 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
       >
         {group.chords.map((chord) => (
           <ChordMiniCard
+            profile={profile}
             chord={chord}
             getChordStringState={getChordStringState}
             key={chord.id}
@@ -6056,9 +6095,10 @@ function MetronomeSelectControl({
         }))
       : layout === "grid" ? Math.ceil(gridOptions.length / 2) : gridOptions.length;
     const hasOptionDescriptions = measurementOptions.some((option) => option.description);
-    const optionRowHeight = hasOptionDescriptions ? 54 : 36;
-    const tabBarHeight = availableOptionTabs.length ? 46 : 0;
-    const estimatedMenuHeight = Math.min(360, 14 + tabBarHeight + rows * optionRowHeight + (hasVisibleSelectionTools ? 40 : 0));
+    const tabletMenu = document.documentElement.dataset.rifflabDevice === "tablet";
+    const optionRowHeight = tabletMenu ? (hasOptionDescriptions ? 88 : 52) : (hasOptionDescriptions ? 54 : 36);
+    const tabBarHeight = availableOptionTabs.length ? (tabletMenu ? 148 : 46) : 0;
+    const estimatedMenuHeight = Math.min(tabletMenu ? 660 : 360, 14 + tabBarHeight + rows * optionRowHeight + (hasVisibleSelectionTools ? 40 : 0));
     const viewportPadding = 12;
     const menuGap = 6;
     const visualViewport = window.visualViewport;
@@ -6109,9 +6149,13 @@ function MetronomeSelectControl({
     const menuLeftEdge = toolbarRect ? Math.max(viewportPadding, toolbarRect.left + 6) : viewportPadding;
     const menuRightEdge = toolbarRect ? Math.min(viewportWidth - viewportPadding, toolbarRect.right - 6) : viewportWidth - viewportPadding;
     desiredWidth = Math.min(desiredWidth, menuRightEdge - menuLeftEdge);
+    if (tabletMenu) {
+      desiredWidth = Math.min(menuRightEdge - menuLeftEdge, Math.max(desiredWidth,
+        hasOptionDescriptions || availableOptionTabs.length ? 600 : 280));
+    }
     const left = Math.max(menuLeftEdge, Math.min(rect.left, menuRightEdge - desiredWidth));
     const directionSpace = nextDirection === "up" ? topSpace : bottomSpace;
-    const maxHeight = Math.max(72, Math.min(280, directionSpace));
+    const maxHeight = Math.max(72, Math.min(tabletMenu ? 660 : 280, directionSpace));
     setOpenDirection(nextDirection);
     setMenuStyle({
       "--riff-dropdown-left": `${left}px`,
@@ -7778,6 +7822,14 @@ const RIFFLAB_GUITAR_DESIGN_RULES = [
   ko["appJsx.useABroadMartinGibsonStyleLowerBoutWithoutOverinflatingItClose"],
 ];
 const GUITAR_LAB_VARIANTS = [
+  ...STAGE_INSTRUMENT_PACK.map((skin) => [
+    skin.id, skin.pack, skin.title, skin.description, "#754729", "#d8b773",
+    "image-fl-stage-fantasy", skin.assetSrc, undefined, skin.instrumentSkinPack, skin.stringSpec,
+  ]),
+  ...HERITAGE_INSTRUMENT_PACK.map((skin) => [
+    skin.id, skin.pack, skin.title, skin.description, "#754729", "#d8b773",
+    "image-fl-custom-heritage", skin.assetSrc, undefined, skin.instrumentSkinPack,
+  ]),
   ["acoustic-dreadnought", "Acoustic", "Dreadnought", ko["appJsx.aStandardAcousticPlayerWithALargeBodyAndStrongPresence"], "#b87936", "#2f1a0b", "round"],
   ["acoustic-om", "Acoustic", "OM", ko["appJsx.anAcousticWithABalancedWaistAndAnAgileFeel"], "#c98b43", "#332012", "waist"],
   ["acoustic-000", "Acoustic", "000", ko["appJsx.aCompactVintageAcousticWithAClearSilhouette"], "#d49a52", "#3a2413", "compact"],
@@ -8013,7 +8065,7 @@ const GUITAR_LAB_VARIANTS = [
     undefined,
     skin.instrumentSkinPack,
   ]),
-].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc, instrumentSkinPack], index) => ({
+].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc, instrumentSkinPack, stringSpec], index) => ({
   id,
   pack,
   model,
@@ -8025,9 +8077,12 @@ const GUITAR_LAB_VARIANTS = [
   assetSrc,
   projectileAssetSrc,
   instrumentSkinPack,
+  stringSpec,
   index: index + 1,
-}));
-const DEFAULT_GUITAR_LAB_VARIANT_ID = "acoustic_candy_imp_v1";
+})).filter((variant) => !deletedGuitarSkinIds.includes(variant.id));
+const DEFAULT_GUITAR_LAB_VARIANT_ID = GUITAR_LAB_VARIANTS.some((variant) => variant.id === "acoustic_candy_imp_v1")
+  ? "acoustic_candy_imp_v1"
+  : GUITAR_LAB_VARIANTS.find((variant) => variant.assetSrc)?.id;
 const GUITAR_LAB_VARIANT_IDS = new Set(GUITAR_LAB_VARIANTS.map((variant) => variant.id));
 const SHOOTER_TRACE_GUITAR_VARIANT_ID = "acoustic-real-trace";
 const SHOOTER_JP_D_BLACK_VARIANT_ID = "jp-d-black";
@@ -8129,6 +8184,22 @@ const SHOOTER_PLAYER_GUITAR_GEOMETRY_BY_VARIANT_ID = {
     collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
     muzzleHeightScale: 1,
   },
+  ...Object.fromEntries(HERITAGE_INSTRUMENT_PACK.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
+  ...Object.fromEntries(STAGE_INSTRUMENT_PACK.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
   ...Object.fromEntries(FRETIVA_INSTRUMENT_SKIN_PACK_V1.map((skin) => [
     skin.id,
     {
@@ -8201,6 +8272,8 @@ const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   ...FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2_IDS,
   ...FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS,
   ...FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1_IDS,
+  ...HERITAGE_INSTRUMENT_PACK_IDS,
+  ...STAGE_INSTRUMENT_PACK_IDS,
 ];
 const SHOOTER_GUITAR_CATEGORIES = {
   ACOUSTIC: "acoustic",
@@ -9167,6 +9240,8 @@ const DEFAULT_SHOOTER_EFFECT_LOADOUT = {
 };
 const DEFAULT_SHOOTER_MAP_ID = "moonlit-rooftop";
 const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
+  ...Object.fromEntries(STAGE_INSTRUMENT_PACK.map((skin) => [skin.id, skin.category])),
+  ...Object.fromEntries(HERITAGE_INSTRUMENT_PACK.map((skin) => [skin.id, skin.category])),
   [SHOOTER_TRACE_GUITAR_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
   [SHOOTER_JP_D_BLACK_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
   [SHOOTER_JP_C_MAHOGANY_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
@@ -9209,18 +9284,17 @@ function getShooterPickSkinById(skinId) {
 
 function getShooterMapById(
   mapId,
-  { isMobileLayout = true, includeMobileOnly = false, isPortraitLayout = true } = {},
+  { isMobileLayout = true, ...layoutOptions } = {},
 ) {
   const normalizedMapId = SHOOTER_MAP_LEGACY_ID_MAP[mapId] ?? mapId;
-  const layoutOptions = SHOOTER_MAP_OPTIONS.filter(
-    (map) => isShooterMapAvailableForLayout(map, isMobileLayout, {
-      includeMobileOnly,
-      isPortraitLayout,
-    }),
+  const availableMaps = SHOOTER_MAP_OPTIONS.filter(
+    (map) => isShooterMapAvailableForLayout(map, isMobileLayout, layoutOptions),
   );
-  return layoutOptions.find((map) => map.id === normalizedMapId)
-    ?? layoutOptions.find((map) => map.id === DEFAULT_SHOOTER_MAP_ID)
-    ?? layoutOptions[0];
+  const map = availableMaps.find((map) => map.id === normalizedMapId)
+    ?? (layoutOptions.isTabletLayout ? availableMaps.find((map) => map.id === TABLET_DEFAULT_SHOOTER_MAP_ID) : null)
+    ?? availableMaps.find((map) => map.id === DEFAULT_SHOOTER_MAP_ID)
+    ?? availableMaps[0];
+  return resolveShooterMapForLayout(map, layoutOptions);
 }
 
 function getShooterMapCssVars(map) {
@@ -11257,6 +11331,7 @@ function MiniChordArrangementEditorDialog({
 function MetronomeTransportCard({
   actionAriaLabel = ko["app.metronomePlaybackAndTapTempo"],
   actionOrder = "play-tap",
+  fixedPlaybackActions = false,
   actionPanelClassName = "",
   ariaLabel,
   bpm,
@@ -11406,77 +11481,27 @@ function MetronomeTransportCard({
       onPointerUp={onCardPointerUp}
       role="group"
     >
-      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--down" aria-label={translateUi("app.decreaseBpm")} role="group">
-        <button
-          aria-label={translateUi("app.decreaseBpmBy1")}
-          className="metronomeHeroBpmButton"
-          disabled={bpmControlsDisabled}
-          onClick={(event) => changeBpmBy(-1, "bpm-down-1", event)}
-          onMouseDown={(event) => event.preventDefault()}
-          onPointerCancel={onBpmButtonPointerCancel}
-          onPointerDown={(event) => handleBpmPointerDown("bpm-down-1", event)}
-          onPointerUp={onBpmButtonPointerUp}
-          type="button"
-        >
-          -
-        </button>
-        <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-        <button
-          aria-label={translateUi("app.decreaseBpmBy10")}
-          className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--down"
-          disabled={bpmControlsDisabled}
-          onClick={(event) => changeBpmBy(-10, "bpm-down-10", event)}
-          onMouseDown={(event) => event.preventDefault()}
-          onPointerCancel={onBpmButtonPointerCancel}
-          onPointerDown={(event) => handleBpmPointerDown("bpm-down-10", event)}
-          onPointerUp={onBpmButtonPointerUp}
-          type="button"
-        >
-          -10
-        </button>
-      </div>
-      <div className="metronomeHeroBpmValue">
-        <span><Translation id="originalUi.bpm" /></span>
-        <strong data-bpm-preview-value={bpmPreviewKey ?? (bpmPreview ? "true" : undefined)}>{bpm}</strong>
-      </div>
-      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--up" aria-label={translateUi("app.increaseBpm")} role="group">
-        <button
-          aria-label={translateUi("app.increaseBpmBy1")}
-          className="metronomeHeroBpmButton"
-          disabled={bpmControlsDisabled}
-          onClick={(event) => changeBpmBy(1, "bpm-up-1", event)}
-          onMouseDown={(event) => event.preventDefault()}
-          onPointerCancel={onBpmButtonPointerCancel}
-          onPointerDown={(event) => handleBpmPointerDown("bpm-up-1", event)}
-          onPointerUp={onBpmButtonPointerUp}
-          type="button"
-        >
-          +
-        </button>
-        <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-        <button
-          aria-label={translateUi("app.increaseBpmBy10")}
-          className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--up"
-          disabled={bpmControlsDisabled}
-          onClick={(event) => changeBpmBy(10, "bpm-up-10", event)}
-          onMouseDown={(event) => event.preventDefault()}
-          onPointerCancel={onBpmButtonPointerCancel}
-          onPointerDown={(event) => handleBpmPointerDown("bpm-up-10", event)}
-          onPointerUp={onBpmButtonPointerUp}
-          type="button"
-        >
-          +10
-        </button>
-      </div>
+      <SharedBpmControls {...{bpm,bpmControlsDisabled,bpmPreviewKey,bpmPreview,changeBpmBy,handleBpmPointerDown,onBpmButtonPointerCancel,onBpmButtonPointerUp}}/>
       <div
         className={`metronomeHeroActionPanel ${actionPanelClassName} ${
           pauseVisible ? "metronomeHeroActionPanel--with-pause" : ""
         }`.trim()}
         aria-label={localizeUi(actionAriaLabel)}
       >
+        {fixedPlaybackActions ? <>
+          {tapButton}
+          <button type="button" className="metronomeHeroPauseButton" disabled={playDisabled} aria-label={localizeUi(isPlaying ? pauseLabel : isPaused ? resumeLabel : playStartLabel)} onClick={event=>{event.stopPropagation();if(isPlaying)onPause?.();else if(isPaused)onResume?.();else onStart();}}>
+            <span className="metronomeHeroActionIcon" aria-hidden="true">{playPending?<LoaderCircle size={16}/>:isPlaying?<Pause size={16}/>:<Play size={18}/>}</span>
+            <span className="metronomeHeroActionText">{localizeUi(isPlaying?pauseLabel:playPending?playPendingText:playIdleText)}</span>
+          </button>
+          <button type="button" className="metronomeHeroPlayButton reset" aria-label={localizeUi(playStopLabel)} disabled={!playbackSessionActive&&!playPending} onClick={event=>{event.stopPropagation();onStop();}}>
+            <span className="metronomeHeroActionIcon" aria-hidden="true"><Square size={15}/></span><span className="metronomeHeroActionText">STOP</span>
+          </button>
+        </> : <>
         {actionOrder === "tap-play" ? tapButton : playButton}
         {pauseButton}
         {actionOrder === "tap-play" ? playButton : tapButton}
+        </>}
         {showCountIn ? (
           <CountInToggleButton
             className={`${countInClassName} metronomeHeroCountInButton`.trim()}
@@ -11949,9 +11974,12 @@ function getStoredShooterMapId() {
   return getShooterMapById(window.localStorage.getItem(SHOOTER_MAP_STORAGE_KEY)).id;
 }
 
-function getStoredShooterMapPreference() {
+function getStoredShooterMapPreference(isTabletLayout = false) {
   if (typeof window === "undefined") return SHOOTER_RANDOM_MAP_ID;
   if (isNoteVfxPreviewRequested(import.meta.env.DEV, window.location.search)) return "moonlit-rooftop";
+  if (isTabletLayout && window.localStorage.getItem(TABLET_MAP_DEFAULT_STORAGE_KEY) !== TABLET_DEFAULT_SHOOTER_MAP_ID) {
+    return TABLET_DEFAULT_SHOOTER_MAP_ID;
+  }
   const storedPreference = window.localStorage.getItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY);
   if (storedPreference === SHOOTER_RANDOM_MAP_ID) return SHOOTER_RANDOM_MAP_ID;
   if (SHOOTER_MAP_OPTIONS.some((map) => map.id === storedPreference)) return storedPreference;
@@ -15924,6 +15952,7 @@ const SHOOTER_DIFFICULTIES = {
   NORMAL_RANDOM: SHOOTER_NORMAL_RANDOM_DIFFICULTY_ID,
   DIFFICULT: "difficult",
   DIFFICULT_RANDOM: "difficult-random",
+  VOICE: SHOOTER_VOICE_DIFFICULTY_ID,
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.EASY, label: ko["app.easy"], hint: ko["app.frets03BasicSequence"] },
@@ -15932,8 +15961,9 @@ const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.NORMAL_RANDOM, label: ko["app.normalRandom"], hint: SHOOTER_NORMAL_RANDOM_RANGE_LABEL },
   { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: ko["app.hard"], hint: ko["app.e2E5EMajorUpDown"] },
   { id: SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM, label: ko["app.hardRandom"], hint: ko["app.openStringsFret12RandomIncludingSharps"] },
+  { id: SHOOTER_DIFFICULTIES.VOICE, label: ko["shooter.voice"], hint: ko["shooter.voiceRange"] },
 ];
-const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
+const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.VOICE;
 const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 4;
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM]: {
@@ -15981,6 +16011,7 @@ function isShooterRandomDifficulty(difficulty) {
 }
 
 function getShooterStartingBpm(difficulty) {
+  if (difficulty === SHOOTER_DIFFICULTIES.VOICE) return SHOOTER_EASY_RECOMMENDED_BPMS[0];
   if (difficulty === SHOOTER_DIFFICULTIES.EASY || isShooterRandomDifficulty(difficulty)) {
     return SHOOTER_EASY_RECOMMENDED_BPMS[0];
   }
@@ -16223,7 +16254,13 @@ function getShooterDifficultyPhase(
   elapsedMs = 0,
   spawnedCount = 0,
   difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
+  instrumentProfile = null,
 ) {
+  if (difficulty === SHOOTER_DIFFICULTIES.VOICE) return { label: ko["shooter.voiceRange"] };
+  if (instrumentProfile && instrumentProfile.id !== 'guitar-6' && isShooterScriptedDifficulty(difficulty)) {
+    const step = getShooterInstrumentStep(instrumentProfile, difficulty, Math.max(0, spawnedCount - 1));
+    return { label: step.sectionLabel };
+  }
   if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM) {
     return { label: ko["app.openStringsFret12RandomIncludingSharps"], maxFret: 12, poolRatioFloor: 1, poolRatioCap: 1, randomnessBonus: 0, jumpBiasBonus: 0 };
   }
@@ -16303,10 +16340,14 @@ function getShooterEffectiveLevel(
   elapsedMs = 0,
   spawnedCount = 0,
   difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
+  instrumentProfile = null,
 ) {
-  const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId);
+  const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId, instrumentProfile);
   const pacing = getShooterDifficultyPacing(difficulty);
   const maxTargets = Math.min(getShooterConcurrentTargetLimit(difficulty), SHOOTER_MAX_SIMULTANEOUS_TARGETS);
+  if (difficulty === SHOOTER_DIFFICULTIES.VOICE) {
+    return { name: ko["shooter.voice"], phaseLabel: phase.label, maxTargets: 1, poolRatio: 1, randomness: 1, jumpBias: 0 };
+  }
   if (isShooterRandomDifficulty(difficulty)) {
     return {
       name: ko["app.random"],
@@ -16403,7 +16444,15 @@ function getShooterDifficultyNotes(
   selectedBlock = null,
   spawnedCount = 0,
   difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
+  instrumentProfile = null,
 ) {
+  if (difficulty === SHOOTER_DIFFICULTIES.VOICE) return SHOOTER_VOICE_NOTES;
+  if (instrumentProfile && instrumentProfile.id !== 'guitar-6') {
+    return getShooterInstrumentNotes(instrumentProfile, difficulty).map(step => makeGuitarNote({
+      pitch: step.pitch, stringNumber: step.stringNumber, fretNumber: step.fretNumber,
+      lane: instrumentProfile.stringCount - step.stringNumber, group: `shooter-${difficulty}`,
+    }));
+  }
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId);
   if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM) {
     return SHOOTER_HARD_RANDOM_POSITIONS.map((step) => makeGuitarNote({
@@ -16648,7 +16697,6 @@ function App({ onReady }) {
   const [appMode, setAppModeState] = useState(initialRouteRef.current.appMode);
   const inputSelection = useAudioInputSelection();
   const midiConnection = useMidiConnection();
-  useLayoutEffect(() => { midiInput.reset(); }, [appMode, inputSelection.shooterSource]);
   const [tunerBackgroundIndex, setTunerBackgroundIndex] = useState(0);
   const tunerHasEnteredRef = useRef(initialRouteRef.current.appMode === APP_MODES.TUNER);
   const initialMountedAppModesRef = useLazyRef(() => createMountedModeSet(initialRouteRef.current.appMode));
@@ -16754,6 +16802,9 @@ function App({ onReady }) {
   const [shooterPlayerSlots, setShooterPlayerSlots] = useState(getStoredShooterPlayerSlots);
   const [guitarLabDeletedIds, setGuitarLabDeletedIds] = useState(getStoredGuitarLabDeletedIds);
   const [guitarLabPurgedIds, setGuitarLabPurgedIds] = useState(getStoredGuitarLabPurgedIds);
+  const [deletedShooterGuitarIds, setDeletedShooterGuitarIds] = useState(deletedGuitarSkinIds);
+  const [deletingShooterGuitarId, setDeletingShooterGuitarId] = useState(null);
+  const shooterGuitarDeletePendingRef = useRef(false);
   const [guitarLabSelectedDeleteIds, setGuitarLabSelectedDeleteIds] = useState([]);
   const [shooterGuitarPickerOpen, setShooterGuitarPickerOpen] = useState(false);
   useEffect(() => {
@@ -16819,6 +16870,9 @@ function App({ onReady }) {
   const [selectedRootScaleSegment, setSelectedRootScaleSegment] = useState(0);
   const [selectedScaleLick, setSelectedScaleLick] = useState(SCALE_LICK_OPTIONS[0].id);
   const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.CHORD);
+  const viewerInstrument = useViewerInstrument();
+  const viewerProfile = viewerInstrument.profile;
+  const viewerTuning = viewerProfile.tuning;
   const [viewerSwipeFeedback, setViewerSwipeFeedback] = useState("");
   const [viewerChordSwipeFeedback, setViewerChordSwipeFeedback] = useState("");
   const [viewerScaleRoot, setViewerScaleRoot] = useState("C");
@@ -17032,9 +17086,8 @@ function App({ onReady }) {
   const [shooterRecordingLayout, setShooterRecordingLayout] = useState(null);
   const [shooterRecordingActive, setShooterRecordingActive] = useState(false);
   const [shooterRecordingEntryTarget, setShooterRecordingEntryTarget] = useState(null);
-  // The regular mobile shooter catalog remains portrait-authored. A selected
-  // landscape-only map opts into its separate renderer farther below.
-  const shooterPortraitLayout = !isMobileLayout || isPortraitOnlyMode(APP_MODES.SHOOTER);
+  // Phones use a portrait-locked arena; tablets follow their actual viewport.
+  const shooterPortraitLayout = !isTabletLayout || !viewportProfile.isLandscape;
   const [trainingNoteGuideEnabled, setTrainingNoteGuideEnabled] = useState(true);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
@@ -17048,6 +17101,9 @@ function App({ onReady }) {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(DEFAULT_SHOOTER_DIFFICULTY);
+  const isShooterVoiceMode = shooterDifficulty === SHOOTER_DIFFICULTIES.VOICE;
+  const shooterInputSource = getShooterInputSource(shooterDifficulty, inputSelection);
+  useLayoutEffect(() => { midiInput.reset(); }, [appMode, shooterInputSource]);
   const [shooterBpm, setShooterBpm] = useState(() => getShooterStartingBpm(DEFAULT_SHOOTER_DIFFICULTY));
   const shooterBpmRef = useRef(shooterBpm);
   const [shooterScenarioRoundSummary, setShooterScenarioRoundSummary] = useState(null);
@@ -17086,23 +17142,22 @@ function App({ onReady }) {
     aura: selectedShooterAuraEffectId,
     floor: selectedShooterFloorEffectId,
   }), [selectedShooterAuraEffectId, selectedShooterFloorEffectId]);
-  const [shooterMapPreference, setShooterMapPreference] = useState(getStoredShooterMapPreference);
+  const [shooterMapPreference, setShooterMapPreference] = useState(() => getStoredShooterMapPreference(isTabletLayout));
   const shooterMapEditorRequested = useMemo(isMapEditModeRequested, []);
   const [shooterMapEditorSessionActive, setShooterMapEditorSessionActive] = useState(
     shooterMapEditorRequested,
   );
+  const shooterMapLayoutOptions = useMemo(() => ({
+    isMobileLayout,
+    isTabletLayout,
+    includeMobileOnly: shooterMapEditorSessionActive,
+    isPortraitLayout: shooterPortraitLayout,
+  }), [isMobileLayout, isTabletLayout, shooterMapEditorSessionActive, shooterPortraitLayout]);
   const [selectedShooterMapId, setSelectedShooterMapId] = useState(() => {
-    const storedPreference = getStoredShooterMapPreference();
+    const storedPreference = getStoredShooterMapPreference(isTabletLayout);
     const storedMapId = getStoredShooterMapId();
-    const mapLookupOptions = {
-      isMobileLayout,
-      includeMobileOnly: shooterMapEditorSessionActive,
-      isPortraitLayout: shooterPortraitLayout,
-    };
-    const layoutMaps = getShooterMapsForLayout(isMobileLayout, {
-      includeMobileOnly: shooterMapEditorSessionActive,
-      isPortraitLayout: shooterPortraitLayout,
-    });
+    const mapLookupOptions = shooterMapLayoutOptions;
+    const layoutMaps = getShooterMapsForLayout(isMobileLayout, mapLookupOptions);
     if (storedPreference !== SHOOTER_RANDOM_MAP_ID) {
       return getShooterMapById(storedPreference, mapLookupOptions).id;
     }
@@ -17153,10 +17208,10 @@ function App({ onReady }) {
   );
   const selectedGuitarVariant = useMemo(
     () =>
-      GUITAR_LAB_VARIANTS.find((variant) => variant.id === selectedGuitarVariantId && !guitarLabPurgedIds.includes(variant.id))
-      ?? GUITAR_LAB_VARIANTS.find((variant) => !guitarLabPurgedIds.includes(variant.id))
+      GUITAR_LAB_VARIANTS.find((variant) => variant.id === selectedGuitarVariantId && !guitarLabPurgedIds.includes(variant.id) && !deletedShooterGuitarIds.includes(variant.id))
+      ?? GUITAR_LAB_VARIANTS.find((variant) => !guitarLabPurgedIds.includes(variant.id) && !deletedShooterGuitarIds.includes(variant.id))
       ?? GUITAR_LAB_VARIANTS[0],
-    [guitarLabPurgedIds, selectedGuitarVariantId],
+    [guitarLabPurgedIds, deletedShooterGuitarIds, selectedGuitarVariantId],
   );
   const selectedShooterGuitarCabinetSkin = useMemo(
     () => getShooterGuitarCabinetSkinById(selectedShooterGuitarCabinetSkinId),
@@ -17179,12 +17234,8 @@ function App({ onReady }) {
     [selectedShooterFloorEffectId],
   );
   const selectedShooterMap = useMemo(
-    () => getShooterMapById(selectedShooterMapId, {
-      isMobileLayout,
-      includeMobileOnly: shooterMapEditorSessionActive,
-      isPortraitLayout: shooterPortraitLayout,
-    }),
-    [isMobileLayout, selectedShooterMapId, shooterMapEditorSessionActive, shooterPortraitLayout],
+    () => getShooterMapById(selectedShooterMapId, shooterMapLayoutOptions),
+    [selectedShooterMapId, shooterMapLayoutOptions],
   );
   const selectedGuitar = selectedGuitarVariant;
   const selectedGuitarCabinet = selectedShooterGuitarCabinetSkin;
@@ -17287,7 +17338,7 @@ function App({ onReady }) {
     && shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_HORIZONTAL;
   const horizontalShooterActive = desktopHorizontalShooterActive
     || shooterRendererMode === SHOOTER_RENDERER_MODES.MOBILE_HORIZONTAL;
-  const desktopHorizontalClickAttackActive = import.meta.env.DEV && desktopHorizontalShooterActive;
+  const desktopHorizontalClickAttackActive = import.meta.env.DEV && desktopHorizontalShooterActive && !isShooterVoiceMode;
   const commitShooterEffectEditorLoadout = useCallback(async (effectIds) => {
     const nextLoadout = normalizeShooterEffectLoadout(effectIds);
     try {
@@ -17346,15 +17397,12 @@ function App({ onReady }) {
     map: selectedMap,
   });
   const shooterMapAnimationsActive = shooterMapRuntimePerformance.animationsActive;
-  const shooterMapPickerOptions = isMobileLayout
-    ? LAYERED_SHOOTER_MAP_SKINS
-    : getShooterMapsForLayout(false, {
-      includeMobileOnly: shooterMapEditorSessionActive,
-      isPortraitLayout: shooterPortraitLayout,
-    });
-  const landscapeShooterMapOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.landscapeOnly);
+  const shooterMapPickerOptions = getShooterMapsForLayout(isMobileLayout, shooterMapLayoutOptions);
+  const landscapeShooterMapOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.landscapeOnly)
+    .filter((map) => isShooterMapAvailableForLayout(map, isMobileLayout, shooterMapLayoutOptions));
   const developerShooterMapOptions = SHOOTER_MAP_OPTIONS.filter(
-    (map) => map.devOnly && !map.landscapeOnly,
+    (map) => map.devOnly && !map.landscapeOnly
+      && isShooterMapAvailableForLayout(map, isMobileLayout, shooterMapLayoutOptions),
   );
   const selectedEffectLayers = useMemo(
     () => applyShooterEffectTuning([
@@ -17447,13 +17495,13 @@ function App({ onReady }) {
   const shooterPlayerOptions = useMemo(() => (
     SHOOTER_PLAYER_GUITAR_VARIANT_IDS.map((variantId) => {
       const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId);
-      if (!variant || guitarLabPurgedIds.includes(variant.id)) return null;
+      if (!variant || guitarLabPurgedIds.includes(variant.id) || deletedShooterGuitarIds.includes(variant.id)) return null;
       return {
         slotKey: `category-candidate-${variant.id}`,
         variant,
       };
     }).filter(Boolean)
-  ), [guitarLabPurgedIds]);
+  ), [guitarLabPurgedIds, deletedShooterGuitarIds]);
   const shooterGuitarSections = useMemo(
     () => SHOOTER_GUITAR_CATEGORY_OPTIONS.map((option) => ({
       ...option,
@@ -17514,6 +17562,7 @@ function App({ onReady }) {
 
   const applyGuitarVariant = useCallback((variantId) => {
     if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
+    if (deletedShooterGuitarIds.includes(variantId)) return;
     if (guitarLabPurgedIds.includes(variantId)) return;
     setSelectedGuitarVariantId(variantId);
     if (typeof window !== "undefined") {
@@ -17521,7 +17570,44 @@ function App({ onReady }) {
       window.localStorage.setItem(SHOOTER_PLAYER_STORAGE_KEY, variantId);
       window.localStorage.setItem(GUITAR_LAB_STORAGE_KEY, variantId);
     }
-  }, [guitarLabPurgedIds]);
+  }, [guitarLabPurgedIds, deletedShooterGuitarIds]);
+
+  const deleteShooterGuitarSkin = useCallback(async (variant) => {
+    if (!import.meta.env.DEV || shooterGuitarDeletePendingRef.current) return;
+    const fallback = shooterPlayerOptions.find(({ variant: option }) =>
+      option.id !== variant.id && getShooterGuitarCategoryId(option.id) === getShooterGuitarCategoryId(variant.id));
+    if (!fallback) {
+      window.alert(localizeUi(ko["shooter.keepOneGuitarSkin"]));
+      return;
+    }
+    if (!window.confirm(localizeUi(formatMessage(ko["shooter.confirmDeleteGuitarSkin"], { value1: variant.title })))) return;
+    shooterGuitarDeletePendingRef.current = true;
+    setDeletingShooterGuitarId(variant.id);
+    try {
+      const response = await fetch("/__rifflab/shooter-editor/guitar-skins/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: variant.id }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok || !Array.isArray(result.deletedIds) || !result.deletedIds.includes(variant.id)) {
+        throw new Error(result.error || "Guitar skin deletion failed");
+      }
+      setDeletedShooterGuitarIds(result.deletedIds);
+      if (selectedGuitarVariantId === variant.id) applyGuitarVariant(fallback.variant.id);
+      setShooterPlayerSlots((current) => {
+        const next = Object.fromEntries(Object.entries(current).map(([key, id]) => [key, id === variant.id ? fallback.variant.id : id]));
+        window.localStorage.setItem(SHOOTER_PLAYER_SLOTS_STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
+    } catch (error) {
+      console.error("Guitar skin deletion failed", error);
+      window.alert(localizeUi(ko["shooter.guitarSkinDeleteFailed"]));
+    } finally {
+      shooterGuitarDeletePendingRef.current = false;
+      setDeletingShooterGuitarId(null);
+    }
+  }, [applyGuitarVariant, selectedGuitarVariantId, shooterPlayerOptions]);
 
   const applyShooterGuitarCabinetSkin = useCallback((skinId) => {
     const nextSkin = getShooterGuitarCabinetSkinById(
@@ -17670,20 +17756,37 @@ function App({ onReady }) {
     });
   }, []);
 
+  useEffect(() => {
+    // A map still loading when the tablet rotates must not replace the new
+    // orientation's selection when its preload eventually finishes.
+    return () => { shooterMapSelectionRequestRef.current += 1; };
+  }, [shooterMapLayoutOptions]);
+
+  useEffect(() => {
+    if (!isTabletLayout) return;
+    const installingTabletDefault = window.localStorage.getItem(TABLET_MAP_DEFAULT_STORAGE_KEY) !== TABLET_DEFAULT_SHOOTER_MAP_ID;
+    window.localStorage.setItem(TABLET_MAP_DEFAULT_STORAGE_KEY, TABLET_DEFAULT_SHOOTER_MAP_ID);
+    const nextMapId = installingTabletDefault && shooterPortraitLayout
+      ? TABLET_DEFAULT_SHOOTER_MAP_ID
+      : selectedMap.id;
+    const nextPreference = !installingTabletDefault && shooterMapPreference === SHOOTER_RANDOM_MAP_ID
+      ? SHOOTER_RANDOM_MAP_ID
+      : nextMapId;
+    if (!installingTabletDefault && selectedShooterMapId === nextMapId && shooterMapPreference === nextPreference) return;
+    shooterMapSelectionRequestRef.current += 1;
+    setSelectedShooterMapId(nextMapId);
+    setShooterMapPreference(nextPreference);
+    window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMapId);
+    window.localStorage.setItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY, nextPreference);
+  }, [isTabletLayout, shooterPortraitLayout, selectedMap.id, selectedShooterMapId, shooterMapPreference]);
+
   const applyShooterMap = useCallback((mapId) => {
-    const mapLookupOptions = {
-      isMobileLayout,
-      includeMobileOnly: shooterMapEditorSessionActive,
-      isPortraitLayout: shooterPortraitLayout,
-    };
+    const mapLookupOptions = shooterMapLayoutOptions;
     if (mapId === SHOOTER_RANDOM_MAP_ID) {
       const nextMapId = getRandomShooterMapId(
         selectedShooterMapId,
         Math.random(),
-        getShooterMapsForLayout(isMobileLayout, {
-          includeMobileOnly: shooterMapEditorSessionActive,
-          isPortraitLayout: shooterPortraitLayout,
-        }),
+        getShooterMapsForLayout(isMobileLayout, mapLookupOptions),
       );
       const nextMap = getShooterMapById(nextMapId, mapLookupOptions);
       queueShooterMapSelection(nextMap, SHOOTER_RANDOM_MAP_ID);
@@ -17695,25 +17798,17 @@ function App({ onReady }) {
     isMobileLayout,
     queueShooterMapSelection,
     selectedShooterMapId,
-    shooterMapEditorSessionActive,
-    shooterPortraitLayout,
+    shooterMapLayoutOptions,
   ]);
 
   const applyShooterEntryMap = useCallback(() => {
-    const mapLookupOptions = {
-      isMobileLayout,
-      includeMobileOnly: shooterMapEditorSessionActive,
-      isPortraitLayout: shooterPortraitLayout,
-    };
+    const mapLookupOptions = shooterMapLayoutOptions;
     if (shooterMapPreference !== SHOOTER_RANDOM_MAP_ID) {
       const fixedMap = getShooterMapById(shooterMapPreference, mapLookupOptions);
       queueShooterMapSelection(fixedMap, fixedMap.id);
       return;
     }
-    const layoutMaps = getShooterMapsForLayout(isMobileLayout, {
-      includeMobileOnly: shooterMapEditorSessionActive,
-      isPortraitLayout: shooterPortraitLayout,
-    });
+    const layoutMaps = getShooterMapsForLayout(isMobileLayout, mapLookupOptions);
     const currentMapId = getShooterMapById(selectedShooterMapId, mapLookupOptions).id;
     const nextMapId = getRandomShooterMapId(currentMapId, Math.random(), layoutMaps);
     const nextMap = getShooterMapById(nextMapId, mapLookupOptions);
@@ -17722,9 +17817,8 @@ function App({ onReady }) {
     isMobileLayout,
     queueShooterMapSelection,
     selectedShooterMapId,
-    shooterMapEditorSessionActive,
+    shooterMapLayoutOptions,
     shooterMapPreference,
-    shooterPortraitLayout,
   ]);
 
   const persistGuitarLabDeletedIds = useCallback((nextIds) => {
@@ -18008,6 +18102,7 @@ function App({ onReady }) {
   const selectedCategoryIdRef = useRef(initialRouteRef.current.categoryId);
   const viewerModeRef = useRef(FRETBOARD_VIEWER_MODES.CHORD);
   const utilityMenuOpenRef = useRef(false);
+  const utilityMenuTriggerRef = useRef(null);
   const refillMetronomeAudioRef = useRef(null);
   const navigationCommitScheduleRef = useRef({ frameId: null, token: 0 });
   const routeSyncRef = useRef(false);
@@ -18329,6 +18424,7 @@ function App({ onReady }) {
   const lastHitRef = useRef({ note: null, time: 0 });
   const lastMissRef = useRef({ note: null, time: 0 });
   const shooterPitchJudgmentRef = useRef(createShooterPitchJudgmentState());
+  const shooterVoiceJudgmentRef = useRef(createShooterVoiceJudgmentState());
   const shooterPitchDisplayRef = useRef(createShooterPitchDisplayState());
   const hitsRef = useRef(0);
   const lastDebugUpdateRef = useRef(0);
@@ -18359,6 +18455,8 @@ function App({ onReady }) {
   const shooterActiveSoundGroupsRef = useRef(new Map());
   const shooterNoiseBufferCacheRef = useRef(new Map());
   const shooterDifficultyRef = useRef(DEFAULT_SHOOTER_DIFFICULTY);
+  const shooterInstrumentRef = useRef(viewerProfile);
+  shooterInstrumentRef.current = viewerProfile;
   const shooterSessionSavedRef = useRef(true);
   const shooterScenarioRoundStatsRef = useRef({
     hits: 0,
@@ -18388,24 +18486,26 @@ function App({ onReady }) {
   const beatAccuracy = hits === 0 ? 100 : Math.round((perfectCount / hits) * 100);
   const noteAccuracy = accuracy;
   const mostMissedNote = Object.entries(missedNoteCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "-";
-  const hasMic = Boolean(micInputSessionRef.current?.connected) || (appMode === APP_MODES.SHOOTER && inputSelection.shooterSource === "midi" && midiConnection.connected);
+  const hasMic = Boolean(micInputSessionRef.current?.connected) || (appMode === APP_MODES.SHOOTER && shooterInputSource === "midi" && midiConnection.connected);
   const isSignalActive = hasMic && signalLevel >= ACTIVE_SIGNAL_LEVEL;
   const showLowSignalWarning =
     hasMic && gameState !== GAME_STATES.IDLE && signalLevel > 0 && signalLevel < LOW_SIGNAL_LEVEL;
 
   const micLabel = useMemo(() => {
-    if (appMode === APP_MODES.SHOOTER && inputSelection.shooterSource === 'midi') return midiConnection.connected ? 'MIDI Connected' : 'MIDI Disconnected';
+    if (appMode === APP_MODES.SHOOTER && shooterInputSource === 'midi') return midiConnection.connected ? 'MIDI Connected' : 'MIDI Disconnected';
     if (['Permission Denied', 'Device Disconnected', 'Input Error'].includes(micStatus)) return micStatus;
     if (!hasMic) return "No Signal";
     if (gameState === GAME_STATES.PLAYING) {
       return isSignalActive ? "Listening..." : "No Signal";
     }
     return "Mic Connected";
-  }, [appMode, gameState, hasMic, isSignalActive, micStatus, inputSelection.shooterSource, midiConnection.connected]);
+  }, [appMode, gameState, hasMic, isSignalActive, micStatus, shooterInputSource, midiConnection.connected]);
 
-  const selectedCategory =
-    PRACTICE_CATEGORIES.find((category) => category.id === selectedCategoryId) ??
-    DEFAULT_CATEGORY;
+  const selectedCategory = useMemo(() => {
+    const category = PRACTICE_CATEGORIES.find(category => category.id === selectedCategoryId) ?? DEFAULT_CATEGORY;
+    return viewerProfile.id !== 'guitar-6' && ['first-position','open'].includes(category.id)
+      ? buildInstrumentFirstPosition(viewerProfile,category) : category;
+  }, [selectedCategoryId,viewerProfile]);
   const isSelectedScaleLick = isScaleLickFamilyId(selectedScaleFamily);
   const selectedScaleLickOptions = isSelectedScaleLick ? getScaleLickOptionsForFamily(selectedScaleFamily) : [];
   const safeSelectedScaleLick = selectedScaleLickOptions.some((lick) => lick.id === selectedScaleLick)
@@ -18417,9 +18517,14 @@ function App({ onReady }) {
       selectedScaleType,
       selectedScaleFamily,
       isSelectedScaleLick ? safeSelectedScaleLick : selectedScaleBox,
+      "ascending",
+      viewerProfile,
     ),
-    [isSelectedScaleLick, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType],
+    [isSelectedScaleLick, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, viewerProfile],
   );
+  useEffect(() => {
+    if (selectedScalePattern.position != null && selectedScalePattern.position !== selectedScaleBox) setSelectedScaleBox(selectedScalePattern.position);
+  }, [selectedScalePattern.position,selectedScaleBox]);
   const scalePracticePickerEnabled = appMode === APP_MODES.PRACTICE
     && selectedCategory.id === "scale-block" && !isSelectedScaleLick;
   const scaleAllPositions = scalePracticePickerEnabled && selectedScaleBox === SCALE_ALL_POSITIONS;
@@ -18441,7 +18546,8 @@ function App({ onReady }) {
     : scalePositionNavigationEnabled ? "BOX" : getScalePositionTriggerLabel(selectedScaleDetailValue);
   const scalePracticePositionOptions = [
     { id: "box", label: "BOX" },
-    ...getScalePositionOptions().filter(option => rootScaleOctaves(option.id) || option.id === SCALE_ALL_POSITIONS),
+    ...getScalePositionOptions().filter(option => rootScaleOctaves(option.id) || option.id === SCALE_ALL_POSITIONS)
+      .map(option => ({ ...option, disabled: viewerProfile.id !== 'guitar-6' && !supportsInstrumentScalePosition(viewerProfile, selectedScaleRoot, option.id) })),
   ];
   const scalePracticePositionValue = scaleAllPositions || rootScaleSegmentPractice ? selectedScaleDetailValue : "box";
   const scalePracticePositionIndex = scaleAllPositions ? 0 : rootScaleSegmentPractice ? selectedPentatonic.activeRootScaleSegment : Number(selectedScaleBox) - 1;
@@ -18449,9 +18555,14 @@ function App({ onReady }) {
   const selectedPentatonicRef = useRef(selectedPentatonic);
   selectedPentatonicRef.current = selectedPentatonic;
   const viewerScaleBlock = useMemo(
-    () => buildNamedScalePractice(viewerScaleRoot, viewerScaleId, viewerScaleBox),
-    [viewerScaleBox, viewerScaleId, viewerScaleRoot],
+    () => viewerProfile.id === 'guitar-6'
+      ? buildNamedScalePractice(viewerScaleRoot, viewerScaleId, viewerScaleBox)
+      : buildInstrumentScale(viewerProfile, viewerScaleRoot, viewerScaleId, viewerScaleBox),
+    [viewerProfile, viewerScaleBox, viewerScaleId, viewerScaleRoot],
   );
+  useEffect(() => {
+    if (viewerScaleBlock.position != null && viewerScaleBlock.position !== viewerScaleBox) setViewerScaleBox(viewerScaleBlock.position);
+  }, [viewerScaleBlock.position, viewerScaleBox]);
   const viewerSelectedChordName = getChordNameFromParts(
     viewerChordBaseRoot,
     viewerChordAccidental,
@@ -18562,9 +18673,7 @@ function App({ onReady }) {
   });
   const viewerTitle = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChordDebugInfo.generatedChordName : viewerScaleBlock.label;
   const viewerHint = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.hint : ko["app.referenceTheSelectedPositionOnly"];
-  const viewerMapFrets = useMemo(() => Array.from({ length: 16 }, (_, index) => index), []);
   const viewerNotePositionRange = NOTE_VIEWER_POSITIONS.at(-1).range;
-  const viewerMapStrings = useMemo(() => [...STANDARD_TUNING].sort((a, b) => a.stringNumber - b.stringNumber), []);
   const viewerChordToneNames = useMemo(
     () => getChordToneNames(viewerChordRoot, viewerChordQuality, viewerChordExtension),
     [viewerChordExtension, viewerChordQuality, viewerChordRoot],
@@ -18581,25 +18690,9 @@ function App({ onReady }) {
     }
     return new Set(CHROMATIC_NOTES);
   }, [viewerChordToneNames, viewerMode, viewerScaleBlock.notes]);
-  const viewerAllMapNotes = useMemo(() => {
-    return viewerMapStrings.flatMap((stringInfo) => {
-      const openMidi = pitchToMidi(stringInfo.pitch);
-      return viewerMapFrets.map((fretNumber) => {
-        const pitch = midiToPitch(openMidi + fretNumber);
-        const noteName = getPitchClass(pitch);
-        const octave = Number(pitch.replace(/\D+/g, ""));
-        return {
-          id: `viewer-map-s${stringInfo.stringNumber}-f${fretNumber}`,
-          stringNumber: stringInfo.stringNumber,
-          fretNumber,
-          pitch,
-          noteName,
-          octave,
-          solfege: SOLFEGE[noteName] ?? "",
-        };
-      });
-    });
-  }, [viewerMapFrets, viewerMapStrings]);
+  const viewerAllMapNotes = useMemo(() => buildInstrumentNotes(viewerTuning).map(note => ({
+    ...note, id: `viewer-map-${note.id}`, solfege: SOLFEGE[note.noteName] ?? '',
+  })), [viewerTuning]);
   const viewerMapNotes = useMemo(() => viewerAllMapNotes.filter((note) => {
       if (!viewerMapPitchClasses.has(note.noteName)) return false;
       if (viewerMode === FRETBOARD_VIEWER_MODES.CHORD) {
@@ -18619,6 +18712,9 @@ function App({ onReady }) {
           ? viewerChordDebugInfo.generatedChordName
           : ko["app.guitarFretboardInformation"];
   const viewerChordPositionData = useMemo(() => {
+    if (viewerProfile.id !== 'guitar-6') return buildInstrumentChordPositions(viewerProfile, {
+      root: viewerChordRoot, quality: viewerChordQuality, extension: viewerChordExtension,
+    });
     return buildChordReferencePositionMap({
       root: viewerChordRoot,
       quality: viewerChordQuality,
@@ -18627,7 +18723,7 @@ function App({ onReady }) {
       hint: selectedStoredChord?.hint ?? selectedBuiltChord?.hint,
       storedChord: selectedStoredChord,
     });
-  }, [selectedBuiltChord, selectedStoredChord, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerSelectedChordName]);
+  }, [viewerProfile, selectedBuiltChord, selectedStoredChord, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerSelectedChordName]);
   const viewerCurrentChordPosition =
     viewerChordPosition === CHORD_VIEWER_POSITION_ALL
       ? viewerChordPositionData.position1
@@ -18714,6 +18810,7 @@ function App({ onReady }) {
     }), [getChordFromSelector, stage3StorageChordAccidental, stage3StorageChordBaseRoot, stage3StorageChordQuality]);
   const stage3StorageChordPositionData = useMemo(() => {
     if (!stage3StorageSelectedChord) return {};
+    if (viewerProfile.id !== 'guitar-6') return buildInstrumentChordPositions(viewerProfile,stage3StorageSelectedChord);
     return buildChordReferencePositionMap({
       root: stage3StorageSelectedChord.root,
       quality: stage3StorageSelectedChord.quality,
@@ -18722,7 +18819,7 @@ function App({ onReady }) {
       hint: stage3StorageSelectedChord.hint,
       storedChord: stage3StorageSelectedChord,
     });
-  }, [stage3StorageSelectedChord, stage3StorageSelectedChordName]);
+  }, [stage3StorageSelectedChord, stage3StorageSelectedChordName, viewerProfile]);
   const stage3StorageChordPositionLabel = CHORD_VIEWER_POSITIONS.find(
     (position) => position.id === stage3StorageChordPosition,
   )?.label ?? ko["app.position1"];
@@ -18734,11 +18831,14 @@ function App({ onReady }) {
   const stage3StorageEditingEntry = Number.isInteger(stage3StorageChordEditingIndex)
     ? stage3StorageChordIds[stage3StorageChordEditingIndex] ?? null
     : null;
-  const stage3StorageInitialFretboard = useMemo(() => createChordFretboardSnapshot(
-    stage3StorageEditingEntry?.fretboard ?? stage3StorageCurrentChordPosition ?? {},
+  const stage3StorageInitialFretboard = useMemo(() => resolveChordFretboardSnapshot(
+    stage3StorageEditingEntry?.fretboard,
+    stage3StorageCurrentChordPosition,
     stage3StorageSelectedChord?.root,
-  ), [stage3StorageCurrentChordPosition, stage3StorageEditingEntry, stage3StorageSelectedChord?.root]);
+    viewerProfile,
+  ), [stage3StorageCurrentChordPosition, stage3StorageEditingEntry, stage3StorageSelectedChord?.root, viewerProfile]);
   const stage3StorageFretboardEditorKey = [
+    viewerProfile.id,
     stage3StorageEditorSessionRef.current,
     stage3StorageChordEditingIndex ?? "new",
     stage3StorageChordBaseRoot,
@@ -18958,7 +19058,7 @@ function App({ onReady }) {
       );
       if (!chord) return null;
       const displayName = getChordEntryLabel(entry, chord);
-      const positionMap = buildChordReferencePositionMap({
+      const positionMap = viewerProfile.id !== 'guitar-6' ? buildInstrumentChordPositions(viewerProfile,chord) : buildChordReferencePositionMap({
         root: chord.root,
         quality: chord.quality,
         extension: chord.extension,
@@ -18977,10 +19077,15 @@ function App({ onReady }) {
         stringStates: position?.stringStates ?? {},
         visibleFrets: position?.visibleFrets ?? chord.visibleFrets,
       };
-      const fretboard = createChordFretboardSnapshot(
-        typeof entry === "object" && entry?.fretboard ? entry.fretboard : fallbackFretboard,
+      const fretboard = resolveChordFretboardSnapshot(
+        entry?.fretboard,
+        fallbackFretboard,
         chord.root,
+        viewerProfile,
       );
+      const storedMetadata = typeof entry === 'object' && (entry?.fretboard?.instrumentProfileId ?? 'guitar-6') === viewerProfile.id ? entry : {};
+      const theoreticalTones = getChordToneDescriptors(chord.root, chord.quality, chord.extension);
+      const soundingNames = new Set(fretboard.notes.map(note => note.noteName));
       return {
         ...chord,
         beatLength: getChordEntryBeatLength(entry),
@@ -18989,32 +19094,34 @@ function App({ onReady }) {
         stringStates: fretboard.stringStates,
         visibleFrets: fretboard.visibleFrets,
         fretboard,
+        voicing: viewerProfile.id === 'guitar-6' ? (position?.voicing ?? chord.voicing)
+          : { theoreticalTones, omittedTones: theoreticalTones.filter(tone => !soundingNames.has(tone.noteName)) },
         fretboardSignature: getChordFretboardSignature(fretboard),
         positionId: resolvedPositionId,
-        positionLabel: typeof entry === "object" && entry.positionLabel
-          ? String(entry.positionLabel)
+        positionLabel: typeof storedMetadata === "object" && storedMetadata.positionLabel
+          ? String(storedMetadata.positionLabel)
           : CHORD_VIEWER_POSITIONS.find((item) => item.id === resolvedPositionId)?.label ?? ko["app.position1"],
-        strings: typeof entry === "object" && Array.isArray(entry.strings) ? [...entry.strings] : null,
-        rootProvidedByBass: Boolean(typeof entry === "object" && entry.rootProvidedByBass),
-        voicingType: typeof entry === "object" ? String(entry.voicingType || "") : "",
-        transitionHint: typeof entry === "object" ? String(entry.transitionHint || "") : "",
-        soundingNotes: typeof entry === "object" && Array.isArray(entry.soundingNotes)
-          ? entry.soundingNotes.map((note) => String(note))
+        strings: typeof storedMetadata === "object" && Array.isArray(storedMetadata.strings) ? [...storedMetadata.strings] : null,
+        rootProvidedByBass: Boolean(typeof storedMetadata === "object" && storedMetadata.rootProvidedByBass),
+        voicingType: typeof storedMetadata === "object" ? String(storedMetadata.voicingType || "") : "",
+        transitionHint: typeof storedMetadata === "object" ? String(storedMetadata.transitionHint || "") : "",
+        soundingNotes: typeof storedMetadata === "object" && Array.isArray(storedMetadata.soundingNotes)
+          ? storedMetadata.soundingNotes.map((note) => String(note))
           : [],
-        features: typeof entry === "object" && Array.isArray(entry.features)
-          ? entry.features.map((feature) => String(feature))
+        features: typeof storedMetadata === "object" && Array.isArray(storedMetadata.features)
+          ? storedMetadata.features.map((feature) => String(feature))
           : [],
-        formLabel: typeof entry === "object" ? String(entry.formLabel || "") : "",
-        uiLabel: typeof entry === "object" ? String(entry.uiLabel || "") : "",
-        rootPositions: typeof entry === "object" && Array.isArray(entry.rootPositions)
-          ? entry.rootPositions.map((position) => ({ ...position }))
+        formLabel: typeof storedMetadata === "object" ? String(storedMetadata.formLabel || "") : "",
+        uiLabel: typeof storedMetadata === "object" ? String(storedMetadata.uiLabel || "") : "",
+        rootPositions: typeof storedMetadata === "object" && Array.isArray(storedMetadata.rootPositions)
+          ? storedMetadata.rootPositions.map((position) => ({ ...position }))
           : [],
         fretboardDisplayName: chord.displayName,
         displayName,
         isEnharmonic: displayName !== chord.displayName,
       };
     })
-    .filter(Boolean), [getChordFromSelector]);
+    .filter(Boolean), [getChordFromSelector, viewerProfile]);
   const chordTransitionProgression = useMemo(
     () => markBuiltinPianoProgression(
       buildStage3Progression(stage3ChordIds),
@@ -19232,7 +19339,7 @@ function App({ onReady }) {
       positionId: stage3StorageChordPosition,
       beatLength: normalizeRhythmChordBeatLength(beatLength),
       fretboard: stage3StorageFretboardEditorRef.current?.getSnapshot?.()
-        ?? createChordFretboardSnapshot(stage3StorageCurrentChordPosition, stage3StorageSelectedChord.root),
+        ?? createChordFretboardSnapshot(stage3StorageCurrentChordPosition, stage3StorageSelectedChord.root, viewerProfile),
     };
     setStage3StorageChordIds((ids) => (
       Number.isInteger(stage3StorageChordEditingIndex) && ids[stage3StorageChordEditingIndex]
@@ -19240,7 +19347,7 @@ function App({ onReady }) {
         : [...ids, nextEntry]
     ));
     setStage3StorageChordEditingIndex(null);
-  }, [stage3StorageChordAccidental, stage3StorageChordBaseRoot, stage3StorageChordEditingIndex, stage3StorageChordPosition, stage3StorageCurrentChordPosition, stage3StorageSelectedChord, stage3StorageSelectedChordName]);
+  }, [stage3StorageChordAccidental, stage3StorageChordBaseRoot, stage3StorageChordEditingIndex, stage3StorageChordPosition, stage3StorageCurrentChordPosition, stage3StorageSelectedChord, stage3StorageSelectedChordName, viewerProfile]);
   const addStage3StorageRest = useCallback(() => {
     setStage3StorageChordIds((ids) => [
       ...ids,
@@ -19539,7 +19646,7 @@ function App({ onReady }) {
       .filter((note) => Number(note.fretNumber) >= 0)
       .map((note) => ({
         ...note,
-        id: `transition-string-${note.stringNumber}`,
+        id: `transition-string-${note.stringNumber}-fret-${note.fretNumber}`,
         label: showChordFingeringGuide ? note.finger : chordPracticeCurrent.voicing ? note.label : getChordDisplayNoteName(note.noteName),
         isActive: false,
         isCurrent: false,
@@ -19547,7 +19654,7 @@ function App({ onReady }) {
         isRoot: false,
       }));
     const stringStates = Object.fromEntries(
-      [1, 2, 3, 4, 5, 6]
+      viewerTuning.map(string => string.stringNumber)
         .map((stringNumber) => [
           stringNumber,
           chordPracticeCurrent.notes?.some(
@@ -19586,9 +19693,11 @@ function App({ onReady }) {
     hasChordTransitionProgression,
     loadedStage3LibraryItem,
     showChordFingeringGuide,
+    viewerTuning,
   ]);
   const getPlayableCategory = useCallback((category = selectedCategory) => {
     const safeCategory = normalizePracticeCategory(category);
+    if (viewerProfile.id !== 'guitar-6' && ['first-position','open'].includes(safeCategory.id)) return buildInstrumentFirstPosition(viewerProfile,safeCategory);
     if (safeCategory.id !== "scale-block") return safeCategory;
     return {
       ...safeCategory,
@@ -19599,7 +19708,7 @@ function App({ onReady }) {
       sequence: selectedPentatonic.sequence,
       boxSet: selectedPentatonic.boxSet,
     };
-  }, [selectedCategory, selectedPentatonic]);
+  }, [selectedCategory, selectedPentatonic, viewerProfile]);
   const currentJudgmentMode = getJudgmentMode(
     appMode === APP_MODES.SHOOTER ? JUDGMENT_MODES.PITCH.id : selectedCategory.judgmentMode,
   );
@@ -19745,6 +19854,7 @@ function App({ onReady }) {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    resetShooterVoiceJudgmentState(shooterVoiceJudgmentRef.current);
     shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     shooterScenarioRoundStatsRef.current = {
@@ -19776,9 +19886,10 @@ function App({ onReady }) {
     const base = safeCategory.sequence;
     let sequence = base;
     if (safeCategory.id === "first-position") {
-      if (direction === SCALE_DIRECTIONS.ASC) sequence = FIRST_POSITION_ASCENDING_SEQUENCE;
-      else if (direction === SCALE_DIRECTIONS.DESC) sequence = [...FIRST_POSITION_ASCENDING_SEQUENCE].reverse();
-      else sequence = FIRST_POSITION_SEQUENCE;
+      const ascendingSequence = safeCategory.ascendingSequence ?? FIRST_POSITION_ASCENDING_SEQUENCE;
+      if (direction === SCALE_DIRECTIONS.ASC) sequence = ascendingSequence;
+      else if (direction === SCALE_DIRECTIONS.DESC) sequence = [...ascendingSequence].reverse();
+      else sequence = safeCategory.ascendingSequence ? createPingPongSequence(ascendingSequence) : FIRST_POSITION_SEQUENCE;
     } else if (safeCategory.id === "scale-block" && !safeCategory.boxSet) {
       if (direction === SCALE_DIRECTIONS.DESC) sequence = [...base].reverse();
       else if (direction === SCALE_DIRECTIONS.LOOP) sequence = createPingPongSequence(base);
@@ -19894,6 +20005,7 @@ function App({ onReady }) {
       const activeAudio = ensureAudioContext();
       if (activeAudio?.state === "running") {
         playGuitarPositions(activeAudio, [note], {
+          tuning: viewerTuning,
           duration: 1.55,
           volume: 0.48,
         });
@@ -19904,10 +20016,11 @@ function App({ onReady }) {
     const audio = audioRef.current;
     if (!ready || !audio) return;
     playGuitarPositions(audio, [note], {
+      tuning: viewerTuning,
       duration: 1.55,
       volume: 0.48,
     });
-  }, [ensureAudioContext, ensureAudioReady, isMobileLayout]);
+  }, [ensureAudioContext, ensureAudioReady, isMobileLayout, viewerTuning]);
 
   const selectFretboardViewerMode = useCallback((nextMode) => {
     requestNavigationCommit({
@@ -19920,14 +20033,14 @@ function App({ onReady }) {
     }, { updateHistory: false });
   }, [requestNavigationCommit]);
 
-  const viewerSample = getViewerChordSample(viewerChordRoot, viewerChordQuality, viewerChordExtension);
+  const viewerSample = viewerProfile.id === 'guitar-6' ? getViewerChordSample(viewerChordRoot, viewerChordQuality, viewerChordExtension) : null;
   const viewerSoundRequestRef = useRef(0);
   const viewerSampleStopRef = useRef(null);
   useEffect(() => () => {
     viewerSoundRequestRef.current += 1;
     viewerSampleStopRef.current?.();
     viewerSampleStopRef.current = null;
-  }, [appMode, viewerMode, viewerChordRoot, viewerChordQuality, viewerChordExtension, viewerChordPosition]);
+  }, [appMode, viewerMode, viewerProfile, viewerChordRoot, viewerChordQuality, viewerChordExtension, viewerChordPosition]);
 
   const handleViewerChordSound = useCallback(async (event) => {
     const chordNotes = viewerCurrentChordPosition?.notes ?? [];
@@ -19952,6 +20065,7 @@ function App({ onReady }) {
       }
     }
     playGuitarPositions(audio, chordNotes, {
+      tuning: viewerTuning,
       attackSeconds: 0.0075,
       duration: 2.65,
       stringStates: viewerChordStringStates,
@@ -19959,7 +20073,7 @@ function App({ onReady }) {
       velocityVariation: 0.13,
       volume: 0.46,
     });
-  }, [ensureAudioReady, viewerChordStringStates, viewerCurrentChordPosition, viewerSample]);
+  }, [ensureAudioReady, viewerChordStringStates, viewerCurrentChordPosition, viewerSample, viewerTuning]);
 
   const ensureMetronomeOutput = useCallback((audio) => {
     if (!audio) return false;
@@ -20438,10 +20552,12 @@ function App({ onReady }) {
     };
   }, []);
 
-  const cancelScheduledMetronomeTicks = useCallback(() => {
+  const cancelScheduledMetronomeTicks = useCallback(({ futureOnly = false } = {}) => {
     const audio = audioRef.current;
     const now = Math.max(0, Number(audio?.currentTime) || 0);
-    metronomeScheduledSourcesRef.current.forEach(({ gain, source }) => {
+    metronomeScheduledSourcesRef.current.forEach((voice) => {
+      const { gain, source, startAt } = voice;
+      if (futureOnly && Number.isFinite(startAt) && startAt <= now) return;
       try {
         gain?.gain?.cancelScheduledValues?.(now);
         gain?.gain?.setValueAtTime?.(0.0001, now);
@@ -20449,8 +20565,8 @@ function App({ onReady }) {
         // A completed click has no remaining automation to cancel.
       }
       try { source.stop?.(now + 0.002); } catch { /* Already stopped. */ }
+      metronomeScheduledSourcesRef.current.delete(voice);
     });
-    metronomeScheduledSourcesRef.current.clear();
   }, []);
 
   const playTick = useCallback((accent = false, subdivisionIndex = 0, useAccentSetting = true, when = null) => {
@@ -20629,7 +20745,7 @@ function App({ onReady }) {
     const originTime = audio.currentTime + Math.max(0, leadSeconds) - positionSeconds;
     metronomeAudioOriginTimeRef.current = originTime;
     metronomeAudioScheduleKeyRef.current = `${bpmRef.current}:${signature.id}:${subdivision.id}:${grooveModeRef.current}`;
-    return createAudioTransportCursor({ originTime, positionSeconds, stepSeconds });
+    return { ...createAudioTransportCursor({ originTime, positionSeconds, stepSeconds }), ticksPerMeasure: signature.beats * clicksPerBeat };
   }, []);
 
   const stopMetronomeAudioScheduler = useCallback(({ preservePosition = false } = {}) => {
@@ -20667,13 +20783,60 @@ function App({ onReady }) {
     const clicksPerBeat = Math.max(1, subdivision.clicksPerBeat);
     const scheduleKey = `${bpmRef.current}:${signature.id}:${subdivision.id}:${grooveModeRef.current}`;
     if (!metronomeAudioCursorRef.current || metronomeAudioScheduleKeyRef.current !== scheduleKey) {
-      cancelScheduledMetronomeTicks();
-      metronomeAudioCursorRef.current = createMetronomeAudioCursor(audio);
+      const previousCursor = metronomeAudioCursorRef.current;
+      cancelScheduledMetronomeTicks({ futureOnly: Boolean(previousCursor) });
+      metronomeAudioCursorRef.current = previousCursor
+        ? retimeAudioTransportCursor(previousCursor, {
+          currentTime: audio.currentTime,
+          stepSeconds: getAudioTransportStepSeconds(bpmRef.current, clicksPerBeat),
+          ticksPerMeasure: signature.beats * clicksPerBeat,
+        })
+        : createMetronomeAudioCursor(audio);
+      metronomeAudioOriginTimeRef.current = metronomeAudioCursorRef.current.originTime;
+      metronomeAudioScheduleKeyRef.current = scheduleKey;
     }
 
+    // Editing a sound or Coach setting must replace the lookahead, including
+    // the longer queue filled before opening a menu, without moving the beat.
+    const soundSettings = [
+      groovePatternRef.current, metronomeBeatPatternRef.current, metronomeOnRef.current,
+      metronomeAccentToneRef.current, metronomeWeakToneRef.current,
+      coachModeEnabledRef.current, coachPlayBarsRef.current, coachMuteBarsRef.current,
+      metronomeTrackerModeRef.current, metronomeBarLimitEnabledRef.current,
+      metronomeBarLimitRef.current, metronomeBarStopWhenReachedRef.current,
+      metronomeTrackerTimerTotalMsRef.current, metronomeTimerStopWhenReachedRef.current,
+    ];
+    const cursor = metronomeAudioCursorRef.current;
+    if (cursor.soundSettings && soundSettings.some((value, i) => value !== cursor.soundSettings[i])) {
+      cancelScheduledMetronomeTicks({ futureOnly: true });
+      metronomeAudioCursorRef.current = createAudioTransportCursor({
+        originTime: cursor.originTime,
+        positionSeconds: Math.max(0, audio.currentTime + 0.002 - cursor.originTime),
+        stepSeconds: cursor.stepSeconds,
+      });
+      metronomeAudioCursorRef.current.ticksPerMeasure = signature.beats * clicksPerBeat;
+    }
+    metronomeAudioCursorRef.current.soundSettings = soundSettings;
+
+    // Audio can run ahead of animation frames. Never queue attacks beyond a
+    // Tracker stop boundary, even while the settings panel delays painting.
+    const runtime = metronomeRuntimeRef.current;
+    let stopBeforeTime = Infinity;
+    if (appModeRef.current === APP_MODES.METRONOME) {
+      if (metronomeTrackerModeRef.current === "bars" && metronomeBarLimitEnabledRef.current
+        && metronomeBarStopWhenReachedRef.current && metronomeBarLimitRef.current > 0) {
+        const endBar = runtime.completedBars + Math.max(0, metronomeBarLimitRef.current - runtime.trackerBars);
+        stopBeforeTime = metronomeAudioCursorRef.current.originTime + endBar * signature.beats * 60 / bpmRef.current;
+      } else if (metronomeTrackerModeRef.current === "timer" && metronomeTimerStopWhenReachedRef.current
+        && metronomeTrackerTimerTotalMsRef.current > 0) {
+        stopBeforeTime = metronomeLastAudioTimeRef.current
+          + Math.max(0, metronomeTrackerTimerTotalMsRef.current - runtime.trackerElapsedMs) / 1000;
+      }
+    }
     const scheduled = collectAudioTransportSteps(metronomeAudioCursorRef.current, {
       currentTime: audio.currentTime,
       horizonSeconds,
+      stopBeforeTime,
     });
     metronomeAudioCursorRef.current = scheduled.cursor;
     scheduled.steps.forEach(({ index, time }) => {
@@ -21640,7 +21803,8 @@ function App({ onReady }) {
       round: stats.evaluations + 1,
       accuracy: progress.accuracy,
       missedPositions,
-      message: getReviewMessage(stats.missedSteps),
+      message: shooterInstrumentRef.current.id === 'guitar-6' ? getReviewMessage(stats.missedSteps)
+        : ko[stats.missedSteps.length ? 'shooter.instrumentReviewMisses' : 'shooter.instrumentReviewComplete'],
       bpm: progress.bpm,
       bpmRaised: progress.bpmRaised,
     });
@@ -21712,15 +21876,17 @@ function App({ onReady }) {
     const isNormalScenario = difficulty === SHOOTER_DIFFICULTIES.NORMAL;
     const isDifficultScenario = difficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
     const isScriptedScenario = isEasyScenario || isNormalScenario || isDifficultScenario;
+    const instrumentProfile = shooterInstrumentRef.current;
+    const useInstrumentScenario = instrumentProfile.id !== 'guitar-6' && isScriptedScenario;
     const difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN;
-    const scenarioStep = isEasyScenario
+    const scenarioStep = useInstrumentScenario ? getShooterInstrumentStep(instrumentProfile, difficulty, patternRef.current) : isEasyScenario
       ? getShooterEasyScenarioStep(patternRef.current)
       : isNormalScenario
         ? getShooterNormalScenarioStep(patternRef.current)
         : isDifficultScenario
           ? getShooterDifficultScenarioStep(patternRef.current, difficultPatternId)
           : null;
-    const scenarioRound = isEasyScenario
+    const scenarioRound = useInstrumentScenario ? getShooterInstrumentRound(instrumentProfile, difficulty, patternRef.current) : isEasyScenario
       ? getShooterEasyScenarioRound(patternRef.current)
       : isNormalScenario
         ? getShooterNormalScenarioRound(patternRef.current)
@@ -21750,6 +21916,7 @@ function App({ onReady }) {
       gameTimeRef.current,
       patternRef.current,
       difficultPatternId,
+      instrumentProfile,
     );
     const activeTargetCount = shooterTargetsRef.current.filter((target) => !target.defeated).length;
     if (activeTargetCount >= level.maxTargets) return false;
@@ -21760,21 +21927,25 @@ function App({ onReady }) {
       selectedPentatonicRef.current,
       patternRef.current,
       difficultPatternId,
+      instrumentProfile,
     );
     activeNotesRef.current = trainingNotes;
     const pool = getShooterPool(trainingNotes, level, { preservePositions: isRandomDifficulty });
-    const techniqueLabel = isDifficultScenario
+    const techniqueLabel = isDifficultScenario && !useInstrumentScenario
       ? getShooterDifficultTechniqueLabel(scenarioStep, shooterBpmRef.current)
       : "";
     const resolvedScenarioStep = scenarioStep
       ? { ...scenarioStep, techniqueLabel }
       : null;
-    const detail = resolvedScenarioStep
+    const detail = difficulty === SHOOTER_DIFFICULTIES.VOICE
+      ? pickShooterVoiceNote()
+      : resolvedScenarioStep
       ? {
           ...makeGuitarNote({
             pitch: resolvedScenarioStep.pitch,
             stringNumber: resolvedScenarioStep.stringNumber,
             fretNumber: resolvedScenarioStep.fretNumber,
+            lane: instrumentProfile.stringCount - resolvedScenarioStep.stringNumber,
             group: isEasyScenario
               ? "shooter-easy-scenario"
               : isDifficultScenario
@@ -21968,13 +22139,15 @@ function App({ onReady }) {
     if (!arenaRect?.width || !arenaRect?.height || !playerRect) return null;
     const renderedScaleX = arenaRect.width / arenaSize.width;
     const renderedScaleY = arenaRect.height / arenaSize.height;
+    // Layouts can enlarge the complete skin; keep the muzzle at its rendered tip.
+    const playerScale = Number.parseFloat(getComputedStyle(playerNode).getPropertyValue("--shooter-player-scale")) || 1;
     const metrics = {
       arenaHeight: arenaSize.height,
       arenaRect: { height: arenaSize.height, width: arenaSize.width },
       arenaWidth: arenaSize.width,
-      assetHeight: Math.max(1, assetNode?.offsetHeight || playerRect.height || 1),
+      assetHeight: Math.max(1, assetNode?.offsetHeight * playerScale || playerRect.height / renderedScaleY || 1),
       assetNode,
-      assetWidth: Math.max(1, assetNode?.offsetWidth || playerRect.width || 1),
+      assetWidth: Math.max(1, assetNode?.offsetWidth * playerScale || playerRect.width / renderedScaleX || 1),
       playerOffsetTop: playerNode.offsetTop,
       pivotX: (playerRect.left - arenaRect.left + playerRect.width / 2) / renderedScaleX,
       pivotY: (playerRect.bottom - arenaRect.top) / renderedScaleY,
@@ -22712,7 +22885,7 @@ function App({ onReady }) {
     setShooterPitchStatus(reason);
   };
   useEffect(() => midiInput.consume({
-    active: () => appModeRef.current === APP_MODES.SHOOTER && getAudioInputSelection().shooterSource === 'midi',
+    active: () => appModeRef.current === APP_MODES.SHOOTER && getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) === 'midi',
     message: event => midiGameHandler.current(event),
     reset: () => { shooterPitchDisplayRef.current = createShooterPitchDisplayState(); },
   }), []);
@@ -22721,7 +22894,7 @@ function App({ onReady }) {
     (now) => {
       const analyser = analyserRef.current;
       const buffer = bufferRef.current;
-      if (getAudioInputSelection().shooterSource === "midi") return;
+      if (getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) === "midi") return;
       const micSession = micInputSessionRef.current;
       if (micSession && !micSession.connected) return;
       const audio = micSession?.audioContext || audioRef.current;
@@ -22730,12 +22903,14 @@ function App({ onReady }) {
       lastMicReadAtRef.current = now;
 
       analyser.getFloatTimeDomainData(buffer);
+      const voiceMode = shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.VOICE;
+      const judgmentState = voiceMode ? shooterVoiceJudgmentRef.current : shooterPitchJudgmentRef.current;
       const signalFrame = readShooterSignalFrame(
-        micSession, now, shooterPitchJudgmentRef.current.signalPresent, getRms(buffer),
+        micSession, now, judgmentState.signalPresent, getRms(buffer),
         isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL,
       );
       const { rms, canAnalyzePitch } = signalFrame;
-      const attackId = observeShooterNoteOn(shooterPitchJudgmentRef.current.noteOn, {
+      const attackId = voiceMode ? undefined : observeShooterNoteOn(shooterPitchJudgmentRef.current.noteOn, {
         now, rms, signalPresent: canAnalyzePitch,
       });
       const inputGain = isMobileLayoutRef.current ? 22 : 12;
@@ -22751,7 +22926,8 @@ function App({ onReady }) {
       }
 
       if (!canAnalyzePitch) {
-        releaseShooterPitchJudgment(shooterPitchJudgmentRef.current);
+        if (voiceMode) releaseShooterVoiceJudgment(shooterVoiceJudgmentRef.current);
+        else releaseShooterPitchJudgment(shooterPitchJudgmentRef.current);
         if (now - lastDetectedDisplayUpdateRef.current > MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS) {
           lastDetectedDisplayUpdateRef.current = now;
           setDetected(null);
@@ -22765,23 +22941,25 @@ function App({ onReady }) {
       if (now - lastMicAnalysisAtRef.current < MIC_ANALYSIS_INTERVAL_MS) return;
       lastMicAnalysisAtRef.current = now;
 
-      const maxDetectFrequency = MAX_FREQ;
-      const yinResult = detectPitchYinDetailed(
+      const instrumentAnalysis = getShooterInstrumentAnalysis(shooterInstrumentRef.current, audio.sampleRate);
+      const minDetectFrequency = instrumentAnalysis.minFrequency;
+      const maxDetectFrequency = instrumentAnalysis.maxFrequency;
+      const yinResult = voiceMode ? detectShooterVoicePitch(buffer, audio.sampleRate) : detectPitchYinDetailed(
         buffer,
         audio.sampleRate,
-        MIN_FREQ,
+        minDetectFrequency,
         maxDetectFrequency,
         0.12,
       );
       const pitch =
         yinResult?.frequency ??
-        detectPitchAutocorrelation(
+        (voiceMode ? null : detectPitchAutocorrelation(
           buffer,
           audio.sampleRate,
-          MIN_FREQ,
+          minDetectFrequency,
           maxDetectFrequency,
           0.006,
-        );
+        ));
       const displayNote = frequencyToNearest(pitch, DISPLAY_NOTES, 80);
       const signalPresent = isShooterPitchSignalPresent(signalFrame, yinResult?.confidence ?? 0);
       const currentTarget = shooterTargetsRef.current.find((candidate) => (
@@ -22792,7 +22970,7 @@ function App({ onReady }) {
         && !candidate.slashPending
       )) ?? syncShooterActiveTarget(shooterTargetsRef.current, true);
       const currentTargetPitch = currentTarget?.detail?.pitch ?? currentTarget?.note ?? null;
-      const judgment = observeShooterPitchFrame(shooterPitchJudgmentRef.current, {
+      const pitchFrame = {
         attackId,
         deferCommit: true,
         confidence: yinResult?.confidence ?? 0,
@@ -22808,11 +22986,15 @@ function App({ onReady }) {
             }
           : null,
         targetKey: currentTarget?.id ?? null,
-      });
+      };
+      const judgment = voiceMode
+        ? observeShooterVoiceFrame(shooterVoiceJudgmentRef.current, pitchFrame)
+        : observeShooterPitchFrame(shooterPitchJudgmentRef.current, pitchFrame);
       if (!signalPresent) judgment.reason = "low-confidence";
       if (judgment.accepted && gameStateRef.current === GAME_STATES.PLAYING && currentTargetPitch) {
         if (judgeShooterNote(currentTargetPitch, currentTarget.id)) {
-          commitShooterPitchHit(shooterPitchJudgmentRef.current, judgment);
+          if (voiceMode) commitShooterVoiceHit(shooterVoiceJudgmentRef.current, judgment);
+          else commitShooterPitchHit(shooterPitchJudgmentRef.current, judgment);
         } else {
           // No projectile/slash means the attack has not been consumed.
           judgment.accepted = false;
@@ -22820,7 +23002,7 @@ function App({ onReady }) {
         }
       }
       const display = updateShooterPitchDisplay(shooterPitchDisplayRef.current, {
-        now, frequency: pitch, confidence: yinResult?.confidence ?? 0,
+        now, frequency: pitch, confidence: yinResult?.confidence ?? 0, immediate: voiceMode,
         reason: gameStateRef.current === GAME_STATES.PLAYING ? judgment.reason : "listening", accepted: judgment.accepted,
       });
       if (judgment.accepted || now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
@@ -22833,7 +23015,7 @@ function App({ onReady }) {
             return currentPitch === nextDetectedPitch ? currentPitch : nextDetectedPitch;
           }
           return currentPitch.note === nextDetectedPitch.note
-            && Math.abs(currentPitch.frequency - nextDetectedPitch.frequency) < 2
+            && Math.abs(currentPitch.frequency - nextDetectedPitch.frequency) < (voiceMode ? 0.2 : 2)
             ? currentPitch
             : nextDetectedPitch;
         });
@@ -23647,6 +23829,7 @@ function App({ onReady }) {
   const stopMic = useCallback(() => {
     shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    resetShooterVoiceJudgmentState(shooterVoiceJudgmentRef.current);
     micRequestVersionRef.current += 1;
     micInputSessionRef.current?.release?.();
     micInputSessionRef.current = null;
@@ -23662,7 +23845,7 @@ function App({ onReady }) {
 
   const startMic = useCallback(async ({ quiet = false } = {}) => {
     if (appModeRef.current !== APP_MODES.SHOOTER) return false;
-    if (getAudioInputSelection().shooterSource === 'midi') {
+    if (getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) === 'midi') {
       await midiInput.connect(false);
       const ready = midiInput.getSnapshot().connected;
       setMicStatus(ready ? 'MIDI Connected' : 'MIDI Disconnected');
@@ -23690,13 +23873,13 @@ function App({ onReady }) {
         }
       }
       // Permission checks can finish after navigation; do not steal the next mode's microphone.
-      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getAudioInputSelection().shooterSource !== "audio") return false;
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) !== "audio") return false;
       setMicStatus("No Signal");
       const micSession = await acquireMicInput({
         consumerId: "shooting-game-detector",
         preset: MIC_INPUT_PRESETS.GUITAR_DETECTION,
       });
-      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getAudioInputSelection().shooterSource !== "audio") {
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) !== "audio") {
         await micSession.release();
         return false;
       }
@@ -23709,13 +23892,14 @@ function App({ onReady }) {
       micInputSessionRef.current = micSession;
       streamRef.current = micSession.rawStream;
       sourceRef.current = null;
+      micSession.configureDetection(getShooterInstrumentAnalysis(shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.VOICE ? undefined : shooterInstrumentRef.current, micSession.audioContext.sampleRate));
       analyserRef.current = micSession.analyser;
       bufferRef.current = new Float32Array(micSession.analyser.fftSize);
       setMicStatus("Mic Connected");
       if (gameStateRef.current === GAME_STATES.IDLE) setState(GAME_STATES.LISTENING);
       return true;
     } catch (error) {
-      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getAudioInputSelection().shooterSource !== "audio") return false;
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) !== "audio") return false;
       const inputError = audioInputError(error);
       setMicStatus(inputError === 'denied' ? 'Permission Denied' : inputError === 'disconnected' ? 'Device Disconnected' : 'Input Error');
       setFeedback(inputError === 'denied' ? ko["app.microphonePermissionRequired"] : inputError === 'disconnected' ? ko["app.inputDeviceDisconnected"] : ko["app.inputConnectionFailed"]);
@@ -23730,7 +23914,7 @@ function App({ onReady }) {
   }, [setState, isMobileLayout]);
 
   useEffect(() => {
-    if (appMode !== APP_MODES.SHOOTER || inputSelection.shooterSource !== "audio") return;
+    if (appMode !== APP_MODES.SHOOTER || shooterInputSource !== "audio") return;
     return installMicForegroundRecovery({
       getSession: () => micInputSessionRef.current,
       restart: () => startMic({ quiet: true }),
@@ -23741,31 +23925,36 @@ function App({ onReady }) {
         }
       },
     });
-  }, [appMode, startMic, setState, inputSelection.shooterSource]);
+  }, [appMode, startMic, setState, shooterInputSource]);
 
   useEffect(() => {
     if (appMode !== APP_MODES.SHOOTER) return;
     stopMic();
     if (gameStateRef.current === GAME_STATES.PLAYING) setState(GAME_STATES.PAUSED);
-    if (inputSelection.shooterSource === 'audio') void startMic();
+    if (shooterInputSource === 'audio') void startMic();
     else void midiInput.connect(false);
     return stopMic;
-  }, [appMode, startMic, stopMic, setState, inputSelection.shooterSource, inputSelection.revision]);
+  }, [appMode, startMic, stopMic, setState, shooterInputSource, inputSelection.revision, isShooterVoiceMode]);
 
   useEffect(() => {
-    if (appMode !== APP_MODES.SHOOTER || inputSelection.shooterSource !== 'midi') return;
+    if (appMode === APP_MODES.SHOOTER && isShooterVoiceMode && gameState === GAME_STATES.GAMEOVER) stopMic();
+  }, [appMode, isShooterVoiceMode, gameState, stopMic]);
+
+  useEffect(() => {
+    if (appMode !== APP_MODES.SHOOTER || shooterInputSource !== 'midi') return;
     setMicStatus(midiConnection.connected ? 'MIDI Connected' : 'MIDI Disconnected');
     if (!midiConnection.connected && gameStateRef.current === GAME_STATES.PLAYING) setState(GAME_STATES.PAUSED);
-  }, [appMode, inputSelection.shooterSource, midiConnection.connected, setState]);
+  }, [appMode, shooterInputSource, midiConnection.connected, setState]);
 
   useEffect(() => {
-    if (appMode !== APP_MODES.SHOOTER || inputSelection.shooterSource !== 'audio' || inputSelection.status !== 'disconnected') return;
+    if (appMode !== APP_MODES.SHOOTER || shooterInputSource !== 'audio' || inputSelection.status !== 'disconnected') return;
     setMicStatus('Device Disconnected');
     setDetectedPitch(null);
     setSignalLevel(0);
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    resetShooterVoiceJudgmentState(shooterVoiceJudgmentRef.current);
     if (gameStateRef.current === GAME_STATES.PLAYING) setState(GAME_STATES.PAUSED);
-  }, [appMode, inputSelection.shooterSource, inputSelection.status, setState]);
+  }, [appMode, shooterInputSource, inputSelection.status, setState]);
 
   const startPractice = useCallback(async (category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -23923,14 +24112,14 @@ function App({ onReady }) {
     }
 
     if (gameStateRef.current === GAME_STATES.PAUSED) {
-      let resumeDetectorReady = shooterHitboxDebugEnabled
+      let resumeDetectorReady = (shooterHitboxDebugEnabled && shooterDifficultyRef.current !== SHOOTER_DIFFICULTIES.VOICE)
         || desktopHorizontalClickAttackActive
-        || (getAudioInputSelection().shooterSource === 'midi' ? midiInput.getSnapshot().connected : Boolean(micInputSessionRef.current?.connected && analyserRef.current && bufferRef.current));
+        || (getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) === 'midi' ? midiInput.getSnapshot().connected : Boolean(micInputSessionRef.current?.connected && analyserRef.current && bufferRef.current));
       if (!resumeDetectorReady) {
         resumeDetectorReady = await startMic();
       }
       if (!resumeDetectorReady) {
-        setFeedback(getAudioInputSelection().shooterSource === "midi" ? ko["app.connectAMidiDevice"] : ko["app.audioInputRequired"]);
+        setFeedback(getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) === "midi" ? ko["app.connectAMidiDevice"] : ko["app.audioInputRequired"]);
         setState(GAME_STATES.LISTENING);
         return;
       }
@@ -23942,9 +24131,9 @@ function App({ onReady }) {
 
     if (gameStateRef.current === GAME_STATES.PLAYING) return;
 
-    let detectorReady = shooterHitboxDebugEnabled
+    let detectorReady = (shooterHitboxDebugEnabled && shooterDifficultyRef.current !== SHOOTER_DIFFICULTIES.VOICE)
       || desktopHorizontalClickAttackActive
-      || (getAudioInputSelection().shooterSource === 'midi' ? midiInput.getSnapshot().connected : Boolean(micInputSessionRef.current?.connected && analyserRef.current && bufferRef.current));
+      || (getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) === 'midi' ? midiInput.getSnapshot().connected : Boolean(micInputSessionRef.current?.connected && analyserRef.current && bufferRef.current));
     if (!detectorReady) {
       detectorReady = await startMic();
     }
@@ -23957,10 +24146,11 @@ function App({ onReady }) {
       selectedPentatonic,
       0,
       SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
+      shooterInstrumentRef.current,
     );
 
     if (!detectorReady) {
-      setFeedback(getAudioInputSelection().shooterSource === "midi" ? ko["app.connectAMidiDevice"] : ko["app.audioInputRequired"]);
+      setFeedback(getShooterInputSource(shooterDifficultyRef.current, getAudioInputSelection()) === "midi" ? ko["app.connectAMidiDevice"] : ko["app.audioInputRequired"]);
       setState(GAME_STATES.LISTENING);
       return;
     }
@@ -23990,6 +24180,7 @@ function App({ onReady }) {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    resetShooterVoiceJudgmentState(shooterVoiceJudgmentRef.current);
     shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setShooterLives(SHOOTER_MAX_LIVES);
@@ -25643,7 +25834,7 @@ function App({ onReady }) {
   ) => {
     setSelectedRootScaleSegment(segmentIndex);
     const nextPentatonic = selectRootScalePractice(
-      buildScaleTrainingPractice(root, typeId, familyId, detailValue),
+      buildScaleTrainingPractice(root, typeId, familyId, detailValue, "ascending", viewerProfile),
       scalePracticePickerEnabled ? segmentIndex : null,
     );
     const safeCategory = {
@@ -25668,7 +25859,7 @@ function App({ onReady }) {
     setLaneFeedback([]);
     setFeedback("Ready");
     setReferenceStepTick(value => value + 1);
-  }, [getPracticeSequence, scalePracticePickerEnabled, repeatPractice, safeSelectedScaleLick, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily]);
+  }, [getPracticeSequence, scalePracticePickerEnabled, repeatPractice, safeSelectedScaleLick, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily, viewerProfile]);
 
   const changeRootScaleSegment = useCallback((index) => {
     resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, selectedScaleBox, index);
@@ -25747,6 +25938,7 @@ function App({ onReady }) {
     backingPausedOffsetSecondsRef.current = null;
     if (appModeRef.current === APP_MODES.SHOOTER) {
       finalizeShooterRecord("reset");
+      if (shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.VOICE) stopMic();
     }
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
@@ -25761,6 +25953,7 @@ function App({ onReady }) {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    resetShooterVoiceJudgmentState(shooterVoiceJudgmentRef.current);
     shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
@@ -25786,14 +25979,12 @@ function App({ onReady }) {
     setStage3MeasureProgress(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [finalizeShooterRecord, setState, stopBackingScheduler]);
+  }, [finalizeShooterRecord, setState, stopBackingScheduler, stopMic]);
 
   const returnToPortraitShooterMap = useCallback(() => {
     stopPracticeSession();
-    const portraitMaps = getShooterMapsForLayout(true, {
-      includeMobileOnly: false,
-      isPortraitLayout: true,
-    }).filter((map) => !map.landscapeOnly);
+    const portraitMaps = getShooterMapsForLayout(true, shooterMapLayoutOptions)
+      .filter((map) => !map.landscapeOnly);
     const nextMap = portraitMaps.find((map) => map.id === lastPortraitShooterMapIdRef.current)
       ?? portraitMaps[0]
       ?? LAYERED_SHOOTER_MAP_SKINS[0];
@@ -25815,7 +26006,7 @@ function App({ onReady }) {
     }
     shooterLandscapeFullscreenRef.current = false;
     setShooterLandscapeHint("");
-  }, [queueShooterMapSelection, stopPracticeSession]);
+  }, [queueShooterMapSelection, shooterMapLayoutOptions, stopPracticeSession]);
 
   const changeShooterDifficulty = useCallback((nextDifficulty) => {
     if (gameStateRef.current === GAME_STATES.PLAYING || gameStateRef.current === GAME_STATES.PAUSED) return;
@@ -25830,6 +26021,32 @@ function App({ onReady }) {
     setShooterBpm(startingBpm);
     setState(GAME_STATES.IDLE);
   }, [finalizeShooterRecord, resetScore, setState]);
+
+  const changeShooterInstrument = (profileId) => {
+    if (gameStateRef.current === GAME_STATES.PLAYING || gameStateRef.current === GAME_STATES.PAUSED) return;
+    if (gameStateRef.current === GAME_STATES.GAMEOVER) finalizeShooterRecord('instrument-change');
+    resetScore();
+    viewerInstrument.selectProfile(profileId);
+    if (shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.VOICE) changeShooterDifficulty(SHOOTER_DIFFICULTIES.EASY);
+    setState(GAME_STATES.IDLE);
+  };
+
+  const changeLearningInstrument = (profileId) => {
+    if (gameStateRef.current === GAME_STATES.PLAYING || gameStateRef.current === GAME_STATES.PAUSED) return;
+    resetScore();
+    setSelectedRootScaleSegment(0);
+    viewerInstrument.selectProfile(profileId);
+    setState(GAME_STATES.IDLE);
+    setReferenceStepTick(value => value + 1);
+  };
+
+  useEffect(() => {
+    const session = micInputSessionRef.current;
+    if (appMode !== APP_MODES.SHOOTER || !session?.audioContext) return;
+    session.configureDetection(getShooterInstrumentAnalysis(isShooterVoiceMode ? undefined : viewerProfile, session.audioContext.sampleRate));
+    bufferRef.current = new Float32Array(session.analyser.fftSize);
+    resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+  }, [appMode, viewerProfile, isShooterVoiceMode]);
 
   const startStage3Practice = useCallback(() => {
     const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
@@ -27496,6 +27713,12 @@ function App({ onReady }) {
   )) ?? getFrontShooterTarget(shooterTargets, { excludePending: true });
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
+  const shooterVoiceGuidance = isShooterVoiceMode && hasMic && gameState === GAME_STATES.PLAYING && !shooterCountInLabel
+    ? getShooterVoiceGuidance({ frequency: detectedPitch?.frequency, targetPitch: shooterGuidePitch, reason: shooterPitchStatus })
+    : null;
+  const shooterVoiceMessage = shooterVoiceGuidance ? localizeUi({
+    raise: ko["shooter.voiceRaise"], lower: ko["shooter.voiceLower"], hold: ko["shooter.voiceHold"],
+  }[shooterVoiceGuidance]) : "";
   const shooterGuideDifficulty = shooterTarget?.difficulty ?? shooterDifficulty;
   const isShooterEasyScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.EASY;
   const isShooterRandom = isShooterRandomDifficulty(shooterGuideDifficulty);
@@ -27503,13 +27726,14 @@ function App({ onReady }) {
   const isShooterDifficultScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
   const isShooterScriptedScenario = isShooterEasyScenario || isShooterNormalScenario || isShooterDifficultScenario;
   const isShooterExactPositionMode = isShooterScriptedScenario || isShooterRandom;
-  const shooterGuidePositions = shooterGuidePitch
+  const shooterGuidePositions = shooterGuidePitch && !isShooterVoiceMode
     ? isShooterExactPositionMode && shooterTargetDetail
       ? [shooterTargetDetail]
       : getFretboardPositionsForPitch(shooterGuidePitch)
     : [];
+  const formatShooterTargetPitch = isShooterVoiceMode ? getShooterVoiceNoteLabel : getShooterPitchDisplayLabel;
   const shooterGuidePrimaryLabel = shooterGuidePitch
-    ? getShooterPitchDisplayLabel(shooterGuidePitch, shooterSolfegeOn)
+    ? formatShooterTargetPitch(shooterGuidePitch, shooterSolfegeOn)
     : "";
   const shooterGuideSecondaryLabel = shooterGuidePitch
     ? isShooterExactPositionMode && shooterTargetDetail
@@ -27518,7 +27742,7 @@ function App({ onReady }) {
         ? shooterGuidePitch
         : getSolfege(shooterGuidePitch) || getPitchClass(shooterGuidePitch)
     : "";
-  const shooterPlayHelpMessage = getShooterPlayHelpMessage(
+  const shooterPlayHelpMessage = isShooterVoiceMode ? ko["shooter.voiceSustain"] : getShooterPlayHelpMessage(
     shooterPlayHelpLevel,
     shooterGuidePositions,
     Boolean(shooterGuidePitch),
@@ -27528,6 +27752,7 @@ function App({ onReady }) {
     gameTimeRef.current,
     patternRef.current,
     SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
+    viewerProfile,
   );
   const shooterLevel = getShooterEffectiveLevel(
     getShooterLevel(hits),
@@ -27535,6 +27760,7 @@ function App({ onReady }) {
     gameTimeRef.current,
     patternRef.current,
     SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
+    viewerProfile,
   );
   const shooterScenarioDisplayBpm = gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED
     ? shooterBpm
@@ -27584,7 +27810,7 @@ function App({ onReady }) {
   }, [shooterPlayHelpInfoOpen]);
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
-    selectedCategory.id === "first-position" ? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
+    selectedCategory.id === "first-position" ? selectedCategory.ascendingSequence ?? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
   const scaleStartPitch = getSequenceStepNoteName(directionGuideSequence[0]) ?? selectedScaleRoot;
   const scaleEndPitch = getSequenceStepNoteName(directionGuideSequence[directionGuideSequence.length - 1]) ?? selectedScaleRoot;
   const normalizedMiniChordArrangementPatterns = useMemo(
@@ -29310,8 +29536,9 @@ function App({ onReady }) {
   }, []);
 
   const updateBackingVolumeReadout = useCallback((input, value) => {
+    input?.style.setProperty("--sound-volume", `${value}%`);
     const readout = input
-      ?.closest(".utilitySoundSliderRow, .miniChordBackingControlLine")
+      ?.closest(".utilitySoundSliderRow, .desktopSidebarSoundRow, .miniChordBackingControlLine")
       ?.querySelector("[data-backing-volume-value]");
     if (readout) readout.textContent = String(value);
   }, []);
@@ -30015,6 +30242,7 @@ function App({ onReady }) {
   }, [blockBpmButtonInput]);
 
   const toggleUtilityMenu = useCallback((event = null) => {
+    if (!utilityMenuOpenRef.current) utilityMenuTriggerRef.current = event?.currentTarget ?? null;
     refillMetronomeAudioRef.current?.(METRONOME_MENU_LOOKAHEAD_SECONDS);
     releaseControlPressState(event?.currentTarget);
     blockBpmButtonInput();
@@ -30285,7 +30513,7 @@ function App({ onReady }) {
         ariaLabel={translateUi("app.voiceLeadingCourse")}
         className="stage3LoadSelect stage3RecommendedLoadSelect stage3VoicingCourseSelect"
         panelDirectionIndicator
-        dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
+        dropdownDirection={!isMobileLayout || isTabletLayout || landscapePlayFocus ? "down" : "up"}
         label={translateUi("app.voiceLeading")}
         matchTriggerWidth
         onChange={(slotId) => {
@@ -30314,7 +30542,7 @@ function App({ onReady }) {
       <MetronomeSelectControl
         ariaLabel={translateUi("app.chooseRecommendedOrCustomProgression")}
         className="stage3LoadSelect stage3UserLoadSelect stage3RecommendedLoadSelect"
-        dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
+        dropdownDirection={!isMobileLayout || isTabletLayout || landscapePlayFocus ? "down" : "up"}
         label={translateUi("app.chooseProgression")}
         matchTriggerWidth
         onChange={(slotId) => {
@@ -30373,6 +30601,18 @@ function App({ onReady }) {
     </div>
   );
 
+  const learningInstrumentProps = { profile: viewerProfile, onProfile: changeLearningInstrument, disabled: gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED };
+  const learningInstrumentControls = isTabletLayout ? <TabletLearningInstrumentControls {...learningInstrumentProps} />
+    : isDesktopLayout ? <DesktopLearningInstrumentControls {...learningInstrumentProps} />
+      : <MobileLearningInstrumentControls {...learningInstrumentProps} />;
+
+  const viewerVoicingOmissions = viewerMode === FRETBOARD_VIEWER_MODES.CHORD && viewerCurrentChordPosition?.voicing?.omittedTones.length > 0 ? (
+    <div className="chordVoicingOmissions">
+      <span>{translateUi(isDesktopLayout ? "viewer.omittedTones" : "app.standardOmittedToneVoicingOmitted")}{viewerCurrentChordPosition.voicing.omittedTones.map((tone) => viewerProfile.id === 'guitar-6' ? translateUi("app.degreeValue1Value2", { value1: tone.degreeOffset === 3 ? "11" : "5", value2: tone.label }) : tone.label).join(" · ")}</span>
+      <span>{translateUi(isDesktopLayout ? "viewer.fullChordTonesShort" : "app.fullChordTones")}{viewerCurrentChordPosition.voicing.theoreticalTones.map((tone) => tone.label).join(" · ")}</span>
+    </div>
+  ) : null;
+
   const viewerScaleControls = (
                 <div className="viewerSelectGrid viewerScaleSelectGrid">
                   <MetronomeSelectControl
@@ -30391,7 +30631,7 @@ function App({ onReady }) {
                   <MetronomeSelectControl
                     label={translateUi("app.position")}
                     onChange={(nextBox) => setViewerScaleBox(normalizeScalePosition(nextBox))}
-                    options={getScalePositionOptions()}
+                    options={getScalePositionOptions().map(option => ({ ...option, disabled: viewerProfile.id !== 'guitar-6' && !supportsInstrumentScalePosition(viewerProfile, viewerScaleRoot, option.id) }))}
                     triggerLabel={getScalePositionTriggerLabel(viewerScaleBox)}
                     value={viewerScaleBox}
                   />
@@ -30447,7 +30687,7 @@ function App({ onReady }) {
         <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} onLayoutChange={setShooterRecordingLayout} gamePlaying={gameState === GAME_STATES.PLAYING} onReview={pauseGame} />
       ) : null}
       {!desktopShooterScene && appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && !helpGuideOpen && !utilityMenuOpen && !appContentInteractionLocked && typeof document !== "undefined" ? createPortal(
-        <ShooterPitchMonitor mobile={isMobileLayout} arenaRef={shooterArenaRef} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
+        <ShooterPitchMonitor voiceMessage={shooterVoiceMessage} mobile={isMobileLayout} arenaRef={shooterArenaRef} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
         shooterRecordingActive && isMobileLayout ? (shooterArenaRef.current?.closest('.shooterPanel') ?? document.body) : document.body,
       ) : null}
       {themeTransition && typeof document !== "undefined"
@@ -30497,7 +30737,7 @@ function App({ onReady }) {
         versionLabel={APP_VERSION_LABEL}
       />}
       {utilityMenuOpen && !isDesktopLayout ? (
-        <UtilityMenuSurface theme={appTheme} onClose={closeUtilityMenu}>
+        <UtilityMenuSurface theme={appTheme} onClose={closeUtilityMenu} anchor={utilityMenuTriggerRef.current}>
         <div className="utilityMenuLayer" role="presentation">
           <button
             aria-label={translateUi("app.closeMenu")}
@@ -30542,27 +30782,24 @@ function App({ onReady }) {
                 </div>
               </section>
             </>) : null}
-<h3 className="utilitySettingsLabel"><Translation id="menu.sound" /></h3><section className="utilitySoundPanel" aria-label={translateUi("app.soundRhythm")}>
-                <details className="utilitySoundDetails">
-                  <summary>
-                    <span className="utilityMenuIcon" aria-hidden="true">
-                      <Volume2 size={16} />
-                    </span>
-                    <div className="utilityMenuText">
-                      <strong><Translation id="app.soundRhythm" /></strong>
-                      <small><Translation id="app.metronomeBackingTracksAndSharedRhythms" /></small>
-                    </div>
-                    <span className="utilityMenuChevron" aria-hidden="true"><ChevronDown size={18} /></span>
-                  </summary>
+<MobileSoundSettings>
                   <div className="utilitySoundSliders">
+                    <div className="mobileSoundSettingsControls">
                     {appMode === APP_MODES.SHOOTER && <DeviceConnection scope="shooter" mobile={isMobileLayout} />}
-                    <MetronomeVolumeControl className="utilitySoundSliderRow" />
-                    <GrooveVolumeControl className="utilitySoundSliderRow" />
+                    <section className="soundSettingsGroup" aria-label={translateUi("soundSettings.rhythmGuide")}>
+                    <h3 className="soundSettingsGroupTitle"><Translation id="soundSettings.rhythmGuide" /></h3>
+                    <MetronomeVolumeControl className="utilitySoundSliderRow" icon={Timer} />
+                    <GrooveVolumeControl className="utilitySoundSliderRow" icon={AudioLines} />
+                    </section>
+                    <section className="soundSettingsGroup" aria-label={translateUi("soundSettings.backingInstruments")}>
+                    <h3 className="soundSettingsGroupTitle"><Translation id="soundSettings.backingInstruments" /></h3>
                     {BACKING_PART_VOLUME_CONTROLS.map((control) => {
                       const value = getBackingVolumeValue(control.id);
+                      const Icon = control.id === "drum" ? Drum : control.id === "bass" ? Guitar : Piano;
                       return (
                         <label className="utilitySoundSliderRow" key={control.id}>
                           <span>
+                            <Icon size={16} aria-hidden="true" />
                             <strong>{localizeUi(control.label)}</strong>
                             <b data-backing-volume-value>{value}</b>
                           </span>
@@ -30578,11 +30815,15 @@ function App({ onReady }) {
                             onKeyUp={(event) => commitBackingVolumeInput(control.id, event)}
                             onPointerUp={(event) => commitBackingVolumeInput(control.id, event)}
                             step="1"
+                            style={{ "--sound-volume": `${value}%` }}
                             type="range"
                           />
                         </label>
                       );
                     })}
+                    </section>
+                    </div>
+                    <footer className="mobileSoundSettingsFooter soundSettingsFooter">
                     <button
                       className="utilityRhythmSettingsButton"
                       disabled={stage3RecommendedAccompanimentLocked}
@@ -30598,10 +30839,11 @@ function App({ onReady }) {
                       disabled={stage3RecommendedAccompanimentLocked}
                       onClick={resetSoundSettings}
                       type="button"
-                    ><Translation id="app.resetSound" /></button>
+                      aria-label={translateUi("app.resetSound")}
+                    ><RotateCcw size={14} aria-hidden="true" /><Translation id="soundSettings.reset" /></button>
+                    </footer>
                   </div>
-                </details>
-              </section><p className="utilityMenuVersion" aria-label={translateUi("app.appValue1", { value1: APP_VERSION_LABEL })}><Translation id="originalUi.fretivaLabApp" />{APP_VERSION_LABEL}
+              </MobileSoundSettings><p className="utilityMenuVersion" aria-label={translateUi("app.appValue1", { value1: APP_VERSION_LABEL })}><Translation id="originalUi.fretivaLabApp" />{APP_VERSION_LABEL}
             </p>
               {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive utilityAppRefresh"
@@ -30825,6 +31067,7 @@ function App({ onReady }) {
       {appMode !== APP_MODES.MENU
         && !(isDesktopLayout && [APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode))
         && !([APP_MODES.ETUDES, APP_MODES.RHYTHM_TRAINER].includes(appMode) && isMobileLayout && !isTabletLayout)
+        && !(isTabletLayout && appMode === APP_MODES.ETUDES)
         && !shooterRecordingActive
         && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled)
         && !hideFretboardLandscapeNavigation
@@ -32562,6 +32805,7 @@ function App({ onReady }) {
         <PreparedMode mode="fretboard-viewer" activity={getModeActivityState(appMode, APP_MODES.FRETBOARD_VIEWER)}>
         {renderAppMode(APP_MODES.FRETBOARD_VIEWER, () => (
         <FretboardViewerLayout
+          instrumentControls={viewerInstrument}
           desktop={isDesktopLayout}
           mode={viewerMode}
           className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode} ${!isMobileLayout ? "fretboardViewerPanel--desktopUnified" : ""}`}
@@ -32572,8 +32816,9 @@ function App({ onReady }) {
             onPointerDown: isMobileLayout ? handleFretboardSwipeStart : undefined,
             onPointerUp: isMobileLayout ? handleFretboardSwipeEnd : undefined,
           }}
-          tabs={
-            <div className="viewerModeTabs" aria-label={translateUi("app.fretboardView")}>
+          tabs={(instrumentControls) => (
+            <div className="viewerModeTabs viewerModeTabs--instruments" aria-label={translateUi("app.fretboardView")}>
+              {instrumentControls}
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.CHORD}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
@@ -32607,28 +32852,31 @@ function App({ onReady }) {
               </button>
               </>}
             </div>
-          }
+          )}
           board={
             <section className={`viewerMapCard viewerMapCard--${viewerMode}`} aria-label={translateUi("app.allFretboardNotes")} ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
               <div className={`viewerMapHeader ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "viewerMapHeader--chord" : ""}`}>
                 {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                  <div className="viewerChordHeader">
+                  <div className={`viewerChordHeader${isDesktopLayout && viewerVoicingOmissions ? " viewerChordHeader--withVoicing" : ""}`}>
                     <div className="viewerChordIdentity">
                       <span><Translation id="app.referenceFretboard" /></span>
                       <strong>{viewerMapTitle}</strong>
 
                     </div>
+                    {isDesktopLayout ? viewerVoicingOmissions : null}
                     <small className="viewerSwipeHint">
                       {localizeUi(viewerChordPositionLabel)}<Translation id="app.swipe" />{isMobileLayout ? (
                         <span className="viewerSwipeGestureLabel" aria-hidden="true"><Translation id="app.swipeApp" /></span>
                       ) : null}
                     </small>
                     <div className="viewerChordHeaderActions">
-                      <button
-                        className="viewerAllButton"
-                        onClick={scrollToChordChart}
-                        type="button"
-                      ><Translation id="app.viewAll" /></button>
+                      {!isDesktopLayout ? (
+                        <button
+                          className="viewerAllButton"
+                          onClick={scrollToChordChart}
+                          type="button"
+                        ><Translation id="app.viewAll" /></button>
+                      ) : null}
                       <button
                         aria-label={localizeUi(translateUi("app.playValue1Value2", { value1: viewerMapTitle, value2: viewerSample ? ko["app.originalRecording"] : ko["app.currentFingering"] }))}
                         aria-pressed={false}
@@ -32660,12 +32908,8 @@ function App({ onReady }) {
                   </>
                 )}
               </div>
-              {viewerMode === FRETBOARD_VIEWER_MODES.CHORD && viewerCurrentChordPosition?.voicing?.omittedTones.length > 0 && (
-                <div className="chordVoicingOmissions">
-                  <span><Translation id="app.standardOmittedToneVoicingOmitted" />{viewerCurrentChordPosition.voicing.omittedTones.map((tone) => translateUi("app.degreeValue1Value2", { value1: tone.degreeOffset === 3 ? "11" : "5", value2: tone.label })).join(" · ")}</span>
-                  <span><Translation id="app.fullChordTones" />{viewerCurrentChordPosition.voicing.theoreticalTones.map((tone) => tone.label).join(" · ")}</span>
-                </div>
-              )}
+              {!isDesktopLayout ? viewerVoicingOmissions : null}
+              {viewerMode === FRETBOARD_VIEWER_MODES.CHORD && !viewerCurrentChordPosition?.notes?.length ? <p className="viewerVoicingEmpty" role="status"><Translation id="viewer.noVoicing" /></p> : null}
               <div
                 aria-label={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? translateUi("app.value1Value2SwipeToChangePosition", { value1: viewerMapTitle, value2: viewerChordPositionLabel }) : undefined}
                 className={`viewerFretboardGestureSurface ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? `viewerFretboardGestureSurface--chord ${viewerChordSwipeFeedback ? `viewerFretboardGestureSurface--${viewerChordSwipeFeedback}` : ""}` : ""}`}
@@ -32678,6 +32922,7 @@ function App({ onReady }) {
               >
                 {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
                   <FretboardNoteViewerBoard
+                    tuning={viewerTuning}
                     fretRange={viewerFretboardRange}
                     notes={viewerFretboardNotes}
                     onNotePress={handleViewerNotePress}
@@ -32685,6 +32930,7 @@ function App({ onReady }) {
                   />
                 ) : (
                   <Fretboard
+                    tuning={viewerTuning}
                     className={`viewerSharedFretboard ${viewerShouldFitFretboard ? "fitRange" : ""} ${viewerMode === FRETBOARD_VIEWER_MODES.SCALE && viewerScaleBlock.allPositions ? "scaleAllPositionsFretboard" : ""}`}
                     panFrets={viewerMode === FRETBOARD_VIEWER_MODES.SCALE && viewerScaleBlock.allPositions}
                     barres={viewerChordBarres}
@@ -32792,10 +33038,11 @@ function App({ onReady }) {
               navigation={navigation}
               noteTitle={<FretboardNoteViewerTitle store={viewerNoteStore} />}
               noteControls={<FretboardNoteViewerControls store={viewerNoteStore} />}
-              noteBoard={<FretboardNoteViewerBoard dragToPlay fretRange={viewerNotePositionRange} notes={viewerAllMapNotes} onNotePress={handleViewerNotePress} store={viewerNoteStore} />}
+              noteBoard={<FretboardNoteViewerBoard tuning={viewerTuning} dragToPlay fretRange={viewerNotePositionRange} notes={viewerAllMapNotes} onNotePress={handleViewerNotePress} store={viewerNoteStore} />}
               scaleTitle={viewerScaleBlock.label}
               scaleControls={viewerScaleControls}
               scaleBoard={<Fretboard
+                tuning={viewerTuning}
                 className={`viewerSharedFretboard ${viewerScaleBlock.allPositions ? "scaleAllPositionsFretboard" : "fitRange"}`}
                 panFrets={viewerScaleBlock.allPositions}
                 fretRange={viewerScaleFretboardRange}
@@ -32825,6 +33072,7 @@ function App({ onReady }) {
                 <div className="chordCatalogScroll">
                   {chordCatalogGroups.map((group) => (
                     <ChordCatalogRow
+                      profile={viewerProfile}
                       desktopDraggable={!isMobileLayout}
                       getChordStringState={getChordStringState}
                       group={group}
@@ -33321,7 +33569,7 @@ function App({ onReady }) {
           className={`shooterPanel ${horizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterPanel--mobileLandscape" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
           aria-label={mapEditor.enabled ? translateUi("app.mapStudio") : translateUi("menu.shooter")}
         >
-          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
+          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps instrumentProfile={viewerProfile} onInstrument={changeShooterInstrument} voiceMessage={shooterVoiceMessage} voiceMode={isShooterVoiceMode} recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
           <div className="modeHelper shooterHelper"><Translation id="app.buildFretboardRecognitionAndPickingAccuracyThroughRepetition" /></div>
           {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
             anchor={shooterDifficultyAnchor}
@@ -33439,7 +33687,7 @@ function App({ onReady }) {
             </section>
           )}
 
-          <div className="shooterFretGuide">
+          {!isShooterVoiceMode ? <div className="shooterFretGuide">
             <div>
               <span><Translation id="app.target" /></span>
               <strong className="guidePitch">
@@ -33473,7 +33721,7 @@ function App({ onReady }) {
               type="button"
             >
               <Mic size={15} /><Translation id="app.microphone" /></button>
-          </div>
+          </div> : null}
           </> : null}
 
           {!mapEditor.enabled && !desktopShooterScene ? (
@@ -33482,7 +33730,7 @@ function App({ onReady }) {
               onClick={(event) => event.stopPropagation()}
               onPointerDown={(event) => event.stopPropagation()}
             >
-              <div className="mobileShooterPrimaryHudRow">
+              <div className="mobileShooterPrimaryHudRow shooterInstrumentHudRow">
                 <div
                   className={`mobileShooterDifficultyControl ${shooterDifficultyMenuOpen ? "open" : ""} ${isShooterDifficultyLocked ? "locked" : ""}`}
                   onKeyDown={(event) => {
@@ -33507,31 +33755,7 @@ function App({ onReady }) {
                   </button>
                 </div>
 
-                <div className={`mobileShooterPlayHelpHud mobileShooterPlayHelpHud--level-${shooterPlayHelpLevel}`}>
-                  <span className="mobileShooterPlayHelpLabel"><Translation id="app.hints" /></span>
-                  {SHOOTER_PLAY_HELP_LEVELS.map((level) => (
-                    <button
-                      aria-label={localizeUi(translateUi("app.playingHintsValue1", { value1: level === 0 ? ko["app.off"] : formatMessage(ko["app.levelValue1"], { value1: level }) }))}
-                      aria-pressed={shooterPlayHelpLevel === level}
-                      className={`mobileShooterPlayHelpOption ${shooterPlayHelpLevel === level ? "selected" : ""}`}
-                      key={level}
-                      onClick={() => setShooterPlayHelpLevel(level)}
-                      type="button"
-                    >
-                      {level === 0 ? "OFF" : level}
-                    </button>
-                  ))}
-                  <button
-                    aria-controls="shooter-play-help-tooltip"
-                    aria-expanded={shooterPlayHelpInfoOpen}
-                    aria-label={translateUi("app.aboutPlayingHints")}
-                    className="mobileShooterPlayHelpInfoButton"
-                    onClick={() => setShooterPlayHelpInfoOpen((isOpen) => !isOpen)}
-                    type="button"
-                  >
-                    <CircleHelp aria-hidden="true" size={14} strokeWidth={2} />
-                  </button>
-                </div>
+                <ShooterInstrumentHud profile={viewerProfile} onProfile={changeShooterInstrument} voiceMode={isShooterVoiceMode} onVoice={() => changeShooterDifficulty(SHOOTER_DIFFICULTIES.VOICE)} disabled={isShooterDifficultyLocked} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} tablet={isTabletLayout} />
 
                 <button
                   aria-label={localizeUi(translateUi("app.koreanSolfeGeDisplayValue1", { value1: shooterSolfegeOn ? ko["app.off"] : ko["app.on"] }))}
@@ -33554,7 +33778,7 @@ function App({ onReady }) {
                 ) : null}
 
                 <button
-                  aria-label={inputSelection.shooterSource === "midi" ? translateUi("app.noteShooterMidiConnection") : streamRef.current ? translateUi("app.noteShooterMicrophoneOn") : translateUi("app.enableNoteShooterMicrophone")}
+                  aria-label={shooterInputSource === "midi" ? translateUi("app.noteShooterMidiConnection") : streamRef.current ? translateUi("app.noteShooterMicrophoneOn") : translateUi("app.enableNoteShooterMicrophone")}
                   aria-pressed={hasMic}
                   className={`mobileShooterMicHud ${hasMic ? "selected" : ""}`}
                   onClick={startShooterMic}
@@ -33562,12 +33786,12 @@ function App({ onReady }) {
                 >
                   <span>
                     <Mic aria-hidden="true" size={13} strokeWidth={2} />
-                    <b>{inputSelection.shooterSource === "midi" ? (midiConnection.connected ? "MIDI" : "OFF") : streamRef.current ? "ON" : "OFF"}</b>
+                    <b>{shooterInputSource === "midi" ? (midiConnection.connected ? "MIDI" : "OFF") : streamRef.current ? "ON" : "OFF"}</b>
                   </span>
                 </button>
               </div>
 
-              {shooterPlayHelpLevel > 0 ? (
+              {isShooterVoiceMode || shooterPlayHelpLevel > 0 ? (
                 <div className="mobileShooterPlayHelpMessageBar">
                   <p aria-live="polite">{localizeUi(shooterPlayHelpMessage)}</p>
                 </div>
@@ -33578,6 +33802,7 @@ function App({ onReady }) {
           <div
             className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${horizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterArena--mobileLandscape" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER || utilityMenuOpen ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
             data-shooter-renderer={shooterRendererMode}
+            data-tablet-map-composition={isTabletLayout ? selectedMap.tabletComposition : undefined}
             data-desktop-scene={desktopShooterScene || undefined}
             data-recording-layout={shooterRecordingLayout || undefined}
             data-note-vfx="neon"
@@ -33599,6 +33824,7 @@ function App({ onReady }) {
               enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}
               editMode={mapEditor.enabled}
               layout={shooterMapRenderLayout}
+              viewportFit="cover"
               onAssetPointerDown={mapEditor.beginAssetGesture}
               onAssetSelect={mapEditor.selectInstance}
               onCreatureAnchorPointerDown={mapEditor.beginCreatureAnchorGesture}
@@ -33656,6 +33882,7 @@ function App({ onReady }) {
               <DesktopHorizontalBattleView
                 bestScore={shooterRecords.best.score}
                 currentPitch={detectedPitch?.note ?? ""}
+                voiceMessage={shooterVoiceMessage}
                 currentScore={score}
                 difficultyLabel={shooterDifficultyLabel}
                 judgment={gameState === GAME_STATES.PLAYING ? feedback : ""}
@@ -33710,7 +33937,7 @@ function App({ onReady }) {
                     </strong>
                 </div>
 
-                {shooterPlayHelpInfoOpen ? (
+                {!isShooterVoiceMode && shooterPlayHelpInfoOpen ? (
                   <div
                     className="mobileShooterPlayHelpTooltip"
                     id="shooter-play-help-tooltip"
@@ -33795,7 +34022,7 @@ function App({ onReady }) {
             {gameState === GAME_STATES.PLAYING && shooterCountInLabel ? (
               <div aria-live="assertive" className="shooterCountInOverlay" role="status">
                 <strong>{localizeUi(shooterCountInLabel)}</strong>
-                {isShooterRandomDifficulty(shooterDifficulty) ? (
+                {isShooterVoiceMode ? <ShooterVoiceIntro mobile={isMobileLayout} /> : isShooterRandomDifficulty(shooterDifficulty) ? (
                   <span>
                     {shooterDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
                       ? localizeUi(SHOOTER_EASY_RANDOM_RANGE_LABEL)
@@ -33808,13 +34035,13 @@ function App({ onReady }) {
             ) : null}
 
             {(gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER) ? (
-              <NeonNoteBursts targets={shooterTargets} nodes={shooterTargetNodesRef} arena={shooterArenaRef} formatPitch={getShooterPitchDisplayLabel} solfegeOn={shooterSolfegeOn} />
+              <NeonNoteBursts targets={shooterTargets} nodes={shooterTargetNodesRef} arena={shooterArenaRef} formatPitch={formatShooterTargetPitch} solfegeOn={shooterSolfegeOn} />
             ) : null}
             {shooterTargets.map((target) => {
               const targetDifficulty = target.difficulty ?? shooterDifficulty;
               const targetIsScriptedScenario = isShooterScriptedDifficulty(targetDifficulty);
               const targetPitch = target.note ?? target.detail?.pitch ?? "C4";
-              const targetPitchDisplayLabel = getShooterPitchDisplayLabel(targetPitch, shooterSolfegeOn);
+              const targetPitchDisplayLabel = formatShooterTargetPitch(targetPitch, shooterSolfegeOn);
               const targetDestroyDurationMs = target.destroyHoldMs ?? SHOOTER_TARGET_DESTROY_ANIMATION_MS;
               return (
               <div
@@ -34121,6 +34348,7 @@ function App({ onReady }) {
               enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}
               editMode={mapEditor.enabled}
               layout={shooterMapRenderLayout}
+              viewportFit="cover"
               onAssetPointerDown={mapEditor.beginAssetGesture}
               onAssetSelect={mapEditor.selectInstance}
               onEventSound={playShooterSound}
@@ -34370,6 +34598,7 @@ function App({ onReady }) {
 
           {horizontalShooterActive && !mapEditor.enabled ? (
             <DesktopHorizontalBattleControls
+              voiceMode={isShooterVoiceMode}
               difficultyLabel={shooterDifficultyLabel}
               difficultyLocked={isShooterDifficultyLocked}
               helpLevel={shooterPlayHelpLevel}
@@ -34408,7 +34637,9 @@ function App({ onReady }) {
           {shooterGuitarPickerOpen && typeof document !== "undefined" ? createPortal(
             <div
               className={`shooterGuitarPickerOverlay ${desktopShooterScene ? "desktopSceneSkinDock" : ""} ${
-                isMobileLayout
+                isTabletLayout
+                  ? "shooterGuitarPickerOverlay--tabletWindow"
+                  : isMobileLayout
                   ? "shooterGuitarPickerOverlay--arenaPreview"
                   : "shooterGuitarPickerOverlay--desktopWindow"
               }`}
@@ -34417,7 +34648,9 @@ function App({ onReady }) {
             >
               <div
                 className={`shooterSkinConfigurator ${
-                  isMobileLayout
+                  isTabletLayout
+                    ? "shooterSkinConfigurator--tabletWindow"
+                    : isMobileLayout
                     ? "shooterSkinConfigurator--arenaPreview"
                     : "shooterSkinConfigurator--desktopWindow"
                 }`}
@@ -34499,23 +34732,32 @@ function App({ onReady }) {
                           <div className="shooterGuitarPickerGrid">
                             {section.options.map(({ slotKey, variant }) => {
                               const isSelected = selectedGuitar.id === variant.id;
+                              const GuitarSkinCard = isMobileLayout ? MobileGuitarSkinCard : DesktopGuitarSkinCard;
                               return (
+                                <GuitarSkinCard
+                                  key={`${slotKey}-${variant.id}`}
+                                  title={variant.title}
+                                  deleting={Boolean(deletingShooterGuitarId)}
+                                  onDelete={import.meta.env.DEV ? () => deleteShooterGuitarSkin(variant) : undefined}
+                                >
                                 <button
                                   aria-pressed={isSelected}
                                   className={`shooterGuitarPickerItem ${isSelected ? "selected" : ""}`}
-                                  key={`${slotKey}-${variant.id}`}
+                                  data-skin-id={variant.id}
+                                  title={localizeUi(variant.description)}
                                   onClick={() => {
                                     applyGuitarVariant(variant.id);
                                   }}
                                   type="button"
                                 >
                                   <GuitarAssetSvg variant={variant} className="shooterGuitarPickerAsset" compact />
-                                  <span>
+                                  <span className={variant.stringSpec ? "shooterStageGuitarLabel" : undefined}>
                                     <strong>{localizeUi(getShooterSkinGuitarTitle(variant.title))}</strong>
-                                    <small>{variant.pack}</small>
+                                    <small>{variant.stringSpec || variant.pack}</small>
                                   </span>
                                   <em>{isSelected ? translateUi("app.selected") : translateUi("app.select")}</em>
                                 </button>
+                                </GuitarSkinCard>
                               );
                             })}
                           </div>
@@ -35078,10 +35320,13 @@ function App({ onReady }) {
             onConfirm={confirmDeleteStage3StorageItems}
           />
         ) : null}
-        <section className="chordTransitionPanel" aria-label={translateUi("originalUi.chordTransitionPractice")}>
+        <section className={`chordTransitionPanel ${isTabletLayout ? "tabletLearningPanel tabletRhythmPractice" : ""}`} aria-label={translateUi("originalUi.chordTransitionPractice")}>
+          {isTabletLayout ? <TabletPracticeTitle mode="rhythm" controls={learningInstrumentControls} /> : null}
+          {isTabletLayout ? stage3LandscapeLoadToolbar : null}
           <div className="stage3DesktopPrimaryColumn">
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label={translateUi("originalUi.currentChordFingering")}>
+              {!isTabletLayout ? learningInstrumentControls : null}
               {!isMobileLayout ? (
                 <span className="stage3DesktopProgressionHeading"><Translation id="app.chordProgression" /></span>
               ) : null}
@@ -35204,6 +35449,7 @@ function App({ onReady }) {
                 <span className="stage3CapoBadge">{Number(loadedStage3LibraryItem.capo)}<Translation id="originalUi.capo" /></span>
               ) : null}
               <Fretboard
+                tuning={viewerTuning}
                 barres={chordPracticeFretboardView.barres}
                 className="stageChordSharedFretboard fitRange"
                 fretRange={chordPracticeFretboardView.fretRange}
@@ -35220,7 +35466,7 @@ function App({ onReady }) {
                 && hasChordTransitionProgression ? (
                 <div className="stage3VoicingMovementGuide" aria-live="polite">
                   <strong>{localizeUi(chordPracticeCurrent.uiLabel || chordPracticeCurrent.positionLabel)}</strong>
-                  <p>{localizeUi(loadedStage3LibraryItem?.practiceSummary || loadedStage3LibraryItem?.description)}</p>
+                  <p>{viewerProfile.id === 'guitar-6' ? localizeUi(loadedStage3LibraryItem?.practiceSummary || loadedStage3LibraryItem?.description) : translateUi('learning.instrumentChordGuide')}</p>
                 </div>
               ) : null}
               {isMobileLayout && !hasChordTransitionProgression ? (
@@ -35303,11 +35549,12 @@ function App({ onReady }) {
           </div>
           <div className="stage3DesktopSideColumn">
           <div className="stage3PracticeUtilityPanel">
-            {stage3LandscapeLoadToolbar}
+            {!isTabletLayout ? stage3LandscapeLoadToolbar : null}
             <div className={isMobileLayout ? "stage3MobileTransportDeck" : "standaloneMetronomePanel stage3StandaloneTransportDeck"}>
               <MetronomeTransportCard
                 actionAriaLabel={translateUi("app.playbackTapTempoCountIn")}
                 actionOrder="tap-play"
+                fixedPlaybackActions={isDesktopLayout}
                 actionPanelClassName={isMobileLayout ? "stage3BpmActionPanel" : "stage3StandaloneBpmActionPanel"}
                 ariaLabel={translateUi("app.rhythmChordsBpmTapTempoStartCountIn")}
                 bpm={bpm}
@@ -35373,8 +35620,8 @@ function App({ onReady }) {
           />
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--training"
-            upward={isMobileLayout && landscapePlayFocus}
-            defaultExpanded={!isMobileLayout || !viewportProfile.isLandscape}
+            upward={isMobileLayout && !isTabletLayout && landscapePlayFocus}
+            defaultExpanded={!isTabletLayout && (!isMobileLayout || !viewportProfile.isLandscape)}
             disabled={stage3RecommendedAccompanimentLocked}
             hidePartSummary={landscapePlayFocus}
             lockedLabel={translateUi("app.recommendedProgressions")}
@@ -35389,7 +35636,7 @@ function App({ onReady }) {
           {(!isMobileLayout || landscapePlayFocus) && isStage3VoicingMovementItem(loadedStage3LibraryItem) && hasChordTransitionProgression ? (
             <div className={isMobileLayout ? "stage3LandscapeGuide" : "stage3DesktopGuide"} aria-live="polite">
               <strong>{localizeUi(chordPracticeCurrent.uiLabel || chordPracticeCurrent.positionLabel)}</strong>
-              <p>{localizeUi(loadedStage3LibraryItem?.practiceSummary || loadedStage3LibraryItem?.description)}</p>
+              <p>{viewerProfile.id === 'guitar-6' ? localizeUi(loadedStage3LibraryItem?.practiceSummary || loadedStage3LibraryItem?.description) : translateUi('learning.instrumentChordGuide')}</p>
             </div>
           ) : null}
           </div>
@@ -35397,9 +35644,10 @@ function App({ onReady }) {
         </>
       ) : !LEGACY_PRACTICE_RENDERING_ENABLED ? (
         <section
-          className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""}`}
+          className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""} ${isTabletLayout && hasDirectionPractice ? "tabletLearningPanel" : ""}`}
           aria-label={translateUi("originalUi.referenceFretboardTraining")}
         >
+          {isTabletLayout && hasDirectionPractice ? <TabletPracticeTitle mode={selectedCategory.id} controls={learningInstrumentControls} /> : null}
           {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
             <ContentTitle {...contentHeader} />
           ) : null}
@@ -35410,20 +35658,12 @@ function App({ onReady }) {
           )}
 
           <div className="referenceTrainingMainRow">
-            {isTabletLayout && hasDirectionPractice ? (
-              <div className="tabletPracticeGuide">
-                <div><span>{localizeUi(referenceCurrentLabel)}</span><strong>{getReferenceStageValue(referenceDisplayPrompt)}</strong></div>
-                <div><span>{localizeUi(referenceNextLabel)}</span><strong>{getReferenceStageValue(referenceNextPrompt)}</strong></div>
-                <p>{gameState === GAME_STATES.PLAYING
-                  ? translateUi("app.findAndPlayTheHighlightedNoteOnTheFretboard")
-                  : translateUi("app.pressStartToPracticeFindingPositionsOnTheReferenceFretboard")}</p>
-              </div>
-            ) : null}
             <aside
               className={`referenceFretboard referenceTrainingBoard ${scalePracticePickerEnabled ? "referenceTrainingBoard--scalePositions" : ""}`}
               aria-label={translateUi("originalUi.referenceFretboard")}
               {...scalePositionSwipe}
             >
+              {!isTabletLayout && selectedCategory.id === "scale-block" ? learningInstrumentControls : null}
               {selectedCategory.id === "first-position" || selectedCategory.id === "scale-block" ? (
                 selectedCategory.id === "scale-block" ? (
                   <div className="referenceHeader stage2HeaderScalePicker">
@@ -35435,7 +35675,7 @@ function App({ onReady }) {
                         onChange={changeScaleRoot}
                         options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
                         triggerLabel={isMobileLayout ? selectedScaleRoot : null}
-                        showLabel={!isMobileLayout}
+                        showLabel={!isMobileLayout || isTabletLayout}
                         value={selectedScaleRoot}
                       />
                       <MetronomeSelectControl
@@ -35444,7 +35684,7 @@ function App({ onReady }) {
                           dropdownDirection="down"
                           onChange={changeScale}
                           options={SCALE_OPTIONS}
-                          showLabel={!isMobileLayout}
+                          showLabel={!isMobileLayout || isTabletLayout}
                           value={selectedScaleId}
                         />
                       <MetronomeSelectControl
@@ -35454,7 +35694,7 @@ function App({ onReady }) {
                         onChange={changeScaleDetail}
                         options={scalePracticePickerEnabled ? scalePracticePositionOptions : selectedScaleDetailOptions}
                         triggerLabel={scalePracticePositionTriggerLabel}
-                        showLabel={!isMobileLayout}
+                        showLabel={!isMobileLayout || isTabletLayout}
                         value={scalePracticePickerEnabled ? scalePracticePositionValue : selectedScaleDetailValue}
                       />
                       {isMobileLayout && <TrainingNoteGuideToggle
@@ -35470,6 +35710,7 @@ function App({ onReady }) {
                         <span className="trainingDetailTitle">
                           {localizeUi(referencePromptDisplayLabel)}
                         </span>
+                        {!isTabletLayout ? learningInstrumentControls : null}
                         <TrainingNoteGuideToggle
                             enabled={trainingNoteGuideEnabled}
                             onChange={setTrainingNoteGuideEnabled}
@@ -35492,6 +35733,7 @@ function App({ onReady }) {
                 </div>
               )}
               <Fretboard
+                tuning={viewerTuning}
                 className={`trainingSharedFretboard ${scaleAllPositions ? "scaleAllPositionsFretboard" : "fitRange"} ${showLickTabFretboard ? "trainingLickTabFretboard" : ""}`}
                 panFrets={scaleAllPositions}
                 fretRange={referenceBoardRange}
@@ -35528,7 +35770,7 @@ function App({ onReady }) {
               </p>
             </aside>
 
-            {hasDirectionPractice && (landscapePlayFocus || !isMobileLayout) ? referenceLandscapeBeatStrip : null}
+            {hasDirectionPractice && (isTabletLayout || landscapePlayFocus || !isMobileLayout) ? referenceLandscapeBeatStrip : null}
 
             <div className={`referenceTrainingToolbar trainingSettingsPanel ${hasDirectionPractice ? "referenceTrainingToolbar--standalone" : ""}`}>
               {hasDirectionPractice ? (
@@ -35539,7 +35781,7 @@ function App({ onReady }) {
                       : "trainingStandaloneMetronomeDeck standaloneMetronomePanel"
                   }
                 >
-                  {isMobileLayout && !landscapePlayFocus ? referenceLandscapeBeatStrip : null}
+                  {isMobileLayout && !isTabletLayout && !landscapePlayFocus ? referenceLandscapeBeatStrip : null}
                   <MetronomeTransportCard
                     actionAriaLabel={translateUi("app.playbackTapTempoCountIn")}
                     actionPanelClassName={

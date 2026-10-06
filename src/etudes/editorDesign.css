@@ -83,7 +83,7 @@
 .editorDesign.mobileScoreWorkspace .etudeEditorCanvas{height:auto;min-height:0;flex:1}
 .editorDesign .mobileNotationTools{background:var(--ed-soft);border-radius:12px 12px 0 0;padding:7px 0 0;gap:5px}
 .editorDesign .mobileNotationViews{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:2px;background:var(--ed-soft);border-radius:10px;margin:0 3px 4px;gap:2px}
-.editorDesign .mobileDurationRow{margin:0 2px;gap:3px;grid-template-columns:5fr 1fr 2fr}
+.editorDesign .mobileDurationRow{margin:0 2px;gap:3px;grid-template-columns:6fr 1fr 3fr}
 .editorDesign .mobileDurationRow .etudeDurationButtons{gap:3px}
 .editorDesign .mobileDurationRow .rhythmModifiers{gap:3px;padding-left:3px;border-color:var(--ed-line)}
 .editorDesign .rhythmInputStatus{height:15px;line-height:15px;padding:0 5px}

@@ -16,7 +16,7 @@ test('recognized rests do not get a missing-fret question mark, even while their
 test('partial import metadata does not crash the review screen or page navigation',()=>{
  const selections=[],event={rest:true,blank:false,notes:[],pdfImport:{status:'unresolved'}},document={tuning:Array(6),measures:[{pdfImport:{needsReview:true},events:[event]},{pdfImport:{source:{page:2}},events:[event]}]};
  const review=pdfTabReview(document,{bar:0,event:0},cursor=>selections.push(cursor));
- assert.deepEqual(review.pages,[2]);assert.equal(review.source,undefined);review.movePage(2);assert.equal(selections[0].bar,1);assert.equal(review.positions.length,2);
+ assert.deepEqual(review.pages,[2]);assert.equal(review.source,undefined);review.movePage(2);assert.equal(selections[0].bar,1);assert.equal(review.positions.length,0,'blanket unresolved rest metadata is not a detected error');
 });
 
 test('genuine unread positions and partially read chords keep their question marks',()=>{

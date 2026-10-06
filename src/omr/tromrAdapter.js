@@ -5,7 +5,7 @@ import {assignTab} from '../etudes/scoreTuning.js';
 
 // Strict prototype boundary: unsupported tokens remain visible, never rounded,
 // discarded, guessed as rests, or silently coerced into the editor's rhythm model.
-const durations = {whole:'1', half:'2', quarter:'4', eighth:'8', sixteenth:'16'};
+const durations = {whole:'1', half:'2', quarter:'4', eighth:'8', sixteenth:'16',thirty_second:'32'};
 const natural = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 // A practical default, not a claim of one universal fingering: prefer the first
 // position (open strings / frets 1-4), then minimize movement. Reuse the shared
@@ -32,8 +32,8 @@ export function parseTromr(text) {
     const meter=token.match(/^timeSignature-([2346])\/([48])$/);
     if(meter&&!result.meter) {result.meter=meter.slice(1).map(Number);continue;}
     if(token==='barline') {if(events.length){result.measures.push(events);events=[];}continue;}
-    const note=token.match(/^note-([A-G])([#b]?)([0-8])_(whole|half|quarter|eighth|sixteenth)$/);
-    const rest=token.match(/^rest_(whole|half|quarter|eighth|sixteenth)$/);
+    const note=token.match(/^note-([A-G])([#b]?)([0-8])_(whole|half|quarter|eighth|sixteenth|thirty_second)$/);
+    const rest=token.match(/^rest_(whole|half|quarter|eighth|sixteenth|thirty_second)$/);
     if(note) events.push({token,index,duration:durations[note[4]],midi:(Number(note[3])+1)*12+natural[note[1]]+(note[2]==='#'?1:note[2]==='b'?-1:0),rest:false});
     else if(rest) events.push({token,index,duration:durations[rest[1]],rest:true});
     else result.unsupported.push({index,token});

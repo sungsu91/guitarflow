@@ -1,0 +1,24 @@
+.shooterVoiceIntroMobile,
+.shooterVoiceIntroDesktop {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  display: grid;
+  gap: 5px;
+  text-align: center;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgb(13 18 40 / 85%);
+  pointer-events: none;
+}
+.shooterVoiceIntroMobile { width: 270px; max-width: 86vw; font-size: 12px; }
+.shooterVoiceIntroMobile b { font-size: 16px; }
+.shooterVoiceIntroDesktop { width: 340px; font-size: 14px; }
+.shooterVoiceIntroDesktop b { font-size: 20px; }
+.shooterVoiceIntroMobile p,
+.shooterVoiceIntroDesktop p { margin: 0; font-size: inherit; line-height: 1.5; }
+/* Keep the small voice guide legible in both app themes, during the count-in. */
+html body .app .shooterArena .shooterCountInOverlay > :is(.shooterVoiceIntroMobile, .shooterVoiceIntroDesktop) :is(b, p) {
+  color: #f8fafc !important;
+  text-shadow: none;
+}

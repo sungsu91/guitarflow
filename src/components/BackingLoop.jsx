@@ -335,6 +335,7 @@ function BackingLoopPlayerBar({ controller, mobile = false, inlinePlaylist = fal
             ? <Pause aria-hidden="true" size={mobile ? 20 : 19} />
             : <Play aria-hidden="true" size={mobile ? 20 : 19} />}
         </button>
+        {!mobile&&<button type="button" className="backingLoopPlayerIconButton" aria-label="백킹 정지 · 처음으로" title="정지 · 처음으로" disabled={!canPlay||busy} onClick={controller.stopPlayback}><Square aria-hidden="true" size={16}/></button>}
         <button
           aria-label={translateUi("components.nextBackingTrack")}
           className="backingLoopPlayerIconButton"
@@ -830,15 +831,16 @@ function BackingCurrentPlaylistPane({ controller }) {
             </label>
             <button
               aria-current={item.id === controller.playlistPlayingItemId ? "true" : undefined}
-              aria-label={translateUi("components.playValue1Now", { value1: item.title })}
+              aria-label={`${item.title} 재생 준비`}
               className="backingLoopPlaylistItemSelect"
-              onClick={() => controller.playPlaylistItem(item.id)}
+              onClick={() => controller.playPlaylistItem(item.id,{autoplay:false})}
               type="button"
             >
-              <b><Play aria-hidden="true" size={9} /></b>
+              <b><Music2 aria-hidden="true" size={12} /></b>
               <span title={item.title}>{item.title}</span>
               <small>{formatBackingLoopTime(item.durationMs)}</small>
             </button>
+            <button type="button" aria-label={translateUi("components.playValue1Now",{value1:item.title})} onClick={()=>controller.playPlaylistItem(item.id)}><Play size={13}/></button>
             <button aria-label={translateUi("components.moveValue1Up", { value1: item.title })} disabled={index === 0} onClick={() => controller.movePlaylistItem(item.id, "up")} type="button"><ChevronUp size={12} /></button>
             <button aria-label={translateUi("components.moveValue1Down", { value1: item.title })} disabled={index === controller.playlistEntries.length - 1} onClick={() => controller.movePlaylistItem(item.id, "down")} type="button"><ChevronDown size={12} /></button>
             <button aria-label={translateUi("components.removeValue1FromPlaylist", { value1: item.title })} onClick={() => controller.removePlaylistItem(item.id)} type="button"><X size={12} /></button>
@@ -1172,7 +1174,7 @@ function MobileBackingLoop({ controller, panelRef }) {
   );
 }
 
-function DesktopBackingLoop({ controller, presentation = "default" }) {
+function DesktopBackingLoop({ controller, presentation = "default", hideNotice = false }) {
   useLanguage();
   const fold=useContext(BackingLoopFoldContext);
   const presentationClassName = presentation === "standalone"
@@ -1188,7 +1190,7 @@ function DesktopBackingLoop({ controller, presentation = "default" }) {
       <BackingLoopFoldButton />
       <DesktopBackingLoopPlayer controller={controller} />
       <BackingLoopMainControls controller={controller} />
-      {!fold&&<p className="backingLoopDesktopNotice" aria-live="polite">
+      {!fold&&!hideNotice&&<p className="backingLoopDesktopNotice" aria-live="polite">
         {controller.notice || translateUi("components.recordAChordProgressionAndLoopItToPracticeSoloing")}
       </p>}
     </section>
@@ -1199,7 +1201,7 @@ export default function BackingLoop(props) {
   const controller = useContext(BackingLoopContext);
   const latest = useRef(controller);
   latest.current = controller;
-  const inline = Boolean(controller?.sharedPlayback && !props.renderSurface);
+  const inline = Boolean(controller?.sharedPlayback && (!props.renderSurface || props.embedded));
   useEffect(() => {
     if (!inline) return;
     latest.current.setDockView('hidden');
@@ -1221,15 +1223,15 @@ function LocalBackingLoop(props) {
   </>;
 }
 
-function BackingLoopSurface({ controller, desktopPresentation = "default", mobile = false, renderSurface, panelRef }) {
+function BackingLoopSurface({ controller, desktopPresentation = "default", mobile = false, renderSurface, panelRef, hideNotice = false }) {
   useLanguage();
   return (
     <>
       {renderSurface ? renderSurface(controller, mobile
         ? <MobileBackingLoop controller={controller} />
-        : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />) : mobile
+        : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} hideNotice={hideNotice} />) : mobile
         ? <MobileBackingLoop controller={controller} panelRef={panelRef} />
-        : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />}
+        : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} hideNotice={hideNotice} />}
     </>
   );
 }
@@ -1265,3 +1267,4 @@ function BackingLoopResources({ controller, playlistAnchorRef }) {
       <BackingLoopDialogLayer controller={controller} playlistAnchorRef={playlistAnchorRef} />
     </>;
 }
+

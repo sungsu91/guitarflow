@@ -1,0 +1,113 @@
+{
+  "scope": "Independent synthesized technique fixtures; not a real-world accuracy estimate",
+  "cases": [
+    {
+      "id": "helvetica-native",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "helvetica-scan",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "helvetica-weak",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "times-roman-native",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "times-roman-scan",
+      "bars": 8,
+      "correct": 88,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "times-roman-weak",
+      "bars": 8,
+      "correct": 82,
+      "harmonics": 15,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "courier-native",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "courier-scan",
+      "bars": 8,
+      "correct": 86,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "courier-weak",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "helvetica-bold-native",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "helvetica-bold-scan",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    },
+    {
+      "id": "helvetica-bold-weak",
+      "bars": 8,
+      "correct": 91,
+      "harmonics": 18,
+      "arpeggios": 4,
+      "ties": 1,
+      "rhythm": 8
+    }
+  ]
+}

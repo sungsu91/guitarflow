@@ -4,6 +4,18 @@ import test from "node:test";
 
 import { getMapCoverPlaneSize } from "../src/shooter/maps/mapCoordinateSpace.js";
 
+test("tablet full-map fit keeps all four edges visible without distorting the shared scene", () => {
+  const reference = { width: 390, height: 756 };
+  for (const [width, height] of [[990, 1049], [736, 728], [1228, 520], [475, 850]]) {
+    const plane = getMapCoverPlaneSize(width, height, reference, "contain");
+    assert.ok(plane.offsetX >= -1e-9 && plane.offsetY >= -1e-9);
+    assert.ok(plane.offsetX + plane.width <= width + 1e-9);
+    assert.ok(plane.offsetY + plane.height <= height + 1e-9);
+    assert.ok(Math.abs(plane.width / plane.height - reference.width / reference.height) < 1e-9);
+    assert.ok(Math.abs(plane.width - width) < 1e-9 || Math.abs(plane.height - height) < 1e-9);
+  }
+});
+
 test("map cover plane follows the same crop as its reference background", () => {
   assert.deepEqual(getMapCoverPlaneSize(390, 756, { width: 390, height: 756 }), {
     height: 756,

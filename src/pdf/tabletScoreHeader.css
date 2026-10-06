@@ -1,0 +1,48 @@
+@layer tablet-layout {
+  .tabletLayout .tabletScoreHeading {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap;
+    gap: 12px !important;
+    margin: 0 0 12px !important;
+    padding: 0 0 14px !important;
+  }
+  .tabletScoreHeadingIdentity { display: grid; gap: 6px; }
+  .tabletLayout .tabletScoreHeadingIdentity h1 {
+    padding-left: 2px;
+    font-size: 17px !important;
+    line-height: 1.4 !important;
+    color: var(--score-muted, var(--theme-text-muted)) !important;
+  }
+  .tabletLayout .tabletScoreHome {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    min-height: 52px !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--score-line, var(--theme-border-control)) !important;
+    border-radius: 12px !important;
+    background: var(--score-surface, var(--theme-surface)) !important;
+    color: var(--score-ink, var(--theme-text)) !important;
+    font: inherit !important;
+    font-size: 20px !important;
+    font-weight: 750 !important;
+    line-height: 1.3 !important;
+    letter-spacing: .04em !important;
+    white-space: nowrap;
+    cursor: pointer;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+  .tabletScoreHome svg { flex: none; color: var(--score-accent, var(--theme-accent)); }
+  .tabletLayout .tabletScoreHome:hover { background: var(--score-soft, var(--theme-surface)) !important; }
+  .tabletLayout .tabletScoreHome:focus-visible { outline: 3px solid var(--score-accent, var(--theme-accent)) !important; outline-offset: 3px; }
+  .tabletLayout .tabletScoreHeading .libraryStorageCompact {
+    min-height: 48px !important;
+    padding: 10px 12px !important;
+    font-size: 15px !important;
+    gap: 8px !important;
+  }
+}

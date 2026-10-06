@@ -958,6 +958,7 @@ function MapSkinRenderer({
   animationsActive = true,
   editMode = false,
   layout = "mobile",
+  viewportFit = "cover",
   onAssetPointerDown,
   onAssetSelect,
   onCreatureAnchorPointerDown,
@@ -991,6 +992,7 @@ function MapSkinRenderer({
         stageElement.clientWidth,
         stageElement.clientHeight,
         skin.referenceViewport,
+        viewportFit,
       );
       stageElement.style.setProperty("--shooter-map-cover-width", `${plane.width}px`);
       stageElement.style.setProperty("--shooter-map-cover-height", `${plane.height}px`);
@@ -1008,7 +1010,7 @@ function MapSkinRenderer({
       observer?.disconnect();
       window.removeEventListener("resize", syncCoordinatePlane);
     };
-  }, [skin, stage]);
+  }, [skin, stage, viewportFit]);
 
   if (!isLayeredShooterMap(skin)) return null;
 
@@ -1046,6 +1048,7 @@ function MapSkinRenderer({
       className={`shooterMapSkinStage shooterMapSkinStage--${stage} ${editMode ? "shooterMapSkinStage--editing" : ""}`}
       data-animations-active={animationsActive ? "true" : "false"}
       data-map-skin={skin.id}
+      data-viewport-fit={viewportFit}
       onPointerDown={editMode ? onStagePointerDown : undefined}
       ref={stageRef}
     >

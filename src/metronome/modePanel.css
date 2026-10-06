@@ -256,4 +256,69 @@
   @media(prefers-reduced-motion:reduce) {
     html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode .grooveModeSelector > .metronomeModeButton {transition:none}
   }
+
+  /* In phone landscape the selector is a full-width row in the right panel. */
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode.landscapePlayFocus > .standaloneMetronomePanel.dockCollapsed {
+    grid-template-rows:32px 54px minmax(92px,1fr) minmax(163px,.95fr)!important;
+    grid-template-areas:none!important;
+    gap:6px 10px!important;
+    & > .metronomeDockHandle {grid-area:1 / 2!important;height:32px!important;min-height:32px!important}
+    & > .grooveModeSelector {grid-area:2 / 2!important}
+    & > :is(.grooveEditor,.metronomeBeatMatrix--main) {grid-area:1 / 1 / 4 / 2!important;height:100%!important;min-height:0!important;max-height:none!important}
+    & > .metronomeHeroCard {grid-area:4 / 1!important;height:100%!important}
+    & > .standaloneMetronomeControl {grid-area:3 / 2!important;min-height:0!important}
+    & > .backingLoopPanel {grid-area:4 / 2!important;height:100%!important;min-height:0!important}
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode.landscapePlayFocus .grooveEditor {
+    box-sizing:border-box!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow:auto!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode.landscapePlayFocus > .standaloneMetronomePanel > .grooveModeSelector {
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    padding:4px!important;
+    min-height:52px!important;
+    margin:0!important;
+    border:1px solid var(--mode-edge)!important;
+    border-radius:12px!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode.landscapePlayFocus .grooveModeSelector:has(> .groovePacksTrigger) {
+    grid-template-columns:repeat(2,minmax(0,.8fr)) minmax(0,1.15fr) minmax(0,1.45fr)!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode.landscapePlayFocus .grooveModeSelector::before {content:none}
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode.landscapePlayFocus .grooveModeSelector > :is(.metronomeModeButton,.groovePacksTrigger) {
+    width:100%!important;
+    min-width:0!important;
+    height:44px!important;
+    min-height:44px!important;
+    margin:0!important;
+  }
+  html body .mobileLayoutShell:not(.tabletLayout) .app.metronomeMode.landscapePlayFocus > .standaloneMetronomePanel > :is(.grooveEditor,.metronomeBeatMatrix--main) {
+    border:1px solid var(--mode-edge)!important;
+    border-radius:12px!important;
+  }
+}
+/* Desktop mode tabs share the groove toolbar geometry in every mode. */
+@layer metronome-primary-tabs {
+ html body .desktopLayout .app.metronomeMode > .standaloneMetronomePanel > .grooveModeSelector{
+  width:100%!important;max-width:100%!important;gap:8px!important;padding:14px 18px!important;
+  min-height:75px!important;border:1px solid var(--studio-border,#cbb2a2)!important;
+  border-bottom:0!important;border-radius:12px 12px 0 0!important;
+  background:var(--studio-surface,#fcf8f0)!important;box-shadow:none!important;
+ }
+ html body .desktopLayout .app.metronomeMode .grooveModeSelector > .metronomeModeButton{
+  position:relative!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:transparent!important;background-image:none!important;width:96px!important;min-width:96px!important;
+  height:46px!important;min-height:46px!important;transform:none!important;
+  color:var(--studio-text,#332824)!important;opacity:.58;
+ }
+ html body .desktopLayout .app.metronomeMode .grooveModeSelector > .metronomeModeButton[aria-pressed=true]{background:transparent!important;color:var(--studio-text,#332824)!important;opacity:1}
+ html body .desktopLayout .app.metronomeMode .grooveModeSelector > .metronomeModeButton::before{content:none!important}
+ html body .desktopLayout .app.metronomeMode .grooveModeSelector > .metronomeModeButton::after{
+  content:''!important;position:absolute!important;bottom:0!important;left:25%!important;right:25%!important;
+  width:auto!important;height:2px!important;border-radius:2px!important;background:transparent!important;box-shadow:none!important;transform:none!important;
+ }
+ html body .desktopLayout .app.metronomeMode .grooveModeSelector > .metronomeModeButton[aria-pressed=true]::after{background:var(--studio-text,#65513b)!important}
 }

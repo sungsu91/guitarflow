@@ -1,4 +1,7 @@
 import DesktopPdfTools from './DesktopPdfTools.jsx';
+import DesktopPdfNavigation from './DesktopPdfNavigation.jsx';
+import DesktopPdfRepeatSettings from './DesktopPdfRepeatSettings.jsx';
+import {pdfRepeatPlan} from './pdfRepeats.js';
 import MobilePdfMeasureSettings from './MobilePdfMeasureSettings.jsx';
 import {analysePracticePdf} from './analysePracticePdf.js';
 import PracticeSheet from '../etudes/PracticeSheet.jsx';
@@ -16,7 +19,7 @@ import { localizeUi } from "./../i18n/core.js";
 import ko from "./../i18n/locales/ko.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
-import {LocateFixed} from 'lucide-react';
+import {LocateFixed,Download} from 'lucide-react';
 import {MobilePdfHeader,MobilePdfTransport} from './MobilePdfChrome.jsx';
 import PdfBarCount from './PdfBarCount.jsx';
 import {cropMargins,pageCrop} from './pdfAnnotations.js';
@@ -30,7 +33,7 @@ import useEtudeMetronome from '../etudes/useEtudeMetronome.js';
 import {patchPdf,storageError,downloadBlob} from './pdfLibrary.js';
 import {exportEditedPdf,pdfExportFilename} from './exportEditedPdf.js';
 import {expandPdfBars,removePdfRow,movePdfRow,setPdfBarBoundary} from './pdfBarRows.js';
-import {practiceOrder,barAtTick,alignBarRow,pdfEditResumePosition} from './pdfModel.js';
+import {practicePlan,barAtTick,alignBarRow,pdfEditResumePosition} from './pdfModel.js';
 const emptyBars=[];
 export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeController,initialEditing=false,embedded=false,roomModel,desktopPicker,desktopStorage}) {
   useLanguage();
@@ -50,6 +53,7 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
  const [rowCount,setRowCount]=useState(4),[draftRow,setDraftRow]=useState(null);
  const [editing,setEditing]=useState(initialEditing),[editTool,setEditTool]=useState('select'),[noteDraft,setNoteDraft]=useState(null),[,setHistoryVersion]=useState(0),[notice,setNotice]=useState('');
  const [original,setOriginal]=useState(false);
+ const [repeatOpen,setRepeatOpen]=useState(false);
  const [pen,setPen]=useState({color:'brown',width:.003,opacity:1});
  const undo=useRef([]),redo=useRef([]),resumeEditedBar=useRef(initialEditing);
  const [cropDraft,setCropDraft]=useState(null);
@@ -65,7 +69,9 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
  const setZoom=value=>mobile?zoomController.current?.zoomTo(100):embedded?setDesktopZoom(value):void update({zoom:value,...(value==='page'?{viewMode:'single'}:{})});
  const continuous=(embedded&&!mobile&&zoom==='auto')||(record.viewMode==='continuous'&&!(embedded&&!mobile&&zoom==='page')),PageView=continuous?PdfContinuous:PdfPage;
 
- const metro=useEtudeMetronome(record.bpm,{beatsPerBar:record.meter[0],beatUnit:record.meter[1],audible:record.audible!==false,liveTempo:true,clicksPerBeat:getMetronomeSubdivisionOption(roomModel?.subdivision??'quarter').clicksPerBeat,toneSrc:METRONOME_TONE_OPTIONS.find(o=>o.id===roomModel?.tone)?.src,downbeatAt:tick=>{const r=current.current;if(!r.barMap?.length)return tick%r.meter[0]===0;const sequence=practiceOrder(r);return barAtTick(sequence,tick,Boolean(r.loop))?.beat===0;}});
+ const bars=useMemo(()=>expandPdfBars(record.barMap??emptyBars),[record.barMap]);
+ const {order,loop:looping,issues:repeatIssues}=useMemo(()=>practicePlan(record),[bars,record.practiceOrder,record.loop,record.loopStart,record.loopEnd,record.repeatSettings]);
+ const metro=useEtudeMetronome(record.bpm,{beatsPerBar:record.meter[0],beatUnit:record.meter[1],audible:record.audible!==false,liveTempo:true,clicksPerBeat:getMetronomeSubdivisionOption(roomModel?.subdivision??'quarter').clicksPerBeat,toneSrc:METRONOME_TONE_OPTIONS.find(o=>o.id===roomModel?.tone)?.src,downbeatAt:tick=>{const r=current.current;if(!r.barMap?.length)return tick%r.meter[0]===0;return barAtTick(order,tick,looping)?.beat===0;}});
  const saveTimer=useRef(null);
  useEffect(()=>()=>clearTimeout(saveTimer.current),[]);
  const update=useCallback(patch=>{
@@ -92,7 +98,7 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
   if(noteDraft)return;
   resetAnalysis();metro.stop();
   if(current.current.barMap?.length){
-   applyEdit({barMap:[],practiceOrder:[],loopStart:1,loopEnd:1});
+   applyEdit({barMap:[],practiceOrder:[],loop:false,loopStart:1,loopEnd:1,repeatSettings:null});
   }
   setActiveBar(null);setEditing(false);setMapping(false);setEditTool('select');setOriginal(false);
  };
@@ -108,7 +114,7 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
  const applyAnalysis=()=>{
   if(!analysis?.summary.measures)return;
   const barMap=practiceMeasureMap(analysis.pages,current.current.meter);
-  metro.stop();applyEdit({barMap,practiceOrder:[],loopStart:1,loopEnd:barMap.length,highlight:true});setActiveBar(1);void update({lastPage:barMap[0].page});
+  metro.stop();applyEdit({barMap,practiceOrder:[],loop:false,loopStart:1,loopEnd:barMap.length,repeatSettings:null,highlight:true});setActiveBar(1);void update({lastPage:barMap[0].page});
   setAnalysis(null);setEditing(false);setMapping(false);setEditTool('select');setOriginal(false);resumeEditedBar.current=false;pausedByUser.current=false;
   roomModel?.setToolsVisible(true);roomModel?.setMetroMinimized(false);
   // Applying the map leaves playback stopped at the first measure.
@@ -124,20 +130,20 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
  useLayoutEffect(()=>{const snapshot=modeScroll.current,viewport=shell.current?.querySelector('.pdfViewport');if(snapshot&&viewport){viewport.scrollTop=snapshot.top;viewport.scrollLeft=snapshot.left;modeScroll.current=null;}},[editing]);
  useEffect(()=>{void update({lastPracticedAt:new Date().toISOString()});},[update]);
  useEffect(()=>{const warn=e=>{if(saved.current<revision.current||noteDraft){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[noteDraft]);
- const bars=useMemo(()=>expandPdfBars(record.barMap??emptyBars),[record.barMap]),order=useMemo(()=>practiceOrder(record),[bars,record.practiceOrder,record.loop,record.loopStart,record.loopEnd]);
+
 
  useEffect(()=>{
   if(!metro.playing||metro.countingIn||metro.tick<0||!order.length)return;
-  const position=barAtTick(order,metro.tick,Boolean(record.loop));
+  const position=barAtTick(order,metro.tick,looping);
   if(position?.ended){metro.pause();return;}if(position){setActiveBar(position.bar.number);if(current.current.lastPage!==position.bar.page)void update({lastPage:position.bar.page});}
- },[metro.tick,metro.playing,metro.countingIn,order,record.highlight,record.loop,update,metro.pause]);
+ },[metro.tick,metro.playing,metro.countingIn,order,record.highlight,looping,update,metro.pause]);
  const getBarPosition=useCallback(()=>{
   if(!order.length||metro.countingIn)return null;
   const ticks=metro.getPosition();
   if(ticks<0)return null;
-  const position=barAtTick(order,ticks,Boolean(record.loop));
+  const position=barAtTick(order,ticks,looping);
   return position?{number:position.bar.number,progress:position.ended?1:position.beat/position.bar.beats}:null;
- },[record.highlight,record.loop,order,metro.countingIn,metro.getPosition]);
+ },[record.highlight,looping,order,metro.countingIn,metro.getPosition]);
  const removeBar=useCallback(number=>{
   metro.stop();const r=current.current;
   const removed=removePdfRow(r.barMap??[],number),nextOrder=(r.practiceOrder??[]).filter(n=>!removed.removed.includes(n));
@@ -147,9 +153,9 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
  const page=record.lastPage;
  const goPage=useCallback(n=>{if(noteDraft){setNotice(ko["pdf.saveOrCancelTheNoteBeforeChangingPages"]);return;}const next=Math.max(1,Math.min(current.current.pageCount,n));void update({lastPage:next});},[update,noteDraft]);
  const selectBar=useCallback((number,progress=0)=>{const bar=bars.find(b=>b.number===number);if(!bar)return;
-  if(editing)metro.pause();const index=order.findIndex(b=>b.number===number);if(index>=0)metro.seek(order.slice(0,index).reduce((n,b)=>n+b.beats,0)+(metro.playing?bar.beats*progress:0));
+  const index=order.findIndex(b=>b.number===number);if(looping&&index<0){setNotice('선택한 마디는 반복 구간 밖입니다. 반복 설정에서 구간을 변경하세요.');return;}if(editing)metro.pause();if(index>=0)metro.seek(order.slice(0,index).reduce((n,b)=>n+b.beats,0)+(metro.playing?bar.beats*progress:0));
   setActiveBar(number);setSelectedBar(editing?number:null);goPage(bar.page);
- },[bars,order,metro.countingIn,editing,metro.pause,metro.seek,goPage]);
+ },[bars,order,looping,metro.countingIn,editing,metro.pause,metro.seek,goPage]);
  const addBar=useCallback(rect=>{const aligned=alignBarRow(rect,current.current.barMap??[],snapRows);setDraftRow(aligned);},[snapRows]);
  useEffect(()=>{setDraftRow(null);setCropDraft(editTool==='crop'?{page,rect:pageCrop(current.current.pageEdits?.[page])}:null);},[page]);
  useEffect(()=>{setDraftRow(null);},[mapping]);
@@ -168,11 +174,12 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
  const changeBpm=value=>void update({bpm:Math.max(30,Math.min(240,Number(value)||30))});
  const pausePractice=()=>{pausedByUser.current=true;metro.pause();};
  const changeCountIn=value=>{metro.stop();pausedByUser.current=false;(roomModel?.setCountIn??setLocalCountIn)(value);};
- const toggle=()=>{if(analysis||analysisProgress)return;if(metro.playing){pausePractice();return;}if(noteDraft){setNotice(ko["pdf.saveOrCancelTheNoteBeforeStartingPractice"]);return;}setEditing(false);setMapping(false);setDraftRow(null);setSelectedBar(null);
-  const held=metro.getPosition(),ended=barAtTick(order,held,Boolean(record.loop))?.ended;const beatOffset=resumeEditedBar.current?pdfEditResumePosition(order,held,0,Boolean(record.loop)):ended?0:Math.max(0,held);resumeEditedBar.current=false;const leadIn=practiceCountIn(countIn&&!pausedByUser.current,record.meter,record.bpm);pausedByUser.current=false;void metro.start({beatOffset,leadIn});
+ const toggle=(options)=>{if(repeatIssues.length){setNotice(repeatIssues[0]);return;}if(analysis||analysisProgress)return;if(metro.playing){pausePractice();return;}if(noteDraft){setNotice(ko["pdf.saveOrCancelTheNoteBeforeStartingPractice"]);return;}setEditing(false);setMapping(false);setDraftRow(null);setSelectedBar(null);
+  const held=metro.getPosition(),ended=barAtTick(order,held,looping)?.ended;const beatOffset=resumeEditedBar.current?pdfEditResumePosition(order,held,0,looping):ended?0:Math.max(0,held);resumeEditedBar.current=false;const leadIn=practiceCountIn(countIn&&!pausedByUser.current,record.meter,record.bpm);pausedByUser.current=false;void metro.start({beatOffset,leadIn,onScheduledStart:options?.onScheduledStart});
  };
  const resetPractice=()=>{metro.stop();pausedByUser.current=false;resumeEditedBar.current=false;const first=order[0]??bars[0];setActiveBar(first?.number??1);goPage(first?.page??1);};
- const stepBar=delta=>{const i=bars.findIndex(b=>b.number===activeBar),next=bars[Math.max(0,Math.min(bars.length-1,i+delta))];if(next)selectBar(next.number);};
+ const stepBar=delta=>{const available=looping?order:bars,i=available.findIndex(b=>b.number===activeBar),next=available[Math.max(0,Math.min(available.length-1,i+delta))];if(next)selectBar(next.number);};
+ const applyRepeatSettings=settings=>{const plan=pdfRepeatPlan(bars,settings);if(plan.issues.length){setNotice(plan.issues[0]);return;}metro.stop();pausedByUser.current=false;resumeEditedBar.current=false;applyEdit({repeatSettings:settings,practiceOrder:[],loop:false});const first=plan.order[0];setActiveBar(first?.number??null);if(first)goPage(first.page);setFollowRequest(v=>v+1);setRepeatOpen(false);setOriginal(false);setEditing(false);setMapping(false);setNotice('');};
  const close=async(after)=>{metro.stop();if(noteDraft){setNotice(ko["pdf.saveOrCancelTheNoteYouReEditing"]);return;}await queue.current;if(saved.current<revision.current){setError(ko["pdf.youHaveUnsavedSettingsSaveAgainOrDiscardChangesBeforeLeaving"]);return;}onClose();if(typeof after==='function')after();};
  if(closeController)closeController.current=close;
  const savePdf=async()=>{
@@ -183,7 +190,7 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
   try{downloadBlob(await exportEditedPdf(snapshot,blob),pdfExportFilename(snapshot.title));}catch(e){setNotice(e.message);}
   finally{exportLock.current=false;setExporting(false);}
  };
- const exportButton=<button type="button" className="pdfSaveButton" disabled={exporting} aria-busy={exporting} title={translateUi("pdf.savePdfHelp")} onClick={()=>void savePdf()}><Translation id={exporting?"pdf.savingPdf":"pdf.savePdf"} /></button>;
+ const exportButton=<button type="button" className="pdfSaveButton" disabled={exporting} aria-busy={exporting} aria-label={translateUi(exporting?"pdf.savingPdf":"pdf.savePdf")} title={translateUi("pdf.savePdfHelp")} onClick={()=>void savePdf()}>{mobile&&roomModel?<Download size={18} aria-hidden="true"/>:<Translation id={exporting?"pdf.savingPdf":"pdf.savePdf"} />}</button>;
  const settings=<PracticeCountInControl checked={countIn} onChange={changeCountIn}/>;
  const onMobileAction=action=>{
   if(action==='export'){void savePdf();return;}
@@ -203,7 +210,9 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
  const requestReset=()=>{if(!noteDraft)setMeasureConfirmation('reset');};
  const autoMeasureControls={analysis,progress:analysisProgress,hasBars:Boolean(bars.length),disabled:Boolean(noteDraft),onAnalyse:requestAnalysis,onCancel:resetAnalysis,onApply:applyAnalysis};
  const document=<section ref={shell} className={`pdfPractice ${mobile?'pdfPractice--mobile':'pdfPractice--desktop'} ${compact?'pdfPractice--compact':''} ${editing?'pdfPractice--editing':''} ${embedded?'pdfPractice--embedded':''}`}>
-  {measureConfirmation&&<PdfMeasureConfirmation action={measureConfirmation} hasBars={Boolean(bars.length)} onCancel={()=>setMeasureConfirmation(null)} onConfirm={()=>{const action=measureConfirmation;setMeasureConfirmation(null);if(action==='reset')resetMeasureAreas();else void runAnalysis();}}/>}
+  {!mobile&&repeatOpen&&<DesktopPdfRepeatSettings bars={bars} record={record} activeBar={activeBar} onApply={applyRepeatSettings} onClose={()=>setRepeatOpen(false)} onAnalyse={()=>{setRepeatOpen(false);requestAnalysis();}}/>}
+  {repeatIssues.length>0&&<p className="pdfEditNotice" role="alert">{localizeUi(repeatIssues[0])}</p>}
+  {measureConfirmation&&<PdfMeasureConfirmation hasRepeatSettings={Boolean(record.repeatSettings)} action={measureConfirmation} hasBars={Boolean(bars.length)} onCancel={()=>setMeasureConfirmation(null)} onConfirm={()=>{const action=measureConfirmation;setMeasureConfirmation(null);if(action==='reset')resetMeasureAreas();else void runAnalysis();}}/>}
   {!roomModel&&(mobile?<MobilePdfHeader saveButton={exportButton} title={record.title} editing={editing} onBack={embedded?undefined:close} onLocate={locateCurrent} canLocate={Boolean(bars.length)&&!editing} onDone={()=>{setOriginal(false);toggleEditing();}} onAction={onMobileAction} saveState={saveState} page={page} pageCount={record.pageCount} original={original}/>:<header className="pdfPracticeHeader">{!embedded&&<button type="button" onClick={close}><Translation id="score.backToRoom" /></button>}<div><h1>{record.title}</h1><small>{record.artist}<Translation id="originalUi.pdf" /><span role="status">{localizeUi(saveState)}</span></small></div>{exportButton}</header>)}
   {error&&<div role="alert">{localizeUi(error)}<button type="button" onClick={()=>void update(current.current)}><Translation id="pdf.saveAgain" /></button><button type="button" onClick={onClose}><Translation id="pdf.discardUnsavedChangesAndLeave" /></button></div>}{metro.error&&<p role="alert">{localizeUi(metro.error)}</p>}
   <div className="pdfPracticeBody"><main className="pdfDocument">{!roomModel&&!mobile&&<PdfViewToolbar {...{zoom,setZoom,mobile}} previewRoot={shell}><button type="button" className="pdfMappingQuick" aria-label={translateUi("pdf.quickPdfEdit")} aria-pressed={editing} onClick={toggleEditing}>{editing?translateUi("pdf.doneEditing"):translateUi("pdf.quickEdit")}</button><button type="button" className="pdfFullscreen" aria-label={translateUi("pdf.fullscreen")} title={translateUi("pdf.fullscreen")} onClick={()=>void fullscreen.enter()}>⛶</button></PdfViewToolbar>}
@@ -214,18 +223,18 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
    <div ref={fullscreen.ref} className={`pdfScoreStage ${fullscreen.active?'is-fullscreen':''}`} aria-label={translateUi("pdf.pdfScoreArea")}>
    <button className="pdfLocateOverlay" type="button" onClick={locateCurrent} disabled={!bars.length||editing} title={translateUi("pdf.goToCurrentPosition")} aria-label={translateUi("pdf.goToCurrentPosition")}><LocateFixed size={19}/></button>
    {fullscreen.active&&<div className="pdfFullscreenControls" role="group" aria-label={translateUi("pdf.fullscreenScoreControls")}><button type="button" aria-label={translateUi("pdf.fullscreenPreviousPage")} disabled={page<=1} onClick={()=>goPage(page-1)}>‹</button><span>{page} / {record.pageCount}</span><button type="button" aria-label={translateUi("pdf.fullscreenNextPage")} disabled={page>=record.pageCount} onClick={()=>goPage(page+1)}>›</button><button type="button" aria-label={translateUi("pdf.closeFullscreenScore")} onClick={()=>void fullscreen.exit()}><Translation id="pdf.close" /></button></div>}
-   <PageView detectionOverlay={analysis} detectionDebug={false} onGapCut={cutGap} followRequest={followRequest} emphasize={Boolean(record.highlight)} documentId={`${record.id}:${record.fingerprint}`} thumbnail={record.thumbnail} mobile={mobile} onZoomChange={setMobileZoom} zoomController={zoomController} pageCount={record.pageCount} pageEdits={original?{}:record.pageEdits} onPageSeen={n=>{if(!metro.playing&&current.current.lastPage!==n)void update({lastPage:n});}} pageEdit={original?undefined:record.pageEdits?.[page]} editing={editing&&!original} editTool={editing&&!original?editTool:null} cropDraft={cropDraft} annotation={{pen,noteDraft,onNoteDraft:setNoteDraft,onSaveNote:saveNote,onUpdateNote:(note,n)=>editPage({notes:(current.current.pageEdits?.[n]?.notes??[]).map(item=>item.id===note.id?note:item)},n),onCancelNote:()=>{setNoteDraft(null);setNotice('');},onDeleteNote:(id,n)=>{editPage({notes:(current.current.pageEdits?.[n]?.notes??[]).filter(note=>note.id!==id)},n);setNoteDraft(null);},onStroke:(stroke,n)=>{const strokes=current.current.pageEdits?.[n]?.strokes??[];if(strokes.length>=1000){setNotice(ko["pdf.eachPageCanStoreUpTo1000StrokesRemoveUnnecessaryStrokes"]);return;}editPage({strokes:[...strokes,stroke]},n);},onUpdateStroke:(stroke,n)=>editPage({strokes:(current.current.pageEdits?.[n]?.strokes??[]).map(s=>s.id===stroke.id?stroke:s)},n),onDeleteStroke:(id,n)=>editPage({strokes:(current.current.pageEdits?.[n]?.strokes??[]).filter(s=>s.id!==id)},n),onCropDraft:(rect,n)=>setCropDraft({rect,page:n})}} onTextPoint={(point,n=page)=>{if(noteDraft&&noteDraft.page!==n){setNotice(ko["pdf.saveOrCancelTheCurrentNoteBeforeWritingOnAnotherPage"]);return;}setNoteDraft(d=>d??{id:crypto.randomUUID(),page:n,...point,text:'',size:.035,color:'brown'});}} onSelectNote={(note,n=page)=>{if(noteDraft&&noteDraft.id!==note.id){setNotice(ko["pdf.saveOrCancelTheNoteYouReEditing"]);return;}metro.stop();setMapping(false);setEditTool('select');setNoteDraft({...note,page:n});}} onUpdateBoundary={(number,index,value)=>applyEdit({barMap:setPdfBarBoundary(current.current.barMap,number,index,value)})} onUpdateRow={(number,rect)=>applyEdit({barMap:movePdfRow(current.current.barMap,number,rect)})} rowMap={original||analysis||analysisProgress?emptyBars:record.barMap??emptyBars} {...{blob,mapping,barMap:bars,activeBar,selectedBar,getBarPosition,snapRows,draftRow,rowCount}} onCountPreview={setRowCount} onCommitRow={commitRow} onCancelRow={()=>setDraftRow(null)} playing={metro.playing} pageNumber={page} zoom={zoom} barMap={original||analysis||analysisProgress?emptyBars:bars} onAdd={addBar} onSelect={analysis?()=>{}:selectBar} onRemove={removeBar} onDeselect={()=>setSelectedBar(null)}/>
+   <PageView repeatMarks={original||analysis||analysisProgress?null:record.repeatSettings?.marks} detectionOverlay={analysis} detectionDebug={false} onGapCut={cutGap} followRequest={followRequest} emphasize={Boolean(record.highlight)} documentId={`${record.id}:${record.fingerprint}`} thumbnail={record.thumbnail} mobile={mobile} onZoomChange={setMobileZoom} zoomController={zoomController} pageCount={record.pageCount} pageEdits={original?{}:record.pageEdits} onPageSeen={n=>{if(!metro.playing&&current.current.lastPage!==n)void update({lastPage:n});}} pageEdit={original?undefined:record.pageEdits?.[page]} editing={editing&&!original} editTool={editing&&!original?editTool:null} cropDraft={cropDraft} annotation={{pen,noteDraft,onNoteDraft:setNoteDraft,onSaveNote:saveNote,onUpdateNote:(note,n)=>editPage({notes:(current.current.pageEdits?.[n]?.notes??[]).map(item=>item.id===note.id?note:item)},n),onCancelNote:()=>{setNoteDraft(null);setNotice('');},onDeleteNote:(id,n)=>{editPage({notes:(current.current.pageEdits?.[n]?.notes??[]).filter(note=>note.id!==id)},n);setNoteDraft(null);},onStroke:(stroke,n)=>{const strokes=current.current.pageEdits?.[n]?.strokes??[];if(strokes.length>=1000){setNotice(ko["pdf.eachPageCanStoreUpTo1000StrokesRemoveUnnecessaryStrokes"]);return;}editPage({strokes:[...strokes,stroke]},n);},onUpdateStroke:(stroke,n)=>editPage({strokes:(current.current.pageEdits?.[n]?.strokes??[]).map(s=>s.id===stroke.id?stroke:s)},n),onDeleteStroke:(id,n)=>editPage({strokes:(current.current.pageEdits?.[n]?.strokes??[]).filter(s=>s.id!==id)},n),onCropDraft:(rect,n)=>setCropDraft({rect,page:n})}} onTextPoint={(point,n=page)=>{if(noteDraft&&noteDraft.page!==n){setNotice(ko["pdf.saveOrCancelTheCurrentNoteBeforeWritingOnAnotherPage"]);return;}setNoteDraft(d=>d??{id:crypto.randomUUID(),page:n,...point,text:'',size:.035,color:'brown'});}} onSelectNote={(note,n=page)=>{if(noteDraft&&noteDraft.id!==note.id){setNotice(ko["pdf.saveOrCancelTheNoteYouReEditing"]);return;}metro.stop();setMapping(false);setEditTool('select');setNoteDraft({...note,page:n});}} onUpdateBoundary={(number,index,value)=>applyEdit({barMap:setPdfBarBoundary(current.current.barMap,number,index,value)})} onUpdateRow={(number,rect)=>applyEdit({barMap:movePdfRow(current.current.barMap,number,rect)})} rowMap={original||analysis||analysisProgress?emptyBars:record.barMap??emptyBars} {...{blob,mapping,barMap:bars,activeBar,selectedBar,getBarPosition,snapRows,draftRow,rowCount}} onCountPreview={setRowCount} onCommitRow={commitRow} onCancelRow={()=>setDraftRow(null)} playing={metro.playing} pageNumber={page} zoom={zoom} barMap={original||analysis||analysisProgress?emptyBars:bars} onAdd={addBar} onSelect={analysis?()=>{}:selectBar} onRemove={removeBar} onDeselect={()=>setSelectedBar(null)}/>
    {fullscreen.active&&toolbar}</div>
-   {!mobile&&bars.length>0&&<div className="pdfBarNav"><button type="button" onClick={()=>stepBar(-1)}><Translation id="pdf.previousBar" /></button><span>{activeBar?translateUi("etudes.barValue1", { value1: activeBar }):translateUi("pdf.chooseBar")}</span><button type="button" onClick={()=>stepBar(1)}><Translation id="pdf.nextBar" /></button></div>}
+   {!mobile&&(roomModel?<DesktopPdfNavigation page={page} pageCount={record.pageCount} onPage={goPage} hasBars={bars.length>0} activeBar={activeBar} onStepBar={stepBar}/>:bars.length>0&&<div className="pdfBarNav"><button type="button" onClick={()=>stepBar(-1)}><Translation id="pdf.previousBar" /></button><span>{activeBar?translateUi("etudes.barValue1", { value1: activeBar }):translateUi("pdf.chooseBar")}</span><button type="button" onClick={()=>stepBar(1)}><Translation id="pdf.nextBar" /></button></div>)}
   {!roomModel&&!mobile&&!fullscreen.active&&toolbar}</main>{!roomModel&&!mobile&&<aside className="pdfSettings">{settings}</aside>}</div>{roomModel?(!fullscreen.active&&toolbar):mobile?<div className="pdfPracticeDock">{!fullscreen.active&&toolbar}{controls}</div>:controls}
  </section>;
  if(!roomModel)return document;
  const setMeter=meter=>{metro.stop();void update({meter,barMap:current.current.barMap.map(b=>b.autoGenerated&&b.beats===current.current.meter[0]?{...b,beats:meter[0],meter:[...meter]}:b)});};
  const pdfTools=<ScoreWorkspaceActions mobile={mobile} onCreate={()=>{metro.pause();roomModel.createScore();}} onImport={()=>{metro.pause();roomModel.importPdf();}} importBusy={roomModel.importBusy} onEdit={toggleEditing}><button type="button" role="menuitem" onClick={()=>onMobileAction('info')}><Translation id="pdf.editScoreDetails"/></button>{!mobile&&<button type="button" role="menuitem" onClick={requestReset} disabled={Boolean(noteDraft)}><Translation id="pdf.resetMeasureAreas"/></button>}<button type="button" role="menuitem" onClick={()=>onMobileAction('fit')}><Translation id="components.fitWidth"/></button><button type="button" role="menuitem" onClick={()=>onMobileAction('reset')}><Translation id="pdf.resetCrop"/></button><button type="button" role="menuitem" onClick={()=>setOriginal(v=>!v)}><Translation id={original?'pdf.editedView':'pdf.originalView'}/></button><button type="button" role="menuitem" onClick={roomModel.layout.enter}><Translation id="pdf.fullscreen"/></button></ScoreWorkspaceActions>;
  const pdfModel={...roomModel,pdfMode:true,pdfTools,selected:{...roomModel.selected,measures:bars.length?bars:[{}]},bpm:record.bpm,setBpm:changeBpm,startBar:Math.max(0,bars.findIndex(b=>b.number===activeBar)),playPosition:{bar:Math.max(0,bars.findIndex(b=>b.number===activeBar)),playing:metro.playing},setMeterOverride:setMeter,toggleMetro:()=>{if(roomModel.toolsVisible||roomModel.metroMinimized)metro.pause();roomModel.setToolsVisible(!roomModel.toolsVisible);roomModel.setMetroMinimized(false);}};
- const pageTools=<>{editing&&<button type="button" onClick={toggleEditing}><Translation id="pdf.doneEditing"/></button>}<div className="pdfRoomPageNav"><button type="button" aria-label={translateUi('pdf.previousPdfPage')} disabled={page<=1} onClick={()=>goPage(page-1)}>‹</button><span>{page}/{record.pageCount}</span><button type="button" aria-label={translateUi('pdf.nextPdfPage')} disabled={page>=record.pageCount} onClick={()=>goPage(page+1)}>›</button></div><div className="pdfMobileMeasureTools"><MobilePdfMeasureSettings hasBars={Boolean(record.barMap?.length)} disabled={Boolean(noteDraft)} busy={Boolean(analysisProgress)||Boolean(analysis)} onAnalyse={requestAnalysis} onReset={requestReset}/>{exportButton}{pdfTools}</div></>;
- const desktopTools=<DesktopPdfTools {...{zoom,setZoom,page,editing,original}} previewRoot={shell} pageCount={record.pageCount} onPage={goPage} onEdit={toggleEditing} onOriginal={()=>onMobileAction('original')} onFullscreen={()=>void fullscreen.enter()} onAnalyse={requestAnalysis} onReset={requestReset} hasBars={Boolean(record.barMap?.length)} busy={Boolean(analysisProgress)||Boolean(analysis)} hasDraft={Boolean(noteDraft)||Boolean(draftRow)||Boolean(cropDraft)} onCreate={()=>{metro.pause();roomModel.createScore();}} onImport={()=>{metro.pause();roomModel.importPdf();}} importBusy={roomModel.importBusy} onSave={savePdf} saving={exporting}/>;
+ const pageTools=<>{editing&&<button type="button" onClick={toggleEditing}><Translation id="pdf.doneEditing"/></button>}<div className="pdfRoomPageNav"><button type="button" aria-label={translateUi('pdf.previousPdfPage')} disabled={page<=1} onClick={()=>goPage(page-1)}>‹</button><span>{page}/{record.pageCount}</span><button type="button" aria-label={translateUi('pdf.nextPdfPage')} disabled={page>=record.pageCount} onClick={()=>goPage(page+1)}>›</button></div><div className="pdfMobileMeasureTools">{!roomModel.layout.viewport.landscape&&<MobilePdfMeasureSettings compact={roomModel.layout.viewport.width<=360} hasBars={Boolean(record.barMap?.length)} disabled={Boolean(noteDraft)} busy={Boolean(analysisProgress)||Boolean(analysis)} onAnalyse={requestAnalysis} onReset={requestReset}/>}{exportButton}{pdfTools}</div></>;
+ const desktopTools=<DesktopPdfTools onRepeat={()=>{metro.pause();setRepeatOpen(true);}} repeatActive={Boolean(record.repeatSettings&&record.repeatSettings.mode!=='off')} {...{zoom,setZoom,editing,original}} previewRoot={shell} onEdit={toggleEditing} onOriginal={()=>onMobileAction('original')} onFullscreen={()=>void fullscreen.enter()} onAnalyse={requestAnalysis} onReset={requestReset} hasBars={Boolean(record.barMap?.length)} busy={Boolean(analysisProgress)||Boolean(analysis)} hasDraft={Boolean(noteDraft)||Boolean(draftRow)||Boolean(cropDraft)} onCreate={()=>{metro.pause();roomModel.createScore();}} onImport={()=>{metro.pause();roomModel.importPdf();}} importBusy={roomModel.importBusy} onSave={savePdf} saving={exporting}/>;
  pdfModel.pdfTools=mobile?pageTools:desktopTools;
- const practiceControls={countIn,onCountInChange:changeCountIn,countingIn:metro.countingIn,bpm:record.bpm,onBpm:changeBpm,meter:record.meter,beat:metro.playing?metro.beat:-1,playing:metro.playing,paused:metro.paused,disabled:editing||Boolean(analysis)||Boolean(analysisProgress),onStart:toggle,onPause:pausePractice,onResume:toggle,onStop:resetPractice,click:record.audible!==false,onClickSound:()=>void update({audible:record.audible===false}),sound:false,onSound:()=>{},error:metro.error};
+ const practiceControls={countIn,onCountInChange:changeCountIn,countingIn:metro.countingIn,bpm:record.bpm,onBpm:changeBpm,meter:record.meter,beat:metro.playing?metro.beat:-1,playing:metro.playing,paused:metro.paused,disabled:editing||Boolean(analysis)||Boolean(analysisProgress)||repeatIssues.length>0,onStart:toggle,onPause:pausePractice,onResume:toggle,onStop:resetPractice,click:record.audible!==false,onClickSound:()=>void update({audible:record.audible===false}),sound:false,onSound:()=>{},error:metro.error};
  return <><PracticeSheet model={pdfModel} mobile={mobile} desktopPicker={desktopPicker} desktopStorage={desktopStorage} externalContent={document} externalTools={mobile?pageTools:desktopTools}/><div className="etudeFloatingTheme"><PracticeFloatingTools model={pdfModel} mobile={mobile} practiceControls={practiceControls}/></div></>;
 }

@@ -175,6 +175,19 @@ html[data-rifflab-layout="desktop"] body #root main.app.app.app.desktopScoreWork
     gap: 12px;
   }
 
+  .etudePracticeLayout--rail:has(> .desktopPracticeRailHandle) {
+    --desktop-practice-rail-width: 36px;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .desktopPracticeRailHandle {
+    min-width: 0;
+    width: 36px;
+    align-self: start;
+    box-sizing: border-box;
+  }
+
   .desktopPracticeRail {
     display: flex;
     flex-direction: column;

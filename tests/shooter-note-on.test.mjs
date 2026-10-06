@@ -108,5 +108,5 @@ test("runtime preserves attacks across target changes and removes the legacy sam
   assert.doesNotMatch(source, /lastShotRef|shooterReleaseLockRef/);
   const mic = source.slice(source.indexOf("const readMicrophone"), source.indexOf("const runGameFrame"));
   assert.ok(mic.indexOf("observeShooterNoteOn") < mic.indexOf("MIC_ANALYSIS_INTERVAL_MS"));
-  assert.match(mic, /if \(judgeShooterNote\(currentTargetPitch, currentTarget.id\)\)\s*\{\s*commitShooterPitchHit/);
+  assert.match(mic, /if \(judgeShooterNote\(currentTargetPitch, currentTarget.id\)\)\s*\{\s*if \(voiceMode\) commitShooterVoiceHit\(shooterVoiceJudgmentRef.current, judgment\);\s*else commitShooterPitchHit\(shooterPitchJudgmentRef.current, judgment\);/);
 });

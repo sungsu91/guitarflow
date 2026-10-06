@@ -99,7 +99,7 @@
 .mobileScoreWorkspace .etudeEditorMeasure{min-width:0;margin:0;padding:4px 0;border:0;border-bottom:1px solid #eee5d8}.mobileScoreWorkspace .etudeEditorCanvas>div{min-width:0}
 .mobileScoreInput{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;border-top:1px solid #d7c8b4;padding-top:4px;background:#faf7f0}
 .mobileCursorPad{display:grid;grid-template-columns:1fr minmax(140px,1.3fr) 1fr;gap:3px}.mobileCursorPad output{display:flex;align-items:center;justify-content:center;font-size:12px;white-space:nowrap}.mobileCursorPad button{height:40px}
-.mobileDurationRow{display:flex;gap:4px;height:40px}.mobileDurationRow .etudeDurationButtons{display:grid;grid-template-columns:repeat(5,1fr);flex:1}.mobileScoreWorkspace .mobileDurationRow button{min-height:40px;height:40px;padding:2px}.mobileDurationRow>button{flex:0 0 15%}
+.mobileDurationRow{display:flex;gap:4px;height:40px}.mobileDurationRow .etudeDurationButtons{display:grid;grid-template-columns:repeat(6,1fr);flex:1}.mobileScoreWorkspace .mobileDurationRow button{min-height:40px;height:40px;padding:2px}.mobileDurationRow>button{flex:0 0 15%}
 .mobileFretPad{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.mobileFretPad button{height:44px;font-size:20px}
 .mobilePickRow{display:grid;grid-template-columns:34px repeat(3,minmax(0,1fr));gap:4px;align-items:center}.mobilePickRow>span{font-size:11px;text-align:center}.mobileScoreWorkspace .mobilePickRow button{min-height:32px;height:32px;font-size:13px}
 .mobileInputExtras{display:flex;gap:4px}.mobileScoreWorkspace .mobileInputExtras button{flex:1;min-height:32px;height:32px;font-size:11px;white-space:nowrap;padding:2px}
@@ -157,10 +157,10 @@ html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobile
 .rhythmModifiers{display:flex;gap:2px;border-left:1px solid #d4c5b0;padding-left:2px;align-items:center}
 .rhythmModifiers button{-webkit-tap-highlight-color:transparent;position:relative;min-width:42px;min-height:44px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .dottedLock{position:absolute;right:2px;top:2px}
-.mobileScoreWorkspace .mobileDurationRow{display:grid;grid-template-columns:5fr 1fr 2fr;gap:0;height:44px;margin-inline:-2px}
-.mobileScoreWorkspace .mobileDurationRow .etudeDurationButtons{gap:0;min-width:0;grid-template-columns:repeat(5,minmax(0,1fr))}
+.mobileScoreWorkspace .mobileDurationRow{display:grid;grid-template-columns:6fr 1fr 3fr;gap:0;height:44px;margin-inline:-2px}
+.mobileScoreWorkspace .mobileDurationRow .etudeDurationButtons{gap:0;min-width:0;grid-template-columns:repeat(6,minmax(0,1fr))}
 .mobileScoreWorkspace .mobileDurationRow button{min-width:42px;width:100%;min-height:44px;height:44px;padding:1px;border-radius:3px;font-size:13px}
-.mobileScoreWorkspace .mobileDurationRow .rhythmModifiers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;padding-left:1px;min-width:0}
+.mobileScoreWorkspace .mobileDurationRow .rhythmModifiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding-left:1px;min-width:0}
 .mobileScoreWorkspace .rhythmInputStatus{height:14px;line-height:14px;font-size:10px;color:#78634c;white-space:nowrap;text-align:right;padding-right:2px}
 
 .mobileBeamPopoverBody .mobileBeamRangeActions{grid-template-columns:repeat(2,minmax(0,1fr))}

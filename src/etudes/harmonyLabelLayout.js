@@ -1,7 +1,8 @@
+import {compactChordLabel} from '../chords/chordSymbols.js';
 // Wrap at chord/arrow boundaries rather than shrinking dense labels to tiny type.
 // The caller supplies the actual engraving font's text metrics.
 export function harmonyLabelLines(value,width,measure){
- const words=String(value??'').trim().split(/\s+/).filter(Boolean),lines=[];
+ const words=compactChordLabel(value).trim().split(/\s+/).filter(Boolean),lines=[];
  let line='';
  for(const word of words){
   const next=line?`${line} ${word}`:word;

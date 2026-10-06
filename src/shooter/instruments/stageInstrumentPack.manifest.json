@@ -1,0 +1,314 @@
+[
+  {
+    "id": "stage-seraph-7",
+    "category": "acoustic",
+    "title": "SERAPH 7",
+    "stringCount": 7,
+    "neckStrings": [
+      7
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "7현",
+    "description": "천사의 날개를 닮은 비대칭 코코볼로 바디, 오팔 자개와 골드 바인딩의 7현 커스텀.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 502,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-aurora-12",
+    "category": "acoustic",
+    "title": "AURORA 12",
+    "stringCount": 12,
+    "neckStrings": [
+      12
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "12현 · 6코스",
+    "description": "청록 그라데이션 퀼티드 메이플, 유백 자개와 골드가 흐르는 12현 커스텀.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 411,
+    "visibleHeight": 989
+  },
+  {
+    "id": "stage-cocobloom-7",
+    "category": "acoustic",
+    "title": "COCOBLOOM 7",
+    "stringCount": 7,
+    "neckStrings": [
+      7
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "7현",
+    "description": "꽃잎 형태의 코코볼로 바디에 루비 자개와 골드 잎맥을 새긴 7현 기타.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 627,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-moon-harp-24",
+    "category": "acoustic",
+    "title": "MOON HARP 24",
+    "stringCount": 24,
+    "neckStrings": [
+      6
+    ],
+    "auxiliaryStrings": 18,
+    "stringSpec": "24현 · 6+18 하프",
+    "description": "6현 넥과 18개 개방현을 결합한 달 모양 하프 기타. 코코볼로·골드·월장석 자개.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 532,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-solstice-twin-19",
+    "category": "acoustic",
+    "title": "SOLSTICE TWIN",
+    "stringCount": 19,
+    "neckStrings": [
+      12,
+      7
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "19현 · 12+7 더블 넥",
+    "description": "12현과 7현이 한 바디에서 만나는 더블 넥. 골든 코아와 블랙 코코볼로, 태양 자개.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 584,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-cathedral-25",
+    "category": "acoustic",
+    "title": "CATHEDRAL 25",
+    "stringCount": 25,
+    "neckStrings": [
+      12,
+      7,
+      6
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "25현 · 12+7+6 트리플 넥",
+    "description": "12·7·6현 세 넥과 세 울림통을 품은 트리플 넥. 백자색 목재·코코볼로·자개 세공.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 613,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-phoenix-7",
+    "category": "electric",
+    "title": "PHOENIX 7",
+    "stringCount": 7,
+    "neckStrings": [
+      7
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "7현",
+    "description": "불사조 날개 실루엣과 붉은 스팔티드 메이플, 골드·흑진주 장식의 7현 일렉.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 611,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-obsidian-8",
+    "category": "electric",
+    "title": "OBSIDIAN 8",
+    "stringCount": 8,
+    "neckStrings": [
+      8
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "8현 · 멀티스케일",
+    "description": "흑요석 같은 비대칭 바디, 자개 균열과 골드 브리지의 8현 멀티스케일.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 18,
+    "visibleWidth": 394,
+    "visibleHeight": 989
+  },
+  {
+    "id": "stage-prism-9",
+    "category": "electric",
+    "title": "PRISM 9",
+    "stringCount": 9,
+    "neckStrings": [
+      9
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "9현 · 멀티스케일",
+    "description": "프리즘처럼 깎은 바이올렛 벌 메이플과 오팔 패싯, 9현 멀티스케일.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 391,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-stardust-12",
+    "category": "electric",
+    "title": "STARDUST 12",
+    "stringCount": 12,
+    "neckStrings": [
+      12
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "12현 · 6코스",
+    "description": "별의 궤도를 닮은 진주색 세미홀로우, 로즈골드와 흑단의 12현 일렉.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 375,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-hydra-19",
+    "category": "electric",
+    "title": "HYDRA 19",
+    "stringCount": 19,
+    "neckStrings": [
+      12,
+      7
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "19현 · 12+7 더블 넥",
+    "description": "에메랄드 드래곤 비늘 자개와 골드 하드웨어의 12+7현 더블 넥.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 568,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-chimera-12",
+    "category": "electric",
+    "title": "CHIMERA 12",
+    "stringCount": 12,
+    "neckStrings": [
+      6,
+      6
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "12현 · 기타6+베이스6",
+    "description": "6현 일렉과 6현 베이스를 통합한 하이브리드. 코코볼로·흑단·골드의 비대칭 바디.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 495,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-leviathan-5",
+    "category": "bass",
+    "title": "LEVIATHAN 5",
+    "stringCount": 5,
+    "neckStrings": [
+      5
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "5현",
+    "description": "깊은 바다의 곡선과 청록 코코볼로, 골드 지느러미 세공의 5현 베이스.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 462,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-nebula-6",
+    "category": "bass",
+    "title": "NEBULA 6",
+    "stringCount": 6,
+    "neckStrings": [
+      6
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "6현 · 멀티스케일",
+    "description": "보랏빛 벌 우드와 자개 성운, 골드 하드웨어의 6현 베이스.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 354,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-wyvern-7",
+    "category": "bass",
+    "title": "WYVERN 7",
+    "stringCount": 7,
+    "neckStrings": [
+      7
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "7현 · 멀티스케일",
+    "description": "웅장한 날개형 코코볼로 바디와 흑진주 깃, 7현 확장 베이스.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 391,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-octave-8",
+    "category": "bass",
+    "title": "OCTAVE 8",
+    "stringCount": 8,
+    "neckStrings": [
+      8
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "8현 · 4 더블 코스",
+    "description": "4쌍 옥타브 현, 번개 실루엣과 청백 자개·샴페인 골드의 8현 베이스.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 412,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-choir-12",
+    "category": "bass",
+    "title": "CHOIR 12",
+    "stringCount": 12,
+    "neckStrings": [
+      12
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "12현 · 4 트리플 코스",
+    "description": "4개 트리플 코스와 12개 페그. 와인색 코코볼로·골드·자개 아르데코 베이스.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 17,
+    "visibleWidth": 421,
+    "visibleHeight": 990
+  },
+  {
+    "id": "stage-eclipse-twin-11",
+    "category": "bass",
+    "title": "ECLIPSE TWIN",
+    "stringCount": 11,
+    "neckStrings": [
+      5,
+      6
+    ],
+    "auxiliaryStrings": 0,
+    "stringSpec": "11현 · 5+6 더블 넥",
+    "description": "5현 프렛·6현 프렛리스가 하나가 된 더블 넥. 블랙 코코볼로·백자개·골드.",
+    "canvasWidth": 768,
+    "canvasHeight": 1024,
+    "visibleTop": 16,
+    "visibleWidth": 627,
+    "visibleHeight": 990
+  }
+]
