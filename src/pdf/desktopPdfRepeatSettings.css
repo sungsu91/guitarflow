@@ -40,7 +40,9 @@ html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings button[aria-
 html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings .desktopPdfRepeatGrid button[aria-pressed=true]{box-shadow:none!important;border-color:color-mix(in srgb,var(--score-accent) 28%,var(--score-line))!important}
 html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings .desktopPdfRepeatGrid button[data-edge=true]{background:var(--score-accent)!important;background-image:none!important;color:var(--score-on-accent)!important;-webkit-text-fill-color:currentColor!important;border-color:var(--score-accent)!important;font-weight:750}
 .desktopPdfRepeatGrid i{position:absolute;bottom:2px;width:3px;height:3px;border-radius:50%;background:currentColor}
-.desktopPdfRepeatEditorHead{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+.desktopPdfRepeatEditorHead{margin-bottom:16px}
+.desktopPdfRepeatEditorTabs{display:flex;gap:6px;margin-bottom:9px}
+.pdfStudio .desktopPdfRepeatEditorTabs button{padding:7px 14px}
 .pdfStudio .desktopPdfRepeatSettings .desktopPdfRepeatTextButton{border:0;background:transparent;color:var(--score-accent);padding:3px 0;min-height:28px;font-size:12px}
 .desktopPdfRepeatPresets{display:flex;gap:8px;margin-bottom:16px}
 .pdfStudio .desktopPdfRepeatPresets button{padding:7px 15px}
@@ -64,9 +66,12 @@ html body #root main.app .pdfStudio dialog.desktopPdfRepeatSettings .desktopPdfR
 .desktopPdfSymbolSpacing small{flex-basis:100%;color:var(--score-muted)}
 .pdfStudio .desktopPdfRepeatSettings>footer{display:block;flex:none;position:static;margin:0;padding:16px 28px 20px;border-top:1px solid var(--score-line);background:var(--score-bg)}
 .desktopPdfRepeatPreview strong{font-size:14px;font-weight:650;display:flex;align-items:center;gap:5px;color:var(--score-ink);font-variant-numeric:tabular-nums}
-.desktopPdfRepeatPreview details{margin-top:5px;font-size:11px;color:var(--score-muted)}
-.desktopPdfRepeatPreview details>summary{cursor:pointer}
-.pdfStudio .desktopPdfRepeatPreview details>p{max-height:55px;overflow:auto;font-size:11px;overflow-wrap:anywhere}
+.desktopPdfRepeatRoute{display:flex;align-items:baseline;gap:8px;margin-top:8px;font-size:12px;color:var(--score-muted)}
+.desktopPdfRepeatRoute>span{flex:none;font-size:11px}
+.desktopPdfRepeatRoute>div{display:flex;flex-wrap:wrap;align-items:center;gap:5px;max-height:64px;overflow:auto;font-variant-numeric:tabular-nums}
+.desktopPdfRepeatRoute>div>span{display:inline-flex;align-items:center;gap:5px;padding:3px 6px;border-radius:5px}
+.desktopPdfRepeatRoute .is-changed{background:color-mix(in srgb,var(--score-accent) 9%,transparent);color:var(--score-accent)}
+.desktopPdfRepeatJump{font-size:14px}
 .desktopPdfRepeatPreview [role=alert]{max-height:70px;overflow:auto}
 .pdfStudio .desktopPdfRepeatPreview [role=alert] p{color:var(--score-danger,#ad3128);margin:0}
 .desktopPdfRepeatFooterActions{display:flex;align-items:center;gap:8px;margin-top:14px}

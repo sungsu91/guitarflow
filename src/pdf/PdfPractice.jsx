@@ -71,7 +71,8 @@ export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeCon
 
  const bars=useMemo(()=>expandPdfBars(record.barMap??emptyBars),[record.barMap]);
  const {order,loop:looping,issues:repeatIssues}=useMemo(()=>practicePlan(record),[bars,record.practiceOrder,record.loop,record.loopStart,record.loopEnd,record.repeatSettings]);
- const metro=useEtudeMetronome(record.bpm,{beatsPerBar:record.meter[0],beatUnit:record.meter[1],audible:record.audible!==false,liveTempo:true,clicksPerBeat:getMetronomeSubdivisionOption(roomModel?.subdivision??'quarter').clicksPerBeat,toneSrc:METRONOME_TONE_OPTIONS.find(o=>o.id===roomModel?.tone)?.src,downbeatAt:tick=>{const r=current.current;if(!r.barMap?.length)return tick%r.meter[0]===0;return barAtTick(order,tick,looping)?.beat===0;}});
+ const endBeat=useMemo(()=>looping||!order.length?Infinity:order.reduce((total,bar)=>total+bar.beats,0),[order,looping]);
+ const metro=useEtudeMetronome(record.bpm,{endBeat,beatsPerBar:record.meter[0],beatUnit:record.meter[1],audible:record.audible!==false,liveTempo:true,clicksPerBeat:getMetronomeSubdivisionOption(roomModel?.subdivision??'quarter').clicksPerBeat,toneSrc:METRONOME_TONE_OPTIONS.find(o=>o.id===roomModel?.tone)?.src,downbeatAt:tick=>{const r=current.current;if(!r.barMap?.length)return tick%r.meter[0]===0;return barAtTick(order,tick,looping)?.beat===0;}});
  const saveTimer=useRef(null);
  useEffect(()=>()=>clearTimeout(saveTimer.current),[]);
  const update=useCallback(patch=>{

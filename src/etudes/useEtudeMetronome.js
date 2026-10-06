@@ -11,7 +11,7 @@ import {practiceCountIn} from './practiceCountIn.js';
 const ETUDE_CLICK_PEAK = 1.08;
 const ETUDE_WEAK_CLICK_PEAK = 0.9;
 
-export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, audible = true, downbeatAt, clickAccent, liveTempo = false, clicksPerBeat = 1, toneSrc } = {}) {
+export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, audible = true, downbeatAt, clickAccent, liveTempo = false, clicksPerBeat = 1, toneSrc, endBeat = Infinity } = {}) {
   const { volume } = useMetronomeVolume();
   const [playing, setPlaying] = useState(false);
   const [beat, setBeat] = useState(-1);
@@ -22,7 +22,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
   const [paused,setPaused]=useState(false);
   const clickAccentRef=useRef(clickAccent); clickAccentRef.current=clickAccent;
   const downbeatRef = useRef(downbeatAt); downbeatRef.current = downbeatAt;
-  const config=useRef({beatsPerBar,clicksPerBeat});config.current={beatsPerBar,clicksPerBeat};
+  const config=useRef({beatsPerBar,clicksPerBeat,endBeat});config.current={beatsPerBar,clicksPerBeat,endBeat};
   const token = useRef(0);
   const toneBuffer = useRef(null);
   useEffect(()=>{let live=true;toneBuffer.current=null;if(toneSrc)resumeSharedAudioContext().then(async context=>{const response=await fetch(toneSrc);if(!response.ok)throw Error(ko["etudes.couldNotLoadTheInstrumentSound"]);const buffer=await context.decodeAudioData(await response.arrayBuffer());if(live)toneBuffer.current=buffer;}).catch(e=>{if(live)setError(e.message);});return()=>{live=false;};},[toneSrc]);
@@ -56,7 +56,10 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
       let countInIndex=0,clickIndex=0,clickCycle=cycleSeconds?Math.floor(cycleOffset/cycleSeconds):0;
       const schedule = () => {
         if (session.current !== s) return;
-        const batch = clicks ? {steps:[]} : collectAudioTransportSteps(s.cursor, { currentTime: context.currentTime, horizonSeconds: METRONOME_LOOKAHEAD_SECONDS });
+        // Bound the audio queue itself; a delayed paint must not sound the next bar.
+        // Derive the boundary from the current phase so seeking and live tempo keep it.
+        const stopBeforeTime=s.origin+(config.current.endBeat-s.positionOffset)*s.stepSeconds;
+        const batch = clicks ? {steps:[]} : collectAudioTransportSteps(s.cursor, { currentTime: context.currentTime, horizonSeconds: METRONOME_LOOKAHEAD_SECONDS, stopBeforeTime });
         if (clicks) {
           while(clicks.length){
             if(clickIndex===clicks.length){if(!cycleSeconds||clickCycle+1>=repeatCount)break;clickIndex=0;clickCycle++;}
