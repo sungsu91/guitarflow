@@ -311,10 +311,10 @@ test("runtime preserves authored voicings, Root markers, and muted strings", () 
   assert.match(appSource, /fretboard: createVoicingFretboard\(slot\)/);
   assert.doesNotMatch(appSource, /createVoicingFretboard\(slot, course\.fretRange\)/);
   assert.match(appSource, /rootProvidedByBass: Boolean/);
-  assert.match(appSource, /transitionHint: typeof entry/);
-  assert.match(appSource, /soundingNotes: typeof entry/);
-  assert.match(appSource, /features: typeof entry/);
-  assert.match(appSource, /rootPositions: typeof entry/);
+  assert.match(appSource, /transitionHint: typeof storedMetadata/);
+  assert.match(appSource, /soundingNotes: typeof storedMetadata/);
+  assert.match(appSource, /features: typeof storedMetadata/);
+  assert.match(appSource, /rootPositions: typeof storedMetadata/);
   assert.match(appSource, /rootNote=\{isStage3VoicingMovementItem\(loadedStage3LibraryItem\) \? chordPracticeCurrent\.root : ""\}/);
   assert.match(appSource, /chordPracticeCurrent\.uiLabel \|\| chordPracticeCurrent\.positionLabel/);
   assert.match(appSource, /voicing === "thirdSeventh"/);

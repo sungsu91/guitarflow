@@ -13,11 +13,11 @@ test("landscape practice reuses the mounted controls in dedicated left and right
   const appSource = await readFile(appUrl, "utf8");
 
   assert.match(appSource, /const stage3LandscapeLoadToolbar = \(/);
-  assert.match(appSource, /<div className="stage3PracticeUtilityPanel">[\s\S]*?\{stage3LandscapeLoadToolbar\}/);
+  assert.match(appSource, /<div className="stage3PracticeUtilityPanel">[\s\S]*?\{!isTabletLayout \? stage3LandscapeLoadToolbar : null\}/);
   assert.doesNotMatch(appSource, /landscapePlayFocus \? stage3LandscapeLoadToolbar : null/);
   assert.match(appSource, /const referenceLandscapeBeatStrip = \(/);
-  assert.match(appSource, /hasDirectionPractice && \(landscapePlayFocus \|\| !isMobileLayout\) \? referenceLandscapeBeatStrip : null/);
-  assert.match(appSource, /isMobileLayout && !landscapePlayFocus \? referenceLandscapeBeatStrip : null/);
+  assert.match(appSource, /hasDirectionPractice && \(isTabletLayout \|\| landscapePlayFocus \|\| !isMobileLayout\) \? referenceLandscapeBeatStrip : null/);
+  assert.match(appSource, /isMobileLayout && !isTabletLayout && !landscapePlayFocus \? referenceLandscapeBeatStrip : null/);
 });
 
 test("mobile landscape fretboard omits the shared bottom navigation", async () => {
@@ -145,7 +145,7 @@ test("rhythm-code landscape reserves the left rail for progression and fretboard
   assert.match(css, /sharedAccompanimentPanel--training > summary::after[\s\S]*content: "" !important/);
   assert.match(css, /:is\(\.firstPositionTrainingPanel\.referenceTrainingPanel, \.scaleBlockTrainingPanel\.referenceTrainingPanel\)[\s\S]*\.referenceTrainingMainRow > \.referenceBeatMetronomeStrip[\s\S]*radial-gradient\(circle at 50% 18%, rgba\(216, 151, 165, 0\.08\), transparent 62%\)/);
   assert.doesNotMatch(appSource, /setStage3MetronomeOptionsCollapsed/);
-  assert.match(appSource, /upward=\{isMobileLayout && landscapePlayFocus\}/);
+  assert.match(appSource, /upward=\{isMobileLayout && !isTabletLayout && landscapePlayFocus\}/);
   assert.match(appSource, /toneControlsAfterSubdivision=\{landscapePlayFocus\}/);
   assert.match(appSource, /hidePartSummary=\{landscapePlayFocus\}/);
   assert.match(appSource, /activateDotsOnPointerUp=\{landscapePlayFocus\}/);

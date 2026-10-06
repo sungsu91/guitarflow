@@ -39,9 +39,11 @@ test("shooter keeps the shared touch HUD outside the dedicated desktop scene", a
 
   assert.match(appSource, /\{!mapEditor\.enabled && !desktopShooterScene \? \(\s*<div\s+className="mobileShooterTopHud"/);
   assert.ok(appSource.indexOf('className="mobileShooterTopHud"') < appSource.indexOf('className={`shooterArena'));
-  assert.match(appSource, /className=\{`mobileShooterPlayHelpHud/);
-  assert.match(appSource, /className=\{`mobileShooterPlayHelpOption/);
-  assert.match(appSource, /aria-pressed=\{shooterPlayHelpLevel === level\}/);
+  const instrumentHud = await readFile(new URL('../src/shooter/ShooterInstrumentControl.jsx', import.meta.url), 'utf8');
+  assert.match(appSource, /<ShooterInstrumentHud[\s\S]*?hint=\{shooterPlayHelpLevel\} onHint=\{setShooterPlayHelpLevel\}/);
+  assert.match(instrumentHud, /!voiceMode \? <label className="shooterHintCheckbox"/);
+  assert.match(instrumentHud, /checked=\{hint > 0\}/);
+  assert.match(instrumentHud, /onHint\(event\.target\.checked \? 2 : 0\)/);
   assert.match(appSource, /window\.setTimeout\(\(\) => setShooterPlayHelpInfoOpen\(false\), 10000\)/);
   assert.match(appSource, /id="shooter-play-help-tooltip"/);
   assert.match(appSource, /className=\{`mobileShooterSolfegeHud/);
@@ -53,9 +55,9 @@ test("shooter keeps the shared touch HUD outside the dedicated desktop scene", a
   assert.match(appSource, /const octave = getPitchOctave\(noteName\);/);
   assert.match(appSource, /`\$\{solfege\}\$\{octave \?\? ""\}`/);
   assert.match(appSource, /<NeonNote pitch=\{targetPitch\} label=\{targetPitchDisplayLabel\}/);
-  assert.match(appSource, /getShooterPitchDisplayLabel\(shooterGuidePitch, shooterSolfegeOn\)/);
+  assert.match(appSource, /formatShooterTargetPitch\(shooterGuidePitch, shooterSolfegeOn\)/);
   assert.match(appSource, /shooterPlayHelpLevel > 0 \? \(\s*<div className="mobileShooterPlayHelpMessageBar"/);
-  assert.match(appSource, /className="mobileShooterPrimaryHudRow"/);
+  assert.match(appSource, /className="mobileShooterPrimaryHudRow shooterInstrumentHudRow"/);
   assert.match(appSource, /className=\{`mobileShooterDifficultyControl/);
   assert.match(appSource, /className="mobileShooterTargetHud"/);
   assert.match(appSource, /className=\{`mobileShooterMicHud/);

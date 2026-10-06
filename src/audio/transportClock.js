@@ -87,7 +87,7 @@ export function retimeAudioTransportCursor(cursor, { currentTime, stepSeconds, t
   const next = createAudioTransportCursor({
     originTime, stepSeconds,
     // An attack at or before now has already sounded. Replace future attacks only.
-    positionSeconds: Math.max(0, now + 0.002 - originTime),
+    positionSeconds: Math.max(0, now + 0.000001 - originTime),
   });
   return { ...next, ticksPerMeasure };
 }

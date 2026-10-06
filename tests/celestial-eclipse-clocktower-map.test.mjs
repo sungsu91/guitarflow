@@ -140,7 +140,7 @@ test("renderer keeps background, astrolabe, combat, foreground, and HUD order", 
   assert.ok(overlayIndex > guitarIndex && hudIndex > overlayIndex);
   assert.match(
     appSource,
-    /const shooterPortraitLayout = !isMobileLayout \|\| isPortraitOnlyMode\(APP_MODES\.SHOOTER\)/,
+    /const shooterPortraitLayout = !isTabletLayout \|\| !viewportProfile\.isLandscape/,
   );
   assert.match(styleSource, /\.shooterMapSkinStage--overlay\s*\{[\s\S]*?z-index: 35/);
   assert.match(styleSource, /\.shooterMapCelestialAstrolabe\s*\{[\s\S]*?width: 65%/);

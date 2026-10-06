@@ -98,3 +98,34 @@ test('automatic BPM changes keep the audible phase without adding a 60ms startup
   assert.ok(Math.abs(next.time-expected)<1e-9, `${next.time} should be ${expected}`);
   assert.equal(live().filter(e=>Math.abs(e.time-1.06)<1e-9).length,1);
 });
+
+test('Timer OFF freezes its elapsed time and cannot stop playback in the background',()=>{
+  let state=runtime.createMetronomeRuntimeState();
+  const configuration={bpm:120,trackerTimerTotalMs:60000,trackerTimerStopWhenReached:true};
+  const off=runtime.advanceMetronomeRuntime(state,65000,{
+    ...configuration,trackerMode:runtime.getActiveMetronomeTrackerMode('timer',false),
+  });
+  assert.equal(off.state.trackerElapsedMs,0);assert.equal(off.shouldStop,false);
+  state=runtime.advanceMetronomeRuntime(off.state,59000,{
+    ...configuration,trackerMode:runtime.getActiveMetronomeTrackerMode('timer',true),
+  }).state;
+  const paused=runtime.advanceMetronomeRuntime(state,20000,{
+    ...configuration,trackerMode:runtime.getActiveMetronomeTrackerMode('timer',false),
+  });
+  assert.equal(paused.state.trackerElapsedMs,59000);assert.equal(paused.shouldStop,false);
+  const on=runtime.advanceMetronomeRuntime(paused.state,1000,{
+    ...configuration,trackerMode:runtime.getActiveMetronomeTrackerMode('timer',true),
+  });
+  assert.equal(on.shouldStop,true);
+});
+
+test('equivalent beat arrays from Tracker UI renders leave queued audio untouched',()=>{
+  const {ctx,events}=fixture();ctx.metronomeBeatPatternRef.current=['accent','normal','normal','normal'];ctx.run(4);
+  const count=events.length;
+  for(let i=0;i<20;i++) {
+    ctx.audioRef.current.currentTime=.1;
+    ctx.metronomeBeatPatternRef.current=['accent','normal','normal','normal'];ctx.run(.75);
+  }
+  assert.equal(events.length,count);
+  assert.ok(events.every(e=>!e.cancelled));
+});

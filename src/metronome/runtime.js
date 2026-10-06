@@ -15,6 +15,10 @@ function normalizeMode(mode, allowedModes) {
   return allowedModes.includes(mode) ? mode : "off";
 }
 
+export function getActiveMetronomeTrackerMode(mode, countdownEnabled) {
+  return mode === "timer" && !countdownEnabled ? "off" : normalizeMode(mode, ["off", "bars", "timer"]);
+}
+
 function getAutomationKey(mode, everyBars, everyMs) {
   if (mode === "bars") return `bars:${everyBars}`;
   if (mode === "time") return `time:${everyMs}`;

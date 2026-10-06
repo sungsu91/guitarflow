@@ -40,7 +40,7 @@ test("rhythm code places its four metronome dropdowns above accompaniment", () =
   assert.match(optionsBlock, /optionsCollapsed=\{false\}/);
   assert.match(
     appSource,
-    /className="sharedAccompanimentPanel--training"\s+upward=\{isMobileLayout && landscapePlayFocus\}\s+defaultExpanded=\{!isMobileLayout \|\| !viewportProfile\.isLandscape\}/,
+    /className="sharedAccompanimentPanel--training"\s+upward=\{isMobileLayout && !isTabletLayout && landscapePlayFocus\}\s+defaultExpanded=\{!isTabletLayout && \(!isMobileLayout \|\| !viewportProfile\.isLandscape\)\}/,
   );
   assert.doesNotMatch(optionsBlock, /changeTrainingMetronomeTimeSignature|changeMetronomeAccentTone|changeMetronomeWeakTone/);
   assert.equal((appSource.match(/onOptionsCollapseChange=\{isMobileLayout/g) ?? []).length, 0);

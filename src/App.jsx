@@ -123,6 +123,7 @@ import {
 } from "./metronome/wheelPickerPhysics";
 import {
   advanceMetronomeRuntime,
+  getActiveMetronomeTrackerMode,
   createMetronomeRuntimeState,
   normalizeAutomatorTimerParts,
   normalizeTrackerTimerParts,
@@ -20799,7 +20800,7 @@ function App({ onReady }) {
     // Editing a sound or Coach setting must replace the lookahead, including
     // the longer queue filled before opening a menu, without moving the beat.
     const soundSettings = [
-      groovePatternRef.current, metronomeBeatPatternRef.current, metronomeOnRef.current,
+      groovePatternRef.current, metronomeBeatPatternRef.current?.join("|"), metronomeOnRef.current,
       metronomeAccentToneRef.current, metronomeWeakToneRef.current,
       coachModeEnabledRef.current, coachPlayBarsRef.current, coachMuteBarsRef.current,
       metronomeTrackerModeRef.current, metronomeBarLimitEnabledRef.current,
@@ -20811,7 +20812,7 @@ function App({ onReady }) {
       cancelScheduledMetronomeTicks({ futureOnly: true });
       metronomeAudioCursorRef.current = createAudioTransportCursor({
         originTime: cursor.originTime,
-        positionSeconds: Math.max(0, audio.currentTime + 0.002 - cursor.originTime),
+        positionSeconds: Math.max(0, audio.currentTime + 0.000001 - cursor.originTime),
         stepSeconds: cursor.stepSeconds,
       });
       metronomeAudioCursorRef.current.ticksPerMeasure = signature.beats * clicksPerBeat;
@@ -26972,8 +26973,8 @@ function App({ onReady }) {
   }, [coachMuteBars]);
 
   useEffect(() => {
-    metronomeTrackerModeRef.current = metronomeTrackerMode;
-  }, [metronomeTrackerMode]);
+    metronomeTrackerModeRef.current = getActiveMetronomeTrackerMode(metronomeTrackerMode, metronomeTimerCountdown);
+  }, [metronomeTrackerMode, metronomeTimerCountdown]);
 
   useEffect(() => {
     metronomeBarLimitEnabledRef.current = metronomeBarLimitEnabled;

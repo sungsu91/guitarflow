@@ -3,6 +3,7 @@ import { readFile } from "./i18n-source.mjs";
 import * as additional from "../../src/chords/additionalChords.js";
 import * as fixedAdd from "../../src/chords/fixedAddVoicings.js";
 import vm from "node:vm";
+import assert from "node:assert/strict";
 
 import * as notation from "../../src/music/noteNotation.js";
 import * as theory from "../../src/chords/chordTheory.js";
@@ -21,6 +22,7 @@ export async function loadChordRuntime(source, injected = {}) {
   vm.runInContext([
     section("function pitchToMidi(", "function getPitchOctave("),
     section("function getChordDisplayNoteName(", "function getFrequencyFromMidi("),
+    section("function getFrequencyFromMidi(", "const NOTE_FREQUENCIES ="),
     section("const STANDARD_TUNING =", "function getSixthStringRootFret("),
     section('const CHORD_VIEWER_POSITION_ALL =', 'const CHORD_CATALOG_ALL ='),
     section("function getChordMetaFromLabel(", "function getChordEntryId("),
@@ -44,5 +46,11 @@ export function snapshotChordRuntime(runtime, formulas = theory.CHORD_TONE_INTER
       }
     }
   }
-  return JSON.parse(JSON.stringify(result));
+  // Legacy shape snapshots omitted frequency. Validate the new fallback
+  // independently while preserving every authored pitch/fret/finger field.
+  return JSON.parse(JSON.stringify(result, function (key, value) {
+    if (key !== "frequency") return value;
+    assert.equal(value, 440 * 2 ** ((runtime.pitchToMidi(this.pitch) - 69) / 12));
+    return undefined;
+  }));
 }
