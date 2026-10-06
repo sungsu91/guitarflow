@@ -18,11 +18,14 @@ floor below the player and a quieter center for notes.
 - Full generation prompts: `assets-source/shooter-art-atlas/prompts.json`.
 - Shared map data: `src/shooter/maps/artMapCatalog.js`.
 - Separate desktop, phone and tablet views: `src/shooter/maps/ArtMapRenderer.jsx`.
-- A shared WebGL backdrop animates the actual painting: glass-petal sway and
-  rippling reflections, flowing silk with travelling highlights, or moving ink
-  mist and gold waterfall light. The foreground floor remains anchored.
-- Animated mist, light veils and 16 drifting glimmers give each world visible
-  atmospheric movement. Desktop, phone and tablet keep their own compositions.
+- The painting, architecture, floor and central space remain stationary. Six small
+  material paths per source artwork confine effects to silk interiors, glass
+  petals or actual waterfalls. Phone/tablet masks are authored independently.
+- Silk has subpixel surface flow and travelling sheen; glass and waterfalls have
+  local light movement only. No camera drift, scene-wide UV distortion, broad
+  moving mist or sweeping light overlays. Eight small glimmers drift slowly.
+- Material masks: `src/shooter/maps/artMapMaterials.js`. Unknown compositions
+  receive no material motion rather than borrowing an unrelated image's mask.
 - The scenery has an independent clock, capped at 30 fps and one million shaded
   pixels. It pauses with the game or when hidden. Reduced motion / data saving
   use the still artwork; unavailable WebGL retains the poster and CSS atmosphere.
@@ -44,3 +47,9 @@ development, preview or production server; `ART_MAP_TEST_OUTPUT` selects the
 report folder. It covers desktop, two phones, portrait/landscape tablets and
 tablet split view, including picker order, image decoding, framing, persistence,
 reduced motion and runtime errors.
+
+The motion/presence audit uses `SHOOTER_TEST_URL` and `SHOOTER_TEST_OUTPUT`.
+It captures actual GPU frames and requires **zero changed pixels outside the
+material masks**, zero floor/central-space changes and visible local effects.
+It also checks each device's bass size, picker close/pause behavior and reduced
+motion. The emitted `*-motion-only.png` files show every moving material pixel.

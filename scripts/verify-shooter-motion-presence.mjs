@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { getArtMapCover } from '../src/shooter/maps/artMapMotion.js';
+import { getArtMapMaterials } from '../src/shooter/maps/artMapMaterials.js';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const sharp = require('sharp');
@@ -47,15 +49,49 @@ try {
       const canvas=page.locator(`[data-art-map="${id}"] canvas[data-ready="true"]`);
       await canvas.waitFor();
       await page.waitForFunction(()=>Number(document.querySelector('.artMapMotionCanvas')?.dataset.motionTime)>150);
-      const first=await canvas.screenshot(); await page.waitForTimeout(1200); const second=await canvas.screenshot();
-      const a=await sharp(first).resize(300,200).removeAlpha().raw().toBuffer(), b=await sharp(second).resize(300,200).removeAlpha().raw().toBuffer();
-      let changed=0,total=0; for(let i=0;i<a.length;i+=3){const d=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]);if(d>12)changed++;total+=d;}
-      const difference=changed/(a.length/3);assert.ok(difference>.04,`${name} ${id}: motion too weak (${difference})`);
+      assert.equal(await canvas.getAttribute('data-motion-mode'),'material-only');
+      assert.equal(await canvas.getAttribute('data-presentation'),name);
+      // Capture immediately after a real GPU draw, without game UI or particles.
+      const capture=()=>canvas.evaluate(el=>new Promise(resolve=>{
+        const gl=el.getContext('webgl'), draw=gl.drawArrays;
+        gl.drawArrays=function(...args){draw.apply(this,args);gl.drawArrays=draw;resolve(el.toDataURL());};
+      })).then(url=>Buffer.from(url.split(',')[1],'base64'));
+      const first=await capture();await page.waitForTimeout(1600);const second=await capture();
+      const {data:a,info}=await sharp(first).removeAlpha().raw().toBuffer({resolveWithObject:true});
+      const b=await sharp(second).removeAlpha().raw().toBuffer();
+      const source=await canvas.evaluate(el=>{const img=el.parentElement.querySelector('img'),rect=el.getBoundingClientRect();return[img.naturalWidth,img.naturalHeight,rect.width,rect.height];});
+      const crop=getArtMapCover(...source), paths=getArtMapMaterials(id,name), aspect=source[0]/source[1];
+      let changed=0,outsideChanged=0,outside=0,floorChanged=0,centerChanged=0;
+      const diff=Buffer.alloc(a.length);
+      for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++){
+        const px=(x+.5)/info.width*crop.scale[0]+crop.offset[0],py=(y+.5)/info.height*crop.scale[1]+crop.offset[1];
+        const inside=paths.some(([ax,ay,bx,by,r])=>{
+          const dx=(bx-ax)*aspect,dy=by-ay;
+          const t=Math.max(0,Math.min(1,((px-ax)*aspect*dx+(py-ay)*dy)/(dx*dx+dy*dy)));
+          return Math.hypot((px-ax)*aspect-t*dx,py-ay-t*dy)<=r+.00001;
+        });
+        const i=(y*info.width+x)*3,d=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]);
+        if(!inside)outside++;
+        if(d>0){
+          if(!inside)outsideChanged++;
+          if(py>.82)floorChanged++;
+          if(px>.42&&px<.58&&py>.25&&py<.5)centerChanged++;
+          if(d>3){changed++;diff[i]=255;diff[i+1]=inside?180:0;}
+        }
+      }
+      assert.equal(outsideChanged,0,`${name} ${id}: background pixels moved outside material`);
+      assert.equal(floorChanged,0,`${name} ${id}: floor must remain pixel-stable`);
+      assert.equal(centerChanged,0,`${name} ${id}: central space must remain pixel-stable`);
+      assert.ok(outside/(info.width*info.height)>.85,'material mask must stay local');
+      assert.ok(changed>10,`${name} ${id}: selected material should still animate`);
+      const difference=changed/(info.width*info.height);
+      await writeFile(`${out}/${name}-${id}-frame.png`,second);
+      await sharp(diff,{raw:{width:info.width,height:info.height,channels:3}}).png().toFile(`${out}/${name}-${id}-motion-only.png`);
       const canvasSize=await canvas.evaluate(el=>[el.width,el.height]);assert.ok(canvasSize[0]*canvasSize[1]<1_002_000);
       await page.screenshot({path:`${out}/${name}-${id}.png`});
       await openPicker(page,desktop);
       if(desktop){const t=await canvas.getAttribute('data-motion-time');await page.waitForTimeout(250);assert.equal(await canvas.getAttribute('data-motion-time'),t,'picker should pause desktop scenery');}
-      report.push({profile:name,id,difference,canvasSize,basses:bassReport});
+      report.push({profile:name,id,difference,outsideChanged,floorChanged,centerChanged,staticFraction:outside/(info.width*info.height),canvasSize,basses:bassReport});
       await page.locator('.shooterSkinTabs').getByRole('button',{name:'맵',exact:true}).click();
     }
     // The desktop start control stays reachable while its floating picker is open.
