@@ -35,6 +35,22 @@ export function curvedParenthesis(image,g){
  return null;
 }
 
+// Closely spaced chord changes may form one connected text group (G7 C),
+// including a raised last root. Split only independently recognized root
+// glyphs, never the uppercase bass after a slash or a valid extended chord.
+export function splitChordGlyphSequence(letters,glyphs){
+ if(parseChordSymbol(letters.join('')))return null;
+ const starts=[0,...letters.flatMap((letter,i)=>i>0&&/^[A-G]$/.test(letter)&&letters[i-1]!=='/'&&glyphs[i].height>=glyphs[0].height*.7?[i]:[])];
+ if(starts.length<2||starts.length>4)return null;
+ const words=starts.map((start,i)=>{
+  const end=starts[i+1]??letters.length,text=letters.slice(start,end).join(''),parsed=parseChordSymbol(text),group=glyphs.slice(start,end);
+  if(!parsed)return null;
+  const x=Math.min(...group.map(g=>g.x)),y=Math.min(...group.map(g=>g.y));
+  return {text,name:parsed.name,x,y,width:Math.max(...group.map(g=>g.x+g.width))-x,height:Math.max(...group.map(g=>g.y+g.height))-y,confidence:.9,method:'local-chord-glyph-sequence'};
+ });
+ return words.every(Boolean)?words:null;
+}
+
 // Retry isolated printed characters only after locating a complete chord text
 // group. In particular, two printed 1s must not become a confidently guessed m.
 export async function recognizeChordGlyphs(raw,part,worker,{signal}={}){
@@ -81,7 +97,9 @@ export async function recognizeChordGlyphs(raw,part,worker,{signal}={}){
    letters.push(match.text);
   }
   const parsed=parseChordSymbol(letters.join(''));
-  return parsed?{name:parsed.name,text:letters.join(''),confidence:.9,method:'local-chord-glyph-consensus'}:null;
+  if(parsed)return {name:parsed.name,text:letters.join(''),confidence:.9,method:'local-chord-glyph-consensus'};
+  const words=splitChordGlyphSequence(letters,glyphs);
+  return words?{words}:null;
  }finally{
   canvas.width=canvas.height=0;
   if(!signal?.aborted)await worker.setParameters({tessedit_char_whitelist:'ABCDEFGNMabcdefgmjinsudao#b0123456789/+().'});

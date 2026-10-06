@@ -5,10 +5,12 @@ import {getAudioBusInput,AUDIO_BUS_IDS} from './audioBus.js';
 import {scheduleGuitarPhrase,warmGuitarPhrase} from './fretboardPreviewEngine.js';
 import {alignScorePianoAttack} from './scorePianoSample.js';
 import {createPalmMuteGate} from './scorePalmMute.js';
+import {prepareBassSamples,scheduleBassPhrase} from './scoreBass.js';
 
 const pianoBuffers=new WeakMap();
 export async function prepareScoreInstrument(audio,instrument){
  if(instrument==='drums')return prepareDrumSamples(audio);
+ if(instrument==='bass')return prepareBassSamples(audio);
  if(instrument!=='piano')return;
  if(!pianoBuffers.has(audio)){
   const load=fetch('/sounds/gpg4.wav').then(r=>{if(!r.ok)throw Error(ko["audio.couldnTLoadPianoAudio"]);return r.arrayBuffer();}).then(data=>audio.decodeAudioData(data)).then(buffer=>alignScorePianoAttack(audio,buffer)).catch(e=>{pianoBuffers.delete(audio);throw e;});
@@ -53,7 +55,7 @@ export function createScoreVoiceOutput(audio){
     const voiceLevel=level*(phrase.roll?.velocity??1)*(Number.isFinite(phrase.velocity)?Math.max(0,Math.min(1,phrase.velocity)):1);
     if(voiceLevel===0)return null;
     const palmGate=phrase.dead?null:createPalmMuteGate(audio,phrase,at,output),destination=palmGate??output;
-    const source=instrument==='drums'?scheduleDrum(audio,phrase,at,destination,voiceLevel):instrument==='piano'&&!phrase.dead?pianoVoice(audio,phrase,at,destination,pianoBuffer,voiceLevel):scheduleGuitarPhrase(audio,phrase,at,destination,voiceLevel);
+    const source=instrument==='drums'?scheduleDrum(audio,phrase,at,destination,voiceLevel):instrument==='bass'&&!phrase.dead?scheduleBassPhrase(audio,phrase,at,destination,pianoBuffer,voiceLevel):instrument==='piano'&&!phrase.dead?pianoVoice(audio,phrase,at,destination,pianoBuffer,voiceLevel):scheduleGuitarPhrase(audio,phrase,at,destination,voiceLevel);
     if(phrase.silenceAt!==undefined)source.release(at+phrase.silenceAt-phrase.start-.014);
     strings.set(voiceKey,source);sources.add(source);
     source.addEventListener('ended',()=>{palmGate?.disconnect();sources.delete(source);if(strings.get(voiceKey)===source)strings.delete(voiceKey);if(disposed&&!sources.size)output.disconnect();},{once:true});

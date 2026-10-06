@@ -84,7 +84,8 @@ export async function recognizePageChords(regions,nativeWords=[],{signal,onReadi
       const glyphReading=await recognizeChordGlyphs(raw,part,worker,{signal});
       if(glyphReading){
        words=words.filter(w=>w.x+w.width*.5<px||w.x>px+part.width);
-       words.push({...glyphReading,x:px,y:py,width:part.width,height:part.height});continue;
+       if(glyphReading.words)words.push(...glyphReading.words.map(w=>({...w,x:px+w.x,y:py+w.y,groupX:px,groupWidth:part.width})));
+       else words.push({...glyphReading,x:px,y:py,width:part.width,height:part.height});continue;
       }
      }
      if(existing&&!partial)continue;
@@ -129,7 +130,7 @@ export async function recognizePageChords(regions,nativeWords=[],{signal,onReadi
       .filter(w=>!words.some(p=>Math.abs(p.x-w.x)<region.spacing)).map(w=>({...w,confidence:w.wordConfidence,needsReview:true}));
     // A clearly located but unread complete label must interrupt automatic
     // accompaniment, rather than silently carrying the previous chord through it.
-    if(region.textBaseline!==undefined)region.unresolvedGroups=(region.components??[]).filter(p=>!lyricPart(p)&&p.height>=region.spacing&&p.height<region.spacing*2.5&&p.width>=p.height*.8&&!words.some(w=>Math.abs(w.x-region.x-p.x)<region.spacing*.4&&w.width>=p.width*.75)).map(p=>({x:region.x+p.x,y:region.y+p.y,width:p.width,height:p.height}));
+    if(region.textBaseline!==undefined)region.unresolvedGroups=(region.components??[]).filter(p=>!lyricPart(p)&&p.height>=region.spacing&&p.height<region.spacing*2.5&&p.width>=p.height*.8&&!words.some(w=>Math.abs((w.groupX??w.x)-region.x-p.x)<region.spacing*.4&&(w.groupWidth??w.width)>=p.width*.75)).map(p=>({x:region.x+p.x,y:region.y+p.y,width:p.width,height:p.height}));
    }
    const {rgba,...meta}=region;results.push({...meta,words,triplets});
   }

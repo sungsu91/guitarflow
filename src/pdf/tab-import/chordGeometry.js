@@ -45,11 +45,15 @@ export function textComponents(rgba,width,height,g){
   if(total&&border/total>.7)continue;
   if(bottom-top>=g*.65&&bottom-top<=g*3.3&&right-left>=g*.12&&right-left<g*12)parts.push({x:left,y:top,width:w,height:h});
  }
+ return groupChordComponents(parts,g);
+}
+
+export function groupChordComponents(parts,g){
  const groups=[];
- for(const p of parts.sort((a,b)=>a.x-b.x)){
+ for(const p of [...parts].sort((a,b)=>a.x-b.x)){
   // A diagram above the name can interleave in x order. Match by baseline,
   // rather than letting that unrelated component split C + add2 or E + m.
-  const prev=groups.findLast(q=>p.x-(q.x+q.width)<g*.9&&p.x>=q.x&&Math.min(q.y+q.height,p.y+p.height)-Math.max(q.y,p.y)>Math.min(q.height,p.height)*.4);
+  const prev=groups.findLast(q=>p.x-(q.x+q.width)<g*.9&&p.x>=q.x&&Math.min(q.y+q.height,p.y+p.height)-Math.max(q.y,p.y)>Math.min(q.height,p.height)*.4&&!(Math.min(q.height,p.height)>=Math.max(q.height,p.height)*.85&&Math.min(q.height,p.height)>g*1.35&&Math.abs(q.y+q.height-p.y-p.height)>g*.8));
   if(prev){const right=Math.max(prev.x+prev.width,p.x+p.width),bottom=Math.max(prev.y+prev.height,p.y+p.height);prev.y=Math.min(prev.y,p.y);prev.width=right-prev.x;prev.height=bottom-prev.y;}
   else groups.push({...p});
  }
