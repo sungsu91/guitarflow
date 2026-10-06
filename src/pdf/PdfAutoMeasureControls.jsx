@@ -3,10 +3,12 @@ import {t,localizeUi} from '../i18n/core.js';
 import {useEffect,useRef} from 'react';
 
 function Status({analysis,progress,hasBars}){
+ const language=useLanguage();
  if(progress)return <span role="status">{localizeUi(progress)}</span>;
  if(!analysis)return null;
  const s=analysis.summary;
  return <><span role="status">{t('pdf.autoSummary',{pages:s.pages,systems:s.systems,measures:s.measures,review:s.review})}</span>
+  {analysis.pages.some(p=>p.source==='photo')&&<small>{language==='ko'?'사진 보정 적용 · 표시된 마디 경계를 확인해 주세요.':'Photo correction applied · check the marked measure boundaries.'}</small>}
   {hasBars&&<small><Translation id="pdf.autoReplaceWarning" /></small>}
   {!s.measures&&<small><Translation id="pdf.autoEmpty" /></small>}
   {s.measures>0&&analysis.pages.some(p=>!p.measures.length)&&<small><Translation id="pdf.autoMissingPage" /></small>}

@@ -1,5 +1,6 @@
 import {binaryPage,detectStaffs,detectBarlines,runs} from './tab-import/geometry.js';
-export const PRACTICE_DETECTION_VERSION='layout-10';
+export const PRACTICE_DETECTION_VERSION='layout-11-photo';
+import {detectPhotoPracticeMeasures,isPhotographicPage} from './photoPracticeMeasures.js';
 import {TAB_IMPORT_CONFIG} from './tab-import/config.js';
 import {detectPracticeBarlines,hasRuledStaffStart} from './practiceBarlines.js';
 
@@ -165,6 +166,7 @@ function singleLineStaffs(raw,rules,ink,width,height,existing){
 
 // Layout only: no text, frets, rhythm, or printed repeat interpretation.
 export function detectPracticeMeasures({rgba,width,height,page}) {
+ if(isPhotographicPage({rgba,width,height}))return {...detectPhotoPracticeMeasures({rgba,width,height,page}),engineVersion:PRACTICE_DETECTION_VERSION};
  const config={...TAB_IMPORT_CONFIG,minSpacing:5,maxSpacing:65,spacingTolerance:.22,alignedStaffExtension:true};
  const shortConfig={...config,minStaffWidth:.06,minStaffSpan:8};
  const ink=binaryPage(rgba,width,height),ruleVariants=[230,240].map(threshold=>{const raw=binaryPage(rgba,width,height,threshold);return {raw,rules:practiceStaffRules(raw,width,height)};});
@@ -244,6 +246,7 @@ export function practiceMeasureMap(pages,meter){
 // Keep primary boundaries unless the alternate render proves that split rows
 // belong to one connected system. Never infer an equal four-bar layout.
 export function mergePracticeDetections(primary,secondary){
+ if(primary.source==='photo')return primary;
  const rows=primary.systems.map(system=>({system,measures:primary.measures.filter(m=>m.system===system.system)}));
  for(const system of secondary.systems){
   const overlaps=rows.filter(row=>Math.min(row.system.y+row.system.height,system.y+system.height)>Math.max(row.system.y,system.y));

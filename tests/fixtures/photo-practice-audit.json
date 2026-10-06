@@ -1,0 +1,700 @@
+{
+  "date": "2026-10-06",
+  "engine": "layout-11-photo",
+  "scope": "Automatic practice measure segmentation, not editable-note/rhythm OCR. No per-file detector hints or corrected bar maps.",
+  "limitations": [
+    "Counts checked per system, not only document totals.",
+    "All photo results still require boundary review. Not every simultaneous staff is recovered; uncertain parts are omitted rather than evenly divided.",
+    "New photographs, unreadable/occluded music and unsupported layouts are not guaranteed.",
+    "Browser playback verified visually/DOM, not by an acoustic latency measurement."
+  ],
+  "photos": {
+    "pages": 20,
+    "measures": 310,
+    "cases": [
+      {
+        "id": "canon-1",
+        "sha256": "6e56f4138853b9504fdde77c21b68bde4b9a19f0cb3c16f9da107c6eb1f0846a",
+        "expectedSystems": [
+          5,
+          4,
+          4,
+          4,
+          3,
+          3,
+          3,
+          3
+        ],
+        "directSystems": [
+          5,
+          4,
+          4,
+          4,
+          3,
+          3,
+          3,
+          3
+        ],
+        "pdfSystems": [
+          5,
+          4,
+          4,
+          4,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "id": "canon-2",
+        "sha256": "bc4ea49485f1c636a048bd0ec0f7910cfc64e6aef6f3b7c53d1247d6176e5627",
+        "expectedSystems": [
+          3,
+          4,
+          2
+        ],
+        "directSystems": [
+          3,
+          4,
+          2
+        ],
+        "pdfSystems": [
+          3,
+          4,
+          2
+        ]
+      },
+      {
+        "id": "cherry-1",
+        "sha256": "256886e7455bb012349aa0be4656a641946f01b85e1dbf1df2e662d6925ca4a5",
+        "expectedSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "id": "cherry-2",
+        "sha256": "d744e7c881379da156896872f24cc64185fc59ba3c14a5585df71669249ed02a",
+        "expectedSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "id": "cherry-3",
+        "sha256": "b68d10e3a5ba004116391b2e2c1b69faee1e9f2878fde96b38e0e80b13d3b39e",
+        "expectedSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "id": "cherry-4",
+        "sha256": "94b7a7e8ddaedefc6f1db521e38c45bd7cb8097cfa55b18a5c0519d5f01c7b04",
+        "expectedSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          8,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          8,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          8,
+          4
+        ]
+      },
+      {
+        "id": "cherry-5",
+        "sha256": "355595a3c73fdbce93b1fa286af0a23044afdb8091d45f00ed6e273257bdc34c",
+        "expectedSystems": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "id": "scale",
+        "sha256": "f0a56dac0e08e6286ffe9e564d621b23e3a7bbfcd85d8a4f1d07d066279a95bb",
+        "expectedSystems": [
+          3,
+          3,
+          3
+        ],
+        "directSystems": [
+          3,
+          3,
+          3
+        ],
+        "pdfSystems": [
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "id": "movie-1",
+        "sha256": "61d8934b41f9f4e16e15ad6b12902cad92ee06930bdf612a8704f7feede4df7c",
+        "expectedSystems": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "directSystems": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "pdfSystems": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "id": "movie-2",
+        "sha256": "837ce18cefd9e39b3c02e02aa989589fd1f2605ce8dd5696a00093b63abc2691",
+        "expectedSystems": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "directSystems": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "pdfSystems": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "id": "movie-3",
+        "sha256": "f635003ccdd286a83e6eb3b90656fed3ef19e5eb505316b2f4c94f54b257549c",
+        "expectedSystems": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "directSystems": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "pdfSystems": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "id": "book-4",
+        "sha256": "792ce49bdd2ebf22aecf72696a643c0d46a344a995ac496b85befb075feb4981",
+        "expectedSystems": [
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-5",
+        "sha256": "fbd7cfb07b6e512f8a27dc42bd1d8556a10886dc3f39c1baa0856f56c0a7c374",
+        "expectedSystems": [
+          4,
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-6",
+        "sha256": "c2e820328dd4802e109021546d7473b36eb31e38dc12175c214dc76094330ab7",
+        "expectedSystems": [
+          4,
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-7",
+        "sha256": "37a00ad923a8008288965c9fc293a8ef8cbcc79696bf2658d3db83174cc1dd11",
+        "expectedSystems": [
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-8",
+        "sha256": "4a908ba8a73add4a4fe2cae6c6cbc95e45f9c183d5942deaeb86cb9f3c8717e8",
+        "expectedSystems": [
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-9",
+        "sha256": "fdd0db4e4a539c6cdcf1f440fd2f9af2fe823cfff2630c97106d5963b82f1357",
+        "expectedSystems": [
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-10",
+        "sha256": "fe1cd917e2d37d3993afde60803313fdd4ae50736a4b16d40124efba5384318f",
+        "expectedSystems": [
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-11",
+        "sha256": "34ed012865fa7ca76e81ec896617b3d0a109c54edab66a0bac5dfa4b3829555c",
+        "expectedSystems": [
+          4,
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "id": "book-12",
+        "sha256": "df7cfa6538543e0bd972f6c8c8dc66358a7773fa91d4b475da52a94b18c902a4",
+        "expectedSystems": [
+          4,
+          4
+        ],
+        "directSystems": [
+          4,
+          4
+        ],
+        "pdfSystems": [
+          4,
+          4
+        ]
+      }
+    ]
+  },
+  "originalPdfs": [
+    {
+      "id": "NOW",
+      "measures": 65,
+      "maximumBoxDelta": 0
+    },
+    {
+      "id": "Into The Light",
+      "measures": 105,
+      "maximumBoxDelta": 0
+    },
+    {
+      "id": "도레미파",
+      "measures": 122,
+      "maximumBoxDelta": 0
+    }
+  ],
+  "editorPdfRegression": [
+    {
+      "id": "tab-short-beam-above-pick-above",
+      "sha256": "d88f700ba8bf814cc24a8d1332e627d1be8e422e553933762b6ea0c1014106fc",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-short-beam-above-pick-below",
+      "sha256": "f1c35cafdb4a84a70eabfc4c39a9183314a7950c345a0bbced9e990e8606ffd5",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-short-beam-below-pick-above",
+      "sha256": "d2390f8ec1b6e6aa4129cb04c46db7416487aee958376c89292165062a229c1c",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-short-beam-below-pick-below",
+      "sha256": "d174f6d137695b5d70878595fba9f0b59e19c5447f87bac841a5c925458a34aa",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3,
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-short-without-picking",
+      "sha256": "0681f9d1bab5e1387b8cb098810954950ce5f25ea003e8bcc96363086987d03c",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3,
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "staff-piano-grand-quarter-stems",
+      "sha256": "d89910a465d7d8f485e19e97aacfbc335fc031a95f1dfcc81728f5663345c886",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3,
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-long-beam-above-pick-above",
+      "sha256": "421ad03fccabe4364d8c829d866c5f9f7fdb2c3d6f27e96c44034a97dd8ba8b1",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-long-beam-above-pick-below",
+      "sha256": "0bb246b7fa8ea3c1d4175fa027243c7e86332fcca8ae52d804ab14932518ea62",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-long-beam-below-pick-above",
+      "sha256": "55a57dc52d5dc77dbfb2c806a1d28d1c714479a1fb90f5e04347ea4bbe65a969",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "tab-long-beam-below-pick-below",
+      "sha256": "31518ac9d067adddf504fd3296fff819d8a2d836b5b0c3033c6f59cb3459e932",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3,
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "staff-guitar-quarter-stems",
+      "sha256": "0862ab7b50d81cdb1776b54d85d561b265785ba29356ca0021911d615dd9a812",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3
+        ],
+        [
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    },
+    {
+      "id": "staff-piano-quarter-stems",
+      "sha256": "4ccd437e6569479ed3f1195b804964c5bbf63d0556941fb05f0b861508cc6cee",
+      "counts": [
+        [
+          3,
+          3,
+          3,
+          3,
+          1
+        ]
+      ],
+      "measures": 13,
+      "pass": true
+    }
+  ],
+  "unitTests": {
+    "pass": 93,
+    "fail": 0
+  },
+  "browser": {
+    "photoBook": {
+      "pages": 9,
+      "systems": 21,
+      "measures": 84
+    },
+    "playback": "Reached bar 37; each simultaneous playhead had identical bar and progress. Loop 3–4 stayed within its range. Retained PDF canvases had renderCount 1.",
+    "desktopViewport": [
+      1280,
+      720
+    ],
+    "mobileViewport": [
+      390,
+      844
+    ],
+    "consoleErrors": 0
+  }
+}

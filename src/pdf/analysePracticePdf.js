@@ -41,8 +41,11 @@ export async function analysePracticePdf(blob,{signal,onProgress=()=>{}}={}){
       render=page.render({canvasContext:ctx,viewport});await render.promise;render=null;
       signal?.throwIfAborted();detections.push(await analyse(ctx.getImageData(0,0,canvas.width,canvas.height),n,signal));
      }finally{canvas.width=canvas.height=0;}
+     // Photo analysis already performs its own bounded rectification pass.
+     // A second PDF raster cannot supply independent missing-page evidence.
+     if(detections[0]?.source==='photo')break;
     }
-    pages.push(mergePracticeDetections(...detections));
+    pages.push(detections.length===1?detections[0]:mergePracticeDetections(...detections));
    }finally{page.cleanup();}
   }
   return {engineVersion:PRACTICE_DETECTION_VERSION,sourceHash,sourceBytes:blob.size,pages,summary:{pages:pages.length,systems:pages.reduce((s,p)=>s+p.systems.length,0),measures:pages.reduce((s,p)=>s+p.measures.length,0),review:pages.reduce((s,p)=>s+p.measures.filter(m=>m.confidence<.9).length,0)}};
