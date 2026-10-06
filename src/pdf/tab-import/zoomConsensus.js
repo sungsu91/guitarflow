@@ -113,6 +113,8 @@ export function combineZoomReadings(original,enlarged){
     const old=base.staffs[staffPairs[i]].measures[pairs[i][j]],tolerance=Math.min(s.spacing/m.width,base.staffs[staffPairs[i]].spacing/old.width)*.35;
     corroborateZoomTuplets(old,m,tolerance);
     corroborateZoomTuplets(m,original.staffs[staffPairs[i]].measures[pairs[i][j]],tolerance);
+    preservePhotoTupletReview(old,m,tolerance);
+    preservePhotoTupletReview(m,old,tolerance);
     const oldStaff=base.staffs[staffPairs[i]];
     if([s,oldStaff].some(staff=>staff.candidates.some(c=>c.ocr?.method?.includes('camera-complete-glyph')))){
       // Readings added by a photo retry must not make us discard rhythm found
@@ -138,7 +140,11 @@ export function combineZoomReadings(original,enlarged){
     // Keeping one uncertain zoom numeral for review must not discard the
     // rest/rhythm evidence from the otherwise better original zoom measure.
     const zoomCoverage=m.zoomAmbiguityReview&&after.length>=before.length&&frets(enlarged.staffs[i].measures[j]).length>before.length;
-    if(preserved&&restsPreserved&&(!old.rhythmValid||m.rhythmValid)&&(after.length>before.length||zoomCoverage||m.rhythmValid&&!old.rhythmValid)){selected++;result.staffs[staffPairs[i]].measures[originalIndex]=m;}
+    // Filling a missing photo stem must not suppress the established clearer
+    // zoom fret. Prefer that complete set of known notes and keep its rhythm
+    // for review if its numeral placement still prevents a valid measure.
+    const recoveredPhotoRhythm=old.rhythm.some(r=>r.method==='wide-photo-stem'||r.method==='isolated-detached-quarter');
+    if(preserved&&restsPreserved&&(!old.rhythmValid||m.rhythmValid||recoveredPhotoRhythm)&&(after.length>before.length||zoomCoverage||m.rhythmValid&&!old.rhythmValid)){selected++;result.staffs[staffPairs[i]].measures[originalIndex]=m;}
     // Better fret/rhythm evidence is independent of chord-text evidence. A
     // selected zoom bar must not discard a complete name read at the other scale.
     combineMeasureChords(old,m,result.staffs[staffPairs[i]].measures[originalIndex]);
@@ -147,16 +153,31 @@ export function combineZoomReadings(original,enlarged){
   return {...result,...(selected&&enlarged.cameraCorrection?{enlargedPhotoCorrection:{width:enlarged.width,height:enlarged.height,...enlarged.cameraCorrection}}:{}),zoom:{attempted:true,selected:selected>0||recoveredOnOriginal>0,measures:selected,recoveredOnOriginal,matchedMeasures:pairs.flat().filter(j=>j>=0).length,confirmedBefore:summarizeAnalysis([original]).confirmed,confirmedAfter:summarizeAnalysis([result]).confirmed}};
 }
 
+// A zoom that misses a visible bracket must not turn its unresolved ratio into
+// ordinary sixteenths when that version of the whole measure is selected.
+export function preservePhotoTupletReview(target,source,tolerance){
+ for(const r of source.rhythm.filter(r=>r.photoTupletUnverified)){
+  const position=(r.x-source.x)/source.width;
+  const matches=target.rhythm.filter(q=>Math.abs((q.x-target.x)/target.width-position)<tolerance);
+  if(matches.length!==1)continue;
+  const q=matches[0];
+  if(q.tuplet&&q.confidence>=.95&&q.tupletEvidence?.confidence>=.95)continue;
+  if(source.rhythm.filter(p=>Math.abs((p.x-source.x)/source.width-(q.x-target.x)/target.width)<tolerance).length!==1)continue;
+  Object.assign(q,{duration:null,confidence:0,photoTupletUnverified:true,method:'unread-photo-tuplet-bracket'});
+ }
+}
+
 export function supplementPhotoRhythm(target,source,readings,candidates,tolerance){
  for(const r of readings){
   if(!r.duration||r.confidence<.95||r.rest)continue;
   const position=(r.x-source.x)/source.width;
   const matches=target.rhythm.filter(q=>Math.abs((q.x-target.x)/target.width-position)<tolerance);
   if(matches.length>1||matches[0]?.duration)continue;
+  if(matches[0]?.photoTupletUnverified&&!r.tuplet)continue;
   const frets=candidates.filter(c=>c.cx>target.x&&c.cx<target.x+target.width&&!c.nonFretSymbol&&!c.restSymbol&&(c.stringDistance??0)<=.22&&Math.abs((c.cx-target.x)/target.width-position)<tolerance);
   if(!frets.length)continue;
   const evidence={duration:r.duration,confidence:r.confidence,dotted:!!r.dotted,...(r.tuplet?{tuplet:structuredClone(r.tuplet)}:{}),method:'measured-cross-scale-photo-rhythm'};
-  if(matches.length)Object.assign(matches[0],evidence);
+  if(matches.length){Object.assign(matches[0],evidence);if(r.tuplet)delete matches[0].photoTupletUnverified;}
   else target.rhythm.push({x:target.x+position*target.width,y:target.y+target.height,...evidence});
  }
  target.rhythm.sort((a,b)=>a.x-b.x);

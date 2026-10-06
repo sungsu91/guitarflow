@@ -60,10 +60,15 @@ export function findImageTuplets(rgba,ink,width,height,staff){
 export function resolveImageTuplets(staff){
  for(const label of staff.tupletCandidates??[]){
   const count=label.count??3;
-  if(label.ocr?.text!==String(count)||!label.ocr.agrees||label.ocr.confidence<.95)continue;
   const group=staff.measures[label.measure]?.rhythm.filter(s=>label.stems.includes(s.x));
   if(group?.length!==count||group.some(s=>s.tuplet))continue;
+  if(label.ocr?.text!==String(count)||!label.ocr.agrees||label.ocr.confidence<.95){
+   // The separate bracket disproves a second beam, but its unread numeral
+   // cannot supply a timing ratio. Keep all frets and request rhythm review.
+   if(label.rhythmOverride)group.forEach(s=>Object.assign(s,{duration:null,confidence:0,photoTupletUnverified:true,method:'unread-photo-tuplet-bracket'}));
+   continue;
+  }
   const tuplet={actualNotes:count,normalNotes:count===6?4:2,groupId:label.id};
-  group.forEach(s=>{s.tuplet=tuplet;s.tupletEvidence={method:'bracketed-image-triplet',confidence:label.ocr.confidence};});
+  group.forEach(s=>{if(label.rhythmOverride)Object.assign(s,label.rhythmOverride,{confidence:.97});delete s.photoTupletUnverified;s.tuplet=tuplet;s.tupletEvidence={method:'bracketed-image-triplet',confidence:label.ocr.confidence};});
  }
 }

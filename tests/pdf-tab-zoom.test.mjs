@@ -115,6 +115,19 @@ test('more enlarged digits cannot replace an already read rest or complete rhyth
  const r=combineZoomReadings(resolvePage(a),b);assert.equal(r.staffs[0].measures[0].slots[0].rest,true);assert.equal(summarizeAnalysis([r]).confirmed,3);
 });
 
+test('a recovered photo stem does not suppress an established clearer zoom fret',()=>{
+ const a=fixture(1,'3',.99),b=fixture(2,'3',.99);
+ a.staffs[0].candidates[0].ocr={text:'4',confidence:.85,agrees:false,alternatives:[{text:'7',confidence:.86}]};
+ b.staffs[0].measures[0].rhythm[3].duration=null;
+ const original=resolvePage(a),zoom=resolvePage(b);
+ assert.equal(summarizeAnalysis([combineZoomReadings(original,zoom)]).confirmed,3,'ordinary complete rhythm keeps its existing protection');
+ original.staffs[0].measures[0].rhythm[0].method='wide-photo-stem';
+ const result=combineZoomReadings(original,zoom),bar=result.staffs[0].measures[0];
+ assert.equal(summarizeAnalysis([result]).confirmed,4);
+ assert.equal(bar.rhythmValid,false);assert.equal(bar.needsReview,true);
+ assert.equal(bar.source.pageWidth,1200,'retain the actual zoom evidence coordinates');
+});
+
 test('a split zoom bar does not discard evidence in other uniquely matched bars or shift their music',()=>{
  const a=fixture(1,'3',.93),b=fixture(2,'3',.99);
  for(const p of [a,b]){const s=p.staffs[0],scale=p.width/600;s.measures.push({...structuredClone(s.measures[0]),x:300*scale,width:250*scale,rhythm:[]});}

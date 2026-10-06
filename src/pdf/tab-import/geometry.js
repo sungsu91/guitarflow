@@ -12,6 +12,8 @@ import {staffMeasureInk} from '../../omr/staffMeasureInk.js';
 import {joinedFretSplit} from './joinedFretDigits.js';
 import {cameraBarlineColumns} from './cameraBarlines.js';
 import {attachPairedStaffRhythm} from './pairedStaffRhythm.js';
+import {attachDetachedQuarterRhythm} from './detachedQuarterRhythm.js';
+import {findPhotoTupletBrackets} from './photoTupletBracket.js';
 
 const median = values => [...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
 export function runs(values, gap = 1) {
@@ -205,7 +207,7 @@ export function hasThreeCurvedFlags(ink,width,height,x,end,g,direction=1){
   return false;
 }
 
-export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=ink,{detached=false}={}){
+export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=ink,{detached=false,maxStemWidth=.28}={}){
   const g=staff.spacing,bottom=staff.lines.at(-1),top=staff.lines[0],stems=[];
   // Analyse both sides, then prefer the side with clear connected beams/stems.
   for(const direction of [1,-1]){
@@ -222,7 +224,7 @@ export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=i
     }
     const groups=[];for(const c of candidates){const last=groups.at(-1);if(last&&c.x-last.at(-1).x<=2)last.push(c);else groups.push([c]);}
     for(const group of groups){
-      if(group.length>g*.28)continue;
+      if(group.length>g*maxStemWidth)continue;
       const x=median(group.map(c=>c.x)),beamYs=[],shortBeamYs=[];
       let end=median(group.map(c=>c.end)),gap=0;const initialEnd=end;
       // A blurred/sloping beam can leave a one- or two-pixel break at the
@@ -457,9 +459,28 @@ export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C,ruleP
     result.meterCandidate=findPrintedMeter(ink,width,result);
     if(!nativeText)markNonFretSymbols(ink,width,result);
     discardSystemConnectorRhythm(ink,width,result);
+    if(config.detachedRhythm){
+      // Recover thick photographed stems only after fret grouping/crops are
+      // fixed. Existing anchors stay put; a new stem needs a fret and two
+      // established beamed stems on the same rhythm baseline.
+      const anchors=candidates.filter(c=>!c.nonFretSymbol&&c.stringDistance<=config.stringTolerance);
+      const references=result.measures.flatMap(m=>m.rhythm).filter(r=>r.beamCount&&r.duration);
+      for(const m of result.measures){
+        for(const r of detectRhythm(structureInk,width,height,result,m,anchors,beamInk,{detached:true,maxStemWidth:.48})){
+          if(!r.beamCount||!r.duration||!anchors.some(c=>Math.abs(c.cx-r.x)<staff.spacing*.35)||m.rhythm.some(old=>Math.abs(old.x-r.x)<staff.spacing*.45))continue;
+          if(references.filter(old=>old.direction===r.direction&&Math.abs(old.y-r.y)<staff.spacing*.35).length<2)continue;
+          m.rhythm.push({...r,method:'wide-photo-stem'});
+        }
+        m.rhythm.sort((a,b)=>a.x-b.x);
+      }
+      attachDetachedQuarterRhythm(structureInk,width,height,result);
+    }
     attachRasterArpeggios(ink,width,height,result,parts);
     attachHalfNoteStubs(ink,width,height,result,candidates.filter(c=>!c.nonFretSymbol));attachPrintedTuplets(result,glyphs);output.push(result);
     result.tupletCandidates=findImageTuplets(rgba,ink,width,height,result);
+    if(config.detachedRhythm)for(const candidate of findPhotoTupletBrackets(rgba,structureInk,width,height,result)){
+      if(!result.tupletCandidates.some(old=>old.measure===candidate.measure&&old.stems.join(',')===candidate.stems.join(',')))result.tupletCandidates.push(candidate);
+    }
   }
   const rhythmicPage=output.some(s=>s.measures.some(m=>m.rhythm.some(r=>s.candidates.some(c=>Math.abs(c.cx-r.x)<s.spacing*.4))));
   for(const staff of output){
