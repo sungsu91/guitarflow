@@ -63,3 +63,18 @@ test('detached photographed eighth/sixteenth beams require ink evidence and expl
   assert(detectRhythm(fused,width,height,staff,measure,anchors,fused,{detached:true}).slice(0,2).every(r=>r.duration===null),'an unreadable merged beam must not become a guessed quarter/eighth');
   assert.equal(detectRhythm(new Uint8Array(ink.length),width,height,staff,measure,anchors,ink,{detached:true}).length,0);
 });
+
+test('camera blur may thicken one connected beam, but a gap or a fused broad block stays unknown',()=>{
+ const width=500,height=280,g=20,staff={y:140,height:100,spacing:g,lines:[140,160,180,200,220,240]},measure={x:50,width:250},anchors=[100,140].map(cx=>({cx}));
+ const make=(thickness,gap=0)=>{
+  const ink=new Uint8Array(width*height);
+  for(const x of [100,140])for(let y=86;y<=120;y++)for(let dx=0;dx<2;dx++)ink[y*width+x+dx]=1;
+  for(let y=86;y<86+thickness;y++)for(let x=100+gap;x<=140-gap;x++)ink[y*width+x]=1;
+  return ink;
+ };
+ const read=ink=>detectRhythm(ink,width,height,staff,measure,anchors,ink,{detached:true});
+ assert.deepEqual(read(make(9)).map(r=>r.duration),['8','8']);
+ assert.ok(read(make(13)).every(r=>r.duration===null));
+ assert.ok(read(make(9,5)).every(r=>r.duration===null));
+ assert.equal(detectRhythm(make(9),width,height,staff,measure,anchors).length,0);
+});

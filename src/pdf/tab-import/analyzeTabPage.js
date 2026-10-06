@@ -13,7 +13,7 @@ import {recognizePianoStaff} from '../../omr/pianoStaffRecognition.js';
 import {grandStaffChordRegions} from '../../omr/grandStaffChords.js';
 import {importSourceRegion} from './importActivity.js';
 
-export function geometryInWorker(image,page,signal,glyphs,sourceMode,cameraPhoto,stringCount,photoScan=false,verifyNotation=false){
+export function geometryInWorker(image,page,signal,glyphs,sourceMode,cameraPhoto,stringCount,photoScan=false,verifyNotation=false,structureOnly=false){
   return new Promise((resolve,reject)=>{
     signal?.throwIfAborted();
     const worker=new Worker(new URL('./geometry.worker.js',import.meta.url),{type:'module'});
@@ -25,7 +25,7 @@ export function geometryInWorker(image,page,signal,glyphs,sourceMode,cameraPhoto
     worker.onmessage=({data})=>data.error?finish(reject,Error(data.error)):finish(resolve,data.result);
     worker.onerror=e=>{e.preventDefault?.();finish(reject,Error(e.message||'TAB 분석 Worker 오류'));};
     worker.onmessageerror=()=>finish(reject,Error('TAB 구조 분석 응답을 읽지 못했습니다. 다시 시도해 주세요.'));
-    try{worker.postMessage({rgba:image.data.buffer,width:image.width,height:image.height,page,glyphs,sourceMode,cameraPhoto,stringCount,photoScan,verifyNotation},[image.data.buffer]);}catch(error){finish(reject,error);}
+    try{worker.postMessage({rgba:image.data.buffer,width:image.width,height:image.height,page,glyphs,sourceMode,cameraPhoto,stringCount,photoScan,verifyNotation,structureOnly},[image.data.buffer]);}catch(error){finish(reject,error);}
   });
 }
 

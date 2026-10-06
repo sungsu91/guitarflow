@@ -47,7 +47,7 @@ export async function choosePhotoSource(original,corrected,{signal,rotation=0,ta
   for(const width of [2083,2678]){
    signal?.throwIfAborted();const canvas=drawTabImage(source,rotation,width);let pixels;
    try{pixels=canvas.getContext('2d',{willReadFrequently:true}).getImageData(0,0,canvas.width,canvas.height);}finally{canvas.width=canvas.height=0;}
-   const g=await geometryInWorker(pixels,1,signal,[],sourceMode,true,count,source.photoScan===true);
+   const g=await geometryInWorker(pixels,1,signal,[],sourceMode,true,count,source.photoScan===true,false,true);
    // Partial fallback must not change the established original-vs-scan choice.
    // More rows alone cannot prove that a different image preserves known notes.
    results.push(g.photoRecoveryBaseline??(g.partialPhotoTracks?{staffs:0,bars:0}:{staffs:g.staffs.length+(g.notationSystems?.length??0),bars:g.staffs.reduce((s,r)=>s+(r.measures?.length??0),0)}));

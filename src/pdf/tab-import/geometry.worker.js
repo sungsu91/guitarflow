@@ -78,7 +78,9 @@ self.onmessage=({data})=>{try{
   if(mode!=='tab'&&!result.staffs.length||data.verifyNotation&&result.staffs.length)result.notationSystems=cropNotationSystems(rgba,data.width,data.height,{piano:mode==='grand'});
   // Chord names are additional evidence. A failed crop must not discard the
   // notation/TAB geometry already obtained from this page.
-  try{result.chordRegions=chordRegions(rgba,data.width,data.height,result.staffs.length?result.staffs:(result.notationSystems??[]).map(s=>s.staff));}
+  // Candidate selection consumes only structure. Avoid cropping/segmenting
+  // chord text for each original/perspective/lighting probe and render scale.
+  try{result.chordRegions=data.structureOnly?[]:chordRegions(rgba,data.width,data.height,result.staffs.length?result.staffs:(result.notationSystems??[]).map(s=>s.staff));}
   catch{result.chordRegions=[];result.chordWarning='코드명을 읽지 못했습니다. 원본 코드명을 확인해 주세요.';}
   self.postMessage({result},[...(result.notationSystems??[]).flatMap(system=>[system.rgba,system.extension,...(system.pianoTop?[system.pianoTop]:[])]),...result.chordRegions.map(r=>r.rgba)]);
 }catch(error){self.postMessage({error:error.message});}};

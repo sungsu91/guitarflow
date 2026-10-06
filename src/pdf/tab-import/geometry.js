@@ -297,7 +297,14 @@ export function detectRhythm(ink,width,height,staff,measure,anchors=[],beamInk=i
             }
             if(total&&inkCount/total>=.72)rows.push(y);
           }
-          counts.push(runs(rows).filter(r=>r.length>=2&&r.length<g*.35).length);
+          const bands=runs(rows),regular=bands.filter(r=>r.length>=2&&r.length<g*.35);
+          // Camera blur can thicken ONE continuous beam beyond the normal
+          // band limit. Require a single bounded band connected to the stem;
+          // fused broad blocks and detached picking marks remain unknown.
+          const wide=count===0&&bands.length===1&&bands[0].length>=g*.35&&bands[0].length<g*.52?bands[0]:null;
+          let junction=0,total=0;
+          if(wide){const cy=Math.round(median(wide));for(let dx=1;dx<=g*.4;dx++){total++;junction+=Number([-1,0,1].some(dy=>beamInk[(cy+dy)*width+Math.round(x+sign*dx)]));}}
+          counts.push(regular.length||(wide&&total&&junction/total>=.9?1:0));
         }
         const measured=Math.max(...counts);if(measured===1||measured===2||measured===3)count=measured;
       }
