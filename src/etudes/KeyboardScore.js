@@ -38,7 +38,9 @@ export function drawKeyboardScore(element,score,{mobile=false,editor=false,edito
   const start=Math.max(...staves.map(s=>s.getNoteStartX()))+(drums?22:0);staves.forEach(s=>s.setNoteStartX(start).setContext(context).draw());
   if(!drums&&!single)new StaveConnector(staves[0],staves[1]).setType(StaveConnector.type.BRACE).setContext(context).draw();
   if(editor&&!systemEnd&&!mark.repeatEnd){staves.forEach(stave=>{const line=document.createElementNS(ns,'line');Object.entries({x1:x+w-1.5,x2:x+w-1.5,y1:stave.getYForLine(0),y2:stave.getYForLine(4),stroke:'#171717','stroke-width':1,'vector-effect':'non-scaling-stroke',class:'etudeMeasureBoundary','pointer-events':'none'}).forEach(([k,v])=>line.setAttribute(k,String(v)));svg.append(line);});}
-  const number=document.createElementNS(ns,'text');number.textContent=String(b+barOffset+1);Object.entries({x,y:staves[0].getYForLine(0)-13,'text-anchor':'middle',class:'etudeMeasureNumber',fill:'#171717',stroke:'none','font-family':'Arial','font-size':12}).forEach(([k,v])=>number.setAttribute(k,String(v)));svg.append(number);svg.style.overflow='visible';
+  // Print/export rasterizes each measure SVG separately; keep the entire label
+  // inside its cell, including non-leading measures whose stave begins at x=0.
+  const number=document.createElementNS(ns,'text');number.textContent=String(b+barOffset+1);Object.entries({x:x+2,y:staves[0].getYForLine(0)-13,'text-anchor':'start',class:'etudeMeasureNumber',fill:'#171717',stroke:'none','font-family':'Arial','font-size':12}).forEach(([k,v])=>number.setAttribute(k,String(v)));svg.append(number);svg.style.overflow='visible';
   const groups=(drums||single?[staves[0],staves[0]]:staves).map((stave,hand)=>{
    const {indices,voiceEvents}=drums?drumVoiceEvents(events,hand===1):(()=>{const indices=events.flatMap((e,i)=>!e.voice||e.voice===(hand?'left':'right')?[i]:[]);return {indices,voiceEvents:indices.map(i=>events[i])};})();
    const tones=voiceEvents.map(e=>e.rest?[]:(e.tones??[e]).filter(t=>drums?([35,36,44].includes(t.midi)===(hand===1)):((t.hand??(t.midi<60?'left':'right'))===(hand?'left':'right'))));
