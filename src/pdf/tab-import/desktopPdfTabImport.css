@@ -79,3 +79,50 @@
 .desktopImportProgressMeter>span{min-width:32px;text-align:right;font-variant-numeric:tabular-nums}
 @keyframes desktopImportScan{0%,100%{opacity:.25;transform:translateX(-3px)}45%{opacity:1;transform:translateX(3px)}}
 @media(prefers-reduced-motion:reduce){.desktopImportScanMarks>i{animation:none;opacity:.65}}
+
+/* Keep the selected file beside settings instead of below a long form. */
+.desktopPdfTabImport[data-stage=selection]{width:min(1040px,calc(100vw - 40px));max-height:calc(100dvh - 40px);padding:22px}
+.desktopPdfTabImport[data-stage=selection]>.desktopPdfTabBody{display:flex;overflow:hidden}
+.desktopImportSelection{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;min-width:0;min-height:0;width:100%}
+.desktopImportSetup,.desktopImportFiles{min-width:0;min-height:0;overscroll-behavior:contain}
+.desktopImportSetup{overflow:auto}
+.desktopImportFiles{display:flex;flex-direction:column;gap:12px;overflow:auto;padding:10px 0 0 22px;border-left:1px solid var(--conversion-border)}
+.desktopImportFileControls{flex:none;display:grid;gap:10px}
+.desktopPdfTabImport .desktopImportSetup .pdfImportTarget{margin:0 0 14px;padding:12px}
+.desktopPdfTabImport .desktopImportSetup .desktopImportTargetFields{gap:10px;margin-bottom:4px}
+.desktopPdfTabImport .desktopImportSetup .staffImportOptions{margin:0}
+.desktopPdfTabImport .desktopImportSetup .scoreConversionChoices{gap:8px;margin-top:8px}
+.desktopPdfTabImport .desktopImportSetup .scoreConversionChoice{padding:10px 12px;gap:0}
+.desktopPdfTabImport .desktopImportSetup .scoreConversionChoiceHeading{font-size:14px}
+.desktopImportModeHint,.desktopPdfTabImport .desktopImportSelectionHint{margin:8px 0 0;font-size:12px;line-height:1.6;color:var(--conversion-muted)}
+.desktopPdfTabImport .desktopImportFileControls .pdfTabFileButton{margin:0;padding:12px}
+.desktopPdfTabImport .desktopImportFileControls .desktopTabPhotoAdd{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;font-weight:600;font-size:13px}
+.desktopPdfTabImport .desktopTabPhotoAdd input{margin:0;min-width:0;flex:1;font-weight:400}
+.desktopPdfTabImport .desktopImportSelectedPdf{margin:0;padding:10px 12px;border-color:var(--conversion-accent);background:var(--conversion-selected)}
+.desktopImportPreviewScroll{min-height:0;overflow:auto;overscroll-behavior:contain}
+.desktopPdfTabImport .desktopImportPreviewScroll .tabPhotoPreview{margin:0}
+.desktopPdfTabImport .desktopImportPreviewScroll .tabPhotoPreview>label{display:flex;align-items:center;gap:10px;text-align:left;font-size:12px}
+.desktopPdfTabImport .desktopImportPreviewScroll .tabPhotoPreview>label select{flex:1;width:auto;min-width:150px;margin:0}
+.desktopPdfTabImport .desktopImportPreviewScroll .tabPhotoPreview>p{margin:4px 0 8px}
+.desktopPdfTabImport .desktopImportPreviewScroll .photoScanPreview{padding:0 10px}
+.desktopPdfTabImport .desktopImportPreviewScroll .photoScanTabs{margin:4px 0 8px}
+.desktopPdfTabImport .desktopImportPreviewScroll .photoScanFrame{max-width:min(100%,240px)}
+.desktopPdfTabImport .desktopImportPreviewScroll .photoScanPreview p{margin:10px 0}
+.desktopPdfTabImport .desktopImportPreviewScroll .tabPhotoPageActions{margin-top:8px}
+.desktopPdfTabImport .desktopImportPreviewScroll .tabPhotoPageActions button{min-height:36px;padding:6px 12px}
+@media(max-width:800px){
+  .desktopPdfTabImport[data-stage=selection]{padding:16px}
+  .desktopPdfTabImport[data-stage=selection]>.desktopPdfTabBody{overflow:auto}
+  .desktopImportSelection{display:flex;flex-direction:column;gap:16px}
+  .desktopImportFiles{order:-1;flex:none;overflow:visible;padding:0 0 16px;border-left:0;border-bottom:1px solid var(--conversion-border)}
+  .desktopImportSetup{flex:none;overflow:visible}
+  .desktopImportPreviewScroll{max-height:260px;flex:auto}
+}
+@media(min-width:801px) and (max-height:760px){
+  .desktopPdfTabImport[data-stage=selection]{max-height:calc(100dvh - 24px);padding:16px 20px}
+  .desktopPdfTabImport[data-stage=selection] h2{font-size:20px;margin-bottom:8px}
+  .desktopPdfTabImport[data-stage=selection]>footer{margin-top:10px;padding-top:10px}
+  .desktopPdfTabImport .desktopImportSetup .pdfImportTarget{padding:10px;margin-bottom:10px}
+  .desktopPdfTabImport .desktopImportSetup .desktopImportTargetFields{gap:8px}
+  .desktopPdfTabImport .desktopImportSetup .desktopImportTargetFields select{min-height:36px;padding:6px 8px}
+}

@@ -14,21 +14,34 @@ import './desktopPdfTabImport.css';
 export default function DesktopPdfTabImport(props){
   const {dialog,busy,preparing,opening,progress,result,error,cancel,run,addPhotos,open,photo,pdfFile,removePdf,analyze,attempted,sourceMode,target,targetError}=props;
   const selecting=preparing||opening,hasSource=Boolean(photo||pdfFile);
+  const choosing=!busy&&!result;
   const pianoResult=result?.target?.instrument==='piano';
   useLanguage();
   const comparison=notationCheckSummary(result);
-  return <dialog ref={dialog} data-has-photos={Boolean(photo&&!busy&&!result)} className="desktopPdfTabImport" aria-label="PDF·사진에서 악보 가져오기" onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();cancel();}}>
+  const targetPanel=sourceMode==='grand'?<div className="pdfImportTarget desktopPianoImportRoute"><strong>{t('editor.pianoGuitarRoute')}</strong><span>{t('editor.pianoGuitarRouteHint')}</span></div>:choosing?<DesktopImportTargetSettings {...props} opening={selecting}/>:<ImportTargetCaption target={target}/>;
+  return <dialog ref={dialog} data-stage={choosing?'selection':'recognition'} data-has-photos={Boolean(photo&&choosing)} className="desktopPdfTabImport" aria-label="PDF·사진에서 악보 가져오기" onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();cancel();}}>
     <header><div><small>FRETIVA LAB · DESKTOP</small><h2>PDF·사진에서 악보 가져오기</h2></div><button type="button" onClick={cancel} aria-label="PDF TAB 분석 닫기">×</button></header>
-    <div className="desktopPdfTabBody">{sourceMode==='grand'?<div className="pdfImportTarget desktopPianoImportRoute"><strong>{t('editor.pianoGuitarRoute')}</strong><span>{t('editor.pianoGuitarRouteHint')}</span></div>:busy||result?<ImportTargetCaption target={target}/>:<DesktopImportTargetSettings {...props} opening={selecting}/>}
+    <div className="desktopPdfTabBody">
+    {choosing?<div className="desktopImportSelection">
+      <section className="desktopImportSetup" aria-label={t('editor.chooseConversionMode')}>
+        {targetPanel}
+        <StaffImportOptions {...props} opening={selecting} compact/>
+        <p className="desktopImportModeHint">{conversionLabels(sourceMode,target).description}</p>
+      </section>
+      <div className="desktopImportFiles">
+        <div className="desktopImportFileControls">
+          {pdfFile&&<section className="desktopImportSelectedPdf" aria-label={t('editor.importSelectedFile')}><span><strong>PDF</strong> {pdfFile.name}</span><button type="button" disabled={selecting} onClick={removePdf}>{t('common.delete')}</button></section>}
+          <label className="pdfTabFileButton"><span className="pdfImportStep"><span aria-hidden="true">2</span>{t(hasSource?'editor.pdfChooseAnother':'editor.pdfChoose')}</span><input type="file" multiple accept={TAB_SOURCE_ACCEPT} aria-label={t('editor.pdfChoose')} disabled={selecting||!!targetError} onChange={run}/></label>
+          {photo&&<label className="pdfTabFileButton desktopTabPhotoAdd">{t('editor.photoAdd')}<input type="file" multiple accept={TAB_PHOTO_ACCEPT} aria-label={t('editor.photoAdd')} disabled={selecting||!!targetError} onChange={addPhotos}/></label>}
+          <p className="desktopImportSelectionHint">{t('editor.importSelectionHint')}</p>
+          {preparing&&<p role="status">{t('editor.importPreviewPreparing')}</p>}
+          {error&&<div className="scoreImportError" role="alert"><strong>분석을 완료하지 못했습니다</strong><p>{error}</p></div>}
+        </div>
+        {photo&&<div className="desktopImportPreviewScroll"><TabPhotoPreview {...props} opening={selecting}/></div>}
+      </div>
+    </div>:targetPanel}
     {(busy||result)&&<div className="pdfTabActiveMode" role="group" aria-label={t('editor.selectedConversionMode')}><span>{t('editor.selectedConversionMode')}</span><strong>{conversionLabels(sourceMode,target).title}</strong><p>{conversionLabels(sourceMode,target).description}</p></div>}
-    {error&&<div className="scoreImportError" role="alert"><strong>분석을 완료하지 못했습니다</strong><p>{error}</p></div>}
-    {!busy&&!result&&<><StaffImportOptions {...props} opening={selecting} compact={hasSource}/><label className="pdfTabFileButton"><span className="pdfImportStep"><span aria-hidden="true">2</span>{t(hasSource?'editor.pdfChooseAnother':'editor.pdfChoose')}</span><input type="file" multiple accept={TAB_SOURCE_ACCEPT} aria-label={t('editor.pdfChoose')} disabled={selecting||!!targetError} onChange={run}/></label>
-      {photo&&<label className="pdfTabFileButton desktopTabPhotoAdd">{t('editor.photoAdd')}<input type="file" multiple accept={TAB_PHOTO_ACCEPT} aria-label={t('editor.photoAdd')} disabled={selecting||!!targetError} onChange={addPhotos}/></label>}
-      <p className="desktopImportSelectionHint">{t('editor.importSelectionHint')}</p>
-      {pdfFile&&<section className="desktopImportSelectedPdf" aria-label={t('editor.importSelectedFile')}><span><strong>PDF</strong> {pdfFile.name}</span><button type="button" disabled={selecting} onClick={removePdf}>{t('common.delete')}</button></section>}
-    </>}
-    {preparing&&<p role="status">{t('editor.importPreviewPreparing')}</p>}
-    {photo&&!busy&&!result&&<TabPhotoPreview {...props} opening={selecting}/>}
+    {!choosing&&error&&<div className="scoreImportError" role="alert"><strong>분석을 완료하지 못했습니다</strong><p>{error}</p></div>}
     {busy&&<section className="pdfTabProgress desktopImportActivity" aria-label={t('editor.importActivity')} aria-busy="true">
       <div className="desktopImportActivityHeading"><strong>{t('editor.importRecognizing')}</strong><span className="desktopImportScanMarks" aria-hidden="true">{[0,1,2,3,4].map(i=><i key={i} style={{animationDelay:`${i*.12}s`}}/>)}</span><time className="desktopImportElapsed" aria-live="off">{t('editor.importElapsed',{value1:importElapsedTime(props.elapsedSeconds)})}</time></div>
       <p role="status">{localizeUi(progress.message)||t('editor.pdfPreparing')}</p><div className="desktopImportProgressMeter"><progress aria-label={t('editor.importProgress')} max="1" value={progress.progress}/><span>{Math.round(progress.progress*100)}%</span></div>
