@@ -30,10 +30,11 @@ export function geometryInWorker(image,page,signal,glyphs,sourceMode,cameraPhoto
 }
 
 // PDF rendering and camera images use exactly the same geometry/OCR decisions.
-export function createTabPageAnalyzer(signal){
+export function createTabPageAnalyzer(signal,context={}){
   let ocr,omr;
-  let notationContext={meter:[4,4],key:'C'},previous=[];
+  let {notationContext={meter:[4,4],key:'C'},previous=[]}=structuredClone(context);
   return {
+    getContext(){return structuredClone({notationContext,previous});},
     async analyze(image,{page=1,glyphs=[],chordText=[],meter=[4,4],meterEvidence=null,octaveShift,target:requestedTarget,sourceMode='auto',cameraPhoto=false,photoScan=false,verifyNotation=false,onProgress=()=>{}}={}){
       const target=resolveImportTarget(sourceMode==='grand'?{instrument:'piano',...requestedTarget,notationPitch:'concert'}:requestedTarget);octaveShift??=importOctaveShift(target);
       if(target.instrument==='piano'&&!['staff','grand'].includes(sourceMode))throw Error('피아노는 오선보 또는 Grand Staff 입력을 선택해 주세요. TAB은 원본 현악기 설정으로 불러온 뒤 피아노로 변환할 수 있습니다.');

@@ -137,3 +137,8 @@
   .desktopPdfTabImport .desktopImportSetup .desktopImportTargetFields{gap:8px}
   .desktopPdfTabImport .desktopImportSetup .desktopImportTargetFields select{min-height:36px;padding:6px 8px}
 }
+
+.desktopImportCheckpoint{padding:12px;margin:0 0 12px;border:1px solid #cbb99f;border-radius:10px;background:#f4eee4;font-size:13px;overflow-wrap:anywhere}
+.desktopImportCheckpoint p{margin:6px 0;line-height:1.5}
+.desktopImportCheckpoint button{padding:8px 12px;border:1px solid #b7a28a;border-radius:8px;background:white;color:#493525;max-width:100%;white-space:normal}
+.desktopImportCheckpoint label{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}

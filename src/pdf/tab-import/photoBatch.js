@@ -1,9 +1,9 @@
 import {resolveImportTarget} from './importTarget.js';
 import {TAB_IMPORT_CONFIG as C} from './config.js';
 import {tabSourceKind,loadTabImage,drawTabImage,importImageTab} from './imageTabSource.js';
-import {summarizeAnalysis} from './recognition.js';
 import {createTabPageAnalyzer} from './analyzeTabPage.js';
 import {detectPhotoPaper,scanPhotoSource,choosePhotoSource} from './paperScan.js';
+import {createImportCheckpoint,photoImportKey,pageBatchEnd} from './importCheckpoint.js';
 
 const sameFile=(a,b)=>a.name===b.name&&a.size===b.size&&a.lastModified===b.lastModified;
 export function photoFilesToAdd(existing,files){
@@ -26,16 +26,23 @@ export async function preparePhoto(file,{signal,scan=false}={}){
     return {id:crypto.randomUUID(),file,fileName:file.name,width:source.width,height:source.height,preview:canvas.toDataURL('image/jpeg',.85),rotation:0,scan:paper,scanError};
   }finally{source.close();if(canvas)canvas.width=canvas.height=0;}
 }
-export async function importPhotoBatch(photos,{signal,onProgress=()=>{},autoScan=false,...options}={}){
+export async function importPhotoBatch(photos,{signal,onProgress=()=>{},onCheckpoint,resume,pageLimit=Infinity,autoScan=false,...options}={}){
   if(!photos.length)throw Error('악보 사진을 선택해 주세요.');
-  const pages=[],sources=[],analyzer=createTabPageAnalyzer(signal);
+  const target=resolveImportTarget(options.sourceMode==='grand'?{instrument:'piano',...options.target,notationPitch:'concert'}:options.target);
+  const checkpoint=createImportCheckpoint({base:{version:C.version,fileName:photos[0].fileName,target,sourceType:'image',imageRotation:photos[0].rotation*90},keys:photos.map(photoImportKey),settings:{version:C.version,target,sourceMode:options.sourceMode??'auto',verifyNotation:options.verifyNotation??false,autoZoom:options.autoZoom??true,octaveShift:options.octaveShift??null,autoScan},resume,onCheckpoint});
+  const saved=checkpoint.context,analyzer=createTabPageAnalyzer(signal,saved.analyzer);
+  let meter=saved.meter??[4,4],meterEvidence=saved.meterEvidence??null;
   try{
-  for(const [index,photo] of photos.entries()){
+  checkpoint.publish();
+  const end=pageBatchEnd(checkpoint.count,photos.length,pageLimit);
+  for(let index=checkpoint.count;index<end;index++){
+    const photo=photos[index];
     signal?.throwIfAborted();
     const progressSource={fileName:photo.fileName,kind:'image',page:index+1,pages:photos.length,preview:null};
     onProgress({progress:index/photos.length,message:`${index+1} / ${photos.length}페이지 · ${photo.fileName}`,source:progressSource,detail:{phase:'structure'}});
-    const original=await loadTabImage(photo.file,{signal});let corrected=original,plain,source=original,scanWarning,scan=photo.scan;
+    let original,corrected,plain,source,scanWarning,scan=photo.scan;
     try{
+      original=await loadTabImage(photo.file,{signal});corrected=original;
       // The import dialog defers automatic paper detection until Analyze.
       // Any explicit preview setting (including disabled) takes precedence.
       if(autoScan&&!scan)try{scan=await detectPhotoPaper(original,{signal});}catch(error){if(signal?.aborted||error.name==='AbortError')throw error;scanWarning=error.message;}
@@ -48,11 +55,13 @@ export async function importPhotoBatch(photos,{signal,onProgress=()=>{},autoScan
       }
       const selection=scan?.manual?{source:corrected,choice:'manual'}:await choosePhotoSource(original,corrected,{...options,rotation:photo.rotation,signal,plain});
       source=selection.source;
-      const result=await importImageTab(source,{...options,signal,analyzer,rotation:photo.rotation,pageNumber:index+1,onProgress:p=>onProgress({...p,source:{...progressSource,preview:p.source?.preview??null},progress:(index+p.progress)/photos.length,message:`${index+1} / ${photos.length}페이지 · ${p.message}`})});
-      pages.push(...result.pages);sources.push({page:index+1,fileName:photo.fileName,rotation:photo.rotation*90,scan,scanChoice:selection.choice,scanVariant:selection.variant,scanCoverage:selection.coverage,scanWarning:scanWarning??selection.warning});
+      const result=await importImageTab(source,{...options,meter,meterEvidence,signal,analyzer,rotation:photo.rotation,pageNumber:index+1,onProgress:p=>onProgress({...p,source:{...progressSource,preview:p.source?.preview??null},progress:(index+p.progress)/photos.length,message:`${index+1} / ${photos.length}페이지 · ${p.message}`})});
+      const page=result.pages[0];meter=page.endMeter??meter;meterEvidence=page.endMeterEvidence??meterEvidence;
+      checkpoint.commit(page,{meter,meterEvidence,analyzer:analyzer.getContext()},{page:index+1,fileName:photo.fileName,rotation:photo.rotation*90,scan,scanChoice:selection.choice,scanVariant:selection.variant,scanCoverage:selection.coverage,scanWarning:scanWarning??selection.warning});
     }catch(error){if(error.name==='AbortError')throw error;error.message=`${index+1}페이지 (${photo.fileName}): ${error.message}`;throw error;}
-    finally{plain?.close();if(corrected!==original)corrected.close();original.close();}
+    finally{plain?.close();if(corrected!==original)corrected?.close();original?.close();}
   }
-  return {version:C.version,fileName:photos[0].fileName,target:resolveImportTarget(options.sourceMode==='grand'?{instrument:'piano',...options.target,notationPitch:'concert'}:options.target),sourceType:'image',imageRotation:photos[0].rotation*90,imageSources:sources,pages,summary:summarizeAnalysis(pages)};
+  return checkpoint.snapshot();
+  }catch(error){error.partialAnalysis=checkpoint.snapshot();throw error;
   }finally{await analyzer.close();}
 }

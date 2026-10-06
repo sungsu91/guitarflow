@@ -8,7 +8,8 @@ import {importedScoreTitle} from '../../etudes/importedScoreTitle.js';
 import {ensurePianoVoices} from '../../etudes/pianoInput.js';
 import {selectAnalysisPart} from './photoParts.js';
 
-export function analysisToDocument(analysis,{part}={}){
+export function analysisToDocument(analysis,{part,allowPartial=false}={}){
+  if(analysis.complete===false&&!allowPartial)throw Error('아직 읽지 않은 페이지가 있습니다. 이어서 분석하거나 완료한 페이지만 열어 주세요.');
   analysis=selectAnalysisPart(analysis,part);
   const allMeasures=analysis.pages.flatMap(p=>p.staffs.flatMap(s=>s.measures));
   const sourceMeasures=allMeasures;
@@ -18,6 +19,13 @@ export function analysisToDocument(analysis,{part}={}){
   doc.purpose=doc.instrument==='piano'?'오선보 인식 초안 · 원본 음높이와 리듬을 검토해 주세요.':'TAB 자동 초안 · ? 위치와 원본 악보를 검토해 주세요.';
   doc.pdfTabImport={version:C.version,fileName:analysis.fileName,sourceType:analysis.sourceType??'pdf',...(analysis.sourceType==='image'?{imageRotation:analysis.imageRotation??0}:{}),summary:analysis.summary,...(sourceMeasures[0].meterEvidence?{recognizedMeter:doc.meter,meterEvidence:sourceMeasures[0].meterEvidence}:{assumedMeter:doc.meter}),unverifiedSettings:[...(!sourceMeasures[0].meterEvidence?['meter']:[]),'tempo','key','tuning','capo'],coordinateSpace:'render-pixels'};
   doc.pdfTabImport.importRange={start:1,end:sourceMeasures.length,total:allMeasures.length};
+  if(analysis.complete===false){
+    doc.pdfTabImport.importRange.total=null;
+    doc.pdfTabImport.pageCoverage={complete:false,completed:analysis.completed,totalPages:analysis.totalPages,nextPage:analysis.nextPage};
+    doc.pdfTabImport.summary={...doc.pdfTabImport.summary,pageCoverage:doc.pdfTabImport.pageCoverage};
+    doc.title+=` (1~${analysis.completed}/${analysis.totalPages}페이지)`;doc.english=doc.title;
+    doc.purpose=`일부 페이지 초안 · ${analysis.nextPage}페이지부터 미분석. ${doc.purpose}`;
+  }
   if(analysis.imageSources)doc.pdfTabImport.imageSources=analysis.imageSources;
   if(analysis.partSelection)doc.pdfTabImport.partSelection=analysis.partSelection;
   const correctedPages=analysis.pages.filter(p=>p.cameraCorrection);
