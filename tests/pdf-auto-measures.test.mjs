@@ -177,3 +177,49 @@ test('a short ruled shape without a closing bar is not promoted to a final measu
  const result=detectPracticeMeasures(raster([{top:100,count:5,bars:[400,650,900]},{top:300,count:5,right:190,bars:[]}]));
  assert.equal(result.systems.length,1);assert.equal(result.measures.length,3);
 });
+
+test('a brace extending the staff span leftwards does not hide the system spine',()=>{
+ const image=raster([{top:100,count:5,bars:[80,250,570,900]},{top:210,count:5,bars:[80,250,570,900]},{top:320,count:5,bars:[80,250,570,900]}]);
+ connect(image,80,100,368);
+ for(const top of [210,320])for(let line=0;line<5;line++)fill(image,66,top+line*12,67,top+line*12);
+ // Only the piano barlines cross the gap; the vocal part still shares them.
+ for(const x of [250,570,900])connect(image,x,210,368);
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1,JSON.stringify(r.systems));assert.equal(r.systems[0].staffCount,3);assert.equal(r.measures.length,3);
+});
+
+test('a curved brace without a straight spine groups two hands but keeps the next system separate',()=>{
+ const image=raster([{top:100,count:5,bars:[250,570,900]},{top:210,count:5,bars:[250,570,900]},{top:450,count:5,bars:[250,570,900]}]);
+ for(let y=100;y<=258;y++){const u=(y-100)/158,x=Math.round(76-15*Math.abs(Math.sin(u*Math.PI*2)));fill(image,x,y,x+1,y);}
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,2);assert.equal(r.systems[0].staffCount,2);assert.equal(r.measures.length,6);
+});
+
+test('a beam touching the top rule and dense ledger notes do not create stacked one-line staffs',()=>{
+ const image=raster([{top:100,count:5,bars:[80,400,650,900]}]);
+ // Dense ledger lines are bridged by the rule mask but are not full rules.
+ for(let x=100;x<890;x+=30)for(const y of [160,172])fill(image,x,y,x+13,y+1);
+ for(let x=100;x<860;x+=150)fill(image,x,97,x+110,103);
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1);assert.deepEqual(r.systems[0].lineCounts,[5]);assert.equal(r.measures.length,3);
+});
+
+test('a one-hand full-height beamed stem cannot split a paired piano measure',()=>{
+ const image=raster([{top:100,count:5,bars:[80,570,900]},{top:210,count:5,bars:[80,570,900]}]);connect(image,80,100,258);crossingNote(image,320,100);
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1);assert.equal(r.measures.length,2);assert.equal(r.systems[0].staffCount,2);
+});
+
+test('a tied chord beside a real shared barline cannot erase that piano boundary',()=>{
+ const image=raster([{top:100,count:5,bars:[80,320,570,900]},{top:210,count:5,bars:[80,320,570,900]},{top:320,count:5,bars:[80,320,570,900]}]);
+ connect(image,80,100,368);for(const x of [320,570,900])connect(image,x,210,368);
+ crossingNote(image,320,210);
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1);assert.equal(r.systems[0].staffCount,3);assert.equal(r.measures.length,3);assert.ok(r.systems[0].barlines.includes(.32));
+});
+
+test('stacked hi-hat crosses, snare and kick with beams are one drum measure, not additive measures',()=>{
+ const image=raster([{top:100,count:5,bars:[80,900]}]);
+ for(let x=180;x<890;x+=90){
+  for(let d=-5;d<=5;d++){fill(image,x+d,88+d,x+d+1,88+d);fill(image,x+d,88-d,x+d+1,88-d);}
+  connect(image,x+5,79,148);fill(image,x+5,78,Math.min(x+85,895),81);
+  for(const y of [124,148])for(let dy=-3;dy<=3;dy++)for(let dx=-5;dx<=5;dx++)if(dx*dx/25+dy*dy/9<=1)fill(image,x+dx,y+dy,x+dx,y+dy);
+ }
+ const r=detectPracticeMeasures(image);assert.equal(r.systems.length,1);assert.equal(r.measures.length,1);assert.deepEqual(r.systems[0].lineCounts,[5]);
+ const bars=practiceMeasureMap([r],[4,4]);assert.equal(bars[0].beats,4);assert.equal(barAtTick(practiceOrder({barMap:bars}),4).ended,true);
+});

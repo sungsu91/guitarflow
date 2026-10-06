@@ -1,5 +1,5 @@
 import {binaryPage,detectStaffs,detectBarlines,runs} from './tab-import/geometry.js';
-export const PRACTICE_DETECTION_VERSION='layout-8';
+export const PRACTICE_DETECTION_VERSION='layout-9';
 import {TAB_IMPORT_CONFIG} from './tab-import/config.js';
 import {detectPracticeBarlines,hasRuledStaffStart} from './practiceBarlines.js';
 
@@ -21,9 +21,15 @@ export function practiceStaffRules(pixels,width,height){
 // Match equally spaced rule tracks even when a glyph adds a projection row
 // between strings. The TAB importer keeps its stricter contiguous-row matcher.
 export function detectPracticeStaffTracks(rules,raw,width,height,count,config){
- const ys=[];
- for(let y=0;y<height;y++){let n=0;for(let x=0;x<width;x++)n+=rules[y*width+x];if(n>width*config.minStaffWidth)ys.push(y);}
- const lines=runs(ys).map(group=>({y:group[Math.floor(group.length/2)],thickness:group.length})),found=[];
+ const ys=[],projection=new Uint32Array(height);
+ for(let y=0;y<height;y++){
+  let n=0;for(let x=0;x<width;x++)n+=rules[y*width+x];
+  if(n>width*config.minStaffWidth){ys.push(y);for(let x=0;x<width;x++)projection[y]+=raw[y*width+x];}
+ }
+ const lines=runs(ys).map(group=>{
+  const peak=Math.max(...group.map(y=>projection[y])),core=group.filter(y=>projection[y]>=peak*.9);
+  return {y:core[Math.floor(core.length/2)],thickness:core.length};
+ }),found=[];
  for(let i=0;i<lines.length;i++)for(let j=i+1;j<lines.length;j++){
   // Fit the full staff height; an aliased first gap must not accumulate
   // an error across the remaining strings.
@@ -41,7 +47,12 @@ export function detectPracticeStaffTracks(rules,raw,width,height,count,config){
   if(!span)continue;
   const spanWidth=span.at(-1)-span[0];
   if(spanWidth<Math.max(width*config.minStaffWidth,spacing*(spanWidth>=width*.4?28:config.minStaffSpan??28)))continue;
-  const x=span[0],right=span.at(-1),supported=line=>{let n=0;for(let col=x;col<=right;col++)n+=rules[line.y*width+col];return n/(right-x+1);};
+  // Gap-filled rules locate tracks, but repeated ledger lines and beams are
+  // not additional staff rules. Check the original ink for that decision.
+  // TAB digits deliberately erase short pieces of its rules at the left edge.
+  // Only notation braces need this leading-island correction.
+  const leading=count===5?runs(span,2).find(run=>run.length>=spacing*2):null;
+  const x=leading&&leading[0]-span[0]<spacing*3?leading[0]:span[0],right=span.at(-1),supported=line=>{let n=0;for(let col=x;col<=right;col++)n+=raw[line.y*width+col];return n/(right-x+1);};
   if(track.some(line=>supported(line)<.65))continue;
   if(lines.some(line=>!track.includes(line)&&line.y>track[0].y&&line.y<track.at(-1).y&&supported(line)>.8))continue;
   if(lines.some(line=>!track.includes(line)&&Math.min(Math.abs(line.y-track[0].y+spacing),Math.abs(line.y-track.at(-1).y-spacing))<spacing*.15&&supported(line)>.8))continue;
@@ -61,35 +72,64 @@ function verticalBridge(ink,width,top,bottom,x,g){
  }
  return covered/(Math.round(bottom)-Math.round(top)+1)>.88&&longestGap<Math.max(3,g*.5);
 }
+// Follow an actual brace contour, not just aligned barlines or small spacing.
+// One missing raster row is allowed; the path must span both complete staves.
+function curvedStaffConnector(ink,width,a,b,g){
+ const edge=Math.max(a.x,b.x),left=Math.max(0,Math.floor(edge-g*3)),right=Math.min(width-1,Math.ceil(edge)-1);
+ const top=Math.round(a.y),bottom=Math.round(b.y+b.height),tolerance=Math.max(1,Math.floor(g*.2)),size=right-left+1;
+ let prior=new Uint8Array(size),before=new Uint8Array(size);
+ for(let y=top;y<=bottom;y++){
+  const row=new Uint8Array(size);
+  for(let x=left;x<=right;x++)if(ink[y*width+x]){
+   const i=x-left;
+   if(y<=top+tolerance)row[i]=1;
+   else for(let dx=-2;dx<=2;dx++)if(prior[i+dx]||before[i+dx]){row[i]=1;break;}
+   if(row[i]&&y>=bottom-tolerance)return true;
+  }
+  before=prior;prior=row;
+ }
+ return false;
+}
 export function connectedPracticeStaffs(ink,width,a,b){
  const g=Math.max(a.spacing,b.spacing),top=Math.round(a.y+a.height),bottom=Math.round(b.y);
  if(bottom<=top||Math.abs(a.x-b.x)>g*2||Math.abs(a.x+a.width-b.x-b.width)>g*3)return false;
- const positions=[Math.min(a.x,b.x),...a.bars.filter(x=>b.bars.some(other=>Math.abs(x-other)<g*.35))];
+ // A brace can extend the detected horizontal span to the left of the real
+ // system spine. Search both staff starts, including the area between them.
+ for(let x=Math.max(0,Math.floor(Math.min(a.x,b.x)-g*1.5));x<=Math.min(width-1,Math.max(a.x,b.x)+g*2);x++)if(verticalBridge(ink,width,top,bottom,x,g))return true;
+ const positions=a.bars.filter(x=>b.bars.some(other=>Math.abs(x-other)<g*.35));
  for(const position of positions){
-  const margin=position===positions[0]?Math.ceil(g*1.5):2;
+  const margin=2;
   for(let x=Math.max(0,Math.round(position)-margin);x<=Math.min(width-1,position+2);x++){
    if(verticalBridge(ink,width,top,bottom,x,g))return true;
   }
  }
- return false;
+ return curvedStaffConnector(ink,width,a,b,g);
 }
 
 function systemMeasures(staffs,ink,width){
  const first=staffs[0];if(staffs.length===1)return {boxes:first.measures,bars:first.bars};
- // Long connected barlines are intentionally excluded from standalone TAB
- // detection (stems). Within a connected system, require matching boundaries
- // on every staff before accepting those same columns as shared barlines.
- const candidates=staffs.map(s=>detectBarlines(ink,width,s,{allowExtensions:true,minMeasureSpacing:.7}).bars);
+ // Connected barlines extend past a single staff. Reconsider them only within
+ // an established system, retaining notehead/beam rejection on each part.
+ const candidates=staffs.map(s=>detectPracticeBarlines(ink,width,s,{allowExtensions:true,minMeasureSpacing:.7}).bars);
+ const connectedCandidates=staffs.map(s=>detectBarlines(ink,width,s,{allowExtensions:true,minMeasureSpacing:.7}).bars);
  const g=Math.max(...staffs.map(s=>s.spacing));
- const shared=candidates[0].filter(x=>candidates.every(list=>list.some(other=>Math.abs(x-other)<g*.45))&&staffs.every((s,i)=>!i||verticalBridge(ink,width,staffs[i-1].y+staffs[i-1].height,s.y,Math.round(x),g)));
+ const shared=candidates.flat().filter(x=>{
+  const support=candidates.map(list=>list.some(other=>Math.abs(x-other)<g*.45));
+  // A tied chord can resemble a head and beam beside a real boundary on one
+  // hand. Another part must endorse it, and the column must cross both staves
+  // and their gap before that local note-shape rejection can be overridden.
+  const connected=connectedCandidates.map(list=>list.some(other=>Math.abs(x-other)<g*.45));
+  return (!staffs.some(s=>s.lines.length!==staffs[0].lines.length)&&support.every(Boolean))||staffs.some((s,i)=>i&&connected[i]&&connected[i-1]&&verticalBridge(ink,width,staffs[i-1].y+staffs[i-1].height,s.y,Math.round(x),g));
+ });
  // Taller staves provide a stronger boundary test: a note stem that crosses
  // a small notation staff will usually not cross the accompanying TAB.
  const reference=[...staffs].sort((a,b)=>b.height-a.height)[0];
  const inHeader=x=>reference.headerEnd!=null&&x>reference.x+g&&x<=reference.headerEnd+g*.7;
- const bars=[...reference.bars.filter(x=>!inHeader(x))];
+ const mixed=staffs.some(s=>s.lines.length!==reference.lines.length);
+ const bars=mixed?[...reference.bars.filter(x=>!inHeader(x))]:[];
  for(const x of shared)if(!inHeader(x)&&!bars.some(other=>Math.abs(x-other)<g*.7))bars.push(x);
  bars.sort((a,b)=>a-b);
- const edges=[...bars],left=Math.min(...staffs.map(s=>s.x)),right=Math.max(...staffs.map(s=>s.x+s.width));
+ const edges=[...bars],left=Math.max(...staffs.map(s=>s.x)),right=Math.max(...staffs.map(s=>s.x+s.width));
  if(!edges.length||edges[0]-left>g)edges.unshift(left);
  if(!edges.length||right-edges.at(-1)>g)edges.push(right);
  return {bars,boxes:edges.slice(0,-1).flatMap((x,i)=>edges[i+1]-x>g*.7?[{x,width:edges[i+1]-x,boundariesKnown:bars.some(b=>Math.abs(b-x)<2)&&bars.some(b=>Math.abs(b-edges[i+1])<2)}]:[])};
