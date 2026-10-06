@@ -8,9 +8,9 @@ import {applySelectedInstrument} from '../src/etudes/selectedInstrument.js';
 import {createBlankDocument,compileDocumentV2} from '../src/etudes/scoreModel.js';
 import {soundingMidi} from '../src/etudes/scoreTuning.js';
 const bass={instrument:'bass',tuning:[43,38,33,28],capo:0};
-function reading({target=bass,clef='clef-G2',chord='C',nativeTab=false}={}){
+function reading({target=bass,clef='clef-G2',chord='C',nativeTab=false,octaveShift}={}){
  const system={id:1,rect:{x:10,y:20,width:600,height:100},staff:{spacing:10,lines:[40,50,60,70,80]}};
- const {staff}=staffSystemToAnalysis(parseStaffTokens(`${clef}+keySignature-CM+timeSignature-4/4+note-${clef==='clef-F4'?'E2':'E5'}_whole+barline`),{system,page:1,width:700,height:250,target});
+ const {staff}=staffSystemToAnalysis(parseStaffTokens(`${clef}+keySignature-CM+timeSignature-4/4+note-${clef==='clef-F4'?'E2':'E5'}_whole+barline`),{system,page:1,width:700,height:250,target,octaveShift});
  staff.measures[0].harmony=chord;staff.measures[0].harmonyChanges=chord?[{onset:0,name:chord}]:[];
  const pages=[{page:1,staffs:[staff],notation:!nativeTab,octaveShift:staff.notation.octaveShift}];
  return {fileName:'independent.pdf',target,pages,summary:summarizeAnalysis(pages),complete:true};
@@ -54,4 +54,30 @@ test('editor selection creates bass accompaniment, leaves empty scores empty and
  const blank=applySelectedInstrument(createBlankDocument(),'bass');assert(!blank.bassArrangement);assert(blank.measures[0].events.every(e=>e.blank));
  const missing=createBlankDocument();missing.measures[0].events[0].notes=[{string:1,fret:0}];const saved=structuredClone(missing);
  assert.throws(()=>applySelectedInstrument(missing,'bass'),/코드/);assert.deepEqual(missing,saved);
+});
+
+test('automatic bass imports ignore stale source octaves and keep destination tuning and capo',()=>{
+ const musical=d=>d.measures.map(m=>m.events.map(e=>[e.onset,e.duration,e.notes.map(n=>[n.midi,n.string,n.fret])]));
+ const results=[];
+ for(const notationPitch of ['concert','octave-down']){
+  const selected={...bass,tuning:[42,37,32,27,22],capo:1,notationPitch},before=structuredClone(selected),target=recognitionTarget(selected,'staff');
+  const analysis=reading({target,chord:'G/B',octaveShift:-12});
+  assert.equal(analysis.pages[0].staffs[0].notation.octaveShift,0);
+  const document=prepareInstrumentOutput(analysis,{target:selected,sourceMode:'staff'}).document;
+  assert.deepEqual(document.tuning,selected.tuning);assert.equal(document.capo,1);
+  assert(document.measures[0].events.every(e=>soundingMidi(document,e.notes[0])===23));
+  assert.deepEqual(selected,before);results.push(musical(document));
+ }
+ assert.deepEqual(results[0],results[1]);
+});
+test('automatic bass source reading preserves native low bass and leaves TAB pitch comparison explicit',()=>{
+ for(const notationPitch of ['concert','octave-down']){
+  const selected={...bass,notationPitch},target=recognitionTarget(selected,'staff'),analysis=reading({target,clef:'clef-F4',octaveShift:0});
+  assert.equal(analysis.pages[0].staffs[0].notation.octaveShift,-12);
+  const document=prepareInstrumentOutput(analysis,{target:selected,sourceMode:'staff'}).document;
+  assert.equal(document.notationPitch,selected.notationPitch);assert(!document.bassArrangement);assert.equal(soundingMidi(document,document.measures[0].events[0].notes[0]),28);
+  assert.deepEqual(recognitionTarget(selected,'tab'),selected);
+ }
+ const guitar={instrument:'guitar',tuning:[64,59,55,50,45,40],capo:0,notationPitch:'octave-down'};
+ assert.deepEqual(recognitionTarget(guitar,'staff'),guitar);
 });

@@ -4,7 +4,10 @@ import {resolveImportTarget} from './importTarget.js';
 
 // Grand Staff is read as two piano voices before adapting it to the selected
 // bass. The user's destination tuning must not become the recognition target.
+export const automaticBassSourcePitch=(target,sourceMode)=>target?.instrument==='bass'&&sourceMode==='staff';
+
 export function recognitionTarget(target,sourceMode){
+ if(automaticBassSourcePitch(target,sourceMode))return resolveImportTarget({...target,notationPitch:'auto'});
  return sourceMode==='grand'&&target.instrument==='bass'?resolveImportTarget({instrument:'piano',notationPitch:'concert'}):target;
 }
 
@@ -14,7 +17,8 @@ export function prepareInstrumentOutput(analysis,{target=analysis.target,part,al
  const systems=document.pdfTabImport?.notation?.systems;
  const nativeBass=systems?.length&&systems.every(s=>s.clef==='clef-F4'&&!s.parts);
  const accompaniment=target.instrument==='bass'&&(sourceMode==='grand'||systems?.length&&!nativeBass);
- if(!accompaniment)return {document};
+ // Keep the automatic recognition convention internal to this import.
+ if(!accompaniment)return {document:{...document,...target}};
  try{
   const output=arrangeBass(document,{target,sourceCapo:0}).document;
   output.bassArrangement.automatic=true;

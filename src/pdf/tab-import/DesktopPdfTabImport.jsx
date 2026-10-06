@@ -69,7 +69,7 @@ export default function DesktopPdfTabImport(props){
   </dialog>;
 }
 
-function DesktopImportTargetSettings({target,targetOptions:o,opening,changeTargetInstrument,changeTargetTuning,sourceMode,changeNotationPitch,verifyNotation,changeVerifyNotation}){
+function DesktopImportTargetSettings({target,targetOptions:o,opening,changeTargetInstrument,changeTargetTuning,sourceMode,changeNotationPitch,verifyNotation,changeVerifyNotation,automaticSourcePitch}){
   return <ImportTargetCaption target={target}><div className="desktopImportTargetFields">
     <label>{t('editor.importTarget')}<select aria-label={t('editor.importTarget')} value={o.instrumentValue} disabled={opening} onChange={e=>changeTargetInstrument(e.target.value)}>
       {!target&&<option value="" disabled>{t('editor.importChooseInstrument')}</option>}
@@ -79,7 +79,7 @@ function DesktopImportTargetSettings({target,targetOptions:o,opening,changeTarge
       {(!target||o.customTuning)&&<option value="current">{t('etudes.custom')}</option>}
       {o.tunings.map(p=><option key={p.id} value={p.id}>{localizeUi(p.label)}</option>)}
     </select></label>}
-    {target?.tuning.length>0&&(sourceMode==='staff'||sourceMode==='tab'&&verifyNotation)&&<label className="importSourcePitch">{t('editor.sourcePitch')}<select aria-label={t('editor.sourcePitch')} value={target.notationPitch??'concert'} disabled={opening} onChange={e=>changeNotationPitch(e.target.value)}><option value="concert">{t('editor.concertPitch')}</option><option value="octave-down">{t('editor.octaveDownPitch')}</option></select><small>{t('editor.sourcePitchHint')}</small></label>}
+    {target?.tuning.length>0&&!automaticSourcePitch&&(sourceMode==='staff'||sourceMode==='tab'&&verifyNotation)&&<label className="importSourcePitch">{t('editor.sourcePitch')}<select aria-label={t('editor.sourcePitch')} value={target.notationPitch??'concert'} disabled={opening} onChange={e=>changeNotationPitch(e.target.value)}><option value="concert">{t('editor.concertPitch')}</option><option value="octave-down">{t('editor.octaveDownPitch')}</option></select><small>{t('editor.sourcePitchHint')}</small></label>}
     {sourceMode==='tab'&&<label className="importPairedCheck"><input type="checkbox" checked={verifyNotation} onChange={e=>changeVerifyNotation(e.target.checked)} disabled={opening}/>{t('editor.verifyPaired')}<small>{t('editor.verifyPairedHint')}</small></label>}
   </div></ImportTargetCaption>;
 }

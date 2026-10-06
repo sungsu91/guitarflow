@@ -50,7 +50,9 @@ export function parseStaffTokens(raw,{meter=[4,4],key='C',polyphonic=false}={}){
 }
 
 export function staffSystemToAnalysis(parsed,{system,page,width,height,octaveShift,target:requestedTarget,previous=[]}){
-  const target=resolveImportTarget(requestedTarget);octaveShift??=importOctaveShift(target);
+  const target=resolveImportTarget(requestedTarget);
+  if(target.notationPitch==='auto')octaveShift=importOctaveShift(target,parsed.clef);
+  else octaveShift??=importOctaveShift(target);
   if(parsed.clef&&!['clef-G2','clef-F4','grand-G2-F4'].includes(parsed.clef))throw Error('이 음자리표의 PDF 인식은 아직 검증되지 않았습니다. 타악기 오선을 일반 음높이 또는 기타 TAB으로 변환하지 않습니다.');
   if(![0,-12].includes(octaveShift))throw Error('오선보의 옥타브 기준을 확인해 주세요.');
   const document={...createBlankDocument(),...target,autoTab:{mode:'range',min:0,max:4}};

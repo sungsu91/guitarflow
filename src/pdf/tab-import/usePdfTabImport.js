@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {importPdfTab} from './importPdfTab.js';
 import {tabSourceKind} from './imageTabSource.js';
 import {photoFilesToAdd,preparePhoto,importPhotoBatch} from './photoBatch.js';
-import {prepareInstrumentOutput,recognitionTarget} from './instrumentOutput.js';
+import {prepareInstrumentOutput,recognitionTarget,automaticBassSourcePitch} from './instrumentOutput.js';
 import {analysisPartOptions} from './photoParts.js';
 import {resolveImportTarget,withImportPitchDefault} from './importTarget.js';
 import {importTargetOptions,selectImportInstrument,selectImportTuning} from './importTargetOptions.js';
@@ -126,5 +126,5 @@ export default function usePdfTabImport({onClose,onOpen,active=true,layout,targe
     try{if(arrangementReview?.reviewInstrument==='bass'&&document.bassArrangement){document.bassArrangement.automatic=true;document.bassArrangement.importCoverage=arrangementReview.document.pdfTabImport?.pageCoverage??null;}await onOpen(document);}catch(e){if(token===generation.current)setError(e.message);}
     finally{openingRef.current=false;if(token===generation.current)setOpening(false);}
   };
-  return {checkpoint,paused,batchSize:IMPORT_PAGE_BATCH,openPartial:()=>open(false,true),previewPhotoScan,dialog,busy,preparing,opening,progress,elapsedSeconds,result,selectedPart,partOptions,changePart,target,targetError,targetOptions:importTargetOptions(target),changeTargetInstrument,changeTargetTuning,changeNotationPitch,verifyNotation,changeVerifyNotation,error:targetError||error,cancel,run,addPhotos,open,arrange:()=>open(true),arrangementDocument,arrangementReview,closeArrangement:()=>setArrangementDocument(null),applyArrangement,pdfFile,removePdf,photos,photo:photos[photoIndex],photoIndex,setPhotoIndex,rotation:photos[photoIndex]?.rotation??0,rotatePhoto,movePhoto,removePhoto,updatePhotoScan,analyze,attempted,sourceMode,changeSourceMode};
+  return {automaticSourcePitch:automaticBassSourcePitch(target,sourceMode),checkpoint,paused,batchSize:IMPORT_PAGE_BATCH,openPartial:()=>open(false,true),previewPhotoScan,dialog,busy,preparing,opening,progress,elapsedSeconds,result,selectedPart,partOptions,changePart,target,targetError,targetOptions:importTargetOptions(target),changeTargetInstrument,changeTargetTuning,changeNotationPitch,verifyNotation,changeVerifyNotation,error:targetError||error,cancel,run,addPhotos,open,arrange:()=>open(true),arrangementDocument,arrangementReview,closeArrangement:()=>setArrangementDocument(null),applyArrangement,pdfFile,removePdf,photos,photo:photos[photoIndex],photoIndex,setPhotoIndex,rotation:photos[photoIndex]?.rotation??0,rotatePhoto,movePhoto,removePhoto,updatePhotoScan,analyze,attempted,sourceMode,changeSourceMode};
 }
