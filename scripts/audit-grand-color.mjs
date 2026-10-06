@@ -19,9 +19,14 @@ try{for(const entry of files){
   if(entry.color)images.push({name:'normalized',png:png(im.data,im.width,im.height)});
   let omr;
   try{for(const s of systems.filter(s=>!entry.staff||s.id===entry.staff)){
+   // Explicit diagnostic experiment only; never used by the application.
+   if(Number.isFinite(entry.topMargin)){
+    const trim=Math.max(0,Math.floor(s.staff.y-s.staff.spacing*entry.topMargin)-s.rect.y);
+    s.rgba=s.rgba.slice(trim*s.width*4);s.height-=trim;s.rect={...s.rect,y:s.rect.y+trim,height:s.height};s.pianoTopHeight=0;delete s.pianoTop;
+   }
    images.push({name:`s${s.id}`,png:png(s.rgba,s.width,s.height)});
    if(entry.piano){const {cropPianoMeasure,pianoHeaderWidth}=await import('/src/omr/pianoStaffRecognition.js');const {parsePianoTokens}=await import('/src/omr/pianoPolyphony.js');const header=entry.raw?pianoHeaderWidth(s,parsePianoTokens(entry.raw,{key:entry.key??'G',meter:[4,4]})):null;
-    if(entry.raw){const {attachPianoTieEvidence}=await import('/src/omr/pianoTieEvidence.js');results.push({header,headAudit:attachPianoTieEvidence(s,parsePianoTokens(entry.raw,{key:entry.key??'G',meter:[4,4]})).pianoTieAudit});}
+    if(entry.raw){const {attachPianoTieEvidence}=await import('/src/omr/pianoTieEvidence.js');const parsed=attachPianoTieEvidence(s,parsePianoTokens(entry.raw,{key:entry.key??'G',meter:[4,4]}));results.push({header,headAudit:parsed.pianoTieAudit,...(entry.preserveReading?{parsed}:{})});}
     for(let i=0;i<s.measures.length;i++)if(!entry.bar||i===entry.bar-1){
      const crop=cropPianoMeasure(s,i,.5,header,{extended:entry.extended});images.push({name:`s${s.id}-m${i+1}`,png:png(crop.rgba,crop.width,crop.height)});
      if(entry.read){const {createStaffOmrClient}=await import('/src/omr/staffOmrClient.js');omr??=await createStaffOmrClient();const reads=[];for(const margin of [.5,2,1,3,0]){const read=await omr.recognize(cropPianoMeasure(s,i,margin,header,{extended:entry.extended}));reads.push({margin,text:read.text});}results.push({staff:s.id,bar:i+1,header,reads});}

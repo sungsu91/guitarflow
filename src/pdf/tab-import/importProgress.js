@@ -13,7 +13,8 @@ export function importElapsedTime(seconds=0){
 
 // Report the selected input type independently of the eventual arrangement.
 export function importScanMessage(sourceMode,{phase='structure',zoom=false,detail}={}){
-  let message=t((scanMessages[sourceMode==='grand'?'staff':sourceMode]??scanMessages.auto)[phase]);
-  if(detail)message+=` · ${t('editor.staffReadingDetail',{value1:detail.staff,value2:detail.total,value3:detail.attempt,value4:detail.seconds})}`;
+  const phases={structure:'editor.importFindStructure',chords:'editor.importReadChords',model:'editor.importLoadModel',convert:'editor.importBuildScore'};
+  let message=t(phases[detail?.phase]??(scanMessages[sourceMode==='grand'?'staff':sourceMode]??scanMessages.auto)[phase]);
+  if(detail?.attempt)message+=` · ${t('editor.staffReadingDetail',{value1:detail.staff,value2:detail.total,value3:detail.attempt,value4:detail.seconds})}`;
   return zoom?`${t('editor.zoomAnalysisPrefix')} · ${message}`:message;
 }

@@ -24,6 +24,9 @@ export const flowerAudit=new Map([
  [54,[...sixteenths([[[3,0],[6,0]],[[5,2]],[[4,4]],[[5,2]],[[3,0]],[[5,2]],[[3,2]],[[5,2]],[[4,4]],[[5,2]],[[4,2]],[[5,2]]]),e(8,[[4,0]]),...sixteenths([[[5,2]],[[4,0]]])]],
  [55,[...sixteenths([[[4,2],[6,3]],[[5,3]],[[4,0]],[[5,3]],[[4,2]],[[4,4]]]),e(8,[[3,0]]),...sixteenths([[[4,0],[6,3]],[[6,3]],[[5,3]],[[6,3]]]),e(8,[[5,2]]),...sixteenths([[[5,2]],[[4,0]]])]],
  [56,[e(8,[[4,2],[5,3]]),...sixteenths([[[2,1]],[[2,0]],[[3,2]],[[3,0]]]),e(8,[[4,4]]),e(8,[[6,0]]),...sixteenths([[[2,0]],[[3,2]],[[3,0]],[[4,4]]]),e(8,[[4,2]])]],
+ [27,[e(8,[[1,0],[2,0],[6,8]]),e(8,[[3,0]]),e(4,[[1,7],[2,0]]),e(8,[[1,5],[2,7],[3,7],[4,0]]),...[5,7,5].map(f=>({...e(16,[[1,f]]),tuplet:true})),e(8,[[2,7]]),e(8,[[3,7]])]],
+ [28,sixteenths([[[1,0],[6,0]],[[5,2]],[[4,2]],[[4,4]],[[3,0]],[[2,0]],[[1,0]],[[1,2]],[[1,3]],[[1,2]],[[1,0]],[[2,0]],[[3,0]],[[4,4]],[[4,2]],[[3,0]]])],
+ [49,[e(4,[[1,5],[2,5],[3,5]]),e(4,[[1,5],[2,5],[3,5]]),...sixteenths([[[1,'X'],[2,'X'],[3,'X'],[4,'X']],[[3,2]],[[3,4]],[[1,3]],[[1,2]],[[1,0]],[[1,2]],[[2,4]]])]],
 ]);
 
 // The first page's printed chord names, including parenthesized extensions.
@@ -41,4 +44,15 @@ export const flowerTechniqueAudit=[
  {bar:9,slot:2,tieFromPrevious:true},
  {bar:48,slot:12,arpeggio:'up',harmonicStrings:[1,2,3]},
  {bar:49,slot:0,arpeggio:null,harmonicStrings:[1,2,3]},
+ {bar:49,slot:1,tieFromPrevious:true,harmonicStrings:[1,2,3]},
+];
+
+// Source H-P triplets, consecutive P-P, and both directions of sl. with arcs.
+export const flowerConnectionAudit=[
+ {bar:11,slot:4,technique:'H'},{bar:11,slot:5,technique:'P'},
+ {bar:27,slot:4,technique:'H'},{bar:27,slot:5,technique:'P'},
+ {bar:28,slot:2,technique:'S',slur:true},{bar:28,slot:6,technique:'H'},
+ {bar:28,slot:8,technique:'P'},{bar:28,slot:9,technique:'P'},
+ {bar:28,slot:13,technique:'S',slur:true},
+ {bar:49,slot:3,technique:'S',slur:true},{bar:49,slot:5,technique:'S',slur:true},
 ];

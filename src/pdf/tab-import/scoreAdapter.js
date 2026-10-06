@@ -70,6 +70,10 @@ export function analysisToDocument(analysis,{part}={}){
       return event;
     });
     const lastChange=(measure.harmonyChanges??[]).at(-1);if(lastChange)activeHarmony=lastChange;
+    if(knownGrid)for(let i=0;i<events.length-1;i++)if(slots[i].technique){
+      events[i].technique=slots[i].technique;
+      if(slots[i].slurToNext)events[i].slurTo=events[i+1].id;
+    }
     if(doc.instrument==='piano'&&measure.notation)for(let i=1;i<events.length;i++){
       const pitches=slots[i].pianoTiePitchesFromPrevious;if(!pitches?.length)continue;
       const current=events[i],prior=events.slice(0,i).findLast(e=>e.voice===current.voice);
@@ -79,13 +83,23 @@ export function analysisToDocument(analysis,{part}={}){
     for(let i=1;i<events.length;i++)if(slots[i].tieFromPrevious){
       const prior=events.slice(0,i).findLast(e=>e.voice===events[i].voice),current=events[i];
       const samePianoChord=doc.instrument==='piano'&&measure.notation&&prior?.notes.length>0&&prior.notes.length===current.notes.length&&prior.notes.every((n,j)=>n.midi===current.notes[j].midi);
-      if(samePianoChord||prior?.notes.length===1&&current.notes.length===1&&prior.notes[0].source?.writtenMidi===current.notes[0].source?.writtenMidi)prior.tieTo=current.id;
+      const sameHarmonics=slots[i].harmonicTieContinuation&&prior?.notes.length>1&&prior.notes.length===current.notes.length&&prior.notes.every(n=>n.harmonic&&current.notes.some(p=>p.harmonic&&p.string===n.string&&p.fret===n.fret));
+      if(samePianoChord||sameHarmonics||prior?.notes.length===1&&current.notes.length===1&&prior.notes[0].source?.writtenMidi===current.notes[0].source?.writtenMidi)prior.tieTo=current.id;
     }
     return {id:newId('bar'),...(measure.repeatStart?{repeatStart:true}:{}),...(measure.repeatEnd?{repeatEnd:true}:{}),...(measure.endBarline?{endBarline:measure.endBarline}:{}),...(index&&meter.join('/')!==(sourceMeasures[index-1].meter??doc.meter).join('/')?{meter}:{}),chord:null,harmony:measure.harmony??null,...(measure.harmonyReview?{harmonyReview:measure.harmonyReview}:{}),...(measure.harmonyChanges?.length?{harmonyChanges:measure.harmonyChanges,chordNameMode:'manual'}:{}),events,pdfImport:{needsReview:measure.needsReview||overflow,source:{...measure.source,measure:index+1},rhythmVerified:knownGrid,reasons:[...measure.reasons,...(overflow?['too-many-source-columns']:[])],orphan:measure.orphan,...(overflow?{unmappedSlots:measure.slots.filter(s=>!slots.includes(s))}: {})}};
   });
   // Piano ties crossing a printed bar need the preceding measure's same hand.
+  if(doc.instrument!=='piano')for(let bar=1;bar<doc.measures.length;bar++){
+    const slot=sourceMeasures[bar].slots[0],prior=doc.measures[bar-1].events.at(-1),current=doc.measures[bar].events[0];
+    if(slot?.harmonicTieFromPreviousBar&&current?.onset===0&&prior&&prior.onset+ticksOf(prior)===meterTicks(sourceMeasures[bar-1].meter??doc.meter)&&prior.notes.length>1&&prior.notes.length===current.notes.length&&prior.notes.every(n=>n.harmonic&&current.notes.some(p=>p.harmonic&&p.string===n.string&&p.fret===n.fret)))prior.tieTo=current.id;
+  }
   // Only explicit image evidence from the Grand Staff path authorizes this.
   if(doc.instrument==='piano')for(let bar=1;bar<doc.measures.length;bar++)for(const [i,slot] of sourceMeasures[bar].slots.entries()){
+    if(slot.pianoTiePitchesFromPreviousBar?.length){
+      const current=doc.measures[bar].events[i],prior=doc.measures[bar-1].events.findLast(e=>e.voice===current?.voice);
+      if(current?.onset!==0||!prior||prior.onset+ticksOf(prior)!==meterTicks(sourceMeasures[bar-1].meter??doc.meter))throw Error('피아노 마디 경계의 지속음 연결 위치를 확인하지 못했습니다.');
+      for(const midi of slot.pianoTiePitchesFromPreviousBar){const note=prior.notes.find(n=>n.midi===midi);if(!note||!current.notes.some(n=>n.midi===midi))throw Error('피아노 마디 경계의 지속음 높이가 일치하지 않습니다.');note.pianoTieTo=current.id;}
+    }
     if(!slot.tieFromPreviousBar)continue;
     const current=doc.measures[bar].events[i],prior=doc.measures[bar-1].events.findLast(e=>e.voice===current?.voice);
     if(current?.onset===0&&prior&&!prior.rest&&prior.notes.length===current.notes.length&&prior.notes.every((n,j)=>n.midi===current.notes[j].midi))prior.tieTo=current.id;

@@ -9,6 +9,7 @@ import {TAB_SOURCE_ACCEPT,TAB_PHOTO_ACCEPT} from './imageTabSource.js';
 import {t,localizeUi} from '../../i18n/core.js';
 import {useLanguage} from '../../i18n/react.jsx';
 import {importElapsedTime} from './importProgress.js';
+import {importActivityDetails} from './importActivity.js';
 import './desktopPdfTabImport.css';
 
 export default function DesktopPdfTabImport(props){
@@ -17,9 +18,10 @@ export default function DesktopPdfTabImport(props){
   const choosing=!busy&&!result;
   const pianoResult=result?.target?.instrument==='piano';
   useLanguage();
+  const activity=importActivityDetails(progress,{pdfFile,photos:props.photos});
   const comparison=notationCheckSummary(result);
   const targetPanel=sourceMode==='grand'?<div className="pdfImportTarget desktopPianoImportRoute"><strong>{t('editor.pianoGuitarRoute')}</strong><span>{t('editor.pianoGuitarRouteHint')}</span></div>:choosing?<DesktopImportTargetSettings {...props} opening={selecting}/>:<ImportTargetCaption target={target}/>;
-  return <dialog ref={dialog} data-stage={choosing?'selection':'recognition'} data-has-photos={Boolean(photo&&choosing)} className="desktopPdfTabImport" aria-label="PDF·사진에서 악보 가져오기" onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();cancel();}}>
+  return <dialog ref={dialog} data-busy={busy} data-stage={choosing?'selection':'recognition'} data-has-photos={Boolean(photo&&choosing)} className="desktopPdfTabImport" aria-label="PDF·사진에서 악보 가져오기" onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();cancel();}}>
     <header><div><small>FRETIVA LAB · DESKTOP</small><h2>PDF·사진에서 악보 가져오기</h2></div><button type="button" onClick={cancel} aria-label="PDF TAB 분석 닫기">×</button></header>
     <div className="desktopPdfTabBody">
     {choosing?<div className="desktopImportSelection">
@@ -43,8 +45,13 @@ export default function DesktopPdfTabImport(props){
     {(busy||result)&&<div className="pdfTabActiveMode" role="group" aria-label={t('editor.selectedConversionMode')}><span>{t('editor.selectedConversionMode')}</span><strong>{conversionLabels(sourceMode,target).title}</strong><p>{conversionLabels(sourceMode,target).description}</p></div>}
     {!choosing&&error&&<div className="scoreImportError" role="alert"><strong>분석을 완료하지 못했습니다</strong><p>{error}</p></div>}
     {busy&&<section className="pdfTabProgress desktopImportActivity" aria-label={t('editor.importActivity')} aria-busy="true">
+      <div className="desktopImportSource">
+        {activity.preview&&<svg className="desktopImportSourcePreview" role="img" aria-label={t('editor.importSourcePreview',{value1:activity.fileName})} viewBox={`0 0 ${activity.preview.width} ${activity.preview.height}`}><image href={activity.preview.url} width={activity.preview.width} height={activity.preview.height}/>{activity.region&&<rect {...activity.region}/>}</svg>}
+        <div className="desktopImportSourceText"><span>{t('editor.importCurrentFile')}</span><strong>{activity.fileName}</strong><span>{[activity.pageLabel,activity.location].filter(Boolean).join(' · ')}</span>{activity.stage&&<b>{activity.stage}</b>}</div>
+      </div>
       <div className="desktopImportActivityHeading"><strong>{t('editor.importRecognizing')}</strong><span className="desktopImportScanMarks" aria-hidden="true">{[0,1,2,3,4].map(i=><i key={i} style={{animationDelay:`${i*.12}s`}}/>)}</span><time className="desktopImportElapsed" aria-live="off">{t('editor.importElapsed',{value1:importElapsedTime(props.elapsedSeconds)})}</time></div>
       <p role="status">{localizeUi(progress.message)||t('editor.pdfPreparing')}</p><div className="desktopImportProgressMeter"><progress aria-label={t('editor.importProgress')} max="1" value={progress.progress}/><span>{Math.round(progress.progress*100)}%</span></div>
+      {activity.longWait&&<p className="desktopImportWaiting">{t('editor.importWaitingForReading')}</p>}
     </section>}
     {result&&<section aria-label="TAB 분석 결과"><h3>악보 분석 완료</h3><dl>{[['전체 페이지','pages'],['전체 마디','measures'],[t('editor.importNotes'),'confirmed']].map(([label,key])=><div key={key}><dt>{label}</dt><dd>{result.summary[key]}</dd></div>)}</dl>
       <ul className="pdfTabPageResults" aria-label="페이지별 분석 결과">{result.pages.map(page=><li key={page.page}>{page.page}페이지 <strong>{page.staffs.reduce((n,s)=>n+s.measures.length,0)}마디</strong></li>)}</ul>

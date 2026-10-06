@@ -85,7 +85,7 @@ export default function usePdfTabImport({onClose,onOpen,active=true,layout,targe
     if((!pdfFile&&!photos.length)||busyRef.current||openingRef.current||targetError||result)return;
     const {controller,token}=begin();setAttempted(true);
     try{
-      const options={sourceMode,target,verifyNotation,signal:controller.signal,onProgress:p=>{if(token===generation.current)setProgress(p);}};
+      const options={sourceMode,target,verifyNotation,includeSourcePreview:true,signal:controller.signal,onProgress:p=>{if(token===generation.current)setProgress(p);}};
       const analysis=pdfFile?await importPdfTab(pdfFile,options):await importPhotoBatch(photos,{...options,autoScan:true});
       if(token===generation.current)setResult(analysis);
     }

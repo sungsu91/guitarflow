@@ -6,7 +6,7 @@ const root='artifacts/ocr-techniques-20261004',label=process.argv[2]??'technique
 const manifest=JSON.parse(await readFile(`${root}/fixtures/manifest.json`));await mkdir(out,{recursive:true});
 const browser=await (process.env.TAB_TECHNIQUE_BROWSER==='webkit'?webkit.launch({headless:true}):chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'})),reports=[];
 try{for(const item of manifest.cases.filter(c=>!selected.length||selected.includes(c.id))){
- const page=await browser.newPage();await page.route('**/__techniques',r=>r.fulfill({contentType:'text/html',body:'<input type="file">'}));await page.goto('http://127.0.0.1:5174/__techniques');
+ const page=await browser.newPage();await page.route('**/__techniques',r=>r.fulfill({contentType:'text/html',body:'<input type="file">'}));await page.goto(`${process.env.QUALITY_BASE_URL??'http://127.0.0.1:5174'}/__techniques`);
  await page.locator('input').setInputFiles({name:randomUUID()+'.pdf',mimeType:'application/pdf',buffer:await readFile(item.path)});
  const {analysis,document}=await page.evaluate(async()=>{const {importPdfTab}=await import('/src/pdf/tab-import/importPdfTab.js'),{analysisToDocument}=await import('/src/pdf/tab-import/scoreAdapter.js');const analysis=await importPdfTab(document.querySelector('input').files[0],{sourceMode:'tab',signal:AbortSignal.timeout(180000)});return {analysis,document:analysisToDocument(analysis)};});
  const measures=analysis.pages.flatMap(p=>p.staffs.flatMap(s=>s.measures)),report={id:item.id,bars:measures.length,correct:0,missing:[],wrong:[],harmonics:0,arpeggios:0,ties:0,wrongTechniques:[],missingTechniques:[],rhythm:0};

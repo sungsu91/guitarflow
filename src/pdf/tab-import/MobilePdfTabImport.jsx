@@ -9,6 +9,7 @@ import {TAB_SOURCE_ACCEPT,TAB_PHOTO_ACCEPT} from './imageTabSource.js';
 import {t,localizeUi} from '../../i18n/core.js';
 import {useLanguage} from '../../i18n/react.jsx';
 import {importElapsedTime} from './importProgress.js';
+import {importActivityDetails} from './importActivity.js';
 import './mobilePdfTabImport.css';
 
 export default function MobilePdfTabImport(props){
@@ -16,6 +17,7 @@ export default function MobilePdfTabImport(props){
   const selecting=preparing||opening,hasSource=Boolean(photo||pdfFile);
   const pianoResult=result?.target?.instrument==='piano';
   useLanguage();
+  const activity=importActivityDetails(progress,{pdfFile,photos:props.photos});
   const comparison=notationCheckSummary(result);
   return <dialog ref={dialog} data-has-photos={Boolean(photo&&!busy&&!result)} className="mobilePdfTabImport" aria-label={t('editor.pdfImportConvert')} onKeyDown={e=>e.stopPropagation()} onCancel={e=>{e.preventDefault();e.stopPropagation();cancel();}}>
     <header><h2>{t('editor.pdfImportConvert')}</h2><button type="button" onClick={cancel} aria-label={t('common.close')}>×</button></header>
@@ -31,8 +33,13 @@ export default function MobilePdfTabImport(props){
       {preparing&&<p role="status">{t('editor.importPreviewPreparing')}</p>}
       {photo&&!busy&&!result&&<TabPhotoPreview {...props} opening={selecting} mobile/>}
       {busy&&<section className="mobileImportActivity" aria-label={t('editor.importActivity')} aria-busy="true">
+        <div className="mobileImportSource">
+          {activity.preview&&<svg className="mobileImportSourcePreview" role="img" aria-label={t('editor.importSourcePreview',{value1:activity.fileName})} viewBox={`0 0 ${activity.preview.width} ${activity.preview.height}`}><image href={activity.preview.url} width={activity.preview.width} height={activity.preview.height}/>{activity.region&&<rect {...activity.region}/>}</svg>}
+          <div className="mobileImportSourceText"><span>{t('editor.importCurrentFile')}</span><strong>{activity.fileName}</strong><span>{activity.pageLabel}</span><span>{activity.location}</span>{activity.stage&&<b>{activity.stage}</b>}</div>
+        </div>
         <div className="mobileImportActivityHeading"><strong>{t('editor.importRecognizing')}</strong><span className="mobileImportScanMarks" aria-hidden="true">{[0,1,2,3,4].map(i=><i key={i} style={{animationDelay:`${i*.12}s`}}/>)}</span></div>
         <time className="mobileImportElapsed" aria-live="off">{t('editor.importElapsed',{value1:importElapsedTime(props.elapsedSeconds)})}</time><p role="status">{localizeUi(progress.message)||t('editor.pdfPreparing')}</p><div className="mobileImportProgressMeter"><progress aria-label={t('editor.importProgress')} max="1" value={progress.progress}/><span>{Math.round(progress.progress*100)}%</span></div>
+        {activity.longWait&&<p className="mobileImportWaiting">{t('editor.importWaitingForReading')}</p>}
       </section>}
       {result&&<section aria-label={t('editor.pdfAnalysisDone')}><h3>{t('editor.scoreAnalysisDone')}</h3><p className="mobilePdfTabFilename">{result.fileName}</p><dl>{[['editor.pdfPages','pages'],['editor.pdfMeasures','measures'],['editor.importNotes','confirmed']].map(([label,key])=><div key={key}><dt>{t(label)}</dt><dd>{result.summary[key]}</dd></div>)}</dl>{!result.pages.some(p=>p.notation)&&<p>{t('editor.pdfReviewHint')}</p>}</section>}
       {result&&<><PhotoScanNotice result={result}/><PdfTabCoverageNotice summary={result.summary} showPhotoRecovery/></>}

@@ -10,6 +10,6 @@ try{for(const source of sources.filter(s=>s.id===(process.argv[2]??'now'))){
   const {importPdfTab}=await import('/src/pdf/tab-import/importPdfTab.js'),{analysisToDocument}=await import('/src/pdf/tab-import/scoreAdapter.js'),{compileDocumentV2}=await import('/src/etudes/scoreModel.js');
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),1200000),start=performance.now();
   try{const analysis=await importPdfTab(document.querySelector('input').files[0],{sourceMode:'grand',target:{instrument:'piano'},signal:controller.signal,onProgress:p=>window.progress(p)}),doc=analysisToDocument(analysis),compiled=compileDocumentV2(doc);return {ms:performance.now()-start,analysis,document:doc,errors:compiled.errors};}
-  catch(e){return {ms:performance.now()-start,error:e.message,pianoReadings:e.pianoReadings};}finally{clearTimeout(timer);}
+  catch(e){return {ms:performance.now()-start,error:e.message,pianoReadings:e.pianoReadings,partialAnalysis:e.partialAnalysis};}finally{clearTimeout(timer);}
  });await writeFile(`${out}/${source.id}.json`,JSON.stringify(result,null,2));console.log(JSON.stringify({source:source.id,ms:result.ms,error:result.error,errors:result.errors,bars:result.document?.measures.length}));await page.close();
 }}finally{await browser.close();await server.close();}

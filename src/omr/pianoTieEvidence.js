@@ -1,4 +1,6 @@
 import {runs,binaryPage} from '../pdf/tab-import/geometry.js';
+import {parseStaffTokens} from './staffTokens.js';
+import {ticksOf} from '../etudes/scoreModel.js';
 
 const sameChord=(a,b)=>!a.rest&&!b.rest&&a.notes.length>0&&a.notes.length===b.notes.length&&a.notes.every((n,i)=>n.midi===b.notes[i].midi);
 function headY(note,system,clef){
@@ -8,29 +10,31 @@ function headY(note,system,clef){
 }
 function locateHeads(ink,width,height,system,bar,index,clef,audit){
  const g=system.staff.spacing,box=system.measures[index],left=Math.max(0,Math.ceil(box.x-system.rect.x+(index?g*.6:g*4))),right=Math.min(width-1,Math.floor(box.x+box.width-system.rect.x-g*.5));
- const cache=new Map(),sounding=bar.events.filter(e=>!e.rest),keyOf=e=>`${e.notes.map(n=>n.midi).join(',')}:${['1','2'].includes(e.duration)?'hollow':'filled'}`;
+ const noteDuration=(e,n)=>n.writtenRhythm?.duration??e.duration;
+ const cache=new Map(),sounding=bar.events.filter(e=>!e.rest),keyOf=e=>`${e.notes.map(n=>`${n.midi}:${['1','2'].includes(noteDuration(e,n))?'hollow':'filled'}`).join(',')}`;
  for(const e of sounding){
   const key=keyOf(e);if(cache.has(key))continue;
   const ys=e.notes.map(n=>headY(n,system,clef));if(!ys.length||ys.some(y=>y===null))return null;
   const xs=[];
   for(let x=left;x<=right;x++){
-   const supported=ys.every(y=>{
+   const supported=ys.every((y,noteIndex)=>{
+    const duration=noteDuration(e,e.notes[noteIndex]);
     // Adjacent diatonic notes share a stem but sit on opposite sides of it.
     const displaced=ys.some(other=>Math.abs(Math.abs(other-y)-g/2)<g*.1);
-    const offsets=e.duration==='1'?[1.25,1.5]:[1.25];
+    const offsets=duration==='1'?[1.25,1.5]:[1.25];
     const positions=displaced?[x,...offsets.flatMap(dx=>[Math.round(x-g*dx),Math.round(x+g*dx)])]:[x];
     return positions.some(x=>{
-    if(['1','2'].includes(e.duration)){
+    if(['1','2'].includes(duration)){
      const onLine=yy=>system.staff.lines.some(line=>Math.abs(line-system.rect.y-yy)<system.staff.thickness/2+1);
      let white=0,centre=0;
      for(const dx of [-.12,0,.12])for(const dy of [-.15,0,.15]){const yy=Math.round(y+dy*g),xx=Math.round(x+dx*g);if(onLine(yy))continue;centre++;white+=!ink[yy*width+xx]?1:0;}
      if(centre<3||white/centre<.65)return false;
      // Whole heads are wider than half heads; their printed width depends on
      // the notation font. Verify a complete hollow ring for each candidate.
-     return (e.duration==='1'?[.55,.7,.8]:[.55]).some(radius=>{
+     return (duration==='1'?[.55,.7,.8]:[.55]).some(radius=>{
      let ring=0,tested=0;
      for(let a=0;a<12;a++){
-      const dx=Math.cos(a*Math.PI/6)*g*radius,dy=Math.sin(a*Math.PI/6)*g*.35-(e.duration==='2'?dx*.3:0),yy=Math.round(y+dy),xx=Math.round(x+dx);
+      const dx=Math.cos(a*Math.PI/6)*g*radius,dy=Math.sin(a*Math.PI/6)*g*.35-(duration==='2'?dx*.3:0),yy=Math.round(y+dy),xx=Math.round(x+dx);
       if(onLine(yy))continue;tested++;let found=false;
       for(let ox=-1;ox<=1;ox++)for(let oy=-1;oy<=1;oy++)if(!onLine(yy+oy)&&ink[(yy+oy)*width+xx+ox])found=true;
       ring+=found?1:0;
@@ -73,8 +77,8 @@ function locateHeads(ink,width,height,system,bar,index,clef,audit){
  search([]);audit.candidates=Object.fromEntries(cache);audit.solutions=solutions.length;if(solutions.length!==1)return null;
  let n=0;return bar.events.map(e=>e.rest?null:solutions[0][n++]);
 }
-export function visiblePianoTie(ink,width,height,{x1,x2,y,spacing:g,staffLines=[]}){
- if(x2-x1<g*1.5||x2-x1>g*9)return false;
+export function visiblePianoTie(ink,width,height,{x1,x2,y,spacing:g,staffLines=[],maxSpan=9}){
+ if(x2-x1<g*1.5||x2-x1>g*maxSpan)return false;
  const pixel=(x,y)=>{const xx=Math.round(x),yy=Math.round(y);return xx>=0&&xx<width&&yy>=0&&yy<height?ink[yy*width+xx]:0;};
  // Engravers shorten inner chord ties much more than outer ties. Search their
  // endpoints as well as curvature; require a thin curved stroke throughout.
@@ -103,12 +107,27 @@ export function attachPianoTieEvidence(system,parsed){
  const width=system.width,height=system.height+(system.extensionHeight??0),rgba=new Uint8ClampedArray(width*height*4);
  rgba.set(new Uint8ClampedArray(system.rgba));if(system.extension)rgba.set(new Uint8ClampedArray(system.extension),system.width*system.height*4);
  const ink=binaryPage(rgba,width,height,180),g=system.staff.spacing,staffLines=system.staff.lines.map(y=>y-system.rect.y);
- const evidence=[],audits=[];
+ const evidence=[],audits=[],written=parseStaffTokens(parsed.raw,{key:parsed.key,meter:parsed.meter,polyphonic:true}).measures;
  const measures=parsed.measures.map((bar,index)=>{
   // These ties encode independently written sustained notes. Their later
   // slices do not have new printed heads to locate in the original pixels.
-  if(bar.pianoPolyphony){audits.push({measure:index+1,polyphonicSlices:true});return bar;}
-  if(parsed.pianoTies)bar={...bar,events:bar.events.map(({tieFromPrevious,tieFromPreviousBar,...event})=>event)};
+  if(bar.pianoPolyphony){
+   const audit={measure:index+1,polyphonicSlices:true};audits.push(audit);
+   const original=written[index];if(!original)return bar;
+   const timing=writtenAttacks(original,[]),events=bar.events.map(({pianoTiePitchesFromPreviousBar,...e})=>({...e,pianoTiePitchesFromPrevious:timing.filter(n=>n.start<e.onset&&n.end>e.onset).map(n=>n.midi)}));
+   const positions=locateHeads(ink,width,height,system,original,index,parsed.clef,audit);audit.writtenPositions=positions;
+   if(!positions)return {...bar,events};
+   const attacks=writtenAttacks(original,positions);
+   for(const next of attacks)for(const prior of attacks){
+    if(prior.midi!==next.midi||prior.end!==next.start||!Number.isFinite(prior.x)||!Number.isFinite(next.x))continue;
+    if(!visiblePianoTie(ink,width,height,{x1:prior.x,x2:next.x,y:headY(next.note,system,parsed.clef),spacing:g,staffLines,maxSpan:14}))continue;
+    const event=events.find(e=>e.onset===next.start);if(!event)continue;
+    if(!event.pianoTiePitchesFromPrevious.includes(next.midi))event.pianoTiePitchesFromPrevious.push(next.midi);
+    evidence.push({measure:index+1,midi:next.midi,onset:next.start,method:'written-polyphonic-heads-visible-arc'});
+   }
+   return {...bar,events};
+  }
+  if(parsed.pianoTies)bar={...bar,events:bar.events.map(({tieFromPrevious,tieFromPreviousBar,pianoTiePitchesFromPreviousBar,...event})=>event)};
   const audit={measure:index+1};audits.push(audit);const positions=locateHeads(ink,width,height,system,bar,index,parsed.clef,audit);audit.positions=positions;if(!positions)return bar;
   const events=bar.events.map((e,i)=>({...e,...(Number.isFinite(positions[i])?{x:system.rect.x+positions[i]}:{})}));
   for(let i=1;i<events.length;i++){
@@ -124,5 +143,21 @@ export function attachPianoTieEvidence(system,parsed){
   if(!a||!b||!sameChord(a,b)||!Number.isFinite(x1)||!Number.isFinite(x2))continue;
   if(a.notes.every(n=>visiblePianoTie(ink,width,height,{x1,x2,y:headY(n,system,parsed.clef),spacing:g,staffLines}))){bar.events[0]={...b,tieFromPreviousBar:true};evidence.push({measure:index+1,from:previous.events.length-1,to:0,crossBar:true,method:'all-chord-heads-visible-arcs'});}
  }
+ // Only the subset with a visible arc is continued when another voice moves
+ // independently across the barline. Slices are not new printed attacks.
+ for(let index=1;index<measures.length;index++){
+  if(!measures[index-1].pianoPolyphony&&!measures[index].pianoPolyphony)continue;
+  const a=written[index-1],b=written[index],xs=audits[index-1].writtenPositions??audits[index-1].positions,ys=audits[index].writtenPositions??audits[index].positions;
+  if(!a||!b||!xs||!ys)continue;
+  const capacity=a.meter[0]*1920/a.meter[1],prior=writtenAttacks(a,xs).filter(n=>n.end===capacity),next=writtenAttacks(b,ys).filter(n=>n.start===0),pitches=[];
+  for(const n of next){const p=prior.find(p=>p.midi===n.midi);if(!p||!Number.isFinite(p.x)||!Number.isFinite(n.x))continue;
+   if(visiblePianoTie(ink,width,height,{x1:p.x,x2:n.x,y:headY(n.note,system,parsed.clef),spacing:g,staffLines}))pitches.push(n.midi);
+  }
+  if(pitches.length){measures[index].events[0]={...measures[index].events[0],pianoTiePitchesFromPreviousBar:pitches};evidence.push({measure:index+1,pitches,crossBar:true,method:'written-polyphonic-heads-visible-arc'});}
+ }
  return {...parsed,measures,pianoTies:evidence,pianoTieAudit:audits};
+}
+
+function writtenAttacks(bar,positions){
+ let at=0;return bar.events.flatMap((e,i)=>{const start=at;at+=ticksOf(e);return e.notes.map(note=>({note,midi:note.midi,start,end:start+ticksOf(note.writtenRhythm??e),x:positions[i]}));});
 }

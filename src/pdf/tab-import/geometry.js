@@ -7,6 +7,7 @@ import {markNonFretSymbols} from './imageTabTokens.js';
 import {findPrintedMeter} from './printedMeter.js';
 import {findImageTuplets} from './imageTuplets.js';
 import {markHarmonicParts,attachRasterArpeggios,attachOmittedFretTies} from './imageTabTechniques.js';
+import {markSlideParts,attachTabConnections,attachHarmonicTies} from './imageTabConnections.js';
 import {staffMeasureInk} from '../../omr/staffMeasureInk.js';
 import {joinedFretSplit} from './joinedFretDigits.js';
 import {cameraBarlineColumns} from './cameraBarlines.js';
@@ -396,6 +397,7 @@ export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C,ruleP
     // digit parts. Otherwise a stem/chevron merges into a nearby real numeral.
     markNonFretSymbols(ink,width,{...staff,bars,measures:rhythms,candidates:parts});
     markHarmonicParts(clean,width,staff,parts);
+    markSlideParts(clean,width,{...staff,measures:rhythms},parts);
     let candidates=groupFretComponents(parts.filter(p=>!p.nonFretSymbol),staff,rhythms.flatMap(m=>m.rhythm));
     const nativeText=textFrets.length>=4&&Math.max(...textFrets.map(c=>c.cx))-Math.min(...textFrets.map(c=>c.cx))>staff.width*.3;
     if(nativeText)candidates=textFrets;
@@ -460,6 +462,8 @@ export function analyseGeometry({rgba,width,height,page,glyphs=[],config=C,ruleP
     attachNativeTabSymbols(ink,width,staff,{rhythmicPage});
     attachImageRests(ink,width,height,staff);
     attachOmittedFretTies(ink,width,height,staff);
+    attachTabConnections(ink,width,height,staff);
+    attachHarmonicTies(ink,width,height,staff);
   }
   attachPairedStaffRhythm(ink,lines,width,height,output);
   return {page,width,height,staffs:output};

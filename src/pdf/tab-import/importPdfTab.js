@@ -9,8 +9,9 @@ import {combineZoomReadings} from './zoomConsensus.js';
 import {projectChordText} from './chordRecognition.js';
 import {importScanMessage} from './importProgress.js';
 import {applyPairedNotationChecks} from './pairedNotation.js';
+import {importSourcePreview} from './importActivity.js';
 
-export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,renderScale=C.renderScale,autoZoom=true,octaveShift,target:requestedTarget,sourceMode='auto',verifyNotation=false}={}){
+export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,includeSourcePreview=false,renderScale=C.renderScale,autoZoom=true,octaveShift,target:requestedTarget,sourceMode='auto',verifyNotation=false}={}){
   const target=resolveImportTarget(sourceMode==='grand'?{instrument:'piano',...requestedTarget,notationPitch:'concert'}:requestedTarget);octaveShift??=importOctaveShift(target);
   if(!file||file.size>C.maxFileBytes)throw Error('40MB 이하의 악보 PDF를 선택해 주세요.');
   if(!/\.pdf$/i.test(file.name))throw Error('PDF 파일을 선택해 주세요.');
@@ -21,25 +22,27 @@ export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,re
   let render,meter=[4,4],meterEvidence=null;
   const abort=()=>{render?.cancel();void task.destroy();};signal?.addEventListener('abort',abort,{once:true});
   try{
-    onProgress({progress:0,message:'PDF 페이지 확인 중…'});
+    onProgress({progress:0,message:'PDF 페이지 확인 중…',source:{fileName:file.name,kind:'pdf'}});
     const pdf=await task.wait(task.promise);signal?.throwIfAborted();
     if(pdf.numPages>C.maxPages)throw Error(`한 번에 ${C.maxPages}페이지까지 분석할 수 있습니다.`);
     for(let number=1;number<=pdf.numPages;number++){
       signal?.throwIfAborted();
       const page=await task.wait(pdf.getPage(number)),base=page.getViewport({scale:1}),canvas=document.createElement('canvas');
+      let source={fileName:file.name,kind:'pdf',page:number,pages:pdf.numPages,preview:null};
       try{
         const read=async(requestedScale,zoom=false)=>{
         const scale=Math.min(Math.max(2,Math.min(5,requestedScale)),Math.sqrt(C.maxPixels/(base.width*base.height))),viewport=page.getViewport({scale});
         canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
-        onProgress({progress:(number-1+(zoom ? .55 : 0))/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · ${importScanMessage(sourceMode,{zoom})}`});
+        onProgress({progress:(number-1+(zoom ? .55 : 0))/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · ${importScanMessage(sourceMode,{zoom})}`,source,detail:{phase:'structure'}});
         const ctx=canvas.getContext('2d',{willReadFrequently:true});render=page.render({canvasContext:ctx,viewport});await task.wait(render.promise);render=null;signal?.throwIfAborted();
+        if(includeSourcePreview)source={...source,preview:importSourcePreview(canvas)};
         if(debug&&!zoom){const preview=document.createElement('canvas');preview.width=900;preview.height=Math.round(900*canvas.height/canvas.width);preview.getContext('2d').drawImage(canvas,0,0,preview.width,preview.height);previews.push(preview.toDataURL('image/jpeg',.8));preview.width=preview.height=0;}
         const content=await task.wait(page.getTextContent());
         if(hasRotatedTabText(content,viewport))throw Error(`${number}페이지의 TAB 숫자가 옆으로 또는 거꾸로 놓여 있습니다. PDF 방향을 바로잡은 후 다시 선택해 주세요.`);
         const glyphs=projectPdfText(content,viewport),chordText=projectChordText(content,viewport);
         const image=ctx.getImageData(0,0,canvas.width,canvas.height);
         canvas.width=canvas.height=0;
-        return analyzer.analyze(image,{page:number,glyphs,chordText,meter,meterEvidence,octaveShift,target,sourceMode,verifyNotation,onProgress:(f,detail)=>onProgress({progress:(number-1+(zoom ? .55 : .1)+f*.4)/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · ${importScanMessage(sourceMode,{phase:'symbols',zoom,detail})}`})});
+        return analyzer.analyze(image,{page:number,glyphs,chordText,meter,meterEvidence,octaveShift,target,sourceMode,verifyNotation,onProgress:(f,detail)=>onProgress({progress:(number-1+(zoom ? .55 : .1)+f*.4)/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · ${importScanMessage(sourceMode,{phase:'symbols',zoom,detail})}`,source,detail})});
         };
         let resolved=await read(renderScale);
         const summary=summarizeAnalysis([resolved]);
@@ -50,7 +53,7 @@ export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,re
         }
         resolved=applyPairedNotationChecks(resolved,target);pages.push(resolved);
         meter=resolved.endMeter;meterEvidence=resolved.endMeterEvidence;
-        onProgress({progress:number/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · 분석 완료`});
+        onProgress({progress:number/pdf.numPages,message:`${number} / ${pdf.numPages}페이지 · 분석 완료`,source,detail:{phase:'complete'}});
         if(debug)console.info('[PDF TAB]',`Page ${number}`,summarizeAnalysis([resolved]));
         await new Promise(resolve=>setTimeout(resolve,0));
       }finally{canvas.width=canvas.height=0;page.cleanup();}
@@ -60,5 +63,10 @@ export async function importPdfTab(file,{signal,onProgress=()=>{},debug=false,re
     const result={version:C.version,fileName:file.name,target,pages,summary,...(debug?{previews}:{})};
     if(debug)console.info('[PDF TAB] Final',summary);
     onProgress({progress:1,message:'TAB 분석 완료'});return result;
+  }catch(error){
+    // Keep completed pages available for diagnostics/retry without returning
+    // a truncated score as a successful import. Originals remain untouched.
+    if(pages.length)error.partialAnalysis={complete:false,version:C.version,fileName:file.name,target,pages,summary:summarizeAnalysis(pages)};
+    throw error;
   }finally{signal?.removeEventListener('abort',abort);await analyzer.close();await task.destroy();}
 }

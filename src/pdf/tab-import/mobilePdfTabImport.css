@@ -93,4 +93,12 @@
 .mobilePdfTabImport dl div{background:var(--conversion-selected);color:var(--conversion-text)}
 .mobilePdfTabImport dt{color:var(--conversion-muted)}
 @keyframes mobileImportScan{0%,100%{opacity:.25;transform:translateX(-2px)}45%{opacity:1;transform:translateX(2px)}}
+.mobileImportSource{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--conversion-border)}
+.mobileImportSourcePreview{flex:none;width:62px;height:84px;background:white;border:1px solid var(--conversion-border);border-radius:4px}
+.mobileImportSourcePreview rect{fill:#d588182b;stroke:#9c5700;stroke-width:2;vector-effect:non-scaling-stroke}
+.mobileImportSourceText{display:grid;gap:3px;min-width:0;overflow-wrap:anywhere;line-height:1.4}
+.mobileImportSourceText>strong{font-size:13px}
+.mobileImportSourceText>span{font-size:11px;color:var(--conversion-muted)}
+.mobileImportSourceText>b{font-size:12px}
+.mobilePdfTabImport .mobileImportWaiting{margin:8px 0 0;padding-top:8px;border-top:1px solid var(--conversion-border);font-size:11px}
 @media(prefers-reduced-motion:reduce){.mobileImportScanMarks>i{animation:none;opacity:.65}}

@@ -6,6 +6,7 @@ import {applyPairedNotationChecks} from './pairedNotation.js';
 import {summarizeAnalysis} from './recognition.js';
 import {combineZoomReadings} from './zoomConsensus.js';
 import {importScanMessage} from './importProgress.js';
+import {importSourcePreview} from './importActivity.js';
 
 export const TAB_SOURCE_ACCEPT='.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png';
 export const TAB_PHOTO_ACCEPT='.jpg,.jpeg,.png,image/jpeg,image/png';
@@ -72,24 +73,26 @@ export function drawTabImage(source,rotation=0,targetWidth=2083){
   return canvas;
 }
 
-export async function importImageTab(source,{signal,onProgress=()=>{},rotation=0,autoZoom=true,pageNumber=1,analyzer:sharedAnalyzer,...options}={}){
+export async function importImageTab(source,{signal,onProgress=()=>{},rotation=0,autoZoom=true,pageNumber=1,analyzer:sharedAnalyzer,includeSourcePreview=false,...options}={}){
   const target=resolveImportTarget(options.sourceMode==='grand'?{instrument:'piano',...options.target,notationPitch:'concert'}:options.target);
   signal?.throwIfAborted();const analyzer=sharedAnalyzer??createTabPageAnalyzer(signal);
+  let progressSource={fileName:source.fileName,kind:'image',page:pageNumber,pages:1,preview:null};
   try{
     const read=async zoom=>{
       signal?.throwIfAborted();
-      onProgress({progress:zoom?.55:0,message:importScanMessage(options.sourceMode,{zoom})});
+      onProgress({progress:zoom?.55:0,message:importScanMessage(options.sourceMode,{zoom}),source:progressSource,detail:{phase:'structure'}});
       const canvas=drawTabImage(source,rotation,zoom?2678:2083);
+      if(includeSourcePreview)progressSource={...progressSource,preview:importSourcePreview(canvas)};
       let pixels;
       try{pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height);}finally{canvas.width=canvas.height=0;}
-      return analyzer.analyze(pixels,{...options,target,cameraPhoto:true,photoScan:source.photoScan===true,page:pageNumber,onProgress:(f,detail)=>onProgress({progress:(zoom?.55:.1)+f*.4,message:importScanMessage(options.sourceMode,{phase:'symbols',zoom,detail})})});
+      return analyzer.analyze(pixels,{...options,target,cameraPhoto:true,photoScan:source.photoScan===true,page:pageNumber,onProgress:(f,detail)=>onProgress({progress:(zoom?.55:.1)+f*.4,message:importScanMessage(options.sourceMode,{phase:'symbols',zoom,detail}),source:progressSource,detail})});
     };
     let page=await read(false),summary=summarizeAnalysis([page]);
     if(autoZoom&&!page.notation&&(summary.needsReview||!summary.staffs))page=combineZoomReadings(page,await read(true));
     page=applyPairedNotationChecks(page,target);
     summary=summarizeAnalysis([page]);
     if(!summary.measures)throw Error(options.sourceMode==='staff'?'오선보의 음을 찾지 못했습니다. TAB 숫자가 있는 악보라면 ‘TAB → TAB’을 선택해 주세요.':options.sourceMode==='tab'?missingTabMessage(target):'악보의 음을 읽지 못했습니다. 오선보 또는 TAB의 줄과 음표가 선명하게 보이는 사진을 선택해 주세요.');
-    onProgress({progress:1,message:'TAB 분석 완료'});
+    onProgress({progress:1,message:'TAB 분석 완료',source:progressSource,detail:{phase:'complete'}});
     return {version:C.version,fileName:source.fileName,target,sourceType:'image',imageRotation:((rotation%4)+4)%4*90,pages:[page],summary};
   }finally{if(!sharedAnalyzer)await analyzer.close();}
 }

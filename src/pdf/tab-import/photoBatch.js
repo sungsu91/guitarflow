@@ -32,7 +32,8 @@ export async function importPhotoBatch(photos,{signal,onProgress=()=>{},autoScan
   try{
   for(const [index,photo] of photos.entries()){
     signal?.throwIfAborted();
-    onProgress({progress:index/photos.length,message:`${index+1} / ${photos.length}페이지 · ${photo.fileName}`});
+    const progressSource={fileName:photo.fileName,kind:'image',page:index+1,pages:photos.length,preview:null};
+    onProgress({progress:index/photos.length,message:`${index+1} / ${photos.length}페이지 · ${photo.fileName}`,source:progressSource,detail:{phase:'structure'}});
     const original=await loadTabImage(photo.file,{signal});let corrected=original,plain,source=original,scanWarning,scan=photo.scan;
     try{
       // The import dialog defers automatic paper detection until Analyze.
@@ -47,7 +48,7 @@ export async function importPhotoBatch(photos,{signal,onProgress=()=>{},autoScan
       }
       const selection=scan?.manual?{source:corrected,choice:'manual'}:await choosePhotoSource(original,corrected,{...options,rotation:photo.rotation,signal,plain});
       source=selection.source;
-      const result=await importImageTab(source,{...options,signal,analyzer,rotation:photo.rotation,pageNumber:index+1,onProgress:p=>onProgress({...p,progress:(index+p.progress)/photos.length,message:`${index+1} / ${photos.length}페이지 · ${p.message}`})});
+      const result=await importImageTab(source,{...options,signal,analyzer,rotation:photo.rotation,pageNumber:index+1,onProgress:p=>onProgress({...p,source:{...progressSource,preview:p.source?.preview??null},progress:(index+p.progress)/photos.length,message:`${index+1} / ${photos.length}페이지 · ${p.message}`})});
       pages.push(...result.pages);sources.push({page:index+1,fileName:photo.fileName,rotation:photo.rotation*90,scan,scanChoice:selection.choice,scanVariant:selection.variant,scanCoverage:selection.coverage,scanWarning:scanWarning??selection.warning});
     }catch(error){if(error.name==='AbortError')throw error;error.message=`${index+1}페이지 (${photo.fileName}): ${error.message}`;throw error;}
     finally{plain?.close();if(corrected!==original)corrected.close();original.close();}

@@ -3,6 +3,7 @@ import {isFretText,normalizeFretText} from './fretText.js';
 import {meterTicks} from '../../etudes/scoreMeters.js';
 import {HARMONICS} from '../../etudes/scoreTuning.js';
 import {measureRecognitionDiagnostics} from './recognitionDiagnostics.js';
+import {resolveTabConnections} from './imageTabConnections.js';
 
 export function classifyFret(candidate,slot,staff,config=C){
   const reading=candidate.ocr,confidence={fret:reading?.confidence??0,string:0,rhythm:slot?.confidence??0},reasons=[];
@@ -51,6 +52,10 @@ export function resolvePage(geometry,config=C){
     // Conflicting same-string candidates invalidate both; no last-write-wins.
     for(const slot of slots)for(const note of slot.notes)if(slot.notes.filter(n=>n.string===note.string).length>1){note.status='unresolved';note.fret=null;note.reasons.push('duplicate-string');}
     for(let i=1;i<slots.length;i++){
+      const target=slots[i],origin=slots[i-1],harmonic=target.harmonicTieContinuation;
+      if(harmonic&&!target.rest&&!origin.rest&&!target.notes.length&&!target.rejections.length&&!origin.rejections.length&&Math.abs(origin.x-harmonic.fromX)<staff.spacing*.15&&origin.notes.length===harmonic.strings.length&&origin.notes.every(n=>n.status==='confirmed'&&n.harmonic&&!n.dead&&harmonic.strings.includes(n.string))){
+        target.notes=origin.notes.map(n=>({...n,candidateId:`${n.candidateId}-tie-${target.x}`,source:{...n.source,x:target.x},method:harmonic.method}));target.tieFromPrevious=true;
+      }
       const slot=slots[i],prior=slots[i-1],tie=slot.tieContinuation,note=prior.notes[0];
       if(!tie||slot.rest||prior.rest||slot.notes.length||slot.rejections.length||prior.notes.length!==1||prior.rejections.length||note.status!=='confirmed'||note.dead||Math.abs(prior.x-tie.fromX)>staff.spacing*.15||note.string!==tie.string)continue;
       slot.notes=[{...note,candidateId:`${note.candidateId}-tie-${slot.x}`,source:{...note.source,x:slot.x},method:tie.method}];
@@ -63,6 +68,7 @@ export function resolvePage(geometry,config=C){
         previousChord=!slot.rest&&slot.notes.length>=2&&slot.notes.every(n=>n.status==='confirmed'&&!n.dead)&&!slot.rejections.length?slot.notes:null;
       }
     }
+    resolveTabConnections(slots,staff);
     const ticks=slots.reduce((n,s)=>n+(s.duration?1920/Number(s.duration)*(s.dotted?1.5:1)*(s.tuplet?s.tuplet.normalNotes/s.tuplet.actualNotes:1):0),0);
     const orphanDigits=orphan.filter(n=>isFretText(n.reading));
     const rhythmValid=slots.length>0&&slots.every(s=>s.duration&&s.confidence>=config.confirmed)&&ticks===meterTicks(meter)&&measure.boundariesKnown&&orphanDigits.length===0;

@@ -126,7 +126,7 @@ export async function refineStaffMeasures(omr,system,parsed,{signal}={}){
       const readings=[];let chosen=null;
       for(const pad of [.5,2,1,2.5]){
         signal?.throwIfAborted();
-        const result=await omr.recognize(cropStaffMeasure(system,i,pad));
+        const result=await omr.recognize(cropStaffMeasure(system,i,pad),{operation:'measure',measure:i+1});
         signal?.throwIfAborted();
         // The copied clef is context, not a new key/time change in this bar.
         const raw=result.text.replace(/\+keySignature-[^+]+/g,'').replace(/\+timeSignature-[^+]+/g,'');
@@ -168,7 +168,7 @@ export async function reconcileStaffBarCount(omr,system,parsed,{signal}={}){
   const ink={...boxes[i],triplets:system.triplets??[]},readings=[];let chosen=null;
   for(const pad of [.5,2,1,2.5]){
    signal?.throwIfAborted();
-   const read=await omr.recognize(cropStaffMeasure(system,i,pad));signal?.throwIfAborted();
+   const read=await omr.recognize(cropStaffMeasure(system,i,pad),{operation:'bars',measure:i+1});signal?.throwIfAborted();
    const raw=read.text.replace(/\+keySignature-[^+]+/g,'').replace(/\+timeSignature-[^+]+/g,'');
    readings.push(boundedStaffReading(parseStaffTokens(raw,{key:reference.key,meter:reference.meter}),ink));
    if(readings.length>=2){chosen=selectStaffMeasureReading(reference,readings,ink);if(chosen)break;}

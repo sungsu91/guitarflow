@@ -13,6 +13,14 @@ import {pianoCropEdges} from './pianoCropEvidence.js';
 // first note as the right boundary; the copied pixels contain no notes/rests.
 export function pianoHeaderWidth(system,parsed){
  const known=standardPianoHeaderWidth(system,parsed);if(known!==null)return known;
+ // Integer-rounded spacing can miss the hollow ring of an opening ledger
+ // chord by one pixel. Retry header location against the measured five-line
+ // span only after the established path fails; keep note/tie reading unchanged.
+ const measured=system.staff.height/4,g=system.staff.spacing;
+ if(Number.isFinite(measured)&&measured!==g&&Math.abs(measured-g)<=g*.05){
+  const precise=standardPianoHeaderWidth({...system,staff:{...system.staff,spacing:measured}},parsed);
+  if(precise!==null)return precise;
+ }
  if(!system.pianoTopHeight)return null;
  const rgba=new Uint8ClampedArray(system.width*(system.height+system.pianoTopHeight)*4);
  rgba.set(new Uint8ClampedArray(system.pianoTop));rgba.set(new Uint8ClampedArray(system.rgba),system.width*system.pianoTopHeight*4);
@@ -49,17 +57,24 @@ function standardPianoHeaderWidth(system,parsed){
  const candidates=Object.values(audit?.candidates??{}),start=candidates[0]?.[0];
  let first=audit?.positions?.[0]??(Number.isFinite(start)&&candidates.every(xs=>xs.every(x=>x>=start))?start:undefined);
  const openingNotes=firstBar?.events[0]?.notes??[];
- if(!Number.isFinite(first)&&openingNotes.length>1&&openingNotes.every(n=>n.spelling.letter===openingNotes[0].spelling.letter&&n.spelling.alter===openingNotes[0].spelling.alter)){
-  // Very high octave chords can have a ledger-line hollow head outside the
-  // ordinary crop. A uniquely located companion head still bounds the header;
+ if(!Number.isFinite(first)&&openingNotes.length>1){
+  // A high chord can have a ledger-line hollow head outside the ordinary
+  // crop or crossed by a ledger. Located companions can bound the header;
   // only framing changes here, and subsequent model readings must agree.
-  const event=firstBar.events[0],positions=event.notes.flatMap(note=>{
+  const event=firstBar.events[0],found=event.notes.map(note=>{
    const single={...firstBar,events:[{...event,notes:[note]}]};
    const a=attachPianoTieEvidence({...system,measures:system.measures.slice(0,1)},{...parsed,measures:[single]}).pianoTieAudit[0];
-   return Number.isFinite(a?.positions?.[0])?[a.positions[0]]:[];
+   const degree=note.spelling.octave*7+'CDEFGAB'.indexOf(note.spelling.letter),bottom=parsed.clef==='clef-F4'?18:30;
+   return {x:a?.positions?.[0],ledger:degree-bottom<0||degree-bottom>8};
   });
+  const positions=found.map(n=>n.x).filter(Number.isFinite);
   const earliest=Math.min(...positions);
-  if(positions.length&&candidates.every(xs=>xs.every(x=>x>=earliest)))first=earliest;
+  const octave=openingNotes.every(n=>n.spelling.letter===openingNotes[0].spelling.letter&&n.spelling.alter===openingNotes[0].spelling.alter);
+  // A ledger line can fill a hollow head's centre. Two aligned, independently
+  // located companion heads still establish where the header ends. This is
+  // framing evidence only; it never supplies the missing head's pitch.
+  const ledgerChord=positions.length>=2&&Math.max(...positions)-earliest<g*.45&&found.every(n=>Number.isFinite(n.x)||n.ledger);
+  if(positions.length&&(octave||ledgerChord)&&candidates.every(xs=>xs.every(x=>x>=earliest)))first=earliest;
  }
  return Number.isFinite(first)&&first>g*6&&first<g*20?Math.floor(first-g*(firstBar?.pianoPolyphony?1.9:1)):null;
 }
@@ -104,7 +119,7 @@ export async function recognizePianoStaff(omr,system,context,clef,{signal}={}){
  for(let i=0;i<system.measures.length;i++){
   const readings=[];let chosen;const restEvidence=wholePianoRestEvidence(system,i);
   for(const margin of [.5,2,1]){
-   signal?.throwIfAborted();const read=await omr.recognize(cropPianoMeasure(system,i,margin,headerWidth));signal?.throwIfAborted();
+   signal?.throwIfAborted();const read=await omr.recognize(cropPianoMeasure(system,i,margin,headerWidth),{operation:'measure',measure:i+1});signal?.throwIfAborted();
    readings.push(refinePianoChordHeads(singleWholePianoReading(parsePianoTokens(read.text,inherited),system,i),system,i));chosen=pianoMeasureConsensus(readings,clef);
    if(!chosen&&restEvidence&&readings.length>=2){
     const restOnly=r=>r.clef===clef&&r.measures.length>0&&r.measures.length<=2&&r.measures.every(m=>m.events.length===1&&m.events[0].rest&&['1','2'].includes(m.events[0].duration));
@@ -123,11 +138,12 @@ export async function recognizePianoStaff(omr,system,context,clef,{signal}={}){
    cropEdges=pianoCropEdges(system,i);
    for(const extended of [...(cropEdges.bottom?[true]:[]),...(cropEdges.top?['both']:[])]){
     const candidates=[];
-    for(const margin of [.5,2]){
-     signal?.throwIfAborted();const read=await omr.recognize(cropPianoMeasure(system,i,margin,headerWidth,{extended}));signal?.throwIfAborted();
+    for(const margin of [.5,2,1]){
+     signal?.throwIfAborted();const read=await omr.recognize(cropPianoMeasure(system,i,margin,headerWidth,{extended}),{operation:'measure',measure:i+1});signal?.throwIfAborted();
      const parsed=refinePianoChordHeads(singleWholePianoReading(parsePianoTokens(read.text,inherited),system,i),system,i);candidates.push(parsed);extendedReadings.push(parsed);
+     chosen=pianoMeasureConsensus(candidates,clef);if(chosen)break;
     }
-    chosen=pianoMeasureConsensus(candidates,clef);if(chosen)break;
+    if(chosen)break;
    }
   }
   const imageEvidence=readings.map(r=>({heads:r.headEvidence,wholeChord:r.singleChordEvidence}));

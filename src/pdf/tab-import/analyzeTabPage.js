@@ -11,6 +11,7 @@ import {pairedNotationSystems} from './pairedNotation.js';
 import {planNotationSource} from '../../omr/notationSourcePlan.js';
 import {recognizePianoStaff} from '../../omr/pianoStaffRecognition.js';
 import {grandStaffChordRegions} from '../../omr/grandStaffChords.js';
+import {importSourceRegion} from './importActivity.js';
 
 export function geometryInWorker(image,page,signal,glyphs,sourceMode,cameraPhoto,stringCount,photoScan=false,verifyNotation=false){
   return new Promise((resolve,reject)=>{
@@ -37,24 +38,29 @@ export function createTabPageAnalyzer(signal){
       const target=resolveImportTarget(sourceMode==='grand'?{instrument:'piano',...requestedTarget,notationPitch:'concert'}:requestedTarget);octaveShift??=importOctaveShift(target);
       if(target.instrument==='piano'&&!['staff','grand'].includes(sourceMode))throw Error('피아노는 오선보 또는 Grand Staff 입력을 선택해 주세요. TAB은 원본 현악기 설정으로 불러온 뒤 피아노로 변환할 수 있습니다.');
       if(sourceMode==='grand')octaveShift=0;
+      onProgress(0,{phase:'structure'});
       const geometry=await geometryInWorker(image,page,signal,glyphs,sourceMode,cameraPhoto,target.tuning.length,photoScan,verifyNotation);
       const sourcePlan=!geometry.staffs.length&&geometry.notationSystems?.length?planNotationSource(geometry.notationSystems,sourceMode):null;
       if(sourcePlan?.excludedStaffIds.length)geometry.excludedNotationStaffIds=sourcePlan.excludedStaffIds;
       const regions=(geometry.chordRegions??[]).filter(region=>sourceMode==='grand'||!sourcePlan?.excludedStaffIds.includes(region.staff));delete geometry.chordRegions;
       let chords=[];
+      onProgress(0,{phase:'chords'});
       try{chords=await recognizePageChords(regions,chordText,{signal});}
       catch(error){if(signal?.aborted||error.name==='AbortError')throw error;geometry.chordWarning='코드명을 읽지 못했습니다. 원본 코드명을 확인해 주세요.';}
       if(sourceMode==='grand'&&sourcePlan)chords=grandStaffChordRegions(geometry.notationSystems,sourcePlan.systems,chords);
       if(!geometry.staffs.length&&geometry.notationSystems?.length){
-        onProgress(0);omr??=await createStaffOmrClient(signal);
+        onProgress(0,{phase:'model'});omr??=await createStaffOmrClient(signal);
         const systems=sourcePlan.systems,readings=[];delete geometry.notationSystems;
         for(const [index,system] of systems.entries()){
           system.triplets=chords.find(region=>region.staff===system.id)?.triplets??[];
-          if(omr.closed)omr=await createStaffOmrClient(signal);
+          if(omr.closed){onProgress(index/systems.length,{phase:'model'});omr=await createStaffOmrClient(signal);}
           let attempt=0;
-          const reportingOmr={recognize:async input=>{
+          const reportingOmr={recognize:async(input,reading={operation:'system'})=>{
             const started=Date.now();attempt++;
-            const report=()=>onProgress(index/systems.length,{staff:index+1,total:systems.length,attempt,seconds:Math.floor((Date.now()-started)/1000)});
+            const box=reading.measure?system.measures[reading.measure-1]:null;
+            const rect=box?{...system.rect,x:box.x,width:box.width}:system.rect;
+            const region=importSourceRegion(rect,geometry.width,geometry.height);
+            const report=()=>onProgress(index/systems.length,{...reading,phase:'symbols',staff:index+1,total:systems.length,staffId:system.id,region,attempt,seconds:Math.floor((Date.now()-started)/1000)});
             report();const timer=setInterval(report,5000);
             try{return await omr.recognize(input);}finally{clearInterval(timer);}
           }};
@@ -69,7 +75,7 @@ export function createTabPageAnalyzer(signal){
           finally{delete system.rgba;delete system.extension;delete system.pianoTop;}
           notationContext={meter:parsed.meter,key:parsed.key};
           readings.push({system,parsed});
-          onProgress((index+1)/systems.length);
+          onProgress((index+1)/systems.length,{phase:'convert',staff:index+1,total:systems.length});
         }
         for(const {system,parsed} of sourceMode==='grand'?groupGrandStaffReadings(readings,target):readings){
           const converted=staffSystemToAnalysis(parsed,{system,page,width:geometry.width,height:geometry.height,octaveShift,target,previous});
@@ -79,7 +85,7 @@ export function createTabPageAnalyzer(signal){
       }
       const notationSystems=geometry.notationSystems??[];delete geometry.notationSystems;
       geometry.meter=meter;geometry.meterEvidence=meterEvidence;
-      if(!ocr&&geometry.staffs.some(s=>s.meterCandidate||s.tupletCandidates?.length||s.candidates.some(c=>!c.ocr)))ocr=await createLocalOcr(signal);
+      if(!ocr&&geometry.staffs.some(s=>s.meterCandidate||s.tupletCandidates?.length||s.candidates.some(c=>!c.ocr)||s.measures.some(m=>m.rhythm.some(r=>r.connectionLabel))))ocr=await createLocalOcr(signal);
       await recognizeCandidates(geometry,ocr,{signal,onProgress});
       // Do not create an extra empty measure from the five-line notation
       // above a bass TAB. A readable fret always retains the possible TAB.

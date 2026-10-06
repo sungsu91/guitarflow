@@ -39,13 +39,13 @@ export async function recognizeStaffSystem(omr,system,context,{signal}={}){
   signal?.throwIfAborted();
   // The worker transfers its input. Retain only this system's original pixels
   // until we know whether one bounded retry is needed.
-  const read=await omr.recognize({rgba:system.rgba.slice(0),width:system.width,height:system.height});
+  const read=await omr.recognize({rgba:system.rgba.slice(0),width:system.width,height:system.height},{operation:'system'});
   signal?.throwIfAborted();
   const original=parseStaffTokens(read.text,context);
   if(!original.measures.some(bar=>!hasCompleteStaffRhythm(bar)))return refineStaffMeasures(omr,system,original,{signal});
   signal?.throwIfAborted();
   try{
-    const retry=await omr.recognize(padStaffSystem(system));
+    const retry=await omr.recognize(padStaffSystem(system),{operation:'rhythm'});
     signal?.throwIfAborted();
     const selected=selectStaffRhythmRetry(original,parseStaffTokens(retry.text,context),context);
     return await refineStaffMeasures(omr,system,selected,{signal});

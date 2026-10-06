@@ -1,0 +1,26 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+import {analysisToDocument} from '../src/pdf/tab-import/scoreAdapter.js';
+import {summarizeAnalysis} from '../src/pdf/tab-import/recognition.js';
+import {compileDocumentV2} from '../src/etudes/scoreModel.js';
+import {scoreTimeline} from '../src/etudes/scorePlayback.js';
+import {arrangeGuitar} from '../src/etudes/arrangement/arrangeGuitar.js';
+import {gripFeasible} from '../src/etudes/arrangement/voicing.js';
+const root='artifacts/piano-completion-20261006',json=async p=>JSON.parse(await readFile(p,'utf8'));
+const live=await json(`${root}/final-live/now.json`);assert(live.error);assert(!live.document);assert.equal(live.partialAnalysis.complete,false);
+const source=await json('artifacts/present-check-20261006/sources.json'),hashes=[];
+for(const s of source){const sha256=createHash('sha256').update(await readFile(s.path)).digest('hex');assert.equal(sha256,s.sha256);hashes.push({id:s.id,sha256,unchanged:true});}
+const previous=await json('artifacts/grand-color-20261006/summary.json');
+for(const s of previous.color.files)assert.equal(createHash('sha256').update(await readFile(s.path)).digest('hex'),s.sha256);
+const pages=[live.partialAnalysis.pages[0]],doc=analysisToDocument({fileName:'NOW.pdf',target:{instrument:'piano'},pages,summary:summarizeAnalysis(pages)}),compiled=compileDocumentV2(doc);assert.deepEqual(compiled.errors,[]);
+const baseline=await json('artifacts/chord-piano-followup-20261006/now-page1-verified/result.json'),audio=scoreTimeline(compiled.score,60).events.map(({midi,start,duration,voice})=>({midi,start,duration,voice}));
+assert.deepEqual(audio,baseline.audio,'fresh full-import page 1 must keep all 325 source-verified attacks/releases');
+const arrangement=arrangeGuitar(doc),guitar=compileDocumentV2(arrangement.document);assert.deepEqual(guitar.errors,[]);assert.deepEqual(arrangement.document.guitarArrangement.sourceDocument,doc);
+const played=scoreTimeline(guitar.score,60).events;assert.deepEqual(played.filter(n=>n.voice==='melody').map(n=>[n.midi,n.start,n.duration]),baseline.expectedMelody);
+for(const t of new Set(played.flatMap(n=>[n.start,n.start+n.duration])))assert(gripFeasible(played.filter(n=>n.start<=t+1e-8&&n.start+n.duration>t+1e-8)));
+const p4=await json(`${root}/p4-source-verification.json`),poly=await json(`${root}/polyphonic-source-verification.json`);
+assert.deepEqual(p4.actual,p4.expected);assert.deepEqual(poly.right.actual,poly.right.expected);assert.deepEqual(poly.left.actual,poly.left.expected);assert.deepEqual(poly.bass.actual,poly.bass.expected);
+const p3=await json(`${root}/page3-final/now-p3-grand.json`);
+const report={sourcePdfHashes:hashes,colorOriginalsUnchanged:previous.color.files.length,existingPage1:{freshModelRun:true,pitchedAttacks:audio.length,guitarMelodyAttacks:baseline.expectedMelody.length,physicalGrips:true,sourceDocumentPreserved:true},newSourceVerified:{handBars:14,pitchedAttacks:p4.actual.length+poly.right.actual.length+poly.left.actual.length+poly.bass.actual.length,scopes:[p4.scope,'NOW page 3 physical staff 8 (right), 4 bars','NOW page 3 physical staff 9 (left), 4 bars','NOW page 5 physical staff 3 (left), 3 bars']},fullImport:{success:false,completedPages:live.partialAnalysis.pages.length,partialReturnedAsSuccess:false,error:live.error,ms:live.ms,runBeforeFinalLedgerHeaderFix:true},followUpPage3:{importSucceeded:!!p3.analysis,error:p3.error,ms:p3.ms,fullPageMusicallyCertified:false},fullyCertifiedSongs:0,colorEnabled:false,remaining:['Separate upper-staff intrusion without cutting real ledger notes or grace notes (page 4 staff 9 bar 1 remains unresolved)','Whole-song pitch/onset/release transcription and cross-system ties','Into The Light grace notes and Doremi glissando','Color notation: separate and verify pitches/rhythm before enabling','Persistent retry cache for failed measures; completed-page error evidence is not a cache']};
+await writeFile(`${root}/summary.json`,JSON.stringify(report,null,2));console.log(JSON.stringify(report));

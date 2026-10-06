@@ -8,6 +8,7 @@ import {resolvePrintedMeter} from './printedMeter.js';
 import {resolveImageTuplets} from './imageTuplets.js';
 import {normalizeGlyphPixels} from './glyphPreprocessing.js';
 import {trustedGlyphReading,acceptPhotoGlyphRetry} from './photoGlyphRetry.js';
+import {recognizeConnectionLabels} from './tabConnectionLabels.js';
 const cropCache=new Map();let cacheBytes=0;
 const MAX_CACHE_BYTES=32*1024*1024;
 export const clearOcrCache=()=>{cropCache.clear();cacheBytes=0;};
@@ -130,5 +131,6 @@ export async function recognizeCandidates(geometry,ocr,{signal,onProgress,photoR
   }
   for(const s of geometry.staffs)for(const c of s.candidates)delete c.photoRetryGlyph;
   for(const staff of geometry.staffs){staff.meterReading=resolvePrintedMeter(staff.meterCandidate,C.confirmed);delete staff.meterCandidate;resolveImageTuplets(staff);}
+  await recognizeConnectionLabels(geometry,ocr,{signal});
   return geometry;
 }
