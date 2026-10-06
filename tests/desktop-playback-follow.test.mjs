@@ -37,3 +37,24 @@ test('horizontal follow moves only after the cursor actually leaves the visible 
  assert.equal(desktopPlaybackTarget({...base,cursor:{left:1180,right:1182},maxLeft:900}).left,0);
  assert.equal(desktopPlaybackTarget({...base,cursor:{left:1220,right:1222},maxLeft:900}).left,32);
 });
+
+const page={left:20,right:580,top:930,bottom:1810};
+test('entering a lower fitted page reveals all following lines immediately',()=>{
+ assert.equal(desktopPlaybackTarget({...base,page,row:{...row,top:980,bottom:1100}}).top,920);
+});
+test('every measure on a revealed page keeps the same scroll position',()=>{
+ const visiblePage={...page,top:10,bottom:890};
+ for(const top of [60,230,470,720])assert.equal(desktopPlaybackTarget({...base,page:visiblePage,row:{...row,top,bottom:top+120},scrollTop:920}).top,920);
+});
+test('an already visible right page keeps the spread still',()=>{
+ assert.deepEqual(desktopPlaybackTarget({...base,page:{left:620,right:1180,top:10,bottom:890},row:{left:640,right:1160,top:100,bottom:220},cursor:{left:1120,right:1122}}),{top:0,left:0});
+});
+test('a repeat back to an earlier fitted page restores the whole page',()=>{
+ assert.equal(desktopPlaybackTarget({...base,page:{...page,top:-910,bottom:-30},row:{...row,top:-600,bottom:-480},scrollTop:920}).top,0);
+});
+test('an enlarged page still follows readable rows rather than hiding the current notes',()=>{
+ assert.equal(desktopPlaybackTarget({...base,page:{...page,bottom:2400},row:{...row,top:980,bottom:1100}}).top,210);
+});
+test('an overlapping panel falls back to the row when the whole page cannot fit',()=>{
+ assert.equal(desktopPlaybackTarget({...base,page:{...page,top:10,bottom:890},blockers:[{left:250,right:770,top:800,bottom:900}]}).top,60);
+});

@@ -27,9 +27,10 @@ export default function usePracticeFollow(root,mode,playing,revision){
   const s=state.current,bar=svg.querySelector('[data-playback-bar="'+current.bar+'"]'),row=Number(bar?.dataset.row);if(!row)return;
   const rect=scroller.getBoundingClientRect(),v=window.visualViewport;
   let top=Math.max(rect.top,v?.offsetTop??0),bottom=Math.min(rect.bottom,(v?.offsetTop??0)+(v?.height??innerHeight));
-  if(svg.closest('.desktopScorePage')){
+  const desktopPage=svg.closest('.desktopScorePage');
+  if(desktopPage){
     const rowBox=desktopPlaybackRow(svg,bar);if(!rowBox)return;
-    const target=desktopPlaybackTarget({viewport:{left:Math.max(rect.left,v?.offsetLeft??0),right:Math.min(rect.left+scroller.clientWidth,(v?.offsetLeft??0)+(v?.width??innerWidth)),top,bottom},row:rowBox,cursor:line.getBoundingClientRect(),blockers:desktopPlaybackBlockers(scroller.ownerDocument),scrollTop:scroller.scrollTop,scrollLeft:scroller.scrollLeft,maxTop:scroller.scrollHeight-scroller.clientHeight,maxLeft:scroller.scrollWidth-scroller.clientWidth});
+    const target=desktopPlaybackTarget({viewport:{left:Math.max(rect.left,v?.offsetLeft??0),right:Math.min(rect.left+scroller.clientWidth,(v?.offsetLeft??0)+(v?.width??innerWidth)),top,bottom},row:rowBox,page:desktopPage.getBoundingClientRect(),cursor:line.getBoundingClientRect(),blockers:desktopPlaybackBlockers(scroller.ownerDocument),scrollTop:scroller.scrollTop,scrollLeft:scroller.scrollLeft,maxTop:scroller.scrollHeight-scroller.clientHeight,maxLeft:scroller.scrollWidth-scroller.clientWidth});
     if(Math.abs(scroller.scrollTop-target.top)>1||Math.abs(scroller.scrollLeft-target.left)>1)scroller.scrollTo({...target,behavior:'instant'});
     Object.assign(s,{dirty:false,svg,row,bar:current.bar,event:current.event,visit:current.visit,cycle:current.cycle});
     return;
