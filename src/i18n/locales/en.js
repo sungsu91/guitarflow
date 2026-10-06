@@ -1,5 +1,8 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "shooter.glassGarden": "Glass Blossom Garden",
+  "shooter.silkTheatre": "The Silk Grand Theatre",
+  "shooter.gildedInk": "Gilded Ink Mountains",
   "shooter.confirmDeleteGuitarSkin": "Delete {value1}?\nThis removes it from the catalog and future builds. If equipped, another guitar will be selected.",
   "shooter.keepOneGuitarSkin": "Keep at least one guitar skin in each category.",
   "shooter.guitarSkinDeleteFailed": "Could not save the deletion. Check the local development server connection and try again.",

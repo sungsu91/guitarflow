@@ -7,7 +7,7 @@ import {
 } from '../src/shooter/maps/registry.js';
 import { resolveShooterMapForLayout, TABLET_DEFAULT_SHOOTER_MAP_ID } from '../src/shooter/maps/tabletMapPresentation.js';
 
-const compatibleIds = ['moonlit-rooftop', 'underwater-blue', 'aurora-glacier', 'above-the-clouds', 'milky-way-desert', 'firefly-forest'];
+const compatibleIds = ['moonlit-rooftop', 'underwater-blue', 'aurora-glacier', 'above-the-clouds', 'milky-way-desert', 'firefly-forest', 'glass-garden', 'silk-theatre', 'gilded-ink'];
 
 test('tablets only offer scenes with authored wide compositions, in both orientations', () => {
   for (const isPortraitLayout of [true, false]) {
@@ -27,7 +27,7 @@ test('tablets only offer scenes with authored wide compositions, in both orienta
 });
 
 test('tablet selection, thumbnails, preloads and playback use matching desktop sources', () => {
-  for (const map of getShooterMapsForLayout(true, { isTabletLayout: true })) {
+  for (const map of getShooterMapsForLayout(true, { isTabletLayout: true }).filter(map => !map.tabletPresentation)) {
     assert.equal(map.tabletComposition, 'landscape');
     assert.equal(map.portraitOnly, false);
     assert.deepEqual(map.referenceViewport, { width: 1920, height: 1080 });

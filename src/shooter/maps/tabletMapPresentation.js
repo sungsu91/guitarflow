@@ -13,12 +13,13 @@ const TABLET_MAP_MOTION = Object.freeze({
 
 export function hasTabletMapComposition(map) {
   return !!TABLET_MAP_MOTION[map?.id]
+    || !!map?.tabletPresentation?.posterSrc
     || map?.renderer === 'pseudo3d'
     || map?.renderer === 'perspective3d';
 }
 
 export function resolveShooterMapForLayout(map, { isTabletLayout = false } = {}) {
-  const motion = isTabletLayout && TABLET_MAP_MOTION[map?.id];
+  const motion = isTabletLayout && (map?.tabletPresentation ?? TABLET_MAP_MOTION[map?.id]);
   if (!motion) return map;
   return {
     ...map,
@@ -26,7 +27,7 @@ export function resolveShooterMapForLayout(map, { isTabletLayout = false } = {})
     tabletComposition: 'landscape',
     previewImage: motion.posterSrc,
     pickerPreviewImage: motion.posterSrc,
-    referenceViewport: { width: 1920, height: 1080 },
+    referenceViewport: motion.referenceViewport ?? { width: 1920, height: 1080 },
     background: {
       ...map.background,
       src: motion.posterSrc,

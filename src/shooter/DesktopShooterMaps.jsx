@@ -4,12 +4,15 @@ import ShooterPitchMonitor from './ShooterPitchMonitor.jsx';
 import { DesktopShooterInstrumentControl } from './ShooterInstrumentControl.jsx';
 import MapVideoBackdrop from './MapVideoBackdrop.jsx';
 import { DESKTOP_MAP_MOTION } from './mapMotionAssets.js';
+import { ART_MAP_CATALOG, ART_MAP_BY_ID } from './maps/artMapCatalog.js';
+import { DesktopArtMap } from './maps/ArtMapRenderer.jsx';
 import './desktop-maps.css';
 import './desktop-scene.css';
 import './desktop-skin-hologram.css';
 const MAPS=[['01-moonlit-rooftop','달빛 옥상','Moonlit rooftop'],['02-cloud-sanctuary','구름 위 신전','Cloud sanctuary'],['03-aurora-lake','오로라 빙하 호수','Aurora lake'],['04-sunset-coast','노을빛 바다 절벽','Sunset coast'],['05-desert-observatory','별빛 사막 천문대','Desert observatory'],['06-underwater-blue','푸른 바닷속','Underwater Blue'],['07-firefly-forest','반딧불 숲','Firefly Forest']];
+MAPS.push(...ART_MAP_CATALOG.map(map=>[map.id,map.nameKo,map.nameEn]));
 const KEY='fretiva-desktop-shooter-map-v1';
-const source=id=>`${import.meta.env.BASE_URL}assets/shooter/desktop-maps/${id}.png`;
+const source=id=>ART_MAP_BY_ID[id]?.artwork.desktop??`${import.meta.env.BASE_URL}assets/shooter/desktop-maps/${id}.png`;
 const videoSource=id=>DESKTOP_MAP_MOTION[id]?.videoSrc;
 export function useDesktopShooterMap(){const [id,setId]=useState(()=>{try{const v=localStorage.getItem(KEY);return MAPS.some(m=>m[0]===v)?v:MAPS[0][0];}catch{return MAPS[0][0];}});return [id,value=>{setId(value);try{localStorage.setItem(KEY,value);}catch{}}];}
 export function DesktopShooterMapGallery({mapId,onMap}){const lang=useLanguage();return <div className="desktopMapGallery">{MAPS.map(([id,ko,en])=><button type="button" key={id} aria-pressed={id===mapId} onClick={()=>onMap(id)}><img src={source(id)} alt="" loading="lazy"/><span>{lang==='ko'?ko:en}</span></button>)}</div>;}
@@ -36,7 +39,7 @@ export function DesktopShooterLives({lives,maxLives,label}) {
 export default function DesktopShooterMaps({instrumentProfile,onInstrument,voiceMode=false,voiceMessage="",mapId,videoSrc,pitch,reason,micStatus,micActive,best,score,combo,target,difficulty,difficultyDisabled,difficultyOptions,onDifficulty,onSkin,onPause,onMic,playing,paused,skinOpen,hintMessage,hint,onHint,solfege,onSolfege,recordingEntryRef}){
  const lang=useLanguage(),t=(ko,en)=>lang==='ko'?ko:en;
  return <div className="desktopShooterMaps">
-  <MapVideoBackdrop posterSrc={DESKTOP_MAP_MOTION[mapId]?.posterSrc??source(mapId)} videoSrc={videoSrc??videoSource(mapId)} paused={paused||skinOpen}/>
+  {ART_MAP_BY_ID[mapId] ? <DesktopArtMap id={mapId} paused={paused||skinOpen}/> : <MapVideoBackdrop posterSrc={DESKTOP_MAP_MOTION[mapId]?.posterSrc??source(mapId)} videoSrc={videoSrc??videoSource(mapId)} paused={paused||skinOpen}/>}
   <header className="dsHeader"><div><h1>{t('슈팅게임','Note shooter')}</h1><small>FRETIVA LAB · PLAY YOUR NOTE</small></div><div className="dsHeaderActions"><div className="dsRecordingEntry" ref={recordingEntryRef} /><button type="button" disabled={!playing&&!paused} onClick={onPause}>{paused?t('계속하기','Resume'):t('일시정지','Pause')}</button><button type="button" aria-pressed={micActive} onClick={onMic}>{t('마이크','Microphone')} · {micActive?'ON':'OFF'}</button></div></header>
   {!skinOpen&&<aside className="dsInput"><small>LIVE INPUT</small><ShooterPitchMonitor voiceMessage={voiceMessage} embedded pitch={pitch} reason={reason} micStatus={micStatus} active={micActive}/><p>{voiceMode?t('목표 음을 목소리로 내 보세요','Sing the target note'):t('목표 음을 연주해 보세요','Play the target note')}</p></aside>}
   <div className="dsTarget"><span>{t('목표 음','Target note')}</span><strong>{target||t('대기','Ready')}</strong>{(voiceMode||hint>0)&&<small className="dsHint">{hintMessage}</small>}</div>

@@ -1,5 +1,8 @@
 // UI resources. Korean text is preserved from the pre-migration source.
 export default {
+  "shooter.glassGarden": "유리꽃의 정원",
+  "shooter.silkTheatre": "비단의 대극장",
+  "shooter.gildedInk": "금빛 수묵산수",
   "shooter.confirmDeleteGuitarSkin": "{value1} 스킨을 삭제할까요?\n선택 목록에서 제거되며 이후 빌드에도 반영됩니다. 사용 중이면 다른 기타로 전환됩니다.",
   "shooter.keepOneGuitarSkin": "각 종류에 기타 스킨을 최소 1개는 남겨주세요.",
   "shooter.guitarSkinDeleteFailed": "삭제를 저장하지 못했습니다. 로컬 개발 서버 연결을 확인한 뒤 다시 시도해주세요.",

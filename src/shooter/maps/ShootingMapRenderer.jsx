@@ -1,4 +1,5 @@
 import MapSkinRenderer from "./MapSkinRenderer.jsx";
+import ArtMapRenderer from "./ArtMapRenderer.jsx";
 import MobileVideoMapRenderer from "./MobileVideoMapRenderer.jsx";
 import TabletVideoMapRenderer from "./TabletVideoMapRenderer.jsx";
 import Pseudo3DRenderer from "../pseudo3d/Pseudo3DRenderer.jsx";
@@ -19,6 +20,9 @@ export default function ShootingMapRenderer({
   ...mapSkinProps
 }) {
   if (cameraBackground) return null;
+  if (skin?.renderer === 'art-atlas') {
+    return <ArtMapRenderer {...mapSkinProps} skin={skin} />;
+  }
   if (skin?.tabletComposition) {
     return <TabletVideoMapRenderer {...mapSkinProps} skin={skin} />;
   }

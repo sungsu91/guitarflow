@@ -1,0 +1,44 @@
+.desktopArtMap, .mobileArtMap, .tabletArtMap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #0e171d;
+}
+.desktopArtMap { z-index: -1; }
+.artMapImage {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%; max-width: none;
+  display: block; object-fit: cover; user-select: none;
+}
+.desktopArtMap .artMapImage { object-position: 50% 100%; }
+.mobileArtMap .artMapImage { object-position: 50% 100%; }
+.tabletArtMap .artMapImage { object-position: 50% 100%; }
+.artMapAtmosphere { position: absolute; inset: 0; }
+/* Only the desktop has text rails on top of the painting. */
+.desktopArtMap .artMapAtmosphere {
+  background: linear-gradient(90deg, #06101773, transparent 30%, transparent 72%, #06101780),
+    linear-gradient(#0610173d, transparent 25%);
+}
+.mobileArtMap .artMapAtmosphere { background: linear-gradient(#06101724, transparent 25%); }
+.tabletArtMap .artMapAtmosphere { background: linear-gradient(#0610171a, transparent 20%); }
+.artMapAtmosphere i {
+  position: absolute;
+  left: calc(12% + var(--spark-index) * 14.5%);
+  top: calc(25% + var(--spark-index) * 9%);
+  width: 3px; height: 3px; border-radius: 50%;
+  background: var(--art-map-glow);
+  box-shadow: 0 0 8px 2px var(--art-map-glow);
+  opacity: .15;
+  animation: art-map-glimmer 9s ease-in-out infinite;
+  animation-delay: calc(var(--spark-index) * -1.7s);
+}
+.artMapAtmosphere[data-active="false"] i { animation-play-state: paused; }
+@keyframes art-map-glimmer {
+  0%, 100% { opacity: .08; transform: translateY(4px); }
+  50% { opacity: .5; transform: translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .artMapAtmosphere i { animation: none; opacity: .15; }
+}

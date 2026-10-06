@@ -1,4 +1,5 @@
 import { SCENIC_MAP_SKINS } from "./skins/scenicMaps.js";
+import { ART_MAP_SKINS } from "./artMapCatalog.js";
 import { ABYSSAL_MOON_CATHEDRAL_MAP_SKIN } from "./skins/abyssalMoonCathedral.js";
 import { AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN } from "./skins/autumnMoonTemplePath.js";
 import { CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN } from "./skins/celestialEclipseClocktower.js";
@@ -27,6 +28,7 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   ABYSSAL_MOON_CATHEDRAL_MAP_SKIN,
   CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN,
   AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN,
+  ...ART_MAP_SKINS,
 ]);
 
 export const DEVELOPER_SHOOTER_MAP_SKINS = Object.freeze([
