@@ -31,6 +31,7 @@ import "./shooter/skin-picker-frame.css";
 import "./shooter/instruments/guitar-skin-cards.css";
 import "./shooter/instruments/heritage-instruments.css";
 import "./shooter/instruments/stage-instruments.css";
+import "./shooter/instruments/bass-presence.css";
 import "./shooter/desktopHorizontal/desktop-horizontal-battle.css";
 import "./layouts/responsive-play-focus.css";
 import "./layouts/mobile-training-landscape.css";

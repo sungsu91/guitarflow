@@ -12805,6 +12805,10 @@ function AppIconPreview({ variantId, size = "large" }) {
   );
 }
 
+function shouldEnlargeBassSkin(variant) {
+  return variant.pack === "Bass" && variant.instrumentSkinPack !== "fl-stage-fantasy-v1";
+}
+
 function GuitarAssetSvg({ variant, className = "", compact = false }) {
   if (variant.assetSrc) {
     return (
@@ -12812,6 +12816,7 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
         alt={`${variant.title} guitar asset`}
         className={`guitarAssetSvg guitarAssetImage guitarAssetImage--${variant.id} ${className}`}
         data-instrument-skin-pack={variant.instrumentSkinPack}
+        data-enlarged-bass={shouldEnlargeBassSkin(variant) || undefined}
         draggable="false"
         src={variant.assetSrc}
       />
@@ -24103,6 +24108,7 @@ function App({ onReady }) {
   }, [cancelCountInVoice, getMetronomeScopeForCategory, getPlayableCategory, getPracticeSequence, repeatPractice, requestNavigationCommit, resetScore, selectedCategory, setState, switchMetronomeScope]);
 
   const startShooter = useCallback(async (category = SHOOTER_DEFAULT_CATEGORY) => {
+    setShooterGuitarPickerOpen(false);
     const safeCategory = normalizePracticeCategory(category);
     appModeRef.current = APP_MODES.SHOOTER;
     setAppMode(APP_MODES.SHOOTER);
@@ -24337,6 +24343,7 @@ function App({ onReady }) {
   }, [setState, stopBackingScheduler, stopMetronomeAudioScheduler]);
 
   const resumeGame = useCallback(async () => {
+    if (appModeRef.current === APP_MODES.SHOOTER) setShooterGuitarPickerOpen(false);
     if (gameStateRef.current !== GAME_STATES.PAUSED) return;
     const isRhythmPractice = appModeRef.current === APP_MODES.PRACTICE && selectedCategoryIdRef.current === "rhythm";
     if (isRhythmPractice) {
@@ -34265,7 +34272,7 @@ function App({ onReady }) {
               />
             ) : null}
 
-            <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${selectedAuraEffect.id} guitarPlayer--floor-${selectedFloorEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} data-instrument-skin-pack={selectedGuitar.instrumentSkinPack} ref={shooterGuitarPlayerRef} style={shooterMotion}>
+            <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${selectedAuraEffect.id} guitarPlayer--floor-${selectedFloorEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} data-instrument-skin-pack={selectedGuitar.instrumentSkinPack} data-enlarged-bass={shouldEnlargeBassSkin(selectedGuitar) || undefined} ref={shooterGuitarPlayerRef} style={shooterMotion}>
               {selectedFixedStandFloorLayers.map((layer) => (
                 <span
                   aria-hidden="true"
@@ -34318,6 +34325,7 @@ function App({ onReady }) {
                 aria-label={translateUi("app.currentGuitarAndEffectAlignmentPreview")}
                 className={`guitarPlayer guitarPlayer--mapEditPreview guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${previewAuraEffect.id} guitarPlayer--floor-${previewFloorEffect.id}`}
                 data-instrument-skin-pack={selectedGuitar.instrumentSkinPack}
+                data-enlarged-bass={shouldEnlargeBassSkin(selectedGuitar) || undefined}
               >
                 {selectedEffectBackLayers.map((layer) => (
                   <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>

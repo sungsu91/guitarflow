@@ -1,12 +1,16 @@
 import { ART_MAP_BY_ID } from './artMapCatalog.js';
+import ArtMapMotionCanvas from './ArtMapMotionCanvas.jsx';
 import './art-maps.css';
 
 // Decoration is shared; each platform owns its framing and contrast treatment.
 function ArtMapImage({ id, src, active = true }) {
   return <>
     <img className="artMapImage" src={src} alt="" draggable={false} />
+    <ArtMapMotionCanvas id={id} src={src} active={active} />
     <div className="artMapAtmosphere" data-active={active} style={{ '--art-map-glow': ART_MAP_BY_ID[id]?.glow }}>
-      {[0, 1, 2, 3, 4, 5].map(index => <i key={index} style={{ '--spark-index': index }} />)}
+      <div className="artMapLightVeil" />
+      <div className="artMapMist" />
+      {Array.from({ length: 16 }, (_, index) => <i key={index} style={{ '--spark-index': index, '--spark-x': `${(index * 37 + 9) % 94}%`, '--spark-y': `${(index * 23 + 14) % 76 + 6}%` }} />)}
     </div>
   </>;
 }

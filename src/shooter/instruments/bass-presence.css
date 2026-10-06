@@ -1,0 +1,49 @@
+/* Long-neck basses need their own visual size. Keep their base on the existing
+   effect floor, and let the shared geometry reader locate the enlarged head. */
+html body .desktopLayout .shooterArena .guitarPlayer[data-enlarged-bass="true"] {
+  --bass-art-height: 172px;
+}
+html[data-rifflab-device="mobile"] body .shooterArena .guitarPlayer[data-enlarged-bass="true"] {
+  --bass-art-height: 180px;
+}
+html[data-rifflab-device="tablet"] body .shooterArena .guitarPlayer[data-enlarged-bass="true"] {
+  --bass-art-height: calc(var(--tablet-guitar-height, 200px) * 1.14);
+}
+html body :is(.desktopLayout, .mobileLayoutShell, .tabletLayout) .shooterArena .guitarPlayer[data-enlarged-bass="true"] .guitarPlayerAsset.guitarAssetImage {
+  height: var(--bass-art-height, 172px) !important;
+  max-height: var(--bass-art-height, 172px) !important;
+  width: auto !important; max-width: none !important;
+  bottom: 0 !important; object-fit: contain !important;
+}
+html body :is(.desktopLayout, .mobileLayoutShell, .tabletLayout) .shooterArena .guitarPlayer[data-enlarged-bass="true"] .guitarPlayerMuzzle {
+  top: calc(100% - var(--bass-art-height, 172px) + 5px) !important;
+}
+html body .shooterSkinConfigurator--desktopWindow .shooterGuitarSkinCard:has([data-enlarged-bass="true"]) > .shooterGuitarPickerItem {
+  grid-template-rows: 120px 20px !important; min-height: 156px !important;
+  padding: 8px 4px 6px !important; gap: 2px !important;
+}
+html body .shooterSkinConfigurator--desktopWindow .shooterGuitarPickerAsset[data-enlarged-bass="true"] {
+  width: auto !important; height: 120px !important; max-height: 120px !important; max-width: 100% !important;
+}
+html body .shooterSkinConfigurator--arenaPreview .shooterGuitarSkinCard:has([data-enlarged-bass="true"]) > .shooterGuitarPickerItem {
+  grid-template-rows: 104px 18px !important; min-height: 138px !important;
+  padding: 8px 4px 6px !important; gap: 2px !important;
+}
+html body .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerAsset[data-enlarged-bass="true"] {
+  width: auto !important; height: 104px !important; max-height: 104px !important; max-width: 100% !important;
+}
+@layer tablet-shooter {
+html[data-rifflab-device="tablet"] body .tabletLayout .shooterArena .guitarPlayer[data-enlarged-bass="true"] .guitarPlayerAsset.guitarAssetImage {
+  width: auto !important; height: var(--bass-art-height) !important; max-height: var(--bass-art-height) !important; bottom: 0 !important;
+}
+html[data-rifflab-device="tablet"] body .tabletLayout .shooterArena .guitarPlayer[data-enlarged-bass="true"] .guitarPlayerMuzzle {
+  top: calc(100% - var(--bass-art-height) + 5px) !important;
+}
+html[data-rifflab-device="tablet"] body .shooterSkinConfigurator--tabletWindow .shooterGuitarSkinCard:has([data-enlarged-bass="true"]) > .shooterGuitarPickerItem {
+  grid-template-rows: 184px 24px !important; min-height: 234px !important;
+  padding: 10px !important; gap: 4px !important;
+}
+html[data-rifflab-device="tablet"] body .shooterSkinConfigurator--tabletWindow .shooterGuitarPickerAsset[data-enlarged-bass="true"] {
+  width: auto !important; height: 184px !important; max-height: 184px !important; max-width: 100% !important;
+}
+}
