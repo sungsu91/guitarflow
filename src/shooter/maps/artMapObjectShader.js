@@ -1,3 +1,6 @@
+import { silkStreamerFragment } from './silkStreamers.js';
+import { gildedAtmosphereFragment } from './gildedAtmosphere.js';
+
 // Effects are registered to features in the painting. Cloth uses an isolated
 // material surface extracted at matching coordinates; architecture is unavailable.
 export const artMapObjectFragment = `
@@ -13,6 +16,8 @@ uniform vec4 regions[8];
 uniform vec4 moon;
 const float PI=3.14159265;
 const float TAU=6.2831853;
+
+${silkStreamerFragment}
 
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float noise(vec2 p) {
@@ -36,6 +41,7 @@ vec4 wovenSilk(vec2 p) {
   vec3 color=detail.rgb*(.96+.075*fold)+vec3(.12,.085,.035)*sheen;
   return vec4(color,base.a*detail.a*.98);
 }
+${gildedAtmosphereFragment}
 vec4 beacon(vec2 p,vec4 anchor) {
   if(anchor.z<=0.) return vec4(0.);
   vec2 q=vec2((p.x-anchor.x)/anchor.z,(anchor.y-p.y)/anchor.w);
@@ -79,7 +85,7 @@ vec4 valleyFog(vec2 p,vec4 volume,float index) {
   float density=smoothstep(.26,.75,cloud*.75+detail*.25);
   float mask=1.-smoothstep(.30,1.,distance);
   vec3 color=mix(vec3(.58,.64,.64),vec3(.82,.85,.82),cloud);
-  return vec4(color,density*mask*.56);
+  return vec4(color,density*mask*.72);
 }
 
 vec4 water(vec2 p,vec4 pool) {
@@ -129,7 +135,10 @@ void main() {
     result=over(fallingWater(p,regions[5],4.),result);
     result=over(fallingWater(p,regions[6],5.),result);
     gl_FragColor=over(beacon(p,regions[0]),result);
-  } else if(scene<1.5) gl_FragColor=wovenSilk(p);
+  } else if(scene<1.5) {
+    vec4 result=over(streamer(p,streamerLeft,0.,0.),wovenSilk(p));
+    gl_FragColor=over(streamer(p,streamerRight,2.1,1.),result);
+  }
   else {
     vec4 result=lunarOrbit(p);
     result=over(valleyFog(p,regions[0],0.),result);
@@ -137,7 +146,8 @@ void main() {
     result=over(valleyFog(p,regions[2],2.),result);
     result=over(valleyFog(p,regions[3],3.),result);
     result=over(valleyFog(p,regions[4],4.),result);
-    gl_FragColor=over(valleyFog(p,regions[5],5.),result);
+    result=over(valleyFog(p,regions[5],5.),result);
+    gl_FragColor=over(gildedAtmosphere(p,regions[6]),result);
   }
 }
 `;

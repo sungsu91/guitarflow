@@ -5,12 +5,24 @@ import {
   WHEEL_PICKER_ITEM_HEIGHT,
   clampWheelIndex,
   getWheelDragPosition,
+  getWheelScrollPosition,
   getWheelReleaseVelocity,
   getWheelSnapIndex,
   getWheelSnapDuration,
   shouldContinueWheelInertia,
   stepWheelInertia,
 } from "../src/metronome/wheelPickerPhysics.js";
+
+test('mouse wheel and trackpad pixels share bounded timer values without losing small deltas', () => {
+  assert.equal(getWheelScrollPosition(10, 1, 1, 30), 11);
+  assert.equal(getWheelScrollPosition(10, -1, 2, 30), 5);
+  let position = 10;
+  for (let i=0;i<34;i++) position=getWheelScrollPosition(position,1,0,30);
+  assert.ok(Math.abs(position-11)<1e-9);
+  assert.equal(getWheelScrollPosition(29,1200,0,30),29);
+  assert.equal(getWheelScrollPosition(0,-1200,0,30),0);
+  assert.equal(getWheelScrollPosition(10,NaN,0,30),10);
+});
 
 test("mouse timer wheel follows short drags immediately with a near 1:1 sensitive ratio", () => {
   const upwardOneRow = getWheelDragPosition(10, 200, 200 - WHEEL_PICKER_ITEM_HEIGHT, 30);

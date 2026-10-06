@@ -67,6 +67,23 @@ test('scenery pauses without advancing its clock, respects tab visibility, and d
   motion.dispose(); assert.equal(f.callbacks.size,0); assert.equal(f.listeners.size,0); assert.equal(f.canvasListeners.size,0); assert.equal(f.deletes,5);
 });
 
+test('both silk streamers reuse one texture and release it with the scene', () => {
+  for (const presentation of ['desktop', 'mobile', 'tablet']) {
+    const f = fixture(), poster = {naturalWidth:2048,naturalHeight:1152};
+    const material = {}, streamers = {};
+    const motion = createArtMapMotion(f.canvas, poster, 'silk-theatre', {presentation, sprite:material, streamers});
+    assert.deepEqual(f.uploads, [material, streamers]);
+    assert.equal(f.canvas.dataset.streamerCount, '2');
+    motion.dispose();
+    assert.equal(f.deletes, 6, 'the additional texture is released');
+  }
+  const f = fixture();
+  const motion = createArtMapMotion(f.canvas, {naturalWidth:2048,naturalHeight:1152}, 'glass-garden', {streamers:{}});
+  assert.equal(f.canvas.dataset.streamerCount, '0', 'other scenes do not draw the silk');
+  assert.equal(f.uploads.length, 1);
+  motion.dispose();
+});
+
 test('unavailable or lost WebGL leaves the still artwork usable', () => {
   let failures=0;
   assert.equal(createArtMapMotion({getContext:()=>null}, {}, 'glass-garden', {onFailure:()=>failures++}),null);

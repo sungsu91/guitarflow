@@ -20,19 +20,22 @@ export function getShooterInstrumentNotes(profile, difficulty) {
   }
   if (difficulty === 'easy') {
     sections = [
-      [ko['shooter.instrumentOpenStrings'], roundTrip(range(0, 0))],
-      [ko['shooter.stage2NaturalNotesUpAndDown'], roundTrip(range(0, 3, true))],
-      [ko['shooter.stage3IntroductionToSemitones'], roundTrip(range(0, 3))],
+      [ko['shooter.instrumentOpenStrings'], roundTrip(range(0, 0)), ko['shooter.moveFromLowToHighUsingOpenStrings']],
+      [ko['shooter.stage2NaturalNotesUpAndDown'], roundTrip(range(0, 3, true)), ko['shooter.followTheNaturalNotesAtFrets03']],
+      [ko['shooter.stage3IntroductionToSemitones'], roundTrip(range(0, 3)), ko['shooter.learnTheSemitoneAtTheAdjacentFretToo']],
       ...ascending(range(0, 0)).map(open => [ko['shooter.stage4Frets03RoundTrip'],
-        roundTrip(buildInstrumentNotes(profile.tuning.filter(string => string.stringNumber === open.stringNumber), 0, 3))]),
+        roundTrip(buildInstrumentNotes(profile.tuning.filter(string => string.stringNumber === open.stringNumber), 0, 3)), ko['shooter.moveThrough0123AndBackOneFretAtA']]),
     ];
   } else {
     const notes = difficulty === 'normal' ? range(5, 10, true) : range(0, 12);
-    sections = [[ko['shooter.instrumentAscent'], notes], [ko['shooter.instrumentDescent'], [...notes].reverse()]];
+    sections = [
+      [ko['shooter.instrumentAscent'], notes, ko['shooter.moveUpToAHigherPosition']],
+      [ko['shooter.instrumentDescent'], [...notes].reverse(), ko['shooter.comeBackDownFromTheHighNotes']],
+    ];
   }
-  const raw = sections.flatMap(([sectionLabel, notes], sectionIndex) => notes.map((note, index) => ({
+  const raw = sections.flatMap(([sectionLabel, notes, sectionAnnouncement], sectionIndex) => notes.map((note, index) => ({
     ...note, label: note.pitch, sectionId: sectionIndex + 1, sectionLabel,
-    sectionAnnouncement: sectionLabel, isSectionStart: index === 0,
+    sectionAnnouncement, isSectionStart: index === 0,
     direction: sectionIndex === 1 && difficulty !== 'easy' ? 'descending' : 'ascending',
     beats: 2, isSharp: note.noteName.includes('#'),
   })));

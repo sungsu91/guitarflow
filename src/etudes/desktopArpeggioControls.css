@@ -15,3 +15,10 @@
 .etudeEditor--desktop .desktopArpeggioFields select[aria-invalid=true]{border-color:var(--ed-active);outline:1px solid var(--ed-active)}
 
 .desktopArpeggioControls .arpeggioProgression{display:block;max-height:72px;overflow:auto;overflow-wrap:anywhere;padding:8px;background:var(--panel-bg,#f7f3ec);border-radius:6px;font-size:12px;line-height:1.6;}
+.etudeEditor--desktop .desktopArpeggioChords{display:grid;gap:8px;min-width:0}
+.etudeEditor--desktop .desktopArpeggioChords>strong{font-size:12px}
+.etudeEditor--desktop .arpeggioBarChords{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-height:190px;overflow:auto;padding:2px}
+.etudeEditor--desktop .arpeggioBarChords button{display:flex;flex-direction:column;gap:3px;min-width:0;height:auto;min-height:70px;padding:7px;overflow-wrap:anywhere;white-space:normal}
+.etudeEditor--desktop .arpeggioBarChords :is(span,small){font-size:10px;font-weight:400}
+.etudeEditor--desktop .arpeggioBarChords strong{font-size:14px}
+.etudeEditor--desktop .arpeggioNextChord{width:100%;min-width:0;white-space:normal}

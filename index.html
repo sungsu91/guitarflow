@@ -20,6 +20,17 @@
     <style>
       html, body, #root { min-height: 100%; background: #1c1715; }
       body { margin: 0; }
+      /* Apply before the lazy runtime loads, including the first splash frame.
+         Continuous scrolling must not turn into double-tap smart zoom. */
+      @media (pointer: coarse), (max-width: 1023px) {
+        html, body { touch-action: manipulation; }
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        html:is(.app-is-launching, .app-is-theme-loading),
+        html:is(.app-is-launching, .app-is-theme-loading) body {
+          touch-action: none;
+          overscroll-behavior: none;
+        }
+      }
     </style>
     <title>FRETIVA LAB</title>
   </head>

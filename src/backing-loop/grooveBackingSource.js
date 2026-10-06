@@ -28,7 +28,9 @@ export async function loadGrooveBackingSource(id) {
   // The existing backing transport consumes audio buffers. Render only on play,
   // keep one temporary source in memory, and invalidate it when its pack changes.
   const source = await renderGrooveBacking(pack, pack.bpm);
-  playbackCache = {...source, id, title: pack.title, sourceType: 'groove', grooveRevision: revision};
+  const timing = getGrooveBackingTiming(pack);
+  playbackCache = {...source, id, title: pack.title, sourceType: 'groove', grooveRevision: revision,
+    bpm: timing.bpm, grooveBeats: timing.durationSeconds * timing.bpm / 60};
   return playbackCache;
 }
 

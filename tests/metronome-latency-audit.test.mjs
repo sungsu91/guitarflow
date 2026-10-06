@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import * as clock from '../src/audio/transportClock.js';
+import * as playbackClock from '../src/audio/metronomePlaybackClock.js';
 import * as runtime from '../src/metronome/runtime.js';
 
 const app = fs.readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
 const scheduler = app.slice(app.indexOf('  const runMetronomeAudioScheduler ='), app.indexOf('  // Menu mounting'));
 function fixture() {
   const events = [];
-  const ctx = {...clock, ...runtime, useCallback: fn => fn,
+  const ctx = {...clock, ...playbackClock, ...runtime, useCallback: fn => fn,
     APP_MODES: {METRONOME: 'metronome', PRACTICE: 'practice'}, GAME_STATES: {PLAYING: 'playing'},
     getTimeSignatureOption: () => ({id:'4/4', beats:4}),
     getSubdivisionOption: () => ({id:'quarter', clicksPerBeat:1}),
@@ -59,6 +60,30 @@ test('timer auto-reset retains elapsed overshoot through delayed frames',()=>{
     bpm:120,trackerMode:'timer',trackerTimerTotalMs:60000,trackerTimerResetWhenReached:true,
   }).state;
   assert.equal(state.trackerElapsedMs,1001000%60000);
+});
+
+test('a reached bar limit is re-armed when its limit or completion options change during playback',()=>{
+  const base={bpm:120,trackerMode:'bars',trackerBarLimitEnabled:true,trackerBarLimit:2};
+  const reached=runtime.advanceMetronomeRuntime(runtime.createMetronomeRuntimeState(),4000,base).state;
+  assert.equal(reached.trackerBarLimitReached,true);
+  const reset=runtime.advanceMetronomeRuntime(reached,4000,{...base,trackerBarLimit:4,trackerBarResetWhenReached:true});
+  assert.equal(reset.state.trackerBars,0);
+  const stop=runtime.advanceMetronomeRuntime(reached,10,{...base,trackerBarStopWhenReached:true});
+  assert.equal(stop.shouldStop,true);
+  const raised=runtime.advanceMetronomeRuntime(reached,2000,{...base,trackerBarLimit:4}).state;
+  assert.equal(raised.trackerBarLimitReached,false);
+  assert.equal(runtime.advanceMetronomeRuntime(raised,2000,{...base,trackerBarLimit:4}).trackerBarLimitReached,true);
+});
+
+test('a completed timer accepts a new duration, reset or stop option without toggling the mode',()=>{
+  const base={bpm:120,trackerMode:'timer',trackerTimerTotalMs:60000};
+  const reached=runtime.advanceMetronomeRuntime(runtime.createMetronomeRuntimeState(),60000,base).state;
+  const reset=runtime.advanceMetronomeRuntime(reached,500,{...base,trackerTimerResetWhenReached:true});
+  assert.equal(reset.state.trackerElapsedMs,500);
+  assert.equal(runtime.advanceMetronomeRuntime(reached,1,{...base,trackerTimerStopWhenReached:true}).shouldStop,true);
+  const extended=runtime.advanceMetronomeRuntime(reached,30000,{...base,trackerTimerTotalMs:120000}).state;
+  assert.equal(extended.trackerTimerLimitReached,false);
+  assert.equal(runtime.advanceMetronomeRuntime(extended,30000,{...base,trackerTimerTotalMs:120000}).trackerTimerLimitReached,true);
 });
 
 test('bar auto-reset retains complete bars crossed during a stalled UI frame',()=>{
@@ -128,4 +153,12 @@ test('equivalent beat arrays from Tracker UI renders leave queued audio untouche
   }
   assert.equal(events.length,count);
   assert.ok(events.every(e=>!e.cancelled));
+});
+
+test('dot and circle display changes do not replace or cut playing clicks',()=>{
+  const {ctx,events}=fixture();ctx.grooveModeRef.current='dot';ctx.run(4);
+  const cursor=ctx.metronomeAudioCursorRef.current;const count=events.length;
+  ctx.audioRef.current.currentTime=.1;ctx.grooveModeRef.current='circle';ctx.run(.75);
+  assert.equal(events.length,count);assert.ok(events.every(e=>!e.cancelled));
+  assert.equal(ctx.metronomeAudioCursorRef.current.originTime,cursor.originTime);
 });

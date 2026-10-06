@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import MetronomeVolumeControl from "../components/MetronomeVolumeControl.jsx";
 import GrooveVolumeControl from "../components/GrooveVolumeControl.jsx";
+import AccompanimentVolumeControl from "../components/AccompanimentVolumeControl.jsx";
 import LanguageSettings from '../i18n/LanguageSettings.jsx';
 import DesktopSoundSettings from './DesktopSoundSettings.jsx';
 import './desktop-sidebar-polish.css';
@@ -170,6 +171,7 @@ export default function DesktopSidebarNavigation({
               </section>
               <section className="soundSettingsGroup" aria-label={translateUi("soundSettings.backingInstruments")}>
               <h3 className="soundSettingsGroupTitle"><Translation id="soundSettings.backingInstruments" /></h3>
+              <AccompanimentVolumeControl className="desktopSidebarSoundRow" />
               {backingVolumeControls.map((control) => {
                 const value = getBackingVolumeValue(control.id);
                 const Icon = control.id === "drum" ? Drum : control.id === "bass" ? Guitar : Piano;

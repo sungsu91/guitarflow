@@ -1,5 +1,6 @@
 import ko from "./../i18n/locales/ko.js";
 import {useTabletLayout} from '../layouts/TabletLayout.jsx';
+import { getMobileViewportBounds } from '../layouts/mobileViewportBounds.js';
 import { localizeUi } from "./../i18n/core.js";
 import { t as translateUi } from "./../i18n/core.js";
 import { Translation, useLanguage } from "./../i18n/react.jsx";
@@ -32,7 +33,8 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
   useEffect(()=>()=>{if(gesture.current?.frame)cancelAnimationFrame(gesture.current.frame);},[]);
   const [position,setPosition]=useState(()=>{if(initialPosition)return initialPosition;try{const p=JSON.parse(localStorage.getItem(key));return Number.isFinite(p?.x)&&Number.isFinite(p?.y)?p:defaultPosition;}catch{return defaultPosition;}});
   const clamp=(p,viewportUpdate=false)=>{
-    const viewport=window.visualViewport, left=viewport?.offsetLeft??0,top=viewport?.offsetTop??0;
+    const viewport=bottomAnchored?getMobileViewportBounds(window):window.visualViewport;
+    const left=bottomAnchored?viewport.left:viewport?.offsetLeft??0,top=bottomAnchored?viewport.top:viewport?.offsetTop??0;
     const width=viewport?.width??innerWidth,height=viewport?.height??innerHeight;
     const sidebar=document.documentElement.dataset.rifflabLayout==='desktop'&&!document.fullscreenElement?document.querySelector('.desktopSidebar')?.getBoundingClientRect():null;
     const reader=sidebar&&ref.current?.classList.contains('etudeRemote--desktop')?document.querySelector('.desktopScoreWorkspace .desktopPracticeReader')?.getBoundingClientRect():null;
@@ -63,7 +65,7 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bott
     if(!enabled||!ref.current)return;
     // Activity may detach the ref before React evaluates a queued resize update.
     const update=()=>ref.current&&!dock&&setPosition(p=>{if(!ref.current)return p;const n=clamp(p,true);return p?.x===n.x&&p?.y===n.y?p:n;});
-    update();const observer=new ResizeObserver(update);observer.observe(ref.current);
+    update();const observer=new ResizeObserver(update);observer.observe(ref.current,{box:'border-box'});
     window.addEventListener('resize',update);window.visualViewport?.addEventListener('resize',update);window.visualViewport?.addEventListener('scroll',update);
     return()=>{observer.disconnect();window.removeEventListener('resize',update);window.visualViewport?.removeEventListener('resize',update);window.visualViewport?.removeEventListener('scroll',update);};
   },[avoidPanel,dock,bottomPinned,movableBottom,safeBottom,enabled,tablet]);

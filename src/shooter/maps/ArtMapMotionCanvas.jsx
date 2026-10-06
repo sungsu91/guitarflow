@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createArtMapMotion } from './artMapMotion.js';
 import { createArtMapClothSurface } from './artMapClothSurface.js';
+import { SILK_STREAMER_SRC } from './silkStreamers.js';
 
 function subscribe(listener) {
   const query = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -17,11 +18,13 @@ function MotionCanvas({ id, src, presentation, active }) {
   useEffect(() => {
     let cancelled = false;
     const image = new Image(); image.src = src;
-    image.decode().then(() => {
+    const streamers = id === 'silk-theatre' ? new Image() : null;
+    if (streamers) streamers.src = SILK_STREAMER_SRC;
+    Promise.all([image.decode(), streamers?.decode().then(() => streamers).catch(() => null)]).then(([, clothStreamers]) => {
       if (cancelled) return;
       const sprite = id === 'silk-theatre' ? createArtMapClothSurface(image,presentation,ref.current.ownerDocument) : null;
       renderer.current = createArtMapMotion(ref.current, image, id, {
-        presentation, sprite, onReady: () => setReady(true), onFailure: error => {
+        presentation, sprite, streamers: clothStreamers, onReady: () => setReady(true), onFailure: error => {
           if (ref.current) ref.current.dataset.motionFallback = error?.message ?? 'Context lost';
           setReady(false);
         },

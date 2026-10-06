@@ -1,0 +1,6 @@
+.editorDesign.mobileScoreWorkspace .mobileTempoSteps{position:fixed;z-index:1001;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;box-sizing:border-box;padding:6px;border:1px solid var(--ed-line);border-radius:10px;background:var(--ed-surface);color:var(--ed-ink);box-shadow:0 5px 16px #0003;isolation:isolate}
+.editorDesign.mobileScoreWorkspace .mobileTempoSteps::before{content:'';position:absolute;z-index:-1;left:var(--tempo-tail-x);top:var(--tempo-tail-top);width:10px;height:10px;background:var(--ed-surface);border:1px solid var(--ed-line);transform:translate(-50%,-50%) rotate(45deg)}
+@layer score-workspace{
+ .editorDesign.mobileScoreWorkspace .editorAudioDock.is-one-row .mobileEditorTempo>button{width:24px!important;min-width:24px!important;flex:0 0 24px}
+ .editorDesign.mobileScoreWorkspace .mobileTempoSteps button{height:40px!important;min-height:40px!important;min-width:0!important;width:auto!important;padding:0 8px!important;font-size:16px!important;white-space:nowrap!important}
+}

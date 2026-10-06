@@ -37,3 +37,11 @@
     overscroll-behavior-y: auto !important;
   }
 }
+/* Keep the phone transport's background against the visible bottom edge.
+   The home-indicator inset belongs inside it, so leaving the score does not
+   appear to transfer an external blank strip to the navigation rail. */
+html[data-rifflab-device="mobile"] .etudeFloatingTheme
+  .etudeFloatingMetro.etudeSessionWidget.etudeRemote--mobileBottom {
+  --floating-safe-bottom: 0px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+}

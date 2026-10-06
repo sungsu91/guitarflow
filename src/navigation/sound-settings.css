@@ -44,6 +44,9 @@ html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSound
   display: flex !important; align-items: center !important; justify-content: initial !important; gap: 8px !important;
   color: var(--sound-ink) !important; background: transparent !important;
 }
+html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) .soundSettingsMasterRow {
+  padding-bottom: 10px !important; border-bottom: 1px solid var(--sound-line) !important;
+}
 html body #root :is(.desktopSoundSettingsPanel, #utility-menu-panel .mobileSoundSettings) :is(.desktopSidebarSoundRow, .utilitySoundSliderRow) strong {
   color: var(--sound-ink) !important; font-size: 13px !important; font-weight: 600 !important; line-height: 1.5 !important;
 }

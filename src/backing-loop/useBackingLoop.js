@@ -19,7 +19,7 @@ import {
   resumeSharedAudioContext,
 } from "../audio/audioBus";
 import { registerBackingLoopActivity } from "./activityRegistry.js";
-import { createGrooveBufferPlayback } from "./grooveBufferPlayback.js";
+import { createSynchronizedGroovePlayback } from "./synchronizedGroovePlayback.js";
 import { claimBackingPlayback, stopOwnedBackingPlayback } from "./playbackOwnership.js";
 import {
   isAudioStudioLibraryId,
@@ -259,7 +259,8 @@ export default function useBackingLoop(ownerMode = "") {
           || recordingRef.current?.blob !== currentRecording.blob) return null;
         audio.pause();
         disconnectMediaElementFromBus(audio);
-        const player = createGrooveBufferPlayback({
+        const player = createSynchronizedGroovePlayback({
+          beats: currentRecording.grooveBeats,
           context, buffer, output: getAudioBusInput(currentRecording.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE ? AUDIO_BUS_IDS.GROOVE : AUDIO_BUS_IDS.BACKING, context),
           level: backingVolumeRef.current, onEnded: () => playbackEndedRef.current?.(),
         });

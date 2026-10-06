@@ -10,6 +10,7 @@ import { buildInstrumentFirstPosition, buildInstrumentScalePractice } from './fr
 import { MobileLearningInstrumentControls, TabletLearningInstrumentControls, DesktopLearningInstrumentControls } from './fretboard/LearningInstrumentControls.jsx';
 import TabletPracticeTitle from "./layouts/TabletPracticeTitle.jsx";
 import DesktopShooterMaps, {DesktopShooterLives,DesktopShooterMapGallery,DesktopShooterSkinButton,DesktopShooterStartButton,useDesktopShooterMap} from './shooter/DesktopShooterMaps.jsx';
+import ShooterScenarioGuidance from './shooter/ShooterScenarioGuidance.jsx';
 import DesktopNoteScaleViewer from "./layouts/DesktopNoteScaleViewer.jsx";
 import HelpGuideDialog from './navigation/HelpGuideDialog.jsx';
 import DesktopHelpGuide from './navigation/DesktopHelpGuide.jsx';
@@ -109,12 +110,14 @@ import {
   getAudioBusInput,
   getSharedAudioContext,
   resumeSharedAudioContext,
+  smoothAudioParam,
 } from "./audio/audioBus";
 import {
   WHEEL_PICKER_ITEM_HEIGHT,
   clampWheelIndex,
   clampWheelPosition,
   getWheelDragPosition,
+  getWheelScrollPosition,
   getWheelReleaseVelocity,
   getWheelSnapIndex,
   getWheelSnapDuration,
@@ -135,6 +138,13 @@ import { prepareInitialSurface } from './launch/prepareInitialSurface.js';
 const RhythmTrainer = lazy(loadRhythmTrainer);
 const EtudeStudio = lazy(loadScoreStudio);
 import GrooveVolumeControl from "./components/GrooveVolumeControl.jsx";
+import AccompanimentVolumeControl from "./components/AccompanimentVolumeControl.jsx";
+import {
+  DEFAULT_ACCOMPANIMENT_VOLUME,
+  getAccompanimentVolumeSnapshot,
+  setAccompanimentVolume,
+  subscribeAccompanimentVolume,
+} from "./audio/accompanimentVolumeStore.js";
 import MetronomeVolumeControl from "./components/MetronomeVolumeControl.jsx";
 import MobileSoundSettings from "./navigation/MobileSoundSettings.jsx";
 import {
@@ -161,6 +171,7 @@ import {
   retimeAudioTransportCursor,
   getAudioTransportStepSeconds,
 } from "./audio/transportClock.js";
+import {setMetronomePlaybackClock} from "./audio/metronomePlaybackClock.js";
 import BrandHeader from "./components/BrandHeader";
 import BackingLoop, { BackingLoopDock } from "./components/BackingLoop";
 import { UtilityMenuTitle } from "./components/MenuStatusBadge";
@@ -7110,6 +7121,7 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
   const frameRef = useRef(null);
   const dragFrameRef = useRef(null);
   const clickResetTimerRef = useRef(null);
+  const wheelIdleTimerRef = useRef(null);
   const trackRef = useRef(null);
   const viewportRef = useRef(null);
   const committedIndexRef = useRef(selectedIndex);
@@ -7124,6 +7136,7 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
     if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
     if (dragFrameRef.current != null) window.cancelAnimationFrame(dragFrameRef.current);
     if (clickResetTimerRef.current != null) window.clearTimeout(clickResetTimerRef.current);
+    if (wheelIdleTimerRef.current != null) window.clearTimeout(wheelIdleTimerRef.current);
   }, []);
 
   const updateDetentIndex = useCallback((nextIndex, notify = false) => {
@@ -7191,6 +7204,10 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
   }, [finishInteraction, onChange, options, renderWheelPosition, settledIndex]);
 
   const cancelWheelFrames = useCallback(() => {
+    if (wheelIdleTimerRef.current != null) {
+      window.clearTimeout(wheelIdleTimerRef.current);
+      wheelIdleTimerRef.current = null;
+    }
     if (dragFrameRef.current != null) {
       window.cancelAnimationFrame(dragFrameRef.current);
       dragFrameRef.current = null;
@@ -7420,6 +7437,26 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
     beginInteraction();
     animateToIndex(scrollPositionRef.current, clampWheelIndex(nextIndex, options.length));
   }, [animateToIndex, beginInteraction, options.length]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return undefined;
+    const handleWheel = (event) => {
+      if (event.ctrlKey || !event.deltaY || dragRef.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      beginInteraction();
+      cancelWheelFrames();
+      renderWheelPosition(getWheelScrollPosition(scrollPositionRef.current, event.deltaY, event.deltaMode, options.length), true);
+      wheelIdleTimerRef.current = window.setTimeout(() => {
+        wheelIdleTimerRef.current = null;
+        animateToIndex(scrollPositionRef.current, Math.round(scrollPositionRef.current));
+      }, 100);
+    };
+    // A passive React wheel listener cannot keep the page still while selecting.
+    viewport.addEventListener("wheel", handleWheel, {passive: false});
+    return () => viewport.removeEventListener("wheel", handleWheel);
+  }, [animateToIndex, beginInteraction, cancelWheelFrames, options.length, renderWheelPosition]);
 
   return (
     <label className="metronomeWheelColumn">
@@ -18278,6 +18315,13 @@ function App({ onReady }) {
   const backingSampleBuffersRef = useRef({});
   const backingSampleLoadPromiseRef = useRef(null);
   const backingMasterGainRef = useRef(null);
+  useEffect(() => subscribeAccompanimentVolume(() => {
+    smoothAudioParam(
+      backingMasterGainRef.current?.gain,
+      getAccompanimentVolumeSnapshot().volume,
+      audioRef.current,
+    );
+  }), []);
   const backingLimiterRef = useRef(null);
   const backingDrumGainRef = useRef(null);
   const backingBassGainRef = useRef(null);
@@ -20750,11 +20794,12 @@ function App({ onReady }) {
     const positionSeconds = isReferencePractice ? Math.max(0, gameTimeRef.current / 1000) : exactStepPosition * stepSeconds;
     const originTime = audio.currentTime + Math.max(0, leadSeconds) - positionSeconds;
     metronomeAudioOriginTimeRef.current = originTime;
-    metronomeAudioScheduleKeyRef.current = `${bpmRef.current}:${signature.id}:${subdivision.id}:${grooveModeRef.current}`;
+    metronomeAudioScheduleKeyRef.current = `${bpmRef.current}:${signature.id}:${subdivision.id}:${grooveModeRef.current === "groove" ? "groove" : "click"}`;
     return { ...createAudioTransportCursor({ originTime, positionSeconds, stepSeconds }), ticksPerMeasure: signature.beats * clicksPerBeat };
   }, []);
 
   const stopMetronomeAudioScheduler = useCallback(({ preservePosition = false } = {}) => {
+    setMetronomePlaybackClock(null);
     const audio = audioRef.current;
     if (preservePosition && audio && metronomeAudioOriginTimeRef.current) {
       metronomePausedOffsetSecondsRef.current = Math.max(
@@ -20787,7 +20832,7 @@ function App({ onReady }) {
     const signature = getTimeSignatureOption(metronomeTimeSignatureRef.current);
     const subdivision = getSubdivisionOption(metronomeSubdivisionRef.current);
     const clicksPerBeat = Math.max(1, subdivision.clicksPerBeat);
-    const scheduleKey = `${bpmRef.current}:${signature.id}:${subdivision.id}:${grooveModeRef.current}`;
+    const scheduleKey = `${bpmRef.current}:${signature.id}:${subdivision.id}:${grooveModeRef.current === "groove" ? "groove" : "click"}`;
     if (!metronomeAudioCursorRef.current || metronomeAudioScheduleKeyRef.current !== scheduleKey) {
       const previousCursor = metronomeAudioCursorRef.current;
       cancelScheduledMetronomeTicks({ futureOnly: Boolean(previousCursor) });
@@ -20823,6 +20868,12 @@ function App({ onReady }) {
       metronomeAudioCursorRef.current.ticksPerMeasure = signature.beats * clicksPerBeat;
     }
     metronomeAudioCursorRef.current.soundSettings = soundSettings;
+
+    if (appModeRef.current === APP_MODES.METRONOME) {
+      setMetronomePlaybackClock({context: audio, secondsPerBeat: 60 / bpmRef.current,
+        originTime: metronomeAudioCursorRef.current.originTime
+          - (grooveModeRef.current === "groove" ? groovePlaybackBarOffsetRef.current : 0) * signature.beats * 60 / bpmRef.current});
+    }
 
     // Audio can run ahead of animation frames. Never queue attacks beyond a
     // Tracker stop boundary, even while the settings panel delays painting.
@@ -20900,10 +20951,8 @@ function App({ onReady }) {
       metronomeTimeSignatureRef.current = "4/4"; setMetronomeTimeSignature("4/4");
       metronomeSubdivisionRef.current = "sixteenth"; setMetronomeSubdivision("sixteenth");
     }
-    cancelScheduledMetronomeTicks();
-    metronomeAudioScheduleKeyRef.current = "";
     runMetronomeAudioScheduler();
-  }, [metronomeDisplayMode, cancelScheduledMetronomeTicks, runMetronomeAudioScheduler]);
+  }, [metronomeDisplayMode, runMetronomeAudioScheduler]);
 
   const startMetronomeAudioScheduler = useCallback(() => {
     const audio = audioRef.current;
@@ -20940,7 +20989,8 @@ function App({ onReady }) {
     const pianoHighpass = audio.createBiquadFilter();
     const pianoTone = audio.createBiquadFilter();
     const pianoDryGain = audio.createGain();
-    master.gain.setValueAtTime(0.78, audio.currentTime);
+    // Unity raises the former attenuated default; individual instrument ratios stay intact.
+    master.gain.setValueAtTime(getAccompanimentVolumeSnapshot().volume, audio.currentTime);
     drumGain.gain.setValueAtTime(
       backingDrumEnabledRef.current ? getBackingPartOutputGain("drum", backingDrumVolumeRef.current) : 0,
       audio.currentTime,
@@ -27733,6 +27783,13 @@ function App({ onReady }) {
   const isShooterNormalScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.NORMAL;
   const isShooterDifficultScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
   const isShooterScriptedScenario = isShooterEasyScenario || isShooterNormalScenario || isShooterDifficultScenario;
+  const activeShooterScenarioCountdown = gameState === GAME_STATES.PLAYING && isShooterScriptedScenario && shooterScenarioCountdown
+    ? {
+      ...shooterScenarioCountdown,
+      sectionLabel: localizeUi(shooterScenarioCountdown.sectionLabel),
+      sectionAnnouncement: localizeUi(shooterScenarioCountdown.sectionAnnouncement),
+    } : null;
+  const shooterPreparing = gameState === GAME_STATES.PLAYING && Boolean(shooterCountInLabel || activeShooterScenarioCountdown);
   const isShooterExactPositionMode = isShooterScriptedScenario || isShooterRandom;
   const shooterGuidePositions = shooterGuidePitch && !isShooterVoiceMode
     ? isShooterExactPositionMode && shooterTargetDetail
@@ -29609,6 +29666,7 @@ function App({ onReady }) {
 
   const resetSoundSettings = useCallback(() => {
     setMetronomeVolume(1);
+    setAccompanimentVolume(DEFAULT_ACCOMPANIMENT_VOLUME);
     resetBackingVolumeSettings();
   }, [resetBackingVolumeSettings]);
 
@@ -30801,6 +30859,7 @@ function App({ onReady }) {
                     </section>
                     <section className="soundSettingsGroup" aria-label={translateUi("soundSettings.backingInstruments")}>
                     <h3 className="soundSettingsGroupTitle"><Translation id="soundSettings.backingInstruments" /></h3>
+                    <AccompanimentVolumeControl className="utilitySoundSliderRow" />
                     {BACKING_PART_VOLUME_CONTROLS.map((control) => {
                       const value = getBackingVolumeValue(control.id);
                       const Icon = control.id === "drum" ? Drum : control.id === "bass" ? Guitar : Piano;
@@ -33577,7 +33636,7 @@ function App({ onReady }) {
           className={`shooterPanel ${horizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterPanel--mobileLandscape" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
           aria-label={mapEditor.enabled ? translateUi("app.mapStudio") : translateUi("menu.shooter")}
         >
-          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps instrumentProfile={viewerProfile} onInstrument={changeShooterInstrument} voiceMessage={shooterVoiceMessage} voiceMode={isShooterVoiceMode} recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
+          {isDesktopLayout && !mapEditor.enabled && !horizontalShooterActive && <DesktopShooterMaps preparing={shooterPreparing} scenarioCountdown={activeShooterScenarioCountdown} instrumentProfile={viewerProfile} onInstrument={changeShooterInstrument} voiceMessage={shooterVoiceMessage} voiceMode={isShooterVoiceMode} recordingEntryRef={setShooterRecordingEntryTarget} mapId={desktopMapId} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} micActive={hasMic} best={shooterRecords.best.score} score={score} combo={combo} target={shooterGuidePitch ? shooterGuidePrimaryLabel : ''} difficulty={shooterDifficulty} difficultyDisabled={isShooterDifficultyLocked} difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS.map(o=>({...o,label:localizeUi(o.label)}))} onDifficulty={changeShooterDifficulty} onSkin={()=>{if(gameState===GAME_STATES.PLAYING)pauseGame();setShooterPickerInitialTab('guitar');setShooterGuitarPickerOpen(v=>!v);}} onPause={gameState===GAME_STATES.PAUSED?resumeGame:pauseGame} onMic={startShooterMic} playing={gameState===GAME_STATES.PLAYING} paused={gameState===GAME_STATES.PAUSED} skinOpen={shooterGuitarPickerOpen} hintMessage={localizeUi(shooterPlayHelpMessage)} hint={shooterPlayHelpLevel} onHint={setShooterPlayHelpLevel} solfege={shooterSolfegeOn} onSolfege={()=>setShooterSolfegeOn(v=>!v)} />}
           <div className="modeHelper shooterHelper"><Translation id="app.buildFretboardRecognitionAndPickingAccuracyThroughRepetition" /></div>
           {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
             anchor={shooterDifficultyAnchor}
@@ -33936,14 +33995,14 @@ function App({ onReady }) {
 
             {!mapEditor.enabled && !desktopShooterScene ? (
               <>
-                  <div className="mobileShooterTargetHud" aria-live="polite">
+                  {!shooterPreparing ? <div className="mobileShooterTargetHud" aria-live="polite">
                     <span><Translation id="app.targetNote" /></span>
                     <strong>
                       {shooterGuidePitch
                         ? shooterGuidePrimaryLabel
                         : translateUi("app.waiting")}
                     </strong>
-                </div>
+                </div> : null}
 
                 {!isShooterVoiceMode && shooterPlayHelpInfoOpen ? (
                   <div
@@ -34426,18 +34485,11 @@ function App({ onReady }) {
                 ))}
               </div>
             ) : null}
-            {gameState === GAME_STATES.PLAYING
-              && isShooterScriptedScenario
-              && shooterScenarioCountdown ? (
-              <div
-                aria-live="polite"
-                className={isMobileLayout ? "mobileShooterScenarioBanner" : "desktopShooterScenarioBanner"}
-                style={{ animation: "none" }}
-              >
-                <strong>{localizeUi(shooterScenarioCountdown.sectionLabel)}</strong>
-                <span>{localizeUi(shooterScenarioCountdown.sectionAnnouncement)}</span>
-                <b style={{ fontSize: 32, lineHeight: 1.2 }}>{shooterScenarioCountdown.seconds}</b>
-              </div>
+            {!desktopShooterScene && activeShooterScenarioCountdown ? (
+              <ShooterScenarioGuidance
+                countdown={activeShooterScenarioCountdown}
+                layout={isTabletLayout ? "tablet" : isMobileLayout ? "mobile" : "arena"}
+              />
             ) : null}
             {gameState === GAME_STATES.PLAYING
               && shooterScenarioRoundSummary?.difficulty === shooterDifficulty

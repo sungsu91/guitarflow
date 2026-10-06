@@ -4,6 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { getArtMapCover } from '../src/shooter/maps/artMapMotion.js';
 import { getArtMapSceneMotion } from '../src/shooter/maps/artMapSceneMotion.js';
 import { ART_MAP_CLOTH_PATHS } from '../src/shooter/maps/artMapClothSurface.js';
+import { SILK_STREAMER_LAYOUTS } from '../src/shooter/maps/silkStreamers.js';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const sharp = require('sharp');
@@ -52,6 +53,7 @@ try {
     await page.screenshot({path:`${out}/${name}-basses.png`});
     await page.locator('.shooterSkinTabs').getByRole('button',{name:'맵',exact:true}).click();
     for(const [id,label]of [['glass-garden','유리꽃의 정원'],['silk-theatre','비단의 대극장'],['gilded-ink','금빛 수묵산수']]) {
+      if(process.env.QA_MAPS&&!process.env.QA_MAPS.split(',').includes(id))continue;
       const list=page.locator(desktop?'.desktopMapGallery':'.shooterMapPickerGrid');
       await list.locator('button').filter({hasText:label}).click();
       await page.locator('.shooterGuitarPickerHeader button').click();
@@ -93,6 +95,7 @@ try {
           return {x:r.x,y:r.y,width:r.width,height:r.height,transform:s.transform,animation:s.animationName};
         })};
       });
+      if(id==='silk-theatre')assert.equal(await canvas.getAttribute('data-streamer-count'),'2','both restored silk streamers must be loaded');
       const posterBefore=await posterState();
       const first=await capture();await page.waitForTimeout(1600);const second=await capture();
       assert.deepEqual(await posterState(),posterBefore,'poster and its framing must remain stationary');
@@ -112,6 +115,7 @@ try {
       // Portrait silk reaches lower in its composition; the stage starts at .79.
       const floorY=id==='silk-theatre'?(name==='mobile'?.79:.75):id==='glass-garden'?.775:.795;
       let changed=0,outsideChanged=0,outside=0,floorChanged=0,centerChanged=0,silhouetteChanged=0;
+      let coreAlpha=0,corePixels=0,goldPixels=0,atmosphereChanged=0;
       const diff=Buffer.alloc(a.length);
       for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++){
         const px=(x+.5)/info.width*crop.scale[0]+crop.offset[0],py=(y+.5)/info.height*crop.scale[1]+crop.offset[1];
@@ -122,22 +126,32 @@ try {
           return t>=0&&t<=1&&Math.abs(px-center)<=(index<2?.012:index<4?.013:.007)+.00001;
         });
         const inFog=layout.fog?.some(([cx,cy,rx,ry])=>Math.hypot((px-cx)/rx,(py-cy)/ry)<=1.0001);
+        const inAtmosphere=layout.atmosphere&&Math.hypot((px-layout.atmosphere[0])/layout.atmosphere[2],(py-layout.atmosphere[1])/layout.atmosphere[3])<1;
         const inMoon=layout.moon&&Math.hypot((px-layout.moon[0])/layout.moon[2],(py-layout.moon[1])/layout.moon[3])>=.9399&&Math.hypot((px-layout.moon[0])/layout.moon[2],(py-layout.moon[1])/layout.moon[3])<=1.1601;
         const inCloth=id==='silk-theatre'&&clothSamples.some(([cx,cy,r])=>Math.abs(py-cy)<=r&&Math.abs(px-cx)<=r/aspect&&Math.hypot((px-cx)*aspect,py-cy)<=r);
-        const inside=inPool||inBeacon||inFall||inFog||inMoon||inCloth;
+        const inStreamer=id==='silk-theatre'&&SILK_STREAMER_LAYOUTS[name].some(([sx,sy,sw,sh])=>
+          px>=sx-sw*.2&&px<=sx+sw*1.2&&py>=sy&&py<=sy+sh);
+        const inside=inPool||inBeacon||inFall||inFog||inMoon||inCloth||inStreamer||inAtmosphere;
         const i=(y*info.width+x)*3,d=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]);
+        if(px>.42&&px<.58&&py>.34&&py<.44){coreAlpha+=alphaB[y*info.width+x]/255;corePixels++;}
+        if(inAtmosphere&&alphaB[y*info.width+x]>32&&b[i]>b[i+1]*1.07&&b[i+1]>b[i+2]*1.1)goldPixels++;
         if(!inside)outside++;
         if(Math.abs(alphaA[y*info.width+x]-alphaB[y*info.width+x])>40)silhouetteChanged++;
         if(d>0){
           if(!inside)outsideChanged++;
           if(py>floorY)floorChanged++;
           if(px>.42&&px<.58&&py>.34&&py<.44)centerChanged++;
+          if(inAtmosphere&&d>3)atmosphereChanged++;
           if(d>3){changed++;diff[i]=255;diff[i+1]=inside?180:0;}
         }
       }
       assert.equal(outsideChanged,0,`${name} ${id}: pixels moved outside scene objects`);
       assert.equal(floorChanged,0,`${name} ${id}: floor must remain pixel-stable`);
-      assert.equal(centerChanged,0,`${name} ${id}: central space must remain pixel-stable`);
+      if(id==='gilded-ink') {
+        assert.ok(coreAlpha/corePixels<.18,`${name}: smoke must stay translucent behind the notes (${coreAlpha/corePixels})`);
+        assert.ok(goldPixels>30,`${name}: separate golden flecks must be visible`);
+        assert.ok(atmosphereChanged>500,`${name}: the requested smoke and gold dust must visibly move`);
+      } else assert.equal(centerChanged,0,`${name} ${id}: central space must remain pixel-stable`);
       assert.ok(outside/(info.width*info.height)>.45,'effect layers must stay local');
       if(id==='silk-theatre')assert.ok(changed/(info.width*info.height)>.012,'original silk weave must visibly flow');
       assert.ok(changed>100,`${name} ${id}: scene object should visibly animate`);
@@ -148,7 +162,7 @@ try {
       await page.screenshot({path:`${out}/${name}-${id}.png`});
       await openPicker(page,desktop);
       if(desktop){const t=await canvas.getAttribute('data-motion-time');await page.waitForTimeout(250);assert.equal(await canvas.getAttribute('data-motion-time'),t,'picker should pause desktop scenery');}
-      report.push({profile:name,id,difference,silhouetteChanged,outsideChanged,floorChanged,centerChanged,staticFraction:outside/(info.width*info.height),canvasSize,basses:bassReport});
+      report.push({profile:name,id,difference,silhouetteChanged,outsideChanged,floorChanged,centerChanged,coreOpacity:coreAlpha/corePixels,goldPixels,atmosphereChanged,staticFraction:outside/(info.width*info.height),canvasSize,basses:bassReport});
       await page.locator('.shooterSkinTabs').getByRole('button',{name:'맵',exact:true}).click();
     }
     // The desktop start control stays reachable while its floating picker is open.

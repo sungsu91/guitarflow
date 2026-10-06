@@ -89,7 +89,7 @@ try{
    await page.locator('.etudeEditor').waitFor();await page.locator('[data-mobile-tool-toggle="picking"]').click();
    await panel.getByRole('button',{name:'아르페지오',exact:true}).click();assert.equal(await panel.getByLabel('아르페지오 코드',{exact:true}).count(),0);assert(await panel.getByRole('button',{name:'반주 패턴 적용',exact:true}).isDisabled());
    await panel.getByRole('button',{name:'빠진 코드명 입력',exact:true}).click();
-   await page.getByRole('dialog',{name:'코드명 선택',exact:true}).getByRole('button',{name:'불러오기',exact:true}).click();
+   await page.getByRole('dialog',{name:'코드명 선택',exact:true}).getByRole('button',{name:'입력 완료',exact:true}).click();
    if(mobile){if(!await panel.isVisible())await page.locator('[data-mobile-tool-toggle="picking"]').click();await panel.getByRole('button',{name:'아르페지오',exact:true}).click();}
    await panel.getByRole('button',{name:'반주 패턴 적용',exact:true}).click();
    await save();const added=Object.values((await readBrowserScoreLibrary(page)).records).find(r=>r.document.id!==source.id).document;

@@ -9,6 +9,7 @@ function fixture() {
     createGain: () => ({ gain: { value: 1 }, connect() {}, disconnect() {} }),
     createBufferSource() {
       const source = {
+        playbackRate: {value: 1},
         connect() {}, disconnect() {},
         start(time, offset) { this.startTime = time; this.offset = offset; },
         stop() { this.stopped = true; },

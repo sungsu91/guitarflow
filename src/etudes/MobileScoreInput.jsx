@@ -8,10 +8,9 @@ import RepeatTools from './RepeatTools.jsx';
 import {ArrowUp,ArrowDown,ArrowLeft,ArrowRight,ChevronLeft,ChevronRight,ChevronUp,ChevronDown,Plus,X,Delete,Trash2} from 'lucide-react';
 import EditorMusicIcon from './EditorMusicIcon.jsx';
 import {useRef,useLayoutEffect,useState} from 'react';
-export default function MobileScoreInput({drums=false,fretted=true,pitchInput,desktop=false,desktopPickingControls,arpeggioControls,openTool,onTool,onCloseTool,techniques,repeatBar,repeatIssue,onRepeat,onNavigation,onResetBar,onDeleteBar,canDeleteBar,cursor,event,meter,tabRhythm=true,tabBeamPosition='below',tabShortStems=false,tabPickingPosition='below',onTabBeam,onPickingPosition,onKey,onBar,onCopyLine,onDeleteLine,onCopyBeat,onDeleteBeat,onAddBar,onPick,onBatch,feedback,playback}) {
+export default function MobileScoreInput({drums=false,fretted=true,pitchInput,desktop=false,desktopPickingControls,arpeggioControls,pickingMode='marks',onPickingMode:setPickingMode,openTool,onTool,onCloseTool,techniques,repeatBar,repeatIssue,onRepeat,onNavigation,onResetBar,onDeleteBar,canDeleteBar,cursor,event,meter,tabRhythm=true,tabBeamPosition='below',tabShortStems=false,tabPickingPosition='below',onTabBeam,onPickingPosition,onKey,onBar,onCopyLine,onDeleteLine,onCopyBeat,onDeleteBeat,onAddBar,onPick,onBatch,feedback,playback}) {
   useLanguage();
  const [confirmReset,setConfirmReset]=useState(false);
- const [pickingMode,setPickingMode]=useState('marks');
  const showArpeggio=Boolean(arpeggioControls)&&pickingMode==='arpeggio';
  const resetButton=useRef(null);
  const closeReset=()=>{setConfirmReset(false);resetButton.current?.focus();};

@@ -1,0 +1,63 @@
+@layer shooter-scenario-guidance {
+  .shooterScenarioGuidance {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    text-wrap: balance;
+    pointer-events: none;
+    color: #eee3cf !important;
+    text-shadow: 0 2px 6px #000, 0 0 18px #000b !important;
+  }
+  .shooterScenarioGuidance > h2 {
+    margin: 0 !important;
+    color: #e3c58a !important;
+    font-size: 20px !important;
+    font-weight: 750 !important;
+    line-height: 1.4 !important;
+  }
+  .shooterScenarioGuidance > p {
+    margin: 0 !important;
+    color: #eee3cf !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  .shooterScenarioGuidance > .shooterScenarioGuidanceCount {
+    color: #fff3d7 !important;
+    font-size: 48px !important;
+    font-weight: 750 !important;
+    line-height: 1.2 !important;
+    font-variant-numeric: tabular-nums;
+  }
+  .desktopLayout .dsTarget--preparing {
+    width: min(420px, 40%);
+  }
+  .shooterScenarioGuidance--mobile,
+  .shooterScenarioGuidance--tablet,
+  .shooterScenarioGuidance--arena {
+    position: absolute;
+    z-index: 40;
+    left: 50%;
+    top: 36%;
+    width: min(300px, calc(100% - 112px));
+    transform: translate(-50%, -50%);
+  }
+  .shooterScenarioGuidance--mobile > h2 {
+    font-size: 16px !important;
+  }
+  .shooterScenarioGuidance--mobile > p {
+    font-size: 13px !important;
+  }
+  .shooterScenarioGuidance--mobile > .shooterScenarioGuidanceCount {
+    font-size: 40px !important;
+  }
+  .shooterScenarioGuidance--tablet {
+    width: min(360px, 44%);
+  }
+  .shooterScenarioGuidance--arena {
+    width: min(360px, calc(100% - 32px));
+  }
+}

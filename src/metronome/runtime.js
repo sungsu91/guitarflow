@@ -104,6 +104,11 @@ export function advanceMetronomeRuntime(previousState, elapsedMs, configuration 
 
   let trackerBarLimitReached = false;
   const trackerBarLimit = Math.max(0, Math.trunc(Number(configuration.trackerBarLimit) || 0));
+  const trackerBarLimitKey = `${Boolean(configuration.trackerBarLimitEnabled)}:${trackerBarLimit}:${Boolean(configuration.trackerBarStopWhenReached)}:${Boolean(configuration.trackerBarResetWhenReached)}`;
+  if (next.trackerBarLimitKey !== trackerBarLimitKey) {
+    next.trackerBarLimitKey = trackerBarLimitKey;
+    next.trackerBarLimitReached = false;
+  }
   if (trackerMode === "bars" && configuration.trackerBarLimitEnabled && trackerBarLimit > 0) {
     if (next.trackerBars >= trackerBarLimit && !next.trackerBarLimitReached) {
       trackerBarLimitReached = true;
@@ -119,6 +124,11 @@ export function advanceMetronomeRuntime(previousState, elapsedMs, configuration 
 
   let trackerTimerLimitReached = false;
   const trackerTimerTotalMs = Math.max(0, Number(configuration.trackerTimerTotalMs) || 0);
+  const trackerTimerLimitKey = `${trackerTimerTotalMs}:${Boolean(configuration.trackerTimerStopWhenReached)}:${Boolean(configuration.trackerTimerResetWhenReached)}`;
+  if (next.trackerTimerLimitKey !== trackerTimerLimitKey) {
+    next.trackerTimerLimitKey = trackerTimerLimitKey;
+    next.trackerTimerLimitReached = false;
+  }
   if (trackerMode === "timer" && trackerTimerTotalMs > 0) {
     if (next.trackerElapsedMs >= trackerTimerTotalMs && !next.trackerTimerLimitReached) {
       trackerTimerLimitReached = true;

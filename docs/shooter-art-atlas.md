@@ -28,9 +28,11 @@ floor below the player and a quieter center for notes.
   - Glass garden: a warm flame brightens and fades inside the central lotus.
     Six descending streams follow the painted channels and waterfalls on both
     sides. Expanding ripples remain confined to the water above the stage.
-  - Gilded ink: six soft mist volumes flow through existing cloud-filled valleys,
-    retaining the painting's gray-green palette. Gold traces follow the lunar
-    ring; the mountains, scrolls and ring itself stay stationary.
+  - Gilded ink: stronger mist flows through six cloud-filled valleys and a
+    separate central field of curling smoke and drifting gold dust. Each device
+    has its own field placement, with a quieter opening behind the notes.
+    `gildedAtmosphere.js` shares the existing canvas and clock. Gold traces follow
+    the lunar ring; the mountains, scrolls and ring itself stay stationary.
 - `artMapSceneMotion.js` and `artMapClothSurface.js` keep distinct registration
   data for desktop, phone and tablet compositions. `artMapObjectShader.js`
   shares the rendering logic. Unknown compositions have no material motion.
@@ -60,7 +62,9 @@ reduced motion and runtime errors.
 
 The motion/presence audit uses `SHOOTER_TEST_URL` and `SHOOTER_TEST_OUTPUT`.
 It captures actual GPU frames and requires **zero changed pixels outside the
-object bounds**, zero floor/central-space changes and visible object effects.
+object bounds**, zero floor changes and visible object effects. Central space
+stays still except for the requested gilded-ink atmosphere, whose mean opacity
+behind the notes is checked below 18%, together with visible moving gold flecks.
 Silk must show visible motion inside the original cloth masks; the masks retain
 the painting's original RGB pixels and keep architectural landmarks transparent.
 It also checks each device's bass size, picker close/pause behavior and reduced

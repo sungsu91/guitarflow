@@ -16,6 +16,11 @@ export default function DesktopArpeggioControls({controls:c}){
   </div>
   <p>{t('editor.arpFollowChords')}</p>
   {c.progressionLabel&&<output className="arpeggioProgression">{c.progressionLabel}</output>}
+  <div className="desktopArpeggioChords" role="group" aria-label={t('editor.arpBarChords')}>
+   <strong>{t('editor.arpBarChords')}</strong><p>{t('editor.arpBarChordsHint')}</p>
+   <div className="arpeggioBarChords">{c.chordBars.map(b=><button key={b.id} type="button" aria-label={t('editor.arpEditBarChord',{value1:b.bar+1})} onClick={()=>c.onEditBarChord(b.bar)}><span>{b.bar+1}{t('app.bar')}</span><strong>{b.name||t('editor.arpEnterChord')}</strong><small>{t(b.inherited?'editor.arpInheritedChord':'editor.arpChangeChord')}</small></button>)}</div>
+   {c.nextChordBar!==null&&<button type="button" className="arpeggioNextChord" onClick={()=>c.onEditBarChord(c.nextChordBar)}>{t('editor.arpNextChord',{value1:c.nextChordBar+1})} →</button>}
+  </div>
   {c.needsChord&&<div className="arpeggioChordPrompt"><p role="status">{c.error}</p><button type="button" onClick={c.onEditChord}>{t('editor.arpEditChord')}</button></div>}
   {c.plans.length>0&&<output className="arpeggioPreview">{arpeggioSequence(c.plans[0])}<br/>{t('editor.arpRepeatCount',{value1:c.plans[0].repeats})}</output>}
   {c.pattern.includes('pinch')||c.pattern.includes('slap')?<p>{t('editor.arpPinchHint')}</p>:null}

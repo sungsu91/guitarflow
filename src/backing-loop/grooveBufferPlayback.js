@@ -12,10 +12,11 @@ export function createGrooveBufferPlayback({ context, buffer, output, level = 1,
   let startedAt = 0;
   let looping = false;
   let disposed = false;
+  let playbackRate = 1;
   const duration = buffer.duration;
   const clampTime = value => Math.max(0, Math.min(duration, Number(value) || 0));
   const position = () => {
-    const elapsed = offset + (source ? Math.max(0, context.currentTime - startedAt) : 0);
+    const elapsed = offset + (source ? Math.max(0, context.currentTime - startedAt) * playbackRate : 0);
     return looping && duration ? elapsed % duration : clampTime(elapsed);
   };
   const stopSource = () => {
@@ -49,6 +50,15 @@ export function createGrooveBufferPlayback({ context, buffer, output, level = 1,
   const player = {
     graph,
     duration,
+    get playbackRate() { return playbackRate; },
+    set playbackRate(value) {
+      const rate = Number(value);
+      if (!Number.isFinite(rate) || rate <= 0) return;
+      offset = position();
+      startedAt = Math.max(startedAt, context.currentTime);
+      playbackRate = rate;
+      if (source) source.playbackRate.value = rate;
+    },
     get paused() { return !source; },
     get currentTime() { return position(); },
     set currentTime(value) {
@@ -76,6 +86,7 @@ export function createGrooveBufferPlayback({ context, buffer, output, level = 1,
       next.loop = looping;
       next.loopStart = 0;
       next.loopEnd = duration;
+      if (next.playbackRate) next.playbackRate.value = playbackRate;
       next.connect(transportGain);
       next.onended = () => {
         if (source !== next) return;

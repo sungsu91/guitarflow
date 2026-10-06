@@ -31,3 +31,15 @@
 .editorDesign .scoreChordNameDialog.scoreChordDialog--desktop{position:fixed;inset:16px;margin:auto;width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px)}
 .editorDesign .scoreChordNameDialog.scoreChordDialog--mobile{position:relative;inset:auto;margin:0 auto;width:100%;max-width:760px;max-height:none;flex:none;box-shadow:0 2px 8px #21170f14}
 .scoreChordNameDialog.scoreChordDialog--mobile::backdrop{background:transparent;backdrop-filter:none}
+.scoreChordNameDialog .chordNameTarget{margin:0 0 10px;text-align:center;font-size:12px;font-weight:600;color:#675340}
+.scoreChordNameDialog .chordNameNotice{margin:0;padding:6px 12px;font-size:11px;line-height:1.5;color:#675340;background:#f4eee6}
+.scoreChordNameDialog .chordNameActions{display:flex;gap:6px;min-width:0}
+.scoreChordNameDialog .chordApplyNext{display:flex;align-items:center;justify-content:center;gap:3px}
+.scoreChordNameDialog .desktopChordNameFooter .chordTargetBar{min-width:140px}
+.scoreChordNameDialog .mobileChordNameFooter{flex-direction:column;align-items:stretch}
+.scoreChordNameDialog .mobileChordNameFooter .chordTargetBar{width:100%}
+.scoreChordNameDialog .mobileChordNameFooter .chordNameActions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr)}
+@layer score-workspace{
+ .editorDesign .scoreChordNameDialog .chordNameActions :is(.chordApply,.chordApplyNext){height:36px!important;min-height:36px!important;font-size:12px!important;padding:5px 10px!important}
+ .editorDesign .scoreChordNameDialog .mobileChordNameFooter .chordNameActions button{width:100%!important;padding:5px 6px!important}
+}

@@ -23,6 +23,7 @@ try{for(const [width,theme] of (safari?[[390,'light'],[390,'brand']]:[[1440,'lig
   await page.goto('http://127.0.0.1:5174/#etudes');await page.locator('.launchSplash').waitFor({state:'detached'});
   if(mobile){await page.getByRole('button',{name:'악보 작업',exact:true}).click();await page.getByRole('menuitem',{name:/제작|만들기/}).click();await page.locator('input[type=file][accept*="json"]').setInputFiles({name:'review.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(doc))});}
   else{await page.getByRole('button',{name:'제작',exact:true}).click();await page.getByRole('button',{name:'제작 악보 불러오기',exact:true}).click();await page.locator('.scoreOpenItem').filter({hasText:doc.title}).click();}
+  if(mobile)await page.getByRole('button',{name:'악보 확인',exact:true}).click();
   const quick=page.locator(mobile?'.mobileReviewQuick':'.desktopReviewQuick');await quick.waitFor();
   assert.match(await quick.innerText(),/의심 구간 (?:1 \/ 4|4마디)/,'only the four suspect bars, not every imported note');
   const selected=[];

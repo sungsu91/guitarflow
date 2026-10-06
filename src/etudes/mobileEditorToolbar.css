@@ -1,0 +1,23 @@
+/* Mobile rows keep their height as tools and import notices become available. */
+.editorDesign.mobileScoreWorkspace .mobileEditorBarActions{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.editorDesign.mobileScoreWorkspace .etudeMeasureLayoutBar{flex-wrap:nowrap!important;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;touch-action:pan-x;padding-block:2px;gap:4px}
+.editorDesign.mobileScoreWorkspace .etudeMeasureLayoutBar>*{flex-shrink:0}
+.editorDesign.mobileScoreWorkspace .etudeMeasureLayoutBar .etudeLayoutHint{white-space:nowrap;margin:0}
+.editorDesign.mobileScoreWorkspace .mobileEditorBarActions button{white-space:nowrap;flex-shrink:0}
+.editorDesign.mobileScoreWorkspace .mobileDurationRow{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;touch-action:pan-x;align-items:center}
+.editorDesign.mobileScoreWorkspace .mobileDurationRow>.etudeDurationButtons{display:flex;flex:1 0 auto}
+.editorDesign.mobileScoreWorkspace .mobileDurationRow>.rhythmModifiers{flex:0 0 auto}
+.editorDesign.mobileScoreWorkspace .mobileDurationRow>.rhythmInputStatus{flex:0 0 auto;height:auto;white-space:nowrap}
+.editorDesign.mobileScoreWorkspace .mobileScoreNoticesToggle{gap:4px}
+.editorDesign.mobileScoreWorkspace .mobileScoreNoticeCount{font-size:10px;border-radius:8px;background:var(--ed-soft);padding:1px 4px}
+.editorDesign.mobileScoreWorkspace .mobileScoreNoticesBody{min-width:0;white-space:normal}
+.editorDesign.mobileScoreWorkspace .mobileScoreNoticesBody>:is(.mobilePdfTabReview,.mobileImportPlaybackNotice,.mobileStaffPitchRepair,.mobilePdfTabStorageNotice){max-height:none;overflow:visible}
+@layer score-workspace{
+ .editorDesign.mobileScoreWorkspace{overflow-y:auto!important;overflow-x:hidden!important}
+ .editorDesign.mobileScoreWorkspace .etudeEditorCanvas{min-height:180px!important}
+ .editorDesign.mobileScoreWorkspace .mobileDurationRow button{flex-shrink:0;min-width:30px!important}
+ .editorDesign.mobileScoreWorkspace .etudeMeasureLayoutBar button{font-size:11px!important;padding-inline:5px!important}
+ .editorDesign.mobileScoreWorkspace .editorBarCount button{width:26px!important;min-width:26px!important}
+ .editorDesign.mobileScoreWorkspace .editorBarCount{gap:2px!important;font-size:10px}
+ .editorDesign.mobileScoreWorkspace .editorBarCount>span{font-size:10px}
+}

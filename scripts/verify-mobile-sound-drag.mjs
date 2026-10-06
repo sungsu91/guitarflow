@@ -29,25 +29,26 @@ try {
     await page.locator('.launchSplash').waitFor({ state: 'hidden', timeout: 60000 });
     await openMobileSound(page);
     const ranges = page.locator('.utilitySoundSliders input[type="range"]');
-    assert.equal(await ranges.count(), 5);
+    assert.equal(await ranges.count(), 6);
     const client = await page.context().newCDPSession(page);
     const values = [];
-    for (let index = 0; index < 5; index++) {
+    for (let index = 0; index < await ranges.count(); index++) {
       const input = ranges.nth(index);
       await input.scrollIntoViewIfNeeded();
       assert.equal(await input.evaluate(el => getComputedStyle(el).touchAction), 'none');
       await input.evaluate(el => { window.dragValues = []; el.addEventListener('input', () => window.dragValues.push(Number(el.value))); });
       let box = await input.boundingBox();
       const initial = Number(await input.inputValue());
+      const maximum = Number(await input.getAttribute('max'));
       const y = box.y + box.height / 2;
       const scroll = await page.locator('.utilitySettingsBody').evaluate(el => el.scrollTop);
       const pageY = await page.evaluate(() => window.scrollY);
       // Start on the thumb, then reverse from the track with slight vertical drift.
-      await dragTouch(client, { x: box.x + 8 + (box.width - 16) * initial / 100, y }, { x: box.x + box.width - 12, y: y + 5 });
-      assert.ok(Number(await input.inputValue()) >= 90);
+      await dragTouch(client, { x: box.x + 8 + (box.width - 16) * initial / maximum, y }, { x: box.x + box.width - 12, y: y + 5 });
+      assert.ok(Number(await input.inputValue()) >= maximum * .9);
       await dragTouch(client, { x: box.x + box.width * .72, y }, { x: box.x + 8 + (box.width - 16) * .23, y: y - 4 });
       const value = Number(await input.inputValue());
-      assert.ok(value >= 20 && value <= 26, `range ${index}: ${value}`);
+      assert.ok(value >= maximum * .2 && value <= maximum * .26, `range ${index}: ${value}`);
       assert.ok((await page.evaluate(() => window.dragValues)).length >= 6, 'must update continuously during the drag');
       assert.equal(await input.locator('..').locator('b').textContent(), String(value));
       assert.equal(await page.locator('.utilitySettingsBody').evaluate(el => el.scrollTop), scroll);
@@ -70,15 +71,16 @@ try {
   await page.locator('.launchSplash').waitFor({ state: 'hidden', timeout: 60000 });
   await page.locator('.desktopSoundSettingsTrigger').click();
   const ranges = page.locator('.desktopSoundSettingsPanel input[type="range"]');
-  assert.equal(await ranges.count(), 5);
+  assert.equal(await ranges.count(), 6);
   for (const input of await ranges.all()) {
     const box = await input.boundingBox();
     const value = Number(await input.inputValue());
-    await page.mouse.move(box.x + 8 + (box.width - 16) * value / 100, box.y + box.height / 2);
+    const maximum = Number(await input.getAttribute('max'));
+    await page.mouse.move(box.x + 8 + (box.width - 16) * value / maximum, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + 8 + (box.width - 16) * .35, box.y + box.height / 2, { steps: 10 });
     await page.mouse.up();
-    assert.ok(Number(await input.inputValue()) >= 32 && Number(await input.inputValue()) <= 38);
+    assert.ok(Number(await input.inputValue()) >= maximum * .32 && Number(await input.inputValue()) <= maximum * .38);
     await input.focus();
     await page.keyboard.press('Home');
     await page.keyboard.press('ArrowRight');

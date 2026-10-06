@@ -61,6 +61,12 @@ export function getWheelDragPosition(startPosition, startY, currentY, optionCoun
   );
 }
 
+export function getWheelScrollPosition(position, deltaY, deltaMode, optionCount) {
+  const delta = Number.isFinite(deltaY) ? deltaY : 0;
+  const scale = deltaMode === 1 ? 1 : deltaMode === 2 ? 5 : 1 / WHEEL_PICKER_ITEM_HEIGHT;
+  return clampWheelPosition(position + Math.max(-5, Math.min(5, delta * scale)), optionCount);
+}
+
 export function getWheelReleaseVelocity(samples, releasedAt, pointerType = "mouse") {
   const safeSamples = (Array.isArray(samples) ? samples : [])
     .filter((sample) => Number.isFinite(sample?.y) && Number.isFinite(sample?.time));
